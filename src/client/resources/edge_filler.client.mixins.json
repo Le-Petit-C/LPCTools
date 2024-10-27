@@ -1,0 +1,14 @@
+{
+	"required": true,
+	"package": "cn.edge_filler.mixin.client",
+	"compatibilityLevel": "JAVA_21",
+	"client": [
+		"EdgeFillerMixin",
+      	"PlaceBlockKeyboardControl",
+		"PlaceBlockMouseControl",
+		"PlaceBlockTick"
+	],
+	"injectors": {
+		"defaultRequire": 1
+	}
+}

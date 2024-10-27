@@ -1,0 +1,43 @@
+{
+	"schemaVersion": 1,
+	"id": "edge_filler",
+	"version": "${version}",
+	"name": "Edge Filler",
+	"description": "Trying to write a client mod that assists you fill the world",
+	"authors": [
+		"Le_Petit_C"
+	],
+	"contact": {
+		"homepage": "https://fabricmc.net/",
+		"sources": "https://github.com/FabricMC/fabric-example-mod"
+	},
+	"license": "CC0-1.0",
+	"icon": "assets/edge_filler/icon.png",
+	"environment": "*",
+	"entrypoints": {
+		"main": [
+			"cn.edge_filler.EdgeFillerMod"
+		],
+		"client": [
+			"cn.edge_filler.EdgeFillerModClient"
+		]
+	},
+	"mixins": [
+		"edge_filler.mixins.json",
+		{
+			"config": "edge_filler.client.mixins.json",
+			"environment": "client"
+		}
+	],
+	"depends": {
+		"fabricloader": ">=0.16.7",
+		"minecraft": [
+			"1.21.3"
+		],
+		"java": ">=21",
+		"fabric-api": "*"
+	},
+	"suggests": {
+		"another-mod": "*"
+	}
+}

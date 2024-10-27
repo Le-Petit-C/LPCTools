@@ -1,0 +1,11 @@
+{
+	"required": true,
+	"package": "cn.edge_filler.mixin",
+	"compatibilityLevel": "JAVA_21",
+	"mixins": [
+		"EdgeFillerMixin"
+	],
+	"injectors": {
+		"defaultRequire": 1
+	}
+}
