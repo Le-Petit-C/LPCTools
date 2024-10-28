@@ -1,6 +1,7 @@
 package cn.edge_filler.mixin.client;
 
 import cn.edge_filler.Data;
+import cn.edge_filler.HandRestock;
 import net.minecraft.block.Block;
 import net.minecraft.block.Blocks;
 import net.minecraft.client.MinecraftClient;
@@ -21,9 +22,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(ClientPlayerEntity.class)
 public class PlaceBlockTick {
-    @Shadow
-    @Final
-    protected MinecraftClient client;
+    @Shadow @Final protected MinecraftClient client;
 
     @Unique
     private Data.BLOCKTYPE blockType(BlockPos blockPosToCheck) {
@@ -32,6 +31,7 @@ public class PlaceBlockTick {
         Block block = client.world.getBlockState(blockPosToCheck).getBlock();
         if(block == Blocks.AIR
                 || block == Blocks.CAVE_AIR
+                || block == Blocks.VINE
                 || block == Blocks.VOID_AIR
                 || block == Blocks.WATER
                 || block == Blocks.LAVA
@@ -73,13 +73,11 @@ public class PlaceBlockTick {
     @Unique
     Boolean put(BlockPos blockpos){
         if(client.interactionManager == null) return false;
-        for (Hand hand : Hand.values()) {
-            Vec3d pos = new Vec3d(blockpos.getX() + 0.5, blockpos.getY() + 0.5, blockpos.getZ() + 0.5);
-            BlockHitResult hit = new BlockHitResult(pos, Direction.UP, blockpos, true);
-            if(client.interactionManager.interactBlock(client.player, hand, hit) == ActionResult.SUCCESS)
-                return true;
-        }
-        return false;
+        HandRestock.restock();
+        if(!Data.shouldplace) return false;
+        Vec3d pos = new Vec3d(blockpos.getX() + 0.5, blockpos.getY() + 0.5, blockpos.getZ() + 0.5);
+        BlockHitResult hit = new BlockHitResult(pos, Direction.UP, blockpos, true);
+        return client.interactionManager.interactBlock(client.player, Hand.MAIN_HAND, hit) == ActionResult.SUCCESS;
     }
 
     @Unique
