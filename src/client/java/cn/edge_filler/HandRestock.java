@@ -23,7 +23,6 @@ public class HandRestock {
                     inventory.selectedSlot = i;
                 }
                 else{
-                    int k = inventory.selectedSlot;
                     int j = 0;
                     while (!inventory.getStack(j).isEmpty() && j < inventory.size()) ++j;
                     itm.pickFromInventory(i);
