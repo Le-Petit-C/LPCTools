@@ -16,4 +16,4 @@ Actually I don't know what to write in this file. I just don't like to remove th
 
 ## License
 
-This mod is available under the CC-BY license.
+不知道怎么写，只是留着这段，以后或许就知道怎么写了。
