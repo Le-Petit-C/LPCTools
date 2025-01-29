@@ -12,6 +12,8 @@ import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.Vec3d;
+import net.minecraft.util.math.Vec3i;
+import org.jetbrains.annotations.NotNull;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -19,6 +21,10 @@ import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+
+import java.util.Arrays;
+import java.util.LinkedList;
+import java.util.Queue;
 
 @Mixin(ClientPlayerEntity.class)
 public class PlaceBlockTick {
@@ -48,6 +54,7 @@ public class PlaceBlockTick {
                 || block == Blocks.DEEPSLATE
                 || block == Blocks.GRAVEL
                 || block == Blocks.TUFF
+                || block == Blocks.TUFF_BRICKS
                 || block == Blocks.DIORITE
                 || block == Blocks.GRANITE
                 || block == Blocks.ANDESITE
@@ -64,6 +71,14 @@ public class PlaceBlockTick {
                 || block == Blocks.COBBLED_DEEPSLATE
                 || block == Blocks.MOSS_BLOCK
                 || block == Blocks.ROOTED_DIRT
+                || block == Blocks.SANDSTONE
+                || block == Blocks.WAXED_CHISELED_COPPER
+                || block == Blocks.WAXED_COPPER_BLOCK
+                || block == Blocks.WAXED_OXIDIZED_COPPER
+                || block == Blocks.CHISELED_TUFF
+                || block == Blocks.POLISHED_TUFF
+                || block == Blocks.CHISELED_TUFF_BRICKS
+                || block == Blocks.WAXED_OXIDIZED_CUT_COPPER
         ){
             return Data.BLOCKTYPE.STONE;
         }
@@ -79,131 +94,182 @@ public class PlaceBlockTick {
         BlockHitResult hit = new BlockHitResult(pos, Direction.UP, blockpos, true);
         return client.interactionManager.interactBlock(client.player, Hand.MAIN_HAND, hit) == ActionResult.SUCCESS;
     }
+    @Unique
+    private BlockPos currentPosition;//当前map区域的xyz值最小角坐标
+    @Unique
+    private int testDistance = 5;
+    @Unique
+    private int testSize = 11;
+    @Unique
+    private boolean[][][] map = new boolean[testSize][testSize][testSize];
+    @Unique
+    private boolean[][][] testBuffer = new boolean[testSize][testSize][testSize];
+    @Unique
+    public void setTestDistance(int distance){
+        testDistance = distance;
+        testSize = distance * 2 + 1;
+        map = new boolean[testSize][testSize][testSize];
+        testBuffer = new boolean[testSize][testSize][testSize];
+    }
+    @Unique
+    private void resetTestBuffer(){
+        for (boolean[][] bufferX : testBuffer) {
+            for (boolean[] bufferXY : bufferX) {
+                Arrays.fill(bufferXY, false);
+            }
+        }
+    }
+    @Unique
+    boolean getMapVec3i(@NotNull Vec3i pos){
+        if(pos.getX() < 0 || pos.getX() >= testSize) return true;
+        if(pos.getY() < 0 || pos.getY() >= testSize) return true;
+        if(pos.getZ() < 0 || pos.getZ() >= testSize) return true;
+        return map[pos.getX()][pos.getY()][pos.getZ()];
+    }
+    @Unique
+    void setMapVec3i(@NotNull Vec3i pos, boolean value){
+        if(pos.getX() < 0 || pos.getX() >= testSize) return;
+        if(pos.getY() < 0 || pos.getY() >= testSize) return;
+        if(pos.getZ() < 0 || pos.getZ() >= testSize) return;
+        map[pos.getX()][pos.getY()][pos.getZ()] = value;
+    }
+    @Unique
+    boolean getTestBufferVec3i(@NotNull Vec3i pos){
+        if(pos.getX() < 0 || pos.getX() >= testSize) return true;
+        if(pos.getY() < 0 || pos.getY() >= testSize) return true;
+        if(pos.getZ() < 0 || pos.getZ() >= testSize) return true;
+        return testBuffer[pos.getX()][pos.getY()][pos.getZ()];
+    }
+    @Unique
+    void setTestBufferVec3i(@NotNull Vec3i pos, boolean value){
+        if(pos.getX() < 0 || pos.getX() >= testSize) return;
+        if(pos.getY() < 0 || pos.getY() >= testSize) return;
+        if(pos.getZ() < 0 || pos.getZ() >= testSize) return;
+        testBuffer[pos.getX()][pos.getY()][pos.getZ()] = value;
+    }
+    @Unique
+    void initializeMap(@NotNull BlockPos eyeBlockPos){
+        currentPosition = eyeBlockPos.add(-testDistance, -testDistance, -testDistance);
+        BlockPos pos1 = new BlockPos(currentPosition);
+        for (boolean[][] mapX : map) {
+            BlockPos pos2 = pos1;
+            for (boolean[] mapXY : mapX) {
+                BlockPos pos3 = pos2;
+                for (int z = 0; z < mapXY.length; ++z) {
+                    mapXY[z] = (blockType(pos3) == Data.BLOCKTYPE.STONE);
+                    pos3 = pos3.south();
+                }
+                pos2 = pos2.up();
+            }
+            pos1 = pos1.east();
+        }
+    }
+    @Unique
+    boolean cantReach(Vec3i from, Vec3i to){
+        //寻路，测试在已加载的map中从from点能否走到to点
+        resetTestBuffer();
+        Queue<Vec3i> searchQueue = new LinkedList<>();
+        searchQueue.offer(from);
+        while(!searchQueue.isEmpty()){
+            Vec3i pos = searchQueue.poll();
+            if(getMapVec3i(pos)) continue;
+            int dstXZ = Math.abs(pos.getX() - to.getX()) + Math.abs(pos.getZ() - to.getZ());
+            if(dstXZ <= 1){
+                int dy = pos.getY() - to.getY();
+                if(dy == 0 || dy == 1) return false;
+                if(dy == -1 && !getTestBufferVec3i(pos.add(0, 1, 0))) return false;
+            }
+            if(getTestBufferVec3i(pos)) continue;
+            setTestBufferVec3i(pos, true);
+            //y+
+            if(!getMapVec3i(pos.add(0, 2, 0)))
+                searchQueue.offer(pos.add(0, 1, 0));
+            //y-
+            searchQueue.offer(pos.add(0, -1, 0));
+            boolean hereLow = getMapVec3i(pos.add(0, 1, 0));
+            //x+
+            if(hereLow || !getMapVec3i(pos.add(1, 1, 0)))
+                searchQueue.offer(pos.add(1, 0, 0));
+            //x-
+            if(hereLow || !getMapVec3i(pos.add(-1, 1, 0)))
+                searchQueue.offer(pos.add(-1, 0, 0));
+            //z+
+            if(hereLow || !getMapVec3i(pos.add(0, 1, 1)))
+                searchQueue.offer(pos.add(0, 0, 1));
+            //z-
+            if(hereLow || !getMapVec3i(pos.add(0, 1, -1)))
+                searchQueue.offer(pos.add(0, 0, -1));
+        }
+        return true;
+    }
+    @Unique
+    Boolean canPut(Vec3i mapPos){
+        if(getMapVec3i(mapPos)) return false;
+        int nearStones = 0;
+        if(getMapVec3i(mapPos.add(1, 0, 0))) ++nearStones;
+        if(getMapVec3i(mapPos.add(-1, 0, 0))) ++nearStones;
+        if(getMapVec3i(mapPos.add(0, 1, 0))) ++nearStones;
+        if(getMapVec3i(mapPos.add(0, -1, 0))) ++nearStones;
+        if(getMapVec3i(mapPos.add(0, 0, 1))) ++nearStones;
+        if(getMapVec3i(mapPos.add(0, 0, -1))) ++nearStones;
+        if(nearStones < 3) return false;
+        if(nearStones >= 5) return true;
+        setMapVec3i(mapPos, true);
+        Vec3i[] positions = new Vec3i[13];
+        int numPositions = 0;
+        Vec3i test;
+        test = mapPos.add(1, 0, 0);
+        if(!getMapVec3i(test)) positions[numPositions++] = test;
+        test = mapPos.add(-1, 0, 0);
+        if(!getMapVec3i(test)) positions[numPositions++] = test;
+        test = mapPos.add(0, 0, 1);
+        if(!getMapVec3i(test)) positions[numPositions++] = test;
+        test = mapPos.add(0, 0, -1);
+        if(!getMapVec3i(test)) positions[numPositions++] = test;
+        test = mapPos.add(0, -1, 0);
+        if(!getMapVec3i(test)){
+            positions[numPositions++] = test;
+            test = mapPos.add(1, -1, 0);
+            if(!getMapVec3i(test)) positions[numPositions++] = test;
+            test = mapPos.add(-1, -1, 0);
+            if(!getMapVec3i(test)) positions[numPositions++] = test;
+            test = mapPos.add(0, -1, 1);
+            if(!getMapVec3i(test)) positions[numPositions++] = test;
+            test = mapPos.add(0, -1, -1);
+            if(!getMapVec3i(test)) positions[numPositions++] = test;
+            test = mapPos.add(0, -2, 0);
+            if(!getMapVec3i(test)) positions[numPositions++] = test;
+        }
+        test = mapPos.add(0, 1, 0);
+        if(!getMapVec3i(test)){
+            positions[numPositions++] = test;
+            test = mapPos.add(1, 1, 0);
+            if(!getMapVec3i(test)) positions[numPositions++] = test;
+            test = mapPos.add(-1, 1, 0);
+            if(!getMapVec3i(test)) positions[numPositions++] = test;
+            test = mapPos.add(0, 1, 1);
+            if(!getMapVec3i(test)) positions[numPositions++] = test;
+            test = mapPos.add(0, 1, -1);
+            if(!getMapVec3i(test)) positions[numPositions++] = test;
+            test = mapPos.add(0, 2, 0);
+            if(!getMapVec3i(test)) positions[numPositions++] = test;
+        }
+        int a;
+        for(a = 0; a < numPositions; ++a) {
+            int b;
+            for (b = a + 1; b < numPositions; ++b) {
+                if (cantReach(positions[a], positions[b])) break;
+                if (cantReach(positions[b], positions[a])) break;
+            }
+            if (b != numPositions) break;
+        }
+        setMapVec3i(mapPos, false);
+        return a == numPositions;
+    }
 
     @Unique
-    Boolean tryput(BlockPos pos){
-        boolean px = blockType(pos.east()) == Data.BLOCKTYPE.STONE,
-                nx = blockType(pos.west()) == Data.BLOCKTYPE.STONE,
-                py = blockType(pos.up()) == Data.BLOCKTYPE.STONE,
-                ny = blockType(pos.down()) == Data.BLOCKTYPE.STONE,
-                pz = blockType(pos.south()) == Data.BLOCKTYPE.STONE,
-                nz = blockType(pos.north()) == Data.BLOCKTYPE.STONE;
-        int count = 0;
-        if(px) ++ count;
-        if(nx) ++ count;
-        if(py) ++ count;
-        if(ny) ++ count;
-        if(pz) ++ count;
-        if(nz) ++ count;
-        boolean set;
-        if(count < 3) set = false;
-        else if(count >= 5) set = true;
-        else{
-            do{
-                set = false;
-                boolean ppy = blockType(pos.up().up()) == Data.BLOCKTYPE.STONE;
-                boolean nny = blockType(pos.down().down()) == Data.BLOCKTYPE.STONE;
-                boolean pxpy = blockType(pos.east().up()) == Data.BLOCKTYPE.STONE,
-                        nxpy = blockType(pos.west().up()) == Data.BLOCKTYPE.STONE,
-                        pxny = blockType(pos.east().down()) == Data.BLOCKTYPE.STONE,
-                        nxny = blockType(pos.west().down()) == Data.BLOCKTYPE.STONE,
-                        pxpz = blockType(pos.east().south()) == Data.BLOCKTYPE.STONE,
-                        nxpz = blockType(pos.west().south()) == Data.BLOCKTYPE.STONE,
-                        pxnz = blockType(pos.east().north()) == Data.BLOCKTYPE.STONE,
-                        nxnz = blockType(pos.west().north()) == Data.BLOCKTYPE.STONE,
-                        pypz = blockType(pos.up().south()) == Data.BLOCKTYPE.STONE,
-                        nypz = blockType(pos.down().south()) == Data.BLOCKTYPE.STONE,
-                        pynz = blockType(pos.up().north()) == Data.BLOCKTYPE.STONE,
-                        nynz = blockType(pos.down().north()) == Data.BLOCKTYPE.STONE;
-                boolean pxpypz = blockType(pos.east().up().south()) == Data.BLOCKTYPE.STONE,
-                        nxpypz = blockType(pos.west().up().south()) == Data.BLOCKTYPE.STONE,
-                        pxnypz = blockType(pos.east().down().south()) == Data.BLOCKTYPE.STONE,
-                        nxnypz = blockType(pos.west().down().south()) == Data.BLOCKTYPE.STONE,
-                        pxpynz = blockType(pos.east().up().north()) == Data.BLOCKTYPE.STONE,
-                        nxpynz = blockType(pos.west().up().north()) == Data.BLOCKTYPE.STONE,
-                        pxnynz = blockType(pos.east().down().north()) == Data.BLOCKTYPE.STONE,
-                        nxnynz = blockType(pos.west().down().north()) == Data.BLOCKTYPE.STONE;
-                if(ppy && !py){
-                    if(!pxpy && !nxpy) break;
-                    if(!pypz && !pynz) break;
-                }
-                if(nny && !ny){
-                    if(!pxny && !nxny) break;
-                    if(!nypz && !nynz) break;
-                }
-                if(!px && !py && pxpy && (pxpz || pxpypz || pypz) && (pxnz || pxpynz || pynz)) break;
-                if(!nx && !py && nxpy && (nxpz || nxpypz || pypz) && (nxnz || nxpynz || pynz)) break;
-                if(!px && !ny && pxny && (pxpz || pxnypz || nypz) && (pxnz || pxnynz || nynz)) break;
-                if(!nx && !ny && nxny && (nxpz || nxnypz || nypz) && (nxnz || nxnynz || nynz)) break;
-                if(!px && !pz && pxpz && (pxpy || pxpypz || pypz) && (pxny || pxnypz || nypz)) break;
-                if(!nx && !pz && nxpz && (nxpy || nxpypz || pypz) && (nxny || nxnypz || nypz)) break;
-                if(!px && !nz && pxnz && (pxpy || pxpynz || pynz) && (pxny || pxnynz || nynz)) break;
-                if(!nx && !nz && nxnz && (nxpy || nxpynz || pynz) && (nxny || nxnynz || nynz)) break;
-                if(!py && !pz && pypz && (pxpy || pxpypz || pxpz) && (nxpy || nxpypz || nxpz)) break;
-                if(!ny && !pz && nypz && (pxny || pxnypz || pxpz) && (nxny || nxnypz || nxpz)) break;
-                if(!py && !nz && pynz && (pxpy || pxpynz || pxnz) && (nxpy || nxpynz || nxnz)) break;
-                if(!ny && !nz && nynz && (pxny || pxnynz || pxnz) && (nxny || nxnynz || nxnz)) break;
-                boolean ppypx = blockType(pos.up().up().east()) == Data.BLOCKTYPE.STONE,
-                        ppynx = blockType(pos.up().up().west()) == Data.BLOCKTYPE.STONE,
-                        ppypz = blockType(pos.up().up().south()) == Data.BLOCKTYPE.STONE,
-                        ppynz = blockType(pos.up().up().north()) == Data.BLOCKTYPE.STONE;
-                boolean p2xp = px || pxpy,
-                        n2xp = nx || nxpy,
-                        p2zp = pz || pypz,
-                        n2zp = nz || pynz,
-                        p2y = py || ppy;
-                boolean nnypx = blockType(pos.down().down().east()) == Data.BLOCKTYPE.STONE,
-                        nnynx = blockType(pos.down().down().west()) == Data.BLOCKTYPE.STONE,
-                        nnypz = blockType(pos.down().down().south()) == Data.BLOCKTYPE.STONE,
-                        nnynz = blockType(pos.down().down().north()) == Data.BLOCKTYPE.STONE;
-                boolean p2xn = px || pxny,
-                        n2xn = nx || nxny,
-                        p2zn = pz || nypz,
-                        n2zn = nz || nynz,
-                        n2y = ny || nny;
-                if(!py && !ny) break;
-                if(!px && !nx && (pxpy || ppypx || py || ppy || nxpy || ppynx) && (pxny || nnypx || ny || nny || nxny || nnynx)) break;
-                if(!pz && !nz && (pypz || ppypz || py || ppy || pynz || ppynz) && (pynz || nnypz || ny || nny || nynz || nnynz)) break;
-                if(!p2y){
-                    if(!p2xp && ppypx) break;
-                    if(!n2xp && ppynx) break;
-                    if(!p2zp && ppypz) break;
-                    if(!n2zp && ppynz) break;
-                }
-                if(!n2y){
-                    if(!p2xn && nnypx) break;
-                    if(!n2xn && nnynx) break;
-                    if(!p2zn && nnypz) break;
-                    if(!n2zn && nnynz) break;
-                }
-                boolean pxppypz = blockType(pos.east().up().up().south()) == Data.BLOCKTYPE.STONE,
-                        nxppypz = blockType(pos.west().up().up().south()) == Data.BLOCKTYPE.STONE,
-                        pxnnypz = blockType(pos.east().down().down().south()) == Data.BLOCKTYPE.STONE,
-                        nxnnypz = blockType(pos.west().down().down().south()) == Data.BLOCKTYPE.STONE,
-                        pxppynz = blockType(pos.east().up().up().north()) == Data.BLOCKTYPE.STONE,
-                        nxppynz = blockType(pos.west().up().up().north()) == Data.BLOCKTYPE.STONE,
-                        pxnnynz = blockType(pos.east().down().down().north()) == Data.BLOCKTYPE.STONE,
-                        nxnnynz = blockType(pos.west().down().down().north()) == Data.BLOCKTYPE.STONE;
-                boolean pxpz2p = pxpz || pxpypz,
-                        nxpz2p = nxpz || nxpypz,
-                        pxnz2p = pxnz || pxpynz,
-                        nxnz2p = nxnz || nxpynz,
-                        pxpz2n = pxpz || pxnypz,
-                        nxpz2n = nxpz || nxnypz,
-                        pxnz2n = pxnz || pxnynz,
-                        nxnz2n = nxnz || nxnynz;
-                if(!p2xp && !p2zp && pxpz2p && (ppypx || pxppypz || ppypz)) break;
-                if(!n2xp && !p2zp && nxpz2p && (ppynx || nxppypz || ppypz)) break;
-                if(!p2xp && !n2zp && pxnz2p && (ppypx || pxppynz || ppynz)) break;
-                if(!n2xp && !n2zp && nxnz2p && (ppynx || nxppynz || ppynz)) break;
-                if(!p2xn && !p2zn && pxpz2n && (nnypx || pxnnypz || nnypz)) break;
-                if(!n2xn && !p2zn && nxpz2n && (nnynx || nxnnypz || nnypz)) break;
-                if(!p2xn && !n2zn && pxnz2n && (nnypx || pxnnynz || nnynz)) break;
-                if(!n2xn && !n2zn && nxnz2n && (nnynx || nxnnynz || nnynz)) break;
-                set = true;
-            }while(false);
-        }
-        if(set)
+    Boolean tryPut(BlockPos pos){
+        if(canPut(pos.subtract(currentPosition)))
             return put(pos);
         return false;
     }
@@ -211,22 +277,28 @@ public class PlaceBlockTick {
     @Inject(method = "tick", at = @At("HEAD"))
     private void tick(CallbackInfo ci){
         if(!Data.shouldplace || client . player == null) return;
-        Vec3d eyepos = client.player.getEyePos();
-        BlockPos blockpos = new BlockPos((int)Math.floor(eyepos.getX()), (int)Math.floor(eyepos.getY()), (int)Math.floor(eyepos.getZ()));
+        Vec3d eyePos = client.player.getEyePos();
+        BlockPos eyeBlockPos = new BlockPos((int)Math.floor(eyePos.getX()), (int)Math.floor(eyePos.getY()), (int)Math.floor(eyePos.getZ()));
         boolean loop;
+        initializeMap(eyeBlockPos);
         do {
             loop = false;
             for (int y = -4; y <= 4; ++y) {
-                BlockPos p1 = blockpos.add(0, y, 0);
+                BlockPos p1 = eyeBlockPos.add(0, y, 0);
                 if (p1.getY() < -64 || p1.getY() >= 320) continue;
                 for (int x = -4; x <= 4; ++x) {
                     BlockPos p2 = p1.add(x, 0, 0);
                     for (int z = -4; z <= 4; ++z) {
                         BlockPos pos = p2.add(0, 0, z);
-                        Vec3d posd = new Vec3d(pos.getX(), pos.getY(), pos.getZ());
-                        if (posd.distanceTo(eyepos) >= 4.0) continue;
+                        Vec3d posD = new Vec3d(pos.getX(), pos.getY(), pos.getZ());
+                        if (posD.distanceTo(eyePos) >= 4.0) continue;
+                        if(x == 0 && z == 0 && (y == 0 || y == -1)) continue;
                         if (blockType(pos) == Data.BLOCKTYPE.EMPTY) {
-                            if(tryput(pos)) loop = true;
+                            if(tryPut(pos)){
+                                loop = true;
+                                initializeMap(eyeBlockPos);
+                                //map[testDistance - x][testDistance - y][testDistance - z] = true;
+                            }
                         }
                     }
                 }

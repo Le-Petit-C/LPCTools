@@ -16,7 +16,7 @@ public class PlaceBlockKeyboardControl {
     private void onKey(long window, int key, int scancode, int action, int modifiers, CallbackInfo ci){
         if (window != this.client.getWindow().getHandle()) return;
         if (Data.isInTextOrGui(client)) return;
-        if(key == 86 && action == 1)
+        if(key == '`' && action == 1)
             Data.switchPlaceMode();
     }
 }
