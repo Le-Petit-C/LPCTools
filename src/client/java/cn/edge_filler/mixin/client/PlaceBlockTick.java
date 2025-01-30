@@ -42,7 +42,7 @@ public class PlaceBlockTick {
                 || block == Blocks.WATER
                 || block == Blocks.LAVA
                 || block == Blocks.TALL_GRASS
-                || block == Blocks.SHORT_GRASS
+                || block == Blocks.GRASS
                 || block == Blocks.GLOW_LICHEN
                 || block == Blocks.SEAGRASS
                 || block == Blocks.TALL_SEAGRASS
@@ -55,7 +55,6 @@ public class PlaceBlockTick {
                 || block == Blocks.DEEPSLATE
                 || block == Blocks.GRAVEL
                 || block == Blocks.TUFF
-                || block == Blocks.TUFF_BRICKS
                 || block == Blocks.DIORITE
                 || block == Blocks.GRANITE
                 || block == Blocks.ANDESITE
@@ -73,12 +72,8 @@ public class PlaceBlockTick {
                 || block == Blocks.MOSS_BLOCK
                 || block == Blocks.ROOTED_DIRT
                 || block == Blocks.SANDSTONE
-                || block == Blocks.WAXED_CHISELED_COPPER
                 || block == Blocks.WAXED_COPPER_BLOCK
                 || block == Blocks.WAXED_OXIDIZED_COPPER
-                || block == Blocks.CHISELED_TUFF
-                || block == Blocks.POLISHED_TUFF
-                || block == Blocks.CHISELED_TUFF_BRICKS
                 || block == Blocks.WAXED_OXIDIZED_CUT_COPPER
                 || block == Blocks.COARSE_DIRT
                 || block == Blocks.PODZOL
