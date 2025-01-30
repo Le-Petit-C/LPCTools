@@ -42,7 +42,7 @@ public class PlaceBlockTick {
                 || block == Blocks.WATER
                 || block == Blocks.LAVA
                 || block == Blocks.TALL_GRASS
-                || block == Blocks.GRASS
+                || block == Blocks.SHORT_GRASS
                 || block == Blocks.GLOW_LICHEN
                 || block == Blocks.SEAGRASS
                 || block == Blocks.TALL_SEAGRASS
