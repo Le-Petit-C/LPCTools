@@ -47,6 +47,7 @@ public class PlaceBlockTick {
                 || block == Blocks.SEAGRASS
                 || block == Blocks.TALL_SEAGRASS
                 || block == Blocks.BUBBLE_COLUMN
+                || block == Blocks.SNOW
         ){
             return Data.BLOCKTYPE.EMPTY;
         }
@@ -79,6 +80,8 @@ public class PlaceBlockTick {
                 || block == Blocks.POLISHED_TUFF
                 || block == Blocks.CHISELED_TUFF_BRICKS
                 || block == Blocks.WAXED_OXIDIZED_CUT_COPPER
+                || block == Blocks.COARSE_DIRT
+                || block == Blocks.PODZOL
         ){
             return Data.BLOCKTYPE.STONE;
         }
