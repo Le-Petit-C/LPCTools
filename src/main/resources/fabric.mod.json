@@ -39,7 +39,7 @@
 			"1.21"
 		],
 		"java": ">=21",
-		"fabric-api": "*"
+		"malilib": "*"
 	},
 	"suggests": {
 		"another-mod": "*"
