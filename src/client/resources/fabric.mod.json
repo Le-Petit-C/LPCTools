@@ -12,20 +12,16 @@
 		"sources": "https://github.com/FabricMC/fabric-example-mod"
 	},
 	"license": "CC0-1.0",
-	"icon": "assets/edge_filler/icon.png",
-	"environment": "*",
+	"icon": "assets/LPCTweaks/icon.png",
+	"environment": "client",
 	"entrypoints": {
-		"main": [
-			"lpctweaks.EdgeFillerMod"
-		],
 		"client": [
-			"lpctweaks.EdgeFillerModClient"
+			"lpctweaks.LPCTweaks"
 		]
 	},
 	"mixins": [
-		"edge_filler.mixins.json",
 		{
-			"config": "edge_filler.client.mixins.json",
+			"config": "mixins.json",
 			"environment": "client"
 		}
 	],

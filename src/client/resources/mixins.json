@@ -3,7 +3,6 @@
 	"package": "lpctweaks.mixin.client",
 	"compatibilityLevel": "JAVA_21",
 	"client": [
-		"EdgeFillerMixin",
 		"PlaceBlockKeyboardControl",
 		"PlaceBlockMouseControl",
 		"PlaceBlockTick"
