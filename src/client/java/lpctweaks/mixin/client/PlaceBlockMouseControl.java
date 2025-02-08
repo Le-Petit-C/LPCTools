@@ -1,6 +1,6 @@
-package cn.edge_filler.mixin.client;
+package lpctweaks.mixin.client;
 
-import cn.edge_filler.Data;
+import lpctweaks.Data;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.Mouse;
 import org.spongepowered.asm.mixin.Final;

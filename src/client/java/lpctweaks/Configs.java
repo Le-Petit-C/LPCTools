@@ -1,4 +1,4 @@
-package cn.LPCTweaks;
+package lpctweaks;
 
 import fi.dy.masa.malilib.config.IConfigHandler;
 

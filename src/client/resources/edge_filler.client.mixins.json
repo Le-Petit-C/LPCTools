@@ -1,10 +1,10 @@
 {
 	"required": true,
-	"package": "cn.edge_filler.mixin.client",
+	"package": "lpctweaks.mixin.client",
 	"compatibilityLevel": "JAVA_21",
 	"client": [
 		"EdgeFillerMixin",
-      	"PlaceBlockKeyboardControl",
+		"PlaceBlockKeyboardControl",
 		"PlaceBlockMouseControl",
 		"PlaceBlockTick"
 	],

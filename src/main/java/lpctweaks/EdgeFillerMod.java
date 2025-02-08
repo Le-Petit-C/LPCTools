@@ -1,4 +1,4 @@
-package cn.edge_filler;
+package lpctweaks;
 
 import net.fabricmc.api.ModInitializer;
 
@@ -7,7 +7,7 @@ import org.slf4j.LoggerFactory;
 
 
 public class EdgeFillerMod implements ModInitializer {
-	public static final String MOD_ID = "edge_filler";
+	public static final String MOD_ID = "lpctweaks";
 
 	// This logger is used to write text to the console and the log file.
 	// It is considered best practice to use your mod id as the logger's name.

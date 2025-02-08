@@ -1,9 +1,9 @@
 {
 	"schemaVersion": 1,
-	"id": "edge_filler",
+	"id": "lpctweaks",
 	"version": "${version}",
-	"name": "Edge Filler",
-	"description": "Trying to write a client mod that assists you fill the world",
+	"name": "LPCTweaks",
+	"description": "Adds extra configurable client-side tweaks by Le_Petit_C",
 	"authors": [
 		"Le_Petit_C"
 	],
@@ -16,10 +16,10 @@
 	"environment": "*",
 	"entrypoints": {
 		"main": [
-			"cn.edge_filler.EdgeFillerMod"
+			"lpctweaks.EdgeFillerMod"
 		],
 		"client": [
-			"cn.edge_filler.EdgeFillerModClient"
+			"lpctweaks.EdgeFillerModClient"
 		]
 	},
 	"mixins": [

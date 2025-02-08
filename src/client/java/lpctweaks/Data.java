@@ -1,4 +1,4 @@
-package cn.edge_filler;
+package lpctweaks;
 
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.screen.Screen;

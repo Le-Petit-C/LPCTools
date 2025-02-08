@@ -1,4 +1,4 @@
-package cn.edge_filler.mixin.client;
+package lpctweaks.mixin.client;
 
 import net.minecraft.client.MinecraftClient;
 import org.spongepowered.asm.mixin.Mixin;

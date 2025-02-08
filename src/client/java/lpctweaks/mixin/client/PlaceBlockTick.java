@@ -1,7 +1,7 @@
-package cn.edge_filler.mixin.client;
+package lpctweaks.mixin.client;
 
-import cn.edge_filler.Data;
-import cn.edge_filler.HandRestock;
+import lpctweaks.Data;
+import lpctweaks.HandRestock;
 import net.minecraft.block.Block;
 import net.minecraft.block.Blocks;
 import net.minecraft.client.MinecraftClient;
