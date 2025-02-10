@@ -1,0 +1,6 @@
+{
+  "lpctools.configs.title": "LPCTools configs - %s",
+  "lpctools.configs.generic.title": "General",
+  "lpctools.configs.generic.name.configOpenGui": "configOpenGui",
+  "lpctools.configs.generic.comment.configOpenGui": "The key open the in-game config GUI"
+}
