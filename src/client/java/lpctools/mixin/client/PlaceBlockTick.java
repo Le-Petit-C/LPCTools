@@ -1,7 +1,7 @@
-package lpctweaks.mixin.client;
+package lpctools.mixin.client;
 
-import lpctweaks.Data;
-import lpctweaks.HandRestock;
+import lpctools.Data;
+import lpctools.HandRestock;
 import net.minecraft.block.Block;
 import net.minecraft.block.Blocks;
 import net.minecraft.client.MinecraftClient;

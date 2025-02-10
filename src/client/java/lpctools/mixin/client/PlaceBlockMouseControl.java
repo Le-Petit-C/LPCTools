@@ -1,6 +1,6 @@
-package lpctweaks.mixin.client;
+package lpctools.mixin.client;
 
-import lpctweaks.Data;
+import lpctools.Data;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.Mouse;
 import org.spongepowered.asm.mixin.Final;

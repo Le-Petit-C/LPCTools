@@ -1,8 +1,8 @@
 {
 	"schemaVersion": 1,
-	"id": "lpctweaks",
-	"version": "${version}",
-	"name": "LPCTweaks",
+	"id": "lpctools",
+	"version": "${mod_version}",
+	"name": "LPCTools",
 	"description": "Adds extra configurable client-side tweaks by Le_Petit_C",
 	"authors": [
 		"Le_Petit_C"
@@ -12,11 +12,12 @@
 		"sources": "https://github.com/FabricMC/fabric-example-mod"
 	},
 	"license": "CC0-1.0",
-	"icon": "assets/icon.png",
+	"icon": "assets/lpctools/icon.png",
 	"environment": "client",
 	"entrypoints": {
 		"client": [
-			"lpctweaks.LPCTweaks"
+			"lpctools.LPCTools",
+			"lpctools.lpcfymasaapi.LPCAPIInit"
 		]
 	},
 	"mixins": [

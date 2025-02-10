@@ -1,27 +1,36 @@
-package lpctweaks;
+package lpctools.lpcfymasaapi;
 
 
+import fi.dy.masa.malilib.event.InputEventHandler;
 import fi.dy.masa.malilib.hotkeys.*;
+import fi.dy.masa.malilib.util.GuiUtils;
+import org.jetbrains.annotations.NotNull;
+
+import java.util.ArrayList;
 
 public class InputHandler implements IKeybindProvider, IKeyboardInputHandler, IMouseInputHandler
 {
-    private static final InputHandler INSTANCE = new InputHandler();
+    @NotNull Reference modReference;
 
-    private InputHandler()
-    {
+    private ArrayList<IHotkey> keysToAdd;
+    public InputHandler(@NotNull Reference modReference) {
         super();
+        this.modReference = modReference;
+        InputEventHandler.getKeybindManager().registerKeybindProvider(this);
     }
 
-    public static InputHandler getInstance()
-    {
-        return INSTANCE;
+    public void addHotkey(IHotkey key){
+        if(keysToAdd == null)
+            keysToAdd = new ArrayList<>();
+        keysToAdd.add(key);
+        InputEventHandler.getKeybindManager().addKeybindToMap(key.getKeybind());
     }
 
     @Override
     public void addKeysToMap(IKeybindManager manager)
     {
-        for (IHotkey hotkey : Configs.HOTKEYS_OPTIONS)
-        {
+        if(keysToAdd == null) return;
+        for (IHotkey hotkey : keysToAdd) {
             manager.addKeybindToMap(hotkey.getKeybind());
         }
     }
@@ -29,7 +38,8 @@ public class InputHandler implements IKeybindProvider, IKeyboardInputHandler, IM
     @Override
     public void addHotkeys(IKeybindManager manager)
     {
-        manager.addHotkeysForCategory(Reference.MOD_NAME, "LPCTweaks.hotkeys", Configs.HOTKEYS_OPTIONS);
+        if(keysToAdd == null) return;
+        manager.addHotkeysForCategory(modReference.modName, "lpctools.hotkeys", keysToAdd);
     }
 
     @Override
@@ -45,6 +55,10 @@ public class InputHandler implements IKeybindProvider, IKeyboardInputHandler, IM
     @Override
     public boolean onMouseClick(int mouseX, int mouseY, int eventButton, boolean eventButtonState)
     {
+        // Not in a GUI
+        if (GuiUtils.getCurrentScreen() == null) {
+            //TODO:左键单击关闭edge_filler
+        }
         return false;
     }
 

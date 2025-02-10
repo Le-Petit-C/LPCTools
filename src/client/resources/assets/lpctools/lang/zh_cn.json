@@ -1,0 +1,6 @@
+{
+  "lpctools.configs.title": "LPCTools 设置 - %s",
+  "lpctools.configs.generic.title": "一般设置",
+  "lpctools.configs.generic.name.configOpenGui": "configOpenGui - 打开配置界面",
+  "lpctools.configs.generic.comment.configOpenGui": "设置打开LPCTools配置界面的快捷键"
+}

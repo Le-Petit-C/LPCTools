@@ -1,6 +1,6 @@
 {
 	"required": true,
-	"package": "lpctweaks.mixin.client",
+	"package": "lpctools.mixin.client",
 	"compatibilityLevel": "JAVA_21",
 	"client": [
 		"PlaceBlockKeyboardControl",

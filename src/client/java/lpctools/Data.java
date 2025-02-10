@@ -1,4 +1,4 @@
-package lpctweaks;
+package lpctools;
 
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.screen.Screen;
