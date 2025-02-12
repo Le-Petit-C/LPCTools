@@ -1,6 +1,11 @@
 {
   "lpctools.configs.title": "LPCTools configs - %s",
-  "lpctools.configs.generic.title": "General",
+  "lpctools.configs.generic.title": "Generic",
   "lpctools.configs.generic.name.configOpenGui": "configOpenGui",
-  "lpctools.configs.generic.comment.configOpenGui": "The key open the in-game config GUI"
+  "lpctools.configs.generic.comment.configOpenGui": "The key open the in-game config GUI",
+  "lpctools.configs.tools.title": "Tools",
+  "lpctools.configs.tools.name.fillingAssistant": "fillingAssistant",
+  "lpctools.configs.tools.comment.fillingAssistant": "The key to open/close fillingAssistant tool\nwhich set blocks to fill holes automatically",
+  "lpctools.configs.tools.name.fillingAssistantPlaceableBlocks": "fillingAssistantPlaceableBlocks",
+  "lpctools.configs.tools.comment.fillingAssistantPlaceableBlocks": "Items that can be placed as blocks by fillingAssistant"
 }

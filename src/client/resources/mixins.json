@@ -3,9 +3,7 @@
 	"package": "lpctools.mixin.client",
 	"compatibilityLevel": "JAVA_21",
 	"client": [
-		"PlaceBlockKeyboardControl",
-		"PlaceBlockMouseControl",
-		"PlaceBlockTick"
+		"PlaceBlockMouseControl"
 	],
 	"injectors": {
 		"defaultRequire": 1

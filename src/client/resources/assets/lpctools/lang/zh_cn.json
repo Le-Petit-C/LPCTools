@@ -1,6 +1,11 @@
 {
   "lpctools.configs.title": "LPCTools 设置 - %s",
-  "lpctools.configs.generic.title": "一般设置",
-  "lpctools.configs.generic.name.configOpenGui": "configOpenGui - 打开配置界面",
-  "lpctools.configs.generic.comment.configOpenGui": "设置打开LPCTools配置界面的快捷键"
+  "lpctools.configs.generic.title": "通用",
+  "lpctools.configs.generic.name.configOpenGui": "打开配置界面",
+  "lpctools.configs.generic.comment.configOpenGui": "设置打开LPCTools配置界面的快捷键",
+  "lpctools.configs.tools.title": "工具",
+  "lpctools.configs.tools.name.fillingAssistant": "填充助手",
+  "lpctools.configs.tools.comment.fillingAssistant": "设置开启/关闭“填充助手”功能的热键\n这个功能能帮你自动地填充身边的角落",
+  "lpctools.configs.tools.name.fillingAssistantPlaceableBlocks": "填充助手可放置物品",
+  "lpctools.configs.tools.comment.fillingAssistantPlaceableBlocks": "填充助手可放置的物品"
 }

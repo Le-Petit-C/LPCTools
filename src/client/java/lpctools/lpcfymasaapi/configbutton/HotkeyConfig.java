@@ -3,21 +3,21 @@ package lpctools.lpcfymasaapi.configbutton;
 import fi.dy.masa.malilib.config.IConfigBase;
 import fi.dy.masa.malilib.config.options.ConfigHotkey;
 import fi.dy.masa.malilib.hotkeys.IHotkeyCallback;
+import lpctools.lpcfymasaapi.LPCConfigList;
 import lpctools.lpcfymasaapi.LPCConfigPage;
 
 public class HotkeyConfig implements LPCConfig {
     //独有功能方法
-    public HotkeyConfig(LPCConfigPage page, String name, String defaultStorageString, String translationPrefix){
-        this.page = page;
+    public HotkeyConfig(LPCConfigList list, String name, String defaultStorageString){
+        this.list = list;
         this.name = name;
         this.defaultStorageString = defaultStorageString;
-        this.translationPrefix = page.getModReference().modId + ".configs." + translationPrefix;
     }
     public void setCallBack(IHotkeyCallback callBack){
         this.callBack = callBack;
     }
-    public HotkeyConfig(LPCConfigPage page, String name, String defaultStorageString, String translationPrefix, IHotkeyCallback callBack){
-        this(page, name, defaultStorageString, translationPrefix);
+    public HotkeyConfig(LPCConfigList list, String name, String defaultStorageString, IHotkeyCallback callBack){
+        this(list, name, defaultStorageString);
         setCallBack(callBack);
     }
 
@@ -25,27 +25,38 @@ public class HotkeyConfig implements LPCConfig {
     @Override
     public IConfigBase getConfig(){
         if(instance == null)
-            instance = new HotkeyConfigInstance(this, name, defaultStorageString, translationPrefix);
+            instance = new HotkeyConfigInstance(this);
         return instance;
+    }
+
+    @Override
+    public boolean hasHotkey(){
+        return true;
     }
 
     private static class HotkeyConfigInstance extends ConfigHotkey {
         HotkeyConfig parent;
-        public HotkeyConfigInstance(HotkeyConfig parent, String name, String defaultStorageString, String translationPrefix){
-            super(name, defaultStorageString);
+        public HotkeyConfigInstance(HotkeyConfig parent){
+            super(parent.name, parent.defaultStorageString);
             this.parent = parent;
-            apply(translationPrefix);
+            apply(parent.list.getFullTranslationKey());
             getKeybind().setCallback(parent.callBack);
-            parent.page.getInputHandler().addHotkey(this);
+            parent.list.getPage().getInputHandler().addHotkey(this);
         }
     }
     private HotkeyConfigInstance instance;
-    private final LPCConfigPage page;
+    private final LPCConfigList list;
     private final String name;
     private final String defaultStorageString;
-    private final String translationPrefix;
     private IHotkeyCallback callBack;
+
+    @Override
     public LPCConfigPage getPage(){
-        return page;
+        return list.getPage();
+    }
+
+    @Override
+    public LPCConfigList getList(){
+        return list;
     }
 }

@@ -1,6 +1,6 @@
 package lpctools.mixin.client;
 
-import lpctools.Data;
+import lpctools.tools.fillingassistant.Data;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.Mouse;
 import org.spongepowered.asm.mixin.Final;
@@ -16,7 +16,7 @@ public class PlaceBlockMouseControl {
 
     @Inject(method = "onMouseButton", at = @At("HEAD"))
     private void onMouseButton(long window, int button, int action, int mods, CallbackInfo ci){
-        if(Data.shouldplace && button == 0 && !Data.isInTextOrGui(client))
+        if(Data.enabled() && button == 0 && !Data.isInTextOrGui(client))
             Data.switchPlaceMode();
     }
 }

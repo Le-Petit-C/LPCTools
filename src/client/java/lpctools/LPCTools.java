@@ -1,15 +1,18 @@
 package lpctools;
 
-import lpctools.Generic.GenericOptions;
+import lpctools.generic.GenericConfigs;
 import lpctools.lpcfymasaapi.LPCConfigPage;
 import lpctools.lpcfymasaapi.Reference;
+import lpctools.tools.ToolConfigs;
 import net.fabricmc.api.ClientModInitializer;
 
 public class LPCTools implements ClientModInitializer {
-	LPCConfigPage config;
+	public static LPCConfigPage config;
 	@Override
 	public void onInitializeClient() {
+		if(config != null) return;
 		config = new LPCConfigPage(new Reference("LPCTools"));
-		GenericOptions.init(config);
+		GenericConfigs.init(config);
+		ToolConfigs.init(config);
 	}
 }

@@ -3,7 +3,7 @@
 	"id": "lpctools",
 	"version": "${mod_version}",
 	"name": "LPCTools",
-	"description": "Adds extra configurable client-side tweaks by Le_Petit_C",
+	"description": "Adds extra configurable client-side tools by Le_Petit_C",
 	"authors": [
 		"Le_Petit_C"
 	],
@@ -36,7 +36,8 @@
 			"1.21"
 		],
 		"java": ">=21",
-		"malilib": "*"
+		"malilib": "*",
+		"fabric-api": "*"
 	},
 	"suggests": {
 		"another-mod": "*"
