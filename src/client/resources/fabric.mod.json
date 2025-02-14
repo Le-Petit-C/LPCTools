@@ -16,8 +16,8 @@
 	"environment": "client",
 	"entrypoints": {
 		"client": [
-			"lpctools.LPCTools",
-			"lpctools.lpcfymasaapi.LPCAPIInit"
+			"lpctools.lpcfymasaapi.LPCAPIInit",
+			"lpctools.LPCTools"
 		]
 	},
 	"mixins": [

@@ -11,6 +11,7 @@ public class LPCAPIInit implements ClientModInitializer {
     static boolean MASAInitialized = false;
     @Override
     public void onInitializeClient() {
+        Registry.init();
         InitializationHandler.getInstance().registerInitializationHandler(new InitHandler());
     }
 

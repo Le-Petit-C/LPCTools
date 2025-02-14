@@ -10,39 +10,19 @@ import fi.dy.masa.malilib.interfaces.IValueChangeCallback;
 import fi.dy.masa.malilib.util.JsonUtils;
 import fi.dy.masa.malilib.util.StringUtils;
 import lpctools.lpcfymasaapi.configbutton.*;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 
 //配置列表
 public class LPCConfigList {
-    private final String translationKey;
-    private final LPCConfigPage parent;
-    private JsonObject configListJson;
-    private boolean hasHotkeyConfig;
-    public ArrayList<LPCConfig> uninitializedConfigs;
-    public ArrayList<IConfigBase> configs;
-
-    public LPCConfigPage getPage(){
-        return parent;
-    }
-
+    public LPCConfigPage getPage(){return parent;}
     public LPCConfigList(LPCConfigPage parent, String translationKey){
         this.parent = parent;
         this.translationKey = translationKey;
         if(LPCAPIInit.MASAInitialized) afterInit();
         else uninitializedConfigs = new ArrayList<>();
     }
-
-    public void afterInit(){
-        if(uninitializedConfigs == null) return;
-        configs = new ArrayList<>();
-        for(LPCConfig config : uninitializedConfigs){
-            configs.add(config.getConfig());
-            reloadConfigFromJson(configs.getLast());
-        }
-        uninitializedConfigs = null;
-    }
-
     public void addConfig(LPCConfig config){
         if(uninitializedConfigs != null) uninitializedConfigs.add(config);
         if(configs != null){
@@ -52,67 +32,86 @@ public class LPCConfigList {
         if(config.hasHotkey())
             hasHotkeyConfig = true;
     }
-
-    public void addHotkeyConfig(String name, String defaultStorageString, IHotkeyCallback callBack){
-        addConfig(new HotkeyConfig(this, name, defaultStorageString, callBack));
+    //TODO:removeConfig
+    public BooleanConfig addBooleanConfig(String name, boolean defaultBoolean){
+        BooleanConfig config = new BooleanConfig(this, name, defaultBoolean);
+        addConfig(config);
+        return config;
     }
-
-    public void addBooleanHotkeyConfig(String name, Boolean defaultBoolean, String defaultStorageString){
-        addConfig(new BooleanHotkeyConfig(this, name, defaultBoolean, defaultStorageString));
+    public BooleanConfig addBooleanConfig(String name, boolean defaultBoolean, IValueChangeCallback<ConfigBoolean> callback){
+        BooleanConfig config = new BooleanConfig(this, name, defaultBoolean, callback);
+        addConfig(config);
+        return config;
     }
-
-    public void addBooleanHotkeyConfig(String name, Boolean defaultBoolean, String defaultStorageString, IValueChangeCallback<ConfigBoolean> callback){
-        addConfig(new BooleanHotkeyConfig(this, name, defaultBoolean, defaultStorageString, callback));
+    public HotkeyConfig addHotkeyConfig(String name, String defaultStorageString, IHotkeyCallback callBack){
+        HotkeyConfig config = new HotkeyConfig(this, name, defaultStorageString, callBack);
+        addConfig(config);
+        return config;
     }
-
-    public void addStringListConfig(String name, ImmutableList<String> defaultValue){
-        addConfig(new StringListConfig(this, name, defaultValue));
+    public BooleanHotkeyConfig addBooleanHotkeyConfig(String name, boolean defaultBoolean, String defaultStorageString){
+        BooleanHotkeyConfig config = new BooleanHotkeyConfig(this, name, defaultBoolean, defaultStorageString);
+        addConfig(config);
+        return config;
     }
-
-    public void addStringListConfig(String name, ImmutableList<String> defaultValue, IValueChangeCallback<ConfigStringList> callback){
-        addConfig(new StringListConfig(this, name, defaultValue, callback));
+    public BooleanHotkeyConfig addBooleanHotkeyConfig(String name, boolean defaultBoolean, String defaultStorageString, IValueChangeCallback<ConfigBoolean> callback){
+        BooleanHotkeyConfig config = new BooleanHotkeyConfig(this, name, defaultBoolean, defaultStorageString, callback);
+        addConfig(config);
+        return config;
     }
-
-    public void addConfigOpenGuiConfig(String defaultStorageString){
-        addConfig(new ConfigOpenGuiConfig(this, defaultStorageString));
+    public StringListConfig addStringListConfig(String name, ImmutableList<String> defaultValue){
+        StringListConfig config = new StringListConfig(this, name, defaultValue);
+        addConfig(config);
+        return config;
     }
-
-    public String getTitleFullTranslationKey(){
-        return parent.getModReference().modId + ".configs." + translationKey + ".title";
+    public StringListConfig addStringListConfig(String name, ImmutableList<String> defaultValue, IValueChangeCallback<ConfigStringList> callback){
+        StringListConfig config = new StringListConfig(this, name, defaultValue, callback);
+        addConfig(config);
+        return config;
     }
-
-    public String getTranslationKey(){
-        return translationKey;
+    public ConfigOpenGuiConfig addConfigOpenGuiConfig(String defaultStorageString){
+        ConfigOpenGuiConfig config = new ConfigOpenGuiConfig(this, defaultStorageString);
+        addConfig(config);
+        return config;
     }
-
-    public String getFullTranslationKey(){
-        return getPage().getModReference().modId + ".configs." + getTranslationKey();
-    }
-
-    public String getTitleDisplayName(){
-        return StringUtils.translate(getTitleFullTranslationKey());
-    }
-
+    public String getTitleFullTranslationKey(){return parent.getModReference().modId + ".configs." + translationKey + ".title";}
+    public String getTranslationKey(){return translationKey;}
+    public String getFullTranslationKey(){return getPage().getModReference().modId + ".configs." + getTranslationKey();}
+    public String getTitleDisplayName(){return StringUtils.translate(getTitleFullTranslationKey());}
     public void resetListJson(JsonObject configPageJson){
         configListJson = JsonUtils.getNestedObject(configPageJson, getTranslationKey(), true);
         for (IConfigBase option : configs)
             reloadConfigFromJson(option);
     }
+    public void reloadConfigJson(){
+        for(IConfigBase config : configs)
+            configListJson.add(config.getName(), config.getAsJsonElement());
+    }
+    public boolean hasHotkeyConfig() {return hasHotkeyConfig;}
+    public void setCallback(@Nullable IConfigListCallback callback){this.callback = callback;}
+    @Nullable public IConfigListCallback getCallback(){return callback;}
 
+    ArrayList<IConfigBase> configs;
+    void afterInit(){
+        if(uninitializedConfigs == null) return;
+        configs = new ArrayList<>();
+        for(LPCConfig config : uninitializedConfigs){
+            configs.add(config.getConfig());
+            reloadConfigFromJson(configs.getLast());
+        }
+        uninitializedConfigs = null;
+    }
+
+    private ArrayList<LPCConfig> uninitializedConfigs;
+    private final String translationKey;
+    private final LPCConfigPage parent;
+    private JsonObject configListJson;
+    private boolean hasHotkeyConfig;
+    @Nullable private IConfigListCallback callback = null;
     private void reloadConfigFromJson(IConfigBase config){
         if(config == null) return;
         if(configListJson == null) return;
         String name = config.getName();
         if (!configListJson.has(name)) return;
         config.setValueFromJsonElement(configListJson.get(name));
-    }
-
-    public void reloadConfigJson(){
-        for(IConfigBase config : configs)
-            configListJson.add(config.getName(), config.getAsJsonElement());
-    }
-
-    public boolean hasHotkeyConfig() {
-        return hasHotkeyConfig;
     }
 }

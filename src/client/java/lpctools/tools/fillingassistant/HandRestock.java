@@ -7,11 +7,11 @@ import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.screen.slot.SlotActionType;
 
-import java.util.HashSet;
+import static lpctools.tools.fillingassistant.FillingAssistant.*;
 
 public class HandRestock {
     public static void restock(){
-        if(!Data.enabled()) return;
+        if(!enabled()) return;
         ClientPlayerEntity player = MinecraftClient.getInstance().player;
         if (player == null) return;
         PlayerInventory inventory = player.getInventory();
@@ -27,12 +27,10 @@ public class HandRestock {
             break;
         }
         if(i >= inventory.size())
-            Data.disableTool(" 可用填充物耗尽");
+            disableTool("lpctools.tools.fillingAssistant.disableReason.placeableItemRanOut");
     }
     private static boolean isStackOk(ItemStack stack){
         if(stack.isEmpty()) return false;
-        HashSet<String> placeableItems = FillingAssistant.getPlaceableItemIds();
-        if(placeableItems == null) return false;
-        return placeableItems.contains(stack.getItem().toString());
+        return FillingAssistant.placeable(stack.getItem());
     }
 }

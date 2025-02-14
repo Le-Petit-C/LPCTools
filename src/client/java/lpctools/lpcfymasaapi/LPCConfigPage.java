@@ -13,7 +13,7 @@ import fi.dy.masa.malilib.gui.GuiConfigsBase;
 import fi.dy.masa.malilib.gui.button.IButtonActionListener;
 import fi.dy.masa.malilib.gui.button.ButtonBase;
 import fi.dy.masa.malilib.gui.button.ButtonGeneric;
-import net.minecraft.client.gui.screen.Screen;
+import org.jetbrains.annotations.Nullable;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -24,8 +24,7 @@ import java.util.function.Supplier;
 
 //单个总设置页面，就是在设置右上角分列出的不同页面
 public class LPCConfigPage implements IConfigHandler, Supplier<GuiBase>{
-    //public methods
-    //Constructor 构造函数
+    //构造函数
     public LPCConfigPage(Reference modReference) {
         this.modReference = modReference;
         configFileName = modReference.modId + "-LPCConfig.json";
@@ -34,42 +33,69 @@ public class LPCConfigPage implements IConfigHandler, Supplier<GuiBase>{
             uninitializedConfigPages.add(this);
         }
     }
-
-    public Reference getModReference(){
-        return modReference;
-    }
-
+    public Reference getModReference(){return modReference;}
+    //给当前页面新添一列
     public LPCConfigList addList(String translationKey){
         if(lists == null) lists = new ArrayList<>();
         lists.add(new LPCConfigList(this, translationKey));
         return lists.getLast();
     }
-
-    public InputHandler getInputHandler(){
-        return inputHandler;
+    public InputHandler getInputHandler(){return inputHandler;}
+    //显示当前页面
+    public void showPage(){GuiBase.openGui(new ConfigPageInstance(this));}
+    public void setCallback(@Nullable IConfigPageCallback callback){this.callback = callback;}
+    @Nullable public IConfigPageCallback getCallback(){return callback;}
+    @Override public GuiBase get() {return new ConfigPageInstance(this);}
+    //保存和加载已有的全部配置文件内容
+    //如果文件中有目前未注册的配置项，不理它但是保留
+    @Override public void load() {
+        JsonObject object = null;
+        Path configFile = FileUtils.getConfigDirectoryAsPath().resolve(configFileName);
+        if (Files.exists(configFile) && Files.isReadable(configFile)) {
+            JsonElement element = JsonUtils.parseJsonFileAsPath(configFile);
+            if (element != null && element.isJsonObject())
+                object = element.getAsJsonObject();
+            else LPCAPIInit.LOGGER.error(
+                    "load(): Failed to parse config file '{}' as a JSON element.",
+                    configFile.toAbsolutePath());
+        }
+        resetConfigPageJson(object);
+        if(callback != null)
+            callback.onPageRefresh();
+        for (LPCConfigList list : lists) {
+            IConfigListCallback listCallback = list.getCallback();
+            if (listCallback != null)
+                listCallback.onListRefresh();
+        }
+    }
+    @Override public void save() {
+        for(LPCConfigList list : lists)
+            list.reloadConfigJson();
+        Path dir = FileUtils.getConfigDirectoryAsPath();
+        if (!Files.exists(dir))
+            FileUtils.createDirectoriesIfMissing(dir);
+        if (Files.isDirectory(dir)) {
+            Path file = dir.resolve(configFileName);
+            JsonUtils.writeJsonToFileAsPath(configPageJson, file);
+        }
     }
 
-    public void showPage(){
-        GuiBase.openGui(new ConfigPageInstance(this));
+    static void staticAfterInit(){
+        if(uninitializedConfigPages == null) return;
+        for(LPCConfigPage page : uninitializedConfigPages){
+            page.afterInit();
+        }
+        uninitializedConfigPages = null;
     }
 
-    @Override
-    public GuiBase get() {
-        return new ConfigPageInstance(this);
-    }
-
-    //private static data
     private static ArrayList<LPCConfigPage> uninitializedConfigPages = new ArrayList<>();
-
-    //private nonstatic data
     private InputHandler inputHandler;
     private final Reference modReference;
     private final String configFileName;
     private ArrayList<LPCConfigList> lists = null;
     private int selectedIndex = 0;
     private JsonObject configPageJson;
-
-    //private methods
+    @Nullable private IConfigPageCallback callback = null;
     private void afterInit(){
         ConfigManager.getInstance().registerConfigHandler(modReference.modId, this);
         Registry.CONFIG_SCREEN.registerConfigScreenFactory(new ModInfo(modReference.modId, modReference.modName, this));
@@ -78,28 +104,54 @@ public class LPCConfigPage implements IConfigHandler, Supplier<GuiBase>{
             list.afterInit();
         load();
     }
-
-    //public static method but only been called inside APIs
-    public static void staticAfterInit(){
-        if(uninitializedConfigPages == null) return;
-        for(LPCConfigPage page : uninitializedConfigPages){
-            page.afterInit();
-        }
-        uninitializedConfigPages = null;
+    private void resetConfigPageJson(JsonObject configPageJson){
+        this.configPageJson = configPageJson;
+        if(this.configPageJson == null)
+            this.configPageJson = new JsonObject();
+        for(LPCConfigList list : lists)
+            list.resetListJson(this.configPageJson);
     }
 
-    //private classes
     private static class ConfigPageInstance extends GuiConfigsBase{
-        //private data
-        private final LPCConfigPage parent;
+        @Override public void initGui() {
+            super.initGui();
+            this.clearOptions();
+            if(parent.lists == null) return;
 
-        //public methods
-        public ConfigPageInstance(LPCConfigPage parent) {
+            int x = 10;
+            int y = 26;
+
+            for (int a = 0; a < parent.lists.size(); ++a) {
+                String listName = parent.lists.get(a).getTitleDisplayName();
+                ButtonGeneric button = new ButtonGeneric(x, y, calculateDisplayLength(listName) * 7, 20, listName);
+                button.setEnabled(parent.selectedIndex != a);
+                this.addButton(button, new ButtonListener(a, this));
+                x += button.getWidth() + 2;
+            }
+        }
+        @Override public List<ConfigOptionWrapper> getConfigs() {
+            return ConfigOptionWrapper.createFor(parent.lists.get(parent.selectedIndex).configs);
+        }
+        @Override public void removed(){
+            super.removed();
+            if(parent.callback != null)
+                parent.callback.onPageRefresh();
+            IConfigListCallback listCallback = parent.lists.get(parent.selectedIndex).getCallback();
+            if(listCallback != null)
+                listCallback.onListRefresh();
+        }
+
+        @Override protected boolean useKeybindSearch() {return parent.lists.get(parent.selectedIndex).hasHotkeyConfig();}
+
+        ConfigPageInstance(LPCConfigPage parent) {
             super(10, 50, parent.modReference.modId, null, parent.modReference.modId + ".configs.title", parent.modReference.modVersion);
             this.parent = parent;
         }
-
-        public void select(int index){
+        void select(int index){
+            if(index == parent.selectedIndex) return;
+            IConfigListCallback listCallback = parent.lists.get(parent.selectedIndex).getCallback();
+            if(listCallback != null)
+                listCallback.onListRefresh();
             parent.selectedIndex = index;
             reCreateListWidget(); // apply the new config width
             Objects.requireNonNull(getListWidget()).getScrollbar().setValue(0);
@@ -119,34 +171,7 @@ public class LPCConfigPage implements IConfigHandler, Supplier<GuiBase>{
             }
             return length;
         }
-
-        @Override
-        public void initGui() {
-            super.initGui();
-            this.clearOptions();
-            if(parent.lists == null) return;
-
-            int x = 10;
-            int y = 26;
-
-            for (int a = 0; a < parent.lists.size(); ++a) {
-                String listName = parent.lists.get(a).getTitleDisplayName();
-                ButtonGeneric button = new ButtonGeneric(x, y, calculateDisplayLength(listName) * 7, 20, listName);
-                button.setEnabled(parent.selectedIndex != a);
-                this.addButton(button, new ButtonListener(a, this));
-                x += button.getWidth() + 2;
-            }
-        }
-
-        @Override
-        protected boolean useKeybindSearch() {
-            return parent.lists.get(parent.selectedIndex).hasHotkeyConfig();
-        }
-
-        @Override
-        public List<ConfigOptionWrapper> getConfigs() {
-            return ConfigOptionWrapper.createFor(parent.lists.get(parent.selectedIndex).configs);
-        }
+        private final LPCConfigPage parent;
 
         private static class ButtonListener implements IButtonActionListener {
             int index;
@@ -159,44 +184,6 @@ public class LPCConfigPage implements IConfigHandler, Supplier<GuiBase>{
             public void actionPerformedWithButton(ButtonBase button, int mouseButton) {
                 parent.select(index);
             }
-        }
-    }
-
-    private void resetConfigPageJson(JsonObject configPageJson){
-        this.configPageJson = configPageJson;
-        if(this.configPageJson == null)
-            this.configPageJson = new JsonObject();
-        for(LPCConfigList list : lists)
-            list.resetListJson(this.configPageJson);
-    }
-
-    //保存和加载已有的全部配置文件内容
-    //如果文件中有目前未注册的配置项，不理它但是保留
-    @Override
-    public void load() {
-        JsonObject object = null;
-        Path configFile = FileUtils.getConfigDirectoryAsPath().resolve(configFileName);
-        if (Files.exists(configFile) && Files.isReadable(configFile)) {
-            JsonElement element = JsonUtils.parseJsonFileAsPath(configFile);
-            if (element != null && element.isJsonObject())
-                object = element.getAsJsonObject();
-            else LPCAPIInit.LOGGER.error(
-                    "load(): Failed to parse config file '{}' as a JSON element.",
-                    configFile.toAbsolutePath());
-        }
-        resetConfigPageJson(object);
-    }
-
-    @Override
-    public void save() {
-        for(LPCConfigList list : lists)
-            list.reloadConfigJson();
-        Path dir = FileUtils.getConfigDirectoryAsPath();
-        if (!Files.exists(dir))
-            FileUtils.createDirectoriesIfMissing(dir);
-        if (Files.isDirectory(dir)) {
-            Path file = dir.resolve(configFileName);
-            JsonUtils.writeJsonToFileAsPath(configPageJson, file);
         }
     }
 }

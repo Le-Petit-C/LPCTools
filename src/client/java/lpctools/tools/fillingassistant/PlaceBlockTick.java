@@ -1,9 +1,10 @@
 package lpctools.tools.fillingassistant;
 
-import lpctools.util.ThreadInteger;
-import net.minecraft.block.Block;
-import net.minecraft.block.Blocks;
+import fi.dy.masa.malilib.util.GuiUtils;
+import lpctools.lpcfymasaapi.Registry;
+import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.network.ClientPlayerInteractionManager;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
 import net.minecraft.util.hit.BlockHitResult;
@@ -11,97 +12,24 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.util.math.Vec3i;
+import net.minecraft.world.GameMode;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.Queue;
 
-public class PlaceBlockTick{
-    private final putExecutor run = new putExecutor();
-    private static Data.BLOCKTYPE blockType(BlockPos blockPosToCheck) {
+import static lpctools.tools.fillingassistant.FillingAssistant.*;
+
+public class PlaceBlockTick implements ClientTickEvents.EndTick, Registry.InGameEndMouse {
+    private boolean put(BlockPos blockpos){
         MinecraftClient client = MinecraftClient.getInstance();
-        if(client.world == null) return Data.BLOCKTYPE.ERROR;
-        Block block = client.world.getBlockState(blockPosToCheck).getBlock();
-        if(block == Blocks.AIR
-                || block == Blocks.CAVE_AIR
-                || block == Blocks.VINE
-                || block == Blocks.VOID_AIR
-                || block == Blocks.WATER
-                || block == Blocks.LAVA
-                || block == Blocks.TALL_GRASS
-                || block == Blocks.SHORT_GRASS
-                || block == Blocks.GLOW_LICHEN
-                || block == Blocks.SEAGRASS
-                || block == Blocks.TALL_SEAGRASS
-                || block == Blocks.BUBBLE_COLUMN
-                || block == Blocks.SNOW
-        ){
-            return Data.BLOCKTYPE.EMPTY;
-        }
-        else if(block == Blocks.STONE
-                || block == Blocks.DEEPSLATE
-                || block == Blocks.GRAVEL
-                || block == Blocks.TUFF
-                || block == Blocks.TUFF_BRICKS
-                || block == Blocks.DIORITE
-                || block == Blocks.GRANITE
-                || block == Blocks.ANDESITE
-                || block == Blocks.DIRT
-                || block == Blocks.GRASS_BLOCK
-                || block == Blocks.CLAY
-                || block == Blocks.MAGMA_BLOCK
-                || block == Blocks.SAND
-                || block == Blocks.SMOOTH_BASALT
-                || block == Blocks.BEDROCK
-                || block == Blocks.OBSIDIAN
-                || block == Blocks.NETHERRACK
-                || block == Blocks.COBBLESTONE
-                || block == Blocks.COBBLED_DEEPSLATE
-                || block == Blocks.MOSS_BLOCK
-                || block == Blocks.ROOTED_DIRT
-                || block == Blocks.SANDSTONE
-                || block == Blocks.WAXED_CHISELED_COPPER
-                || block == Blocks.WAXED_COPPER_BLOCK
-                || block == Blocks.WAXED_OXIDIZED_COPPER
-                || block == Blocks.CHISELED_TUFF
-                || block == Blocks.POLISHED_TUFF
-                || block == Blocks.CHISELED_TUFF_BRICKS
-                || block == Blocks.WAXED_OXIDIZED_CUT_COPPER
-                || block == Blocks.COARSE_DIRT
-                || block == Blocks.PODZOL
-        ){
-            return Data.BLOCKTYPE.STONE;
-        }
-        else return Data.BLOCKTYPE.OTHERS;
-    }
-    private Boolean put(BlockPos blockpos){
-        run.blockpos = blockpos;
-        run.lock.increase();
-        MinecraftClient.getInstance().execute(run);
-        try {
-            run.lock.waitUntilZero();
-        } catch (InterruptedException ignore) {}
-        return run.ret;
-    }
-    private static class putExecutor implements Runnable{
-        private final ThreadInteger lock = new ThreadInteger();
-        public boolean ret;
-        public BlockPos blockpos;
-        private boolean myRun(){
-            MinecraftClient client = MinecraftClient.getInstance();
-            if(client.interactionManager == null) return false;
-            HandRestock.restock();
-            if(!Data.enabled()) return false;
-            Vec3d pos = new Vec3d(blockpos.getX() + 0.5, blockpos.getY() + 0.5, blockpos.getZ() + 0.5);
-            BlockHitResult hit = new BlockHitResult(pos, Direction.UP, blockpos, true);
-            return client.interactionManager.interactBlock(client.player, Hand.MAIN_HAND, hit) == ActionResult.SUCCESS;
-        }
-        @Override
-        public void run(){
-            ret = myRun();
-            lock.decline();
-        }
+        if(client.interactionManager == null) return false;
+        HandRestock.restock();
+        if(!enabled()) return false;
+        Vec3d pos = new Vec3d(blockpos.getX() + 0.5, blockpos.getY() + 0.5, blockpos.getZ() + 0.5);
+        BlockHitResult hit = new BlockHitResult(pos, Direction.UP, blockpos, false);
+        return client.interactionManager.interactBlock(client.player, Hand.MAIN_HAND, hit) == ActionResult.SUCCESS;
     }
     private BlockPos currentPosition;//当前map区域的xyz值最小角坐标
     private int testDistance = 5;
@@ -153,7 +81,7 @@ public class PlaceBlockTick{
             for (boolean[] mapXY : mapX) {
                 BlockPos pos3 = pos2;
                 for (int z = 0; z < mapXY.length; ++z) {
-                    mapXY[z] = (blockType(pos3) == Data.BLOCKTYPE.STONE);
+                    mapXY[z] = !passable(pos3);
                     pos3 = pos3.south();
                 }
                 pos2 = pos2.up();
@@ -262,14 +190,40 @@ public class PlaceBlockTick{
         return a == numPositions;
     }
 
-    private Boolean tryPut(BlockPos pos){
-        if(canPut(pos.subtract(currentPosition)))
+    private boolean tryPut(BlockPos pos){
+        if (!replaceable(pos)) return false;
+        if (!passable(pos)) return false;
+        if (required(pos)) return false;
+        if (required(pos.east())) return false;
+        if (required(pos.west())) return false;
+        if (required(pos.north())) return false;
+        if (required(pos.south())) return false;
+        if (required(pos.up())) return false;
+        if (required(pos.down())) return false;
+        if (canPut(pos.subtract(currentPosition)))
             return put(pos);
         return false;
     }
 
-    public void tick(MinecraftClient client){
-        if(client.player == null) return;
+    @Override
+    public void onEndTick(MinecraftClient client){
+        if(client.player == null){
+            disableTool("lpctools.tools.fillingAssistant.disableReason.nullClientPlayerEntity");
+            return;
+        }
+        ClientPlayerInteractionManager manager = client.interactionManager;
+        if(manager == null){
+            disableTool("lpctools.tools.fillingAssistant.disableReason.nullInteractionManager");
+            return;
+        }
+        if (manager.getCurrentGameMode() == GameMode.SPECTATOR || manager.getCurrentGameMode() == GameMode.ADVENTURE){
+            disableTool("lpctools.tools.fillingAssistant.disableReason.unsupportedGameMode");
+            return;
+        }
+        if(disableOnGUIOpened.getValue() && GuiUtils.getCurrentScreen() != null){
+            disableTool("lpctools.tools.fillingAssistant.disableReason.GUIOpened");
+            return;
+        }
         Vec3d eyePos = client.player.getEyePos();
         BlockPos eyeBlockPos = new BlockPos((int)Math.floor(eyePos.getX()), (int)Math.floor(eyePos.getY()), (int)Math.floor(eyePos.getZ()));
         boolean loop;
@@ -286,16 +240,20 @@ public class PlaceBlockTick{
                         Vec3d posD = new Vec3d(pos.getX(), pos.getY(), pos.getZ());
                         if (posD.distanceTo(eyePos) >= 4.0) continue;
                         if(x == 0 && z == 0 && (y == 0 || y == -1)) continue;
-                        if (blockType(pos) == Data.BLOCKTYPE.EMPTY) {
-                            if(tryPut(pos)){
-                                loop = true;
-                                initializeMap(eyeBlockPos);
-                                //map[testDistance - x][testDistance - y][testDistance - z] = true;
-                            }
+                        if(tryPut(pos)){
+                            loop = true;
+                            setMapVec3i(pos.subtract(currentPosition), !passable(pos));
                         }
                     }
                 }
             }
         }while(loop);
+        HandRestock.restock();
+    }
+
+    @Override
+    public void onInGameEndMouse(int button, int action, int mods) {
+        if(disableOnLeftDownConfig.getValue() && button == 0 && action == 1)
+            disableTool("lpctools.tools.fillingAssistant.disableReason.mouseLeftDown");
     }
 }

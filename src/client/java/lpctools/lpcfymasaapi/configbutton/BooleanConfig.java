@@ -22,8 +22,11 @@ public class BooleanConfig implements LPCConfig {
         this(list, name, defaultBoolean);
         setCallBack(callback);
     }
-
-    //接口重载函数
+    public boolean getValue(){
+        if(instance != null)
+            return instance.getBooleanValue();
+        else return defaultBoolean;
+    }
     @Override
     public IConfigBase getConfig(){
         if(instance == null)
