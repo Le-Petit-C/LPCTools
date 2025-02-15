@@ -5,6 +5,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import fi.dy.masa.malilib.config.ConfigManager;
 import fi.dy.masa.malilib.config.IConfigHandler;
+import fi.dy.masa.malilib.event.InputEventHandler;
 import fi.dy.masa.malilib.gui.GuiBase;
 import fi.dy.masa.malilib.registry.Registry;
 import fi.dy.masa.malilib.util.FileUtils;
@@ -14,8 +15,7 @@ import fi.dy.masa.malilib.gui.GuiConfigsBase;
 import fi.dy.masa.malilib.gui.button.IButtonActionListener;
 import fi.dy.masa.malilib.gui.button.ButtonBase;
 import fi.dy.masa.malilib.gui.button.ButtonGeneric;
-import lpctools.lpcfymasaapi.configbutton.LPCConfig;
-import org.jetbrains.annotations.Nullable;
+import lpctools.lpcfymasaapi.configbutton.ILPCConfig;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -44,9 +44,12 @@ public class LPCConfigPage implements IConfigHandler, Supplier<GuiBase>{
     }
     public InputHandler getInputHandler(){return inputHandler;}
     //显示当前页面
-    public void showPage(){GuiBase.openGui(new ConfigPageInstance(this));}
-    public void setCallback(@Nullable IConfigPageCallback callback){this.callback = callback;}
-    @Nullable public IConfigPageCallback getCallback(){return callback;}
+    public void showPage(){
+        if(pageInstance != null) pageInstance.initGui();
+        else GuiBase.openGui(pageInstance = new ConfigPageInstance(this));
+    }
+    //获取当前列
+    public LPCConfigList getList(){return lists.get(selectedIndex);}
     @Override public GuiBase get() {return new ConfigPageInstance(this);}
     //保存和加载已有的全部配置文件内容
     //如果文件中有目前未注册的配置项，不理它但是保留
@@ -62,17 +65,10 @@ public class LPCConfigPage implements IConfigHandler, Supplier<GuiBase>{
                     configFile.toAbsolutePath());
         }
         resetConfigPageJson(object);
-        if(callback != null)
-            callback.onPageRefresh();
-        for (LPCConfigList list : lists) {
-            IConfigListCallback listCallback = list.getCallback();
-            if (listCallback != null)
-                listCallback.onListRefresh();
-        }
     }
     @Override public void save() {
         for(LPCConfigList list : lists)
-            list.reloadConfigJson();
+            list.rebuildConfigJson();
         Path dir = FileUtils.getConfigDirectoryAsPath();
         if (!Files.exists(dir))
             FileUtils.createDirectoriesIfMissing(dir);
@@ -84,10 +80,13 @@ public class LPCConfigPage implements IConfigHandler, Supplier<GuiBase>{
 
     static void staticAfterInit(){
         if(uninitializedConfigPages == null) return;
-        for(LPCConfigPage page : uninitializedConfigPages){
+        for(LPCConfigPage page : uninitializedConfigPages)
             page.afterInit();
-        }
         uninitializedConfigPages = null;
+    }
+    void callRefresh(){
+        for(LPCConfigList list : lists)
+            list.callRefresh();
     }
 
     private static ArrayList<LPCConfigPage> uninitializedConfigPages = new ArrayList<>();
@@ -97,13 +96,14 @@ public class LPCConfigPage implements IConfigHandler, Supplier<GuiBase>{
     private ArrayList<LPCConfigList> lists = null;
     private int selectedIndex = 0;
     private JsonObject configPageJson;
-    @Nullable private IConfigPageCallback callback = null;
+    private ConfigPageInstance pageInstance;
     private void afterInit(){
         ConfigManager.getInstance().registerConfigHandler(modReference.modId, this);
         Registry.CONFIG_SCREEN.registerConfigScreenFactory(new ModInfo(modReference.modId, modReference.modName, this));
         inputHandler = new InputHandler(modReference);
-        load();
+        //load();
     }
+    //使用此JsonObject替换现有JsonObject
     private void resetConfigPageJson(JsonObject configPageJson){
         this.configPageJson = configPageJson;
         if(this.configPageJson == null)
@@ -131,19 +131,18 @@ public class LPCConfigPage implements IConfigHandler, Supplier<GuiBase>{
         }
         @Override public List<ConfigOptionWrapper> getConfigs() {
             ImmutableList.Builder<ConfigOptionWrapper> builder = ImmutableList.builder();
-            for (LPCConfig config : parent.lists.get(parent.selectedIndex).configs) {
-                if(config.enabled)
-                    builder.add(new ConfigOptionWrapper(config.getConfig()));
+            for (ILPCConfig config : parent.lists.get(parent.selectedIndex).configs) {
+                if(config.isEnabled())
+                    builder.add(new ConfigOptionWrapper(config.IGetConfig()));
             }
             return builder.build();
         }
         @Override public void removed(){
             super.removed();
-            if(parent.callback != null)
-                parent.callback.onPageRefresh();
-            IConfigListCallback listCallback = parent.lists.get(parent.selectedIndex).getCallback();
-            if(listCallback != null)
-                listCallback.onListRefresh();
+            parent.lists.get(parent.selectedIndex).callRefresh();
+            parent.pageInstance = null;
+            //malilib中并不总会更新热键，比如如果退出配置界面时有配置被ThirdListConfig收起了就不会更新，这样子能强制它更新一下
+            InputEventHandler.getKeybindManager().updateUsedKeys();
         }
 
         @Override protected boolean useKeybindSearch() {return parent.lists.get(parent.selectedIndex).hasHotkeyConfig();}
@@ -154,9 +153,7 @@ public class LPCConfigPage implements IConfigHandler, Supplier<GuiBase>{
         }
         void select(int index){
             if(index == parent.selectedIndex) return;
-            IConfigListCallback listCallback = parent.lists.get(parent.selectedIndex).getCallback();
-            if(listCallback != null)
-                listCallback.onListRefresh();
+            parent.lists.get(parent.selectedIndex).callRefresh();
             parent.selectedIndex = index;
             reCreateListWidget(); // apply the new config width
             Objects.requireNonNull(getListWidget()).getScrollbar().setValue(0);

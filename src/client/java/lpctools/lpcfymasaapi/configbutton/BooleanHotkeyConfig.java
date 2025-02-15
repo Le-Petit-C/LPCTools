@@ -1,65 +1,27 @@
 package lpctools.lpcfymasaapi.configbutton;
 
-import fi.dy.masa.malilib.config.IConfigBase;
-import fi.dy.masa.malilib.config.options.ConfigBoolean;
 import fi.dy.masa.malilib.config.options.ConfigBooleanHotkeyed;
-import fi.dy.masa.malilib.interfaces.IValueChangeCallback;
 import lpctools.lpcfymasaapi.LPCConfigList;
-import lpctools.lpcfymasaapi.LPCConfigPage;
+import org.jetbrains.annotations.NotNull;
 
-public class BooleanHotkeyConfig extends LPCConfig {
+public class BooleanHotkeyConfig extends LPCConfig<ConfigBooleanHotkeyed> {
+    public final boolean defaultBoolean;
+    public final String defaultStorageString;
     public BooleanHotkeyConfig(LPCConfigList list, String name, boolean defaultBoolean, String defaultStorageString){
-        this.list = list;
-        this.name = name;
+        super(list, name, true);
         this.defaultBoolean = defaultBoolean;
         this.defaultStorageString = defaultStorageString;
     }
-    public void setCallBack(IValueChangeCallback<ConfigBoolean> callback){
-        this.callback = callback;
-        if(instance != null) instance.setValueChangeCallback(callback);
-    }
-    public BooleanHotkeyConfig(LPCConfigList list, String name, boolean defaultBoolean, String defaultStorageString, IValueChangeCallback<ConfigBoolean> callback){
+    public BooleanHotkeyConfig(LPCConfigList list, String name, boolean defaultBoolean, String defaultStorageString, IValueRefreshCallback callback){
         this(list, name, defaultBoolean, defaultStorageString);
-        setCallBack(callback);
+        setCallback(callback);
     }
 
-    //接口重载函数
-    @Override
-    public IConfigBase getConfig(){
-        if(instance == null)
-            instance = new BooleanHotkeyConfigInstance(this);
-        return instance;
-    }
-
-    @Override
-    public boolean hasHotkey(){
-        return true;
-    }
-
-    private static class BooleanHotkeyConfigInstance extends ConfigBooleanHotkeyed {
-        private final BooleanHotkeyConfig parent;
-        public BooleanHotkeyConfigInstance(BooleanHotkeyConfig parent){
-            super(parent.name, parent.defaultBoolean, parent.defaultStorageString);
-            this.parent = parent;
-            apply(parent.list.getFullTranslationKey());
-            parent.list.getPage().getInputHandler().addHotkey(this);
-            setValueChangeCallback(parent.callback);
-        }
-    }
-    private BooleanHotkeyConfigInstance instance;
-    private final LPCConfigList list;
-    private final String name;
-    private final boolean defaultBoolean;
-    private final String defaultStorageString;
-    private IValueChangeCallback<ConfigBoolean> callback;
-
-    @Override
-    public LPCConfigPage getPage(){
-        return list.getPage();
-    }
-
-    @Override
-    public LPCConfigList getList(){
-        return list;
+    @Override @NotNull protected ConfigBooleanHotkeyed createInstance() {
+        ConfigBooleanHotkeyed config = new ConfigBooleanHotkeyed(getName(), defaultBoolean, defaultStorageString);
+        config.apply(list.getFullTranslationKey());
+        list.getPage().getInputHandler().addHotkey(config);
+        config.setValueChangeCallback(new LPCConfigCallback<>(this));
+        return config;
     }
 }

@@ -1,6 +1,6 @@
 package lpctools.tools.fillingassistant;
 
-import fi.dy.masa.malilib.util.GuiUtils;
+import lpctools.lpcfymasaapi.LPCAPIInit;
 import lpctools.lpcfymasaapi.Registry;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.minecraft.client.MinecraftClient;
@@ -221,7 +221,7 @@ public class PlaceBlockTick implements ClientTickEvents.EndTick, Registry.InGame
             disableTool("lpctools.tools.fillingAssistant.disableReason.unsupportedGameMode");
             return;
         }
-        if(disableOnGUIOpened.getValue() && GuiUtils.getCurrentScreen() != null){
+        if(disableOnGUIOpened.getValue() && LPCAPIInit.isInTextOrGui()){
             disableTool("lpctools.tools.fillingAssistant.disableReason.GUIOpened");
             return;
         }
@@ -230,7 +230,7 @@ public class PlaceBlockTick implements ClientTickEvents.EndTick, Registry.InGame
         boolean blockSetted;
         if(limitPlaceSpeedConfig.getValue()){
             if(canSetBlockCount > 1) canSetBlockCount = 0;
-            canSetBlockCount += maxPlaceSpeedPerTick.getValue();
+            canSetBlockCount += maxBlockPerTick.getValue();
         }
         else canSetBlockCount = 65536;
         initializeMap(eyeBlockPos);
