@@ -1,5 +1,6 @@
 package lpctools.lpcfymasaapi;
 
+import com.google.common.collect.ImmutableList;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import fi.dy.masa.malilib.config.ConfigManager;
@@ -13,6 +14,7 @@ import fi.dy.masa.malilib.gui.GuiConfigsBase;
 import fi.dy.masa.malilib.gui.button.IButtonActionListener;
 import fi.dy.masa.malilib.gui.button.ButtonBase;
 import fi.dy.masa.malilib.gui.button.ButtonGeneric;
+import lpctools.lpcfymasaapi.configbutton.LPCConfig;
 import org.jetbrains.annotations.Nullable;
 
 import java.nio.file.Files;
@@ -100,8 +102,6 @@ public class LPCConfigPage implements IConfigHandler, Supplier<GuiBase>{
         ConfigManager.getInstance().registerConfigHandler(modReference.modId, this);
         Registry.CONFIG_SCREEN.registerConfigScreenFactory(new ModInfo(modReference.modId, modReference.modName, this));
         inputHandler = new InputHandler(modReference);
-        for(LPCConfigList list : lists)
-            list.afterInit();
         load();
     }
     private void resetConfigPageJson(JsonObject configPageJson){
@@ -130,7 +130,12 @@ public class LPCConfigPage implements IConfigHandler, Supplier<GuiBase>{
             }
         }
         @Override public List<ConfigOptionWrapper> getConfigs() {
-            return ConfigOptionWrapper.createFor(parent.lists.get(parent.selectedIndex).configs);
+            ImmutableList.Builder<ConfigOptionWrapper> builder = ImmutableList.builder();
+            for (LPCConfig config : parent.lists.get(parent.selectedIndex).configs) {
+                if(config.enabled)
+                    builder.add(new ConfigOptionWrapper(config.getConfig()));
+            }
+            return builder.build();
         }
         @Override public void removed(){
             super.removed();

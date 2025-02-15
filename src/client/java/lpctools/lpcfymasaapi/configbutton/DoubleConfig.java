@@ -1,35 +1,35 @@
 package lpctools.lpcfymasaapi.configbutton;
 
 import fi.dy.masa.malilib.config.IConfigBase;
-import fi.dy.masa.malilib.config.options.ConfigBoolean;
+import fi.dy.masa.malilib.config.options.ConfigDouble;
 import fi.dy.masa.malilib.interfaces.IValueChangeCallback;
 import lpctools.lpcfymasaapi.LPCConfigList;
 import lpctools.lpcfymasaapi.LPCConfigPage;
 
-public class BooleanConfig extends LPCConfig {
-    public BooleanConfig(LPCConfigList list, String name, boolean defaultBoolean){
+public class DoubleConfig extends LPCConfig{
+    public DoubleConfig(LPCConfigList list, String name, double defaultDouble){
         this.list = list;
         this.name = name;
-        this.defaultBoolean = defaultBoolean;
+        this.defaultDouble = defaultDouble;
     }
-    public void setCallBack(IValueChangeCallback<ConfigBoolean> callBack){
+    public void setCallBack(IValueChangeCallback<ConfigDouble> callBack){
         this.callBack = callBack;
         if(instance != null)
             instance.setValueChangeCallback(callBack);
     }
-    public BooleanConfig(LPCConfigList list, String name, boolean defaultBoolean, IValueChangeCallback<ConfigBoolean> callback){
-        this(list, name, defaultBoolean);
+    public DoubleConfig(LPCConfigList list, String name, double defaultDouble, IValueChangeCallback<ConfigDouble> callback){
+        this(list, name, defaultDouble);
         setCallBack(callback);
     }
-    public boolean getValue(){
+    public double getValue(){
         if(instance != null)
-            return instance.getBooleanValue();
-        else return defaultBoolean;
+            return instance.getDoubleValue();
+        else return defaultDouble;
     }
     @Override
     public IConfigBase getConfig(){
         if(instance == null)
-            instance = new BooleanConfigInstance(this);
+            instance = new DoubleConfigInstance(this);
         return instance;
     }
 
@@ -38,20 +38,20 @@ public class BooleanConfig extends LPCConfig {
         return true;
     }
 
-    private static class BooleanConfigInstance extends ConfigBoolean {
-        private final BooleanConfig parent;
-        public BooleanConfigInstance(BooleanConfig parent){
-            super(parent.name, parent.defaultBoolean);
+    private static class DoubleConfigInstance extends ConfigDouble {
+        private final DoubleConfig parent;
+        public DoubleConfigInstance(DoubleConfig parent){
+            super(parent.name, parent.defaultDouble);
             this.parent = parent;
             apply(parent.list.getFullTranslationKey());
             setValueChangeCallback(parent.callBack);
         }
     }
-    private BooleanConfigInstance instance;
+    private DoubleConfigInstance instance;
     private final LPCConfigList list;
     private final String name;
-    private final boolean defaultBoolean;
-    private IValueChangeCallback<ConfigBoolean> callBack;
+    private final double defaultDouble;
+    private IValueChangeCallback<ConfigDouble> callBack;
 
     @Override
     public LPCConfigPage getPage(){

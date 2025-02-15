@@ -2,14 +2,15 @@ package lpctools.lpcfymasaapi;
 
 import com.google.common.collect.ImmutableList;
 import com.google.gson.JsonObject;
-import fi.dy.masa.malilib.config.IConfigBase;
 import fi.dy.masa.malilib.config.options.ConfigBoolean;
+import fi.dy.masa.malilib.config.options.ConfigDouble;
 import fi.dy.masa.malilib.config.options.ConfigStringList;
 import fi.dy.masa.malilib.hotkeys.IHotkeyCallback;
 import fi.dy.masa.malilib.interfaces.IValueChangeCallback;
 import fi.dy.masa.malilib.util.JsonUtils;
 import fi.dy.masa.malilib.util.StringUtils;
 import lpctools.lpcfymasaapi.configbutton.*;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -20,19 +21,15 @@ public class LPCConfigList {
     public LPCConfigList(LPCConfigPage parent, String translationKey){
         this.parent = parent;
         this.translationKey = translationKey;
-        if(LPCAPIInit.MASAInitialized) afterInit();
-        else uninitializedConfigs = new ArrayList<>();
     }
+    //加入的配置无法删除，但是你可以将LPCConfig.enabled置为false让它不显示
     public void addConfig(LPCConfig config){
-        if(uninitializedConfigs != null) uninitializedConfigs.add(config);
-        if(configs != null){
-            configs.add(config.getConfig());
-            reloadConfigFromJson(configs.getLast());
-        }
+        configs.add(config);
+        if(LPCAPIInit.MASAInitialized)
+            reloadConfigFromJson(config);
         if(config.hasHotkey())
             hasHotkeyConfig = true;
     }
-    //TODO:removeConfig
     public BooleanConfig addBooleanConfig(String name, boolean defaultBoolean){
         BooleanConfig config = new BooleanConfig(this, name, defaultBoolean);
         addConfig(config);
@@ -40,6 +37,16 @@ public class LPCConfigList {
     }
     public BooleanConfig addBooleanConfig(String name, boolean defaultBoolean, IValueChangeCallback<ConfigBoolean> callback){
         BooleanConfig config = new BooleanConfig(this, name, defaultBoolean, callback);
+        addConfig(config);
+        return config;
+    }
+    public DoubleConfig addDoubleConfig(String name, double defaultDouble){
+        DoubleConfig config = new DoubleConfig(this, name, defaultDouble);
+        addConfig(config);
+        return config;
+    }
+    public DoubleConfig addDoubleConfig(String name, double defaultDouble, IValueChangeCallback<ConfigDouble> callback){
+        DoubleConfig config = new DoubleConfig(this, name, defaultDouble, callback);
         addConfig(config);
         return config;
     }
@@ -79,35 +86,25 @@ public class LPCConfigList {
     public String getTitleDisplayName(){return StringUtils.translate(getTitleFullTranslationKey());}
     public void resetListJson(JsonObject configPageJson){
         configListJson = JsonUtils.getNestedObject(configPageJson, getTranslationKey(), true);
-        for (IConfigBase option : configs)
+        for (LPCConfig option : configs)
             reloadConfigFromJson(option);
     }
     public void reloadConfigJson(){
-        for(IConfigBase config : configs)
-            configListJson.add(config.getName(), config.getAsJsonElement());
+        for(LPCConfig config : configs)
+            configListJson.add(config.getConfig().getName(), config.getConfig().getAsJsonElement());
     }
     public boolean hasHotkeyConfig() {return hasHotkeyConfig;}
     public void setCallback(@Nullable IConfigListCallback callback){this.callback = callback;}
     @Nullable public IConfigListCallback getCallback(){return callback;}
 
-    ArrayList<IConfigBase> configs;
-    void afterInit(){
-        if(uninitializedConfigs == null) return;
-        configs = new ArrayList<>();
-        for(LPCConfig config : uninitializedConfigs){
-            configs.add(config.getConfig());
-            reloadConfigFromJson(configs.getLast());
-        }
-        uninitializedConfigs = null;
-    }
+    @NotNull ArrayList<LPCConfig> configs = new ArrayList<>();
 
-    private ArrayList<LPCConfig> uninitializedConfigs;
     private final String translationKey;
     private final LPCConfigPage parent;
     private JsonObject configListJson;
     private boolean hasHotkeyConfig;
     @Nullable private IConfigListCallback callback = null;
-    private void reloadConfigFromJson(IConfigBase config){
+    private void reloadConfigFromJson(LPCConfig config){
         if(config == null) return;
         if(configListJson == null) return;
         String name = config.getName();

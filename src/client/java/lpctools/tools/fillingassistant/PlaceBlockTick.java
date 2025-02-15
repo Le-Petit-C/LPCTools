@@ -36,6 +36,7 @@ public class PlaceBlockTick implements ClientTickEvents.EndTick, Registry.InGame
     private int testSize = 11;
     private boolean[][][] map = new boolean[testSize][testSize][testSize];
     private boolean[][][] testBuffer = new boolean[testSize][testSize][testSize];
+    private double canSetBlockCount;
     public void setTestDistance(int distance){
         testDistance = distance;
         testSize = distance * 2 + 1;
@@ -226,28 +227,44 @@ public class PlaceBlockTick implements ClientTickEvents.EndTick, Registry.InGame
         }
         Vec3d eyePos = client.player.getEyePos();
         BlockPos eyeBlockPos = new BlockPos((int)Math.floor(eyePos.getX()), (int)Math.floor(eyePos.getY()), (int)Math.floor(eyePos.getZ()));
-        boolean loop;
+        boolean blockSetted;
+        if(limitPlaceSpeedConfig.getValue()){
+            if(canSetBlockCount > 1) canSetBlockCount = 0;
+            canSetBlockCount += maxPlaceSpeedPerTick.getValue();
+        }
+        else canSetBlockCount = 65536;
         initializeMap(eyeBlockPos);
         do {
-            loop = false;
-            for (int y = -4; y <= 4; ++y) {
+            blockSetted = false;
+            int y;
+            for (y = -4; y <= 4; ++y) {
                 BlockPos p1 = eyeBlockPos.add(0, y, 0);
                 if (p1.getY() < -64 || p1.getY() >= 320) continue;
-                for (int x = -4; x <= 4; ++x) {
+                int x;
+                for (x = -4; x <= 4; ++x) {
                     BlockPos p2 = p1.add(x, 0, 0);
-                    for (int z = -4; z <= 4; ++z) {
+                    int z;
+                    for (z = -4; z <= 4; ++z) {
                         BlockPos pos = p2.add(0, 0, z);
                         Vec3d posD = new Vec3d(pos.getX(), pos.getY(), pos.getZ());
                         if (posD.distanceTo(eyePos) >= 4.0) continue;
                         if(x == 0 && z == 0 && (y == 0 || y == -1)) continue;
                         if(tryPut(pos)){
-                            loop = true;
-                            setMapVec3i(pos.subtract(currentPosition), !passable(pos));
+                            if(!passable(pos)){
+                                setMapVec3i(pos.subtract(currentPosition), true);
+                                blockSetted = true;
+                                --canSetBlockCount;
+                            }
                         }
+                        if(canSetBlockCount < 1) break;
+                        if(!enabled()) break;
                     }
+                    if(z != 5) break;
                 }
+                if(x != 5) break;
             }
-        }while(loop);
+            if(y != 5) break;
+        }while(blockSetted);
         HandRestock.restock();
     }
 

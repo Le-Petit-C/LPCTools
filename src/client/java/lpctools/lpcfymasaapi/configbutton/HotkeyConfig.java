@@ -6,8 +6,7 @@ import fi.dy.masa.malilib.hotkeys.IHotkeyCallback;
 import lpctools.lpcfymasaapi.LPCConfigList;
 import lpctools.lpcfymasaapi.LPCConfigPage;
 
-public class HotkeyConfig implements LPCConfig {
-    //独有功能方法
+public class HotkeyConfig extends LPCConfig {
     public HotkeyConfig(LPCConfigList list, String name, String defaultStorageString){
         this.list = list;
         this.name = name;

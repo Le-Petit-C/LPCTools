@@ -12,7 +12,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
-public class StringListConfig implements LPCConfig{
+public class StringListConfig extends LPCConfig{
     public StringListConfig(LPCConfigList list, String name, ImmutableList<String> defaultValue){
         this.list = list;
         this.name = name;

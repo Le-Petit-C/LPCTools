@@ -7,8 +7,7 @@ import fi.dy.masa.malilib.interfaces.IValueChangeCallback;
 import lpctools.lpcfymasaapi.LPCConfigList;
 import lpctools.lpcfymasaapi.LPCConfigPage;
 
-public class BooleanHotkeyConfig implements LPCConfig {
-    //独有功能方法
+public class BooleanHotkeyConfig extends LPCConfig {
     public BooleanHotkeyConfig(LPCConfigList list, String name, boolean defaultBoolean, String defaultStorageString){
         this.list = list;
         this.name = name;

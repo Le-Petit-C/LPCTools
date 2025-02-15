@@ -1,12 +1,16 @@
 package lpctools.tools.fillingassistant;
 
+import fi.dy.masa.malilib.config.options.ConfigBoolean;
 import fi.dy.masa.malilib.hotkeys.IHotkeyCallback;
 import fi.dy.masa.malilib.hotkeys.IKeybind;
 import fi.dy.masa.malilib.hotkeys.KeyAction;
+import fi.dy.masa.malilib.interfaces.IValueChangeCallback;
 import fi.dy.masa.malilib.util.StringUtils;
+import lpctools.LPCTools;
 import lpctools.lpcfymasaapi.LPCConfigList;
 import lpctools.lpcfymasaapi.Registry;
 import lpctools.lpcfymasaapi.configbutton.BooleanConfig;
+import lpctools.lpcfymasaapi.configbutton.DoubleConfig;
 import lpctools.lpcfymasaapi.configbutton.HotkeyConfig;
 import lpctools.lpcfymasaapi.configbutton.StringListConfig;
 import net.minecraft.block.Block;
@@ -94,6 +98,9 @@ public class FillingAssistant {
     public static void init(LPCConfigList list){
         if(initialized) return;
         hotkeyConfig = list.addHotkeyConfig("FA", "", getHotkeyCallback());
+        limitPlaceSpeedConfig = list.addBooleanConfig("FA_limitPlaceSpeed", false, new LimitPlaceSpeedCallback());
+        maxPlaceSpeedPerTick = list.addDoubleConfig("FA_maxPlaceSpeedPerTick", 1.0);
+        maxPlaceSpeedPerTick.enabled = false;
         disableOnLeftDownConfig = list.addBooleanConfig("FA_disableOnLeftDown", true);
         disableOnGUIOpened = list.addBooleanConfig("FA_disableOnGUIOpened", false);
         placeableItemsConfig = list.addStringListConfig("FA_placeableItems", defaultPlaceableItemIdList);
@@ -115,6 +122,8 @@ public class FillingAssistant {
     */
 
     static HotkeyConfig hotkeyConfig;
+    static BooleanConfig limitPlaceSpeedConfig;
+    static DoubleConfig maxPlaceSpeedPerTick;
     static BooleanConfig disableOnLeftDownConfig;
     static BooleanConfig disableOnGUIOpened;
     static StringListConfig placeableItemsConfig;
@@ -149,6 +158,13 @@ public class FillingAssistant {
         public boolean onKeyAction(KeyAction action, IKeybind key) {
             switchPlaceMode();
             return true;
+        }
+    }
+    private static class LimitPlaceSpeedCallback implements IValueChangeCallback<ConfigBoolean> {
+        @Override
+        public void onValueChanged(ConfigBoolean config) {
+            maxPlaceSpeedPerTick.enabled = config.getBooleanValue();
+            LPCTools.config.showPage();
         }
     }
 }
