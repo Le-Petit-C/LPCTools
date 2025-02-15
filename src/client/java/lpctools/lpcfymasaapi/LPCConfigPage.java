@@ -144,7 +144,7 @@ public class LPCConfigPage implements IConfigHandler, Supplier<GuiBase>{
         @Override protected boolean useKeybindSearch() {return parent.lists.get(parent.selectedIndex).hasHotkeyConfig();}
 
         ConfigPageInstance(LPCConfigPage parent) {
-            super(10, 50, parent.modReference.modId, null, parent.modReference.modId + ".configs.title", parent.modReference.modVersion);
+            super(10, 50, parent.modReference.modId, null, parent.modReference.modId + ".configs.title", parent.modReference.getModVersion());
             this.parent = parent;
         }
         void select(int index){
