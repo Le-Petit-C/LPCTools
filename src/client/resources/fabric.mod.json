@@ -8,8 +8,8 @@
 		"Le_Petit_C"
 	],
 	"contact": {
-		"homepage": "https://fabricmc.net/",
-		"sources": "https://github.com/FabricMC/fabric-example-mod"
+		"homepage": "https://github.com/Le-Petit-C",
+		"sources": "https://github.com/Le-Petit-C/LPCTools"
 	},
 	"license": "LGPLv3",
 	"icon": "assets/lpctools/icon.png",

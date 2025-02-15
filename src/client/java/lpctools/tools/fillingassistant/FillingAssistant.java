@@ -1,18 +1,12 @@
 package lpctools.tools.fillingassistant;
 
-import fi.dy.masa.malilib.config.options.ConfigBoolean;
 import fi.dy.masa.malilib.hotkeys.IHotkeyCallback;
 import fi.dy.masa.malilib.hotkeys.IKeybind;
 import fi.dy.masa.malilib.hotkeys.KeyAction;
-import fi.dy.masa.malilib.interfaces.IValueChangeCallback;
 import fi.dy.masa.malilib.util.StringUtils;
-import lpctools.LPCTools;
 import lpctools.lpcfymasaapi.LPCConfigList;
 import lpctools.lpcfymasaapi.Registry;
-import lpctools.lpcfymasaapi.configbutton.BooleanConfig;
-import lpctools.lpcfymasaapi.configbutton.DoubleConfig;
-import lpctools.lpcfymasaapi.configbutton.HotkeyConfig;
-import lpctools.lpcfymasaapi.configbutton.StringListConfig;
+import lpctools.lpcfymasaapi.configbutton.*;
 import net.minecraft.block.Block;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ClientPlayerEntity;
@@ -94,20 +88,19 @@ public class FillingAssistant {
         if(requiredBlocksConfig != null) requiredBlocks = blockSetFromIdList(requiredBlocksConfig.getStrings());
         else requiredBlocks = new HashSet<>(defaultRequiredBlockWhiteList);
     }
-    public static void refresh(){refreshPlaceableItems();refreshPassableBlocks();refreshRequiredBlocks();}
     public static void init(LPCConfigList list){
         if(initialized) return;
-        hotkeyConfig = list.addHotkeyConfig("FA", "", getHotkeyCallback());
-        limitPlaceSpeedConfig = list.addBooleanConfig("FA_limitPlaceSpeed", false, new LimitPlaceSpeedCallback());
-        maxPlaceSpeedPerTick = list.addDoubleConfig("FA_maxPlaceSpeedPerTick", 1.0);
-        maxPlaceSpeedPerTick.enabled = false;
-        disableOnLeftDownConfig = list.addBooleanConfig("FA_disableOnLeftDown", true);
-        disableOnGUIOpened = list.addBooleanConfig("FA_disableOnGUIOpened", false);
-        placeableItemsConfig = list.addStringListConfig("FA_placeableItems", defaultPlaceableItemIdList);
-        passableBlocksConfig = list.addStringListConfig("FA_passableBlocks", defaultPassableBlockIdList);
-        transparentAsPassableConfig = list.addBooleanConfig("FA_transparentAsPassable", true);
-        notOpaqueAsPassableConfig = list.addBooleanConfig("FA_notOpaqueAsPassable", true);
-        requiredBlocksConfig = list.addStringListConfig("FA_requiredBlocks", defaultRequiredBlockIdList);
+        FAConfig = list.addThirdListConfig("FA", false);
+        hotkeyConfig = FAConfig.addHotkeyConfig("FA_Hotkey", "", getHotkeyCallback());
+        limitPlaceSpeedConfig = FAConfig.addThirdListConfig("FA_limitPlaceSpeed", false);
+        maxBlockPerTick = limitPlaceSpeedConfig.addDoubleConfig("FA_maxBlockPerTick", 1.0);
+        disableOnLeftDownConfig = FAConfig.addBooleanConfig("FA_disableOnLeftDown", true);
+        disableOnGUIOpened = FAConfig.addBooleanConfig("FA_disableOnGUIOpened", false);
+        placeableItemsConfig = FAConfig.addStringListConfig("FA_placeableItems", defaultPlaceableItemIdList, new PlaceableItemsRefreshCallback());
+        passableBlocksConfig = FAConfig.addStringListConfig("FA_passableBlocks", defaultPassableBlockIdList, new PassableBlocksRefreshCallback());
+        transparentAsPassableConfig = FAConfig.addBooleanConfig("FA_transparentAsPassable", true);
+        notOpaqueAsPassableConfig = FAConfig.addBooleanConfig("FA_notOpaqueAsPassable", true);
+        requiredBlocksConfig = FAConfig.addStringListConfig("FA_requiredBlocks", defaultRequiredBlockIdList, new RequiredBlocksRefreshCallback());
         initialized = true;
     }
 
@@ -121,9 +114,10 @@ public class FillingAssistant {
     }
     */
 
+    static ThirdListConfig FAConfig;
     static HotkeyConfig hotkeyConfig;
-    static BooleanConfig limitPlaceSpeedConfig;
-    static DoubleConfig maxPlaceSpeedPerTick;
+    static ThirdListConfig limitPlaceSpeedConfig;
+    static DoubleConfig maxBlockPerTick;
     static BooleanConfig disableOnLeftDownConfig;
     static BooleanConfig disableOnGUIOpened;
     static StringListConfig placeableItemsConfig;
@@ -132,16 +126,14 @@ public class FillingAssistant {
     static BooleanConfig notOpaqueAsPassableConfig;
     static StringListConfig requiredBlocksConfig;
     private static boolean initialized = false;
-    @NotNull
-    private static HashSet<Item> itemSetFromIdList(@Nullable List<String> list){
+    @NotNull private static HashSet<Item> itemSetFromIdList(@Nullable List<String> list){
         HashSet<Item> ret = new HashSet<>();
         if(list == null) return ret;
         for(String s : list)
             ret.add(Registries.ITEM.get(Identifier.of(s)));
         return ret;
     }
-    @NotNull
-    private static HashSet<Block> blockSetFromIdList(@Nullable List<String> list){
+    @NotNull private static HashSet<Block> blockSetFromIdList(@Nullable List<String> list){
         HashSet<Block> ret = new HashSet<>();
         if(list == null) return ret;
         for(String s : list)
@@ -160,11 +152,19 @@ public class FillingAssistant {
             return true;
         }
     }
-    private static class LimitPlaceSpeedCallback implements IValueChangeCallback<ConfigBoolean> {
-        @Override
-        public void onValueChanged(ConfigBoolean config) {
-            maxPlaceSpeedPerTick.enabled = config.getBooleanValue();
-            LPCTools.config.showPage();
+    private static class PlaceableItemsRefreshCallback implements IValueRefreshCallback{
+        @Override public void valueRefreshCallback() {
+            refreshPlaceableItems();
+        }
+    }
+    private static class PassableBlocksRefreshCallback implements IValueRefreshCallback{
+        @Override public void valueRefreshCallback() {
+            refreshPassableBlocks();
+        }
+    }
+    private static class RequiredBlocksRefreshCallback implements IValueRefreshCallback{
+        @Override public void valueRefreshCallback() {
+            refreshRequiredBlocks();
         }
     }
 }

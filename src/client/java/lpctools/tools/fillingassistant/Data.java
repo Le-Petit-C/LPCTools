@@ -19,10 +19,6 @@ public class Data {
     @NotNull public static ImmutableList<String> defaultPassableBlockIdList = idListFromBlockList(defaultPassableBlockList);
     @NotNull public static ImmutableList<Block> defaultRequiredBlockWhiteList = initDefaultRequiredBlockWhiteList();
     @NotNull public static ImmutableList<String> defaultRequiredBlockIdList = idListFromBlockList(defaultRequiredBlockWhiteList);
-    /*public static boolean isInTextOrGui(MinecraftClient client){
-        Screen screen = client.currentScreen;
-        return screen != null && client.getOverlay() == null;
-    }*/
 
     public static String getItemId(Item item){return Registries.ITEM.getEntry(item).getIdAsString();}
     public static String getBlockId(Block block){return Registries.BLOCK.getEntry(block).getIdAsString();}

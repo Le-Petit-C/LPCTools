@@ -3,7 +3,7 @@
 	"package": "lpctools.lpcfymasaapi.mixins",
 	"compatibilityLevel": "JAVA_21",
 	"client": [
-		"onMouseButtonReturnMixin"
+      	"OnMouseButtonReturnMixin"
 	],
 	"injectors": {
 		"defaultRequire": 1
