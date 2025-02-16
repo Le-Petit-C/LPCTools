@@ -29,14 +29,13 @@
 	"depends": {
 		"fabricloader": ">=0.16.2",
 		"minecraft": [
-			"1.21.4",
-			"1.21.3",
-			"1.21.2",
-			"1.21.1",
-			"1.21"
+			"1.21.4"
 		],
 		"java": ">=21",
-		"malilib": "*",
+		"malilib": [
+			"0.23.2-sakura.6",
+			"0.23.2-sakura.5"
+		],
 		"fabric-api": "*"
 	},
 	"suggests": {
