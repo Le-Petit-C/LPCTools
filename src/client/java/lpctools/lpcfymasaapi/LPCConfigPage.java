@@ -16,6 +16,7 @@ import fi.dy.masa.malilib.gui.button.IButtonActionListener;
 import fi.dy.masa.malilib.gui.button.ButtonBase;
 import fi.dy.masa.malilib.gui.button.ButtonGeneric;
 import lpctools.lpcfymasaapi.configbutton.ILPCConfig;
+import org.jetbrains.annotations.NotNull;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -42,7 +43,10 @@ public class LPCConfigPage implements IConfigHandler, Supplier<GuiBase>{
         lists.add(new LPCConfigList(this, translationKey));
         return lists.getLast();
     }
-    public InputHandler getInputHandler(){return inputHandler;}
+    @NotNull public InputHandler getInputHandler(){
+        if(inputHandler == null) inputHandler = new InputHandler(modReference);
+        return inputHandler;
+    }
     //显示当前页面
     public void showPage(){
         if(pageInstance != null) pageInstance.initGui();
@@ -100,7 +104,7 @@ public class LPCConfigPage implements IConfigHandler, Supplier<GuiBase>{
     private void afterInit(){
         ConfigManager.getInstance().registerConfigHandler(modReference.modId, this);
         Registry.CONFIG_SCREEN.registerConfigScreenFactory(new ModInfo(modReference.modId, modReference.modName, this));
-        inputHandler = new InputHandler(modReference);
+        if(inputHandler == null) inputHandler = new InputHandler(modReference);
         //load();
     }
     //使用此JsonObject替换现有JsonObject
