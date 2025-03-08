@@ -129,14 +129,14 @@ public class FillingAssistant {
         HashSet<Item> ret = new HashSet<>();
         if(list == null) return ret;
         for(String s : list)
-            ret.add(Registries.ITEM.get(Identifier.of(s)));
+            ret.add(Registries.ITEM.get(Identifier.tryParse(s)));
         return ret;
     }
     @NotNull private static HashSet<Block> blockSetFromIdList(@Nullable List<String> list){
         HashSet<Block> ret = new HashSet<>();
         if(list == null) return ret;
         for(String s : list)
-            ret.add(Registries.BLOCK.get(Identifier.of(s)));
+            ret.add(Registries.BLOCK.get(Identifier.tryParse(s)));
         return ret;
     }
     private static PlaceBlockTick runner = null;

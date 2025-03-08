@@ -16,8 +16,7 @@ public class BooleanConfig extends LPCConfig<ConfigBoolean> {
     }
     public boolean getValue(){return getInstance() != null ?  getInstance().getBooleanValue() : defaultBoolean ;}
     @Override @NotNull protected ConfigBoolean createInstance(){
-        ConfigBoolean config = new ConfigBoolean(name, defaultBoolean);
-        config.apply(list.getFullTranslationKey());
+        ConfigBoolean config = new ConfigBoolean(getNameKey(), defaultBoolean, getCommentKey());
         config.setValueChangeCallback(new LPCConfigCallback<>(this));
         return config;
     }

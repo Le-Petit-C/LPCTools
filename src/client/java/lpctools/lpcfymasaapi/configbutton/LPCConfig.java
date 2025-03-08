@@ -33,6 +33,8 @@ public abstract class LPCConfig<T extends IConfigBase> implements ILPCConfig{
     }
     @Override @NotNull public IConfigBase IGetConfig(){return getConfig();}
     @Override public void callRefresh(){if(refreshCallback != null) refreshCallback.valueRefreshCallback();}
+    public String getNameKey(){return list.getFullTranslationKey() + ".name." + name;}
+    public String getCommentKey(){return list.getFullTranslationKey() + ".comment." + name;}
 
     @NotNull protected abstract T createInstance();//创建malilib中的Config实例
     @Nullable protected T getInstance(){return instance;}

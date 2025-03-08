@@ -24,8 +24,7 @@ public class StringListConfig extends LPCConfig<ConfigStringList>{
 
     @Override
     protected @NotNull ConfigStringList createInstance() {
-        ConfigStringList config = new ConfigStringList(name, defaultValue);
-        config.apply(list.getFullTranslationKey());
+        ConfigStringList config = new ConfigStringList(getNameKey(), defaultValue, getCommentKey());
         config.setValueChangeCallback(new LPCConfigCallback<>(this));
         return config;
     }

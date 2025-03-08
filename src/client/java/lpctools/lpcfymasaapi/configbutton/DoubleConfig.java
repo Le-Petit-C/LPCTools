@@ -16,8 +16,7 @@ public class DoubleConfig extends LPCConfig<ConfigDouble>{
     }
     public double getValue(){return getInstance() != null ? getInstance().getDoubleValue() : defaultDouble;}
     @Override @NotNull public ConfigDouble createInstance(){
-        ConfigDouble config = new ConfigDouble(name, defaultDouble);
-        config.apply(list.getFullTranslationKey());
+        ConfigDouble config = new ConfigDouble(getNameKey(), defaultDouble, getCommentKey());
         config.setValueChangeCallback(new LPCConfigCallback<>(this));
         return config;
     }
