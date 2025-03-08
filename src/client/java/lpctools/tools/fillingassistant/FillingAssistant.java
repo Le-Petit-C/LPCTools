@@ -8,6 +8,7 @@ import lpctools.lpcfymasaapi.LPCConfigList;
 import lpctools.lpcfymasaapi.Registry;
 import lpctools.lpcfymasaapi.configbutton.*;
 import net.minecraft.block.Block;
+import net.minecraft.block.BlockState;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.client.world.ClientWorld;
@@ -53,15 +54,13 @@ public class FillingAssistant {
     public static HashSet<Item> getPlaceableItems(){return placeableItems;}
     public static boolean placeable(Item item){return getPlaceableItems().contains(item);}
     public static HashSet<Block> getPassableBlocks(){return passableBlocks;}
-    public static boolean passable(Block block){
-        if(transparentAsPassableConfig.getValue() && block.getDefaultState().isTransparent()) return true;
-        if(notOpaqueAsPassableConfig.getValue() && !block.getDefaultState().isOpaque()) return true;
-        return getPassableBlocks().contains(block);
-    }
     public static boolean passable(BlockPos pos){
         ClientWorld world = MinecraftClient.getInstance().world;
-        if (world != null)return passable(world.getBlockState(pos).getBlock());
-        else return false;
+        if (world == null) return false;
+        BlockState block = world.getBlockState(pos);
+        if(transparentAsPassableConfig.getValue() && block.isTransparent(world, pos)) return true;
+        if(notOpaqueAsPassableConfig.getValue() && !block.isOpaque()) return true;
+        return getPassableBlocks().contains(block.getBlock());
     }
     public static HashSet<Block> getRequiredBlocks(){return requiredBlocks;}
     public static boolean required(Block block){return getRequiredBlocks().contains(block);}
