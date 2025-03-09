@@ -20,8 +20,8 @@ public class Data {
     @NotNull public static ImmutableList<Block> defaultRequiredBlockWhiteList = initDefaultRequiredBlockWhiteList();
     @NotNull public static ImmutableList<String> defaultRequiredBlockIdList = idListFromBlockList(defaultRequiredBlockWhiteList);
 
-    public static String getItemId(Item item){return Registries.ITEM.getEntry(item).getIdAsString();}
-    public static String getBlockId(Block block){return Registries.BLOCK.getEntry(block).getIdAsString();}
+    public static String getItemId(Item item){return Registries.ITEM.getEntry(item).toString();}
+    public static String getBlockId(Block block){return Registries.BLOCK.getEntry(block).toString();}
     @NotNull private static ImmutableList<Item> initDefaultPlaceableItemList(){
         return ImmutableList.of(
                 Items.STONE,
