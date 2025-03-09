@@ -53,10 +53,10 @@ public class FillingAssistant {
         if(notOpaqueAsPassableConfig.getValue() && !block.getDefaultState().isOpaque()) return true;
         return getPassableBlocks().contains(block);
     }
-    public static boolean passable(BlockPos pos){
+    public static boolean unpassable(BlockPos pos){
         ClientWorld world = MinecraftClient.getInstance().world;
-        if (world != null)return passable(world.getBlockState(pos).getBlock());
-        else return false;
+        if (world != null)return !passable(world.getBlockState(pos).getBlock());
+        else return true;
     }
     public static HashSet<Block> getRequiredBlocks(){return requiredBlocks;}
     public static boolean required(Block block){return getRequiredBlocks().contains(block);}

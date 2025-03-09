@@ -82,7 +82,7 @@ public class PlaceBlockTick implements ClientTickEvents.EndTick, Registry.InGame
             for (boolean[] mapXY : mapX) {
                 BlockPos pos3 = pos2;
                 for (int z = 0; z < mapXY.length; ++z) {
-                    mapXY[z] = !passable(pos3);
+                    mapXY[z] = unpassable(pos3);
                     pos3 = pos3.south();
                 }
                 pos2 = pos2.up();
@@ -127,7 +127,7 @@ public class PlaceBlockTick implements ClientTickEvents.EndTick, Registry.InGame
         }
         return true;
     }
-    private Boolean canPut(Vec3i mapPos){
+    private boolean canPut(Vec3i mapPos){
         if(getMapVec3i(mapPos)) return false;
         int nearStones = 0;
         if(getMapVec3i(mapPos.add(1, 0, 0))) ++nearStones;
@@ -193,7 +193,7 @@ public class PlaceBlockTick implements ClientTickEvents.EndTick, Registry.InGame
 
     private boolean tryPut(BlockPos pos){
         if (!replaceable(pos)) return false;
-        if (!passable(pos)) return false;
+        if (unpassable(pos)) return false;
         if (required(pos)) return false;
         if (required(pos.east())) return false;
         if (required(pos.west())) return false;
@@ -250,7 +250,7 @@ public class PlaceBlockTick implements ClientTickEvents.EndTick, Registry.InGame
                         if (posD.distanceTo(eyePos) >= 4.0) continue;
                         if(x == 0 && z == 0 && (y == 0 || y == -1)) continue;
                         if(tryPut(pos)){
-                            if(!passable(pos)){
+                            if(unpassable(pos)){
                                 setMapVec3i(pos.subtract(currentPosition), true);
                                 blockSetted = true;
                                 --canSetBlockCount;
