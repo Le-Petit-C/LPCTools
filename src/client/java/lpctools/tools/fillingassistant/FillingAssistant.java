@@ -4,7 +4,6 @@ import fi.dy.masa.malilib.hotkeys.IHotkeyCallback;
 import fi.dy.masa.malilib.hotkeys.IKeybind;
 import fi.dy.masa.malilib.hotkeys.KeyAction;
 import fi.dy.masa.malilib.util.StringUtils;
-import lpctools.lpcfymasaapi.LPCConfigList;
 import lpctools.lpcfymasaapi.Registry;
 import lpctools.lpcfymasaapi.configbutton.*;
 import net.minecraft.block.Block;
@@ -45,10 +44,6 @@ public class FillingAssistant {
         if(reasonKey != null) reason += " : " + StringUtils.translate(reasonKey);
         player.sendMessage(Text.literal(reason), true);
     }
-    public static void switchPlaceMode(){
-        if(enabled()) disableTool(null);
-        else enableTool();
-    }
     public static boolean enabled(){return runner != null;}
     public static HashSet<Item> getPlaceableItems(){return placeableItems;}
     public static boolean placeable(Item item){return getPlaceableItems().contains(item);}
@@ -70,7 +65,6 @@ public class FillingAssistant {
         if (world != null) return required(world.getBlockState(pos).getBlock());
         else return false;
     }
-    @NotNull public static IHotkeyCallback getHotkeyCallback(){return new HotkeyCallback();}
     public static boolean replaceable(BlockPos pos){
         ClientWorld world = MinecraftClient.getInstance().world;
         if(world == null) return false;
@@ -88,10 +82,8 @@ public class FillingAssistant {
         if(requiredBlocksConfig != null) requiredBlocks = blockSetFromIdList(requiredBlocksConfig.getStrings());
         else requiredBlocks = new HashSet<>(defaultRequiredBlockWhiteList);
     }
-    public static void init(LPCConfigList list){
-        if(initialized) return;
-        FAConfig = list.addThirdListConfig("FA", false);
-        hotkeyConfig = FAConfig.addHotkeyConfig("FA_Hotkey", "", getHotkeyCallback());
+    public static void init(ThirdListConfig FAConfig){
+        hotkeyConfig = FAConfig.addHotkeyConfig("FA_Hotkey", "", new HotkeyCallback());
         limitPlaceSpeedConfig = FAConfig.addThirdListConfig("FA_limitPlaceSpeed", false);
         maxBlockPerTick = limitPlaceSpeedConfig.addDoubleConfig("FA_maxBlockPerTick", 1.0);
         disableOnLeftDownConfig = FAConfig.addBooleanConfig("FA_disableOnLeftDown", true);
@@ -101,7 +93,6 @@ public class FillingAssistant {
         transparentAsPassableConfig = FAConfig.addBooleanConfig("FA_transparentAsPassable", true);
         notOpaqueAsPassableConfig = FAConfig.addBooleanConfig("FA_notOpaqueAsPassable", true);
         requiredBlocksConfig = FAConfig.addStringListConfig("FA_requiredBlocks", defaultRequiredBlockIdList, new RequiredBlocksRefreshCallback());
-        initialized = true;
     }
 
     /*
@@ -114,7 +105,6 @@ public class FillingAssistant {
     }
     */
 
-    static ThirdListConfig FAConfig;
     static HotkeyConfig hotkeyConfig;
     static ThirdListConfig limitPlaceSpeedConfig;
     static DoubleConfig maxBlockPerTick;
@@ -125,7 +115,6 @@ public class FillingAssistant {
     static BooleanConfig transparentAsPassableConfig;
     static BooleanConfig notOpaqueAsPassableConfig;
     static StringListConfig requiredBlocksConfig;
-    private static boolean initialized = false;
     @NotNull private static HashSet<Item> itemSetFromIdList(@Nullable List<String> list){
         HashSet<Item> ret = new HashSet<>();
         if(list == null) return ret;
@@ -148,7 +137,8 @@ public class FillingAssistant {
     private static class HotkeyCallback implements IHotkeyCallback{
         @Override
         public boolean onKeyAction(KeyAction action, IKeybind key) {
-            switchPlaceMode();
+            if(enabled()) disableTool(null);
+            else enableTool();
             return true;
         }
     }
