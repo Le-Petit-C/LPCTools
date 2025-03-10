@@ -2,6 +2,7 @@ package lpctools.tools.fillingassistant;
 
 import lpctools.lpcfymasaapi.LPCAPIInit;
 import lpctools.lpcfymasaapi.Registry;
+import lpctools.util.HandRestock;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ClientPlayerInteractionManager;
@@ -25,8 +26,10 @@ public class PlaceBlockTick implements ClientTickEvents.EndTick, Registry.InGame
     private boolean put(BlockPos blockpos){
         MinecraftClient client = MinecraftClient.getInstance();
         if(client.interactionManager == null) return false;
-        HandRestock.restock();
-        if(!enabled()) return false;
+        if(!HandRestock.restock(getPlaceableItems())){
+            disableTool("lpctools.tools.fillingAssistant.disableReason.placeableItemRanOut");
+            return false;
+        }
         Vec3d pos = new Vec3d(blockpos.getX() + 0.5, blockpos.getY() + 0.5, blockpos.getZ() + 0.5);
         BlockHitResult hit = new BlockHitResult(pos, Direction.UP, blockpos, false);
         return client.interactionManager.interactBlock(client.player, Hand.MAIN_HAND, hit) == ActionResult.SUCCESS;
@@ -192,7 +195,6 @@ public class PlaceBlockTick implements ClientTickEvents.EndTick, Registry.InGame
     }
 
     private boolean tryPut(BlockPos pos){
-        if (!replaceable(pos)) return false;
         if (unpassable(pos)) return false;
         if (required(pos)) return false;
         if (required(pos.east())) return false;
@@ -223,6 +225,10 @@ public class PlaceBlockTick implements ClientTickEvents.EndTick, Registry.InGame
         }
         if(disableOnGUIOpened.getValue() && LPCAPIInit.isInTextOrGui()){
             disableTool("lpctools.tools.fillingAssistant.disableReason.GUIOpened");
+            return;
+        }
+        if(HandRestock.search(getPlaceableItems()) == -1){//这个或许应该放在函数末尾，但是放在这里似乎也没什么坏处
+            disableTool("lpctools.tools.fillingAssistant.disableReason.placeableItemRanOut");
             return;
         }
         Vec3d eyePos = client.player.getEyePos();
@@ -265,7 +271,6 @@ public class PlaceBlockTick implements ClientTickEvents.EndTick, Registry.InGame
             }
             if(y != 5) break;
         }while(blockSetted);
-        HandRestock.restock();
     }
 
     @Override

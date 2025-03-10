@@ -33,5 +33,7 @@
   "lpctools.tools.fillingAssistant.disableReason.unsupportedGameMode": "Unsupported game mode",
   "lpctools.tools.fillingAssistant.disableReason.GUIOpened": "GUI Opened",
   "lpctools.tools.fillingAssistant.enableNotification": "Tool fillingAssistant §aON§f",
-  "lpctools.tools.fillingAssistant.disableNotification": "Tool fillingAssistant §cOFF§f"
+  "lpctools.tools.fillingAssistant.disableNotification": "Tool fillingAssistant §cOFF§f",
+  "lpctools.configs.tools.name.LC": "showLiquidCleanerConfig",
+  "lpctools.configs.tools.comment.LC": "Enable to list the configs for LiquidCleaner\nThis tool helps you set blocks to clean liquid automatically"
 }

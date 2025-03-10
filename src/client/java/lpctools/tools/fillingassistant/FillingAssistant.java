@@ -46,16 +46,15 @@ public class FillingAssistant {
     }
     public static boolean enabled(){return runner != null;}
     public static HashSet<Item> getPlaceableItems(){return placeableItems;}
-    public static boolean placeable(Item item){return getPlaceableItems().contains(item);}
     public static HashSet<Block> getPassableBlocks(){return passableBlocks;}
-    public static boolean passable(Block block){
-        if(transparentAsPassableConfig.getValue() && block.getDefaultState().isTransparent()) return true;
-        if(notOpaqueAsPassableConfig.getValue() && !block.getDefaultState().isOpaque()) return true;
-        return getPassableBlocks().contains(block);
-    }
     public static boolean unpassable(BlockPos pos){
         ClientWorld world = MinecraftClient.getInstance().world;
-        if (world != null)return !passable(world.getBlockState(pos).getBlock());
+        if (world != null){
+            Block block = world.getBlockState(pos).getBlock();
+            if(transparentAsPassableConfig.getValue() && block.getDefaultState().isTransparent()) return false;
+            if(notOpaqueAsPassableConfig.getValue() && !block.getDefaultState().isOpaque()) return false;
+            return !getPassableBlocks().contains(block);
+        }
         else return true;
     }
     public static HashSet<Block> getRequiredBlocks(){return requiredBlocks;}
@@ -64,11 +63,6 @@ public class FillingAssistant {
         ClientWorld world = MinecraftClient.getInstance().world;
         if (world != null) return required(world.getBlockState(pos).getBlock());
         else return false;
-    }
-    public static boolean replaceable(BlockPos pos){
-        ClientWorld world = MinecraftClient.getInstance().world;
-        if(world == null) return false;
-        return world.getBlockState(pos).isReplaceable();
     }
     public static void refreshPlaceableItems(){
         if(placeableItemsConfig != null) placeableItems = itemSetFromIdList(placeableItemsConfig.getStrings());

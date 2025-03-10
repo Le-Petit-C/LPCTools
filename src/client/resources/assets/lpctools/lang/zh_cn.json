@@ -33,5 +33,7 @@
   "lpctools.tools.fillingAssistant.disableReason.unsupportedGameMode": "不支持的游戏模式",
   "lpctools.tools.fillingAssistant.disableReason.GUIOpened": "打开了GUI界面",
   "lpctools.tools.fillingAssistant.enableNotification": "工具 填充助手 §a开启§f",
-  "lpctools.tools.fillingAssistant.disableNotification": "工具 填充助手 §c关闭§f"
+  "lpctools.tools.fillingAssistant.disableNotification": "工具 填充助手 §c关闭§f",
+  "lpctools.configs.tools.name.LC": "显示流体清理助手配置列表",
+  "lpctools.configs.tools.comment.LC": "设为true以显示流体清理助手配置列表\n这个功能能帮你自动地用填方块的方式清理流体"
 }
