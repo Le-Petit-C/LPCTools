@@ -67,14 +67,15 @@ public class PlaceBlockTick implements ClientTickEvents.EndTick, Registry.InGame
         do {
             blockSetted = false;
             int y;
-            for (y = -4; y <= 4; ++y) {
+            int r = (int) Math.ceil(reachDistanceConfig.getValue());
+            for (y = -r; y <= r; ++y) {
                 BlockPos p1 = eyeBlockPos.add(0, y, 0);
                 if (p1.getY() < -64 || p1.getY() >= 320) continue;
                 int x;
-                for (x = -4; x <= 4; ++x) {
+                for (x = -r; x <= r; ++x) {
                     BlockPos p2 = p1.add(x, 0, 0);
                     int z;
-                    for (z = -4; z <= 4; ++z) {
+                    for (z = -r; z <= r; ++z) {
                         BlockPos pos = p2.add(0, 0, z);
                         Vec3d posD = new Vec3d(pos.getX(), pos.getY(), pos.getZ());
                         if (posD.distanceTo(eyePos) >= reachDistanceConfig.getValue()) continue;
