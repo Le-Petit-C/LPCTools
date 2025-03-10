@@ -41,5 +41,7 @@
   "lpctools.configs.tools.name.LC": "showLiquidCleanerConfig",
   "lpctools.configs.tools.comment.LC": "Enable to list the configs for LiquidCleaner\nThis tool helps you set blocks to clean liquid automatically",
   "lpctools.configs.tools.name.LC_Hotkey": "    liquidCleanerHotkey",
-  "lpctools.configs.tools.comment.LC_Hotkey": "The key to open/close liquidCleaner tool"
+  "lpctools.configs.tools.comment.LC_Hotkey": "The key to open/close liquidCleaner tool",
+  "lpctools.tools.liquidCleaner.enableNotification": "Tool liquidCleaner §aON§f",
+  "lpctools.tools.liquidCleaner.disableNotification": "Tool liquidCleaner §cOFF§f"
 }

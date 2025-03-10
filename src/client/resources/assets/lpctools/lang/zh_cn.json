@@ -41,5 +41,7 @@
   "lpctools.configs.tools.name.LC": "显示流体清理者配置列表",
   "lpctools.configs.tools.comment.LC": "设为true以显示流体清理者配置列表\n这个功能能帮你自动地用填方块的方式清理流体",
   "lpctools.configs.tools.name.LC_Hotkey": "    流体清理者热键",
-  "lpctools.configs.tools.comment.LC_Hotkey": "设置开启/关闭“流体清理者”功能的热键"
+  "lpctools.configs.tools.comment.LC_Hotkey": "设置开启/关闭“流体清理者”功能的热键",
+  "lpctools.tools.liquidCleaner.enableNotification": "工具 流体清理者 §a开启§f",
+  "lpctools.tools.liquidCleaner.disableNotification": "工具 流体清理者 §c关闭§f"
 }

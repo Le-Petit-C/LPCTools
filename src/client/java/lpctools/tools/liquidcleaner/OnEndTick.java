@@ -22,42 +22,41 @@ public class OnEndTick implements ClientTickEvents.EndTick {
     public void onEndTick(MinecraftClient minecraftClient) {
         ClientPlayerEntity player = MinecraftClient.getInstance().player;
         if (player == null) {
-            disable();
+            disable(null);
             return;
         }
         BlockPos playerBlock = player.getBlockPos();
         ClientWorld world = MinecraftClient.getInstance().world;
         if (world == null) {
-            disable();
+            disable(null);
             return;
         }
         ClientPlayerInteractionManager itm = MinecraftClient.getInstance().interactionManager;
         if (itm == null) {
-            disable();
+            disable(null);
             return;
         }
         for (int a = -5; a <= 5; ++a) {
             for (int b = -5; b <= 5; ++b) {
                 for (int c = -5; c <= 5; ++c) {
-                    BlockPos pos = playerBlock.add(a, b, c);
+                    BlockPos pos = playerBlock.add(b, -a, c);
                     Vec3d midPos = pos.toCenterPos();
-                    if (!HandRestock.restock(placeableItems)) return;
                     if (midPos.subtract(player.getPos()).length() >= 4.5) continue;
                     if (shouldAttackBlock(world, pos))
                         itm.attackBlock(pos, Direction.UP);
                 }
             }
         }
-        if (HandRestock.search(placeableItems) == -1) return;
+        if (HandRestock.search(placeableItems, 0) == -1) return;
         for (int a = -5; a <= 5; ++a) {
             for (int b = -5; b <= 5; ++b) {
                 for (int c = -5; c <= 5; ++c) {
-                    BlockPos pos = playerBlock.add(a, b, c);
+                    BlockPos pos = playerBlock.add(b, -a, c);
                     Vec3d midPos = pos.toCenterPos();
-                    if (!HandRestock.restock(placeableItems)) return;
                     if (midPos.subtract(player.getPos()).length() >= 4.5) continue;
                     BlockState state = world.getBlockState(pos);
                     if (isReplaceableLiquid(state)) {
+                        if (!HandRestock.restock(placeableItems, 0)) return;
                         BlockHitResult hitResult = new BlockHitResult(midPos, Direction.UP, pos, false);
                         itm.interactBlock(player, Hand.MAIN_HAND, hitResult);
                     }

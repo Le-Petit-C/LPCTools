@@ -51,7 +51,7 @@ public class PlaceBlockTick implements ClientTickEvents.EndTick, Registry.InGame
             disableTool("lpctools.tools.fillingAssistant.disableReason.GUIOpened");
             return;
         }
-        if(HandRestock.search(getPlaceableItems()) == -1){//这个或许应该放在函数末尾，但是放在这里似乎也没什么坏处
+        if(HandRestock.search(getPlaceableItems(), 0) == -1){//这个或许应该放在函数末尾，但是放在这里似乎也没什么坏处
             disableTool("lpctools.tools.fillingAssistant.disableReason.placeableItemRanOut");
             return;
         }
@@ -105,7 +105,7 @@ public class PlaceBlockTick implements ClientTickEvents.EndTick, Registry.InGame
     private boolean put(BlockPos blockpos){
         MinecraftClient client = MinecraftClient.getInstance();
         if(client.interactionManager == null) return false;
-        if(!HandRestock.restock(getPlaceableItems())){
+        if(!HandRestock.restock(getPlaceableItems(), 0)){
             disableTool("lpctools.tools.fillingAssistant.disableReason.placeableItemRanOut");
             return false;
         }

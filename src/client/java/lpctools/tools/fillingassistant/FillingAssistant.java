@@ -35,11 +35,11 @@ public class FillingAssistant {
     }
     public static void disableTool(@Nullable String reasonKey){
         if(!enabled()) return;
-        ClientPlayerEntity player = MinecraftClient.getInstance().player;
-        if(player == null) return;
         Registry.unregisterEndClientTickCallback(runner);
         Registry.unregisterInGameEndMouseCallback(runner);
         runner = null;
+        ClientPlayerEntity player = MinecraftClient.getInstance().player;
+        if(player == null) return;
         String reason = StringUtils.translate("lpctools.tools.fillingAssistant.disableNotification");
         if(reasonKey != null) reason += " : " + StringUtils.translate(reasonKey);
         player.sendMessage(Text.literal(reason), true);
