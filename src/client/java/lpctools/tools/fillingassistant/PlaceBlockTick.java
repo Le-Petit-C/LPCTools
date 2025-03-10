@@ -23,6 +23,84 @@ import java.util.Queue;
 import static lpctools.tools.fillingassistant.FillingAssistant.*;
 
 public class PlaceBlockTick implements ClientTickEvents.EndTick, Registry.InGameEndMouse {
+    public PlaceBlockTick(){
+        setTestDistance(testDistanceConfig.getValue());
+    }
+    public void setTestDistance(int distance){
+        testDistance = distance;
+        testSize = distance * 2 + 1;
+        map = new boolean[testSize][testSize][testSize];
+        testBuffer = new boolean[testSize][testSize][testSize];
+    }
+
+    @Override public void onEndTick(MinecraftClient client){
+        if(client.player == null){
+            disableTool("lpctools.tools.fillingAssistant.disableReason.nullClientPlayerEntity");
+            return;
+        }
+        ClientPlayerInteractionManager manager = client.interactionManager;
+        if(manager == null){
+            disableTool("lpctools.tools.fillingAssistant.disableReason.nullInteractionManager");
+            return;
+        }
+        if (manager.getCurrentGameMode() == GameMode.SPECTATOR || manager.getCurrentGameMode() == GameMode.ADVENTURE){
+            disableTool("lpctools.tools.fillingAssistant.disableReason.unsupportedGameMode");
+            return;
+        }
+        if(disableOnGUIOpened.getValue() && LPCAPIInit.isInTextOrGui()){
+            disableTool("lpctools.tools.fillingAssistant.disableReason.GUIOpened");
+            return;
+        }
+        if(HandRestock.search(getPlaceableItems()) == -1){//这个或许应该放在函数末尾，但是放在这里似乎也没什么坏处
+            disableTool("lpctools.tools.fillingAssistant.disableReason.placeableItemRanOut");
+            return;
+        }
+        Vec3d eyePos = client.player.getEyePos();
+        BlockPos eyeBlockPos = new BlockPos((int)Math.floor(eyePos.getX()), (int)Math.floor(eyePos.getY()), (int)Math.floor(eyePos.getZ()));
+        boolean blockSetted;
+        if(limitPlaceSpeedConfig.getValue()){
+            if(canSetBlockCount > 1) canSetBlockCount = 0;
+            canSetBlockCount += maxBlockPerTickConfig.getValue();
+        }
+        else canSetBlockCount = 65536;
+        initializeMap(eyeBlockPos);
+        do {
+            blockSetted = false;
+            int y;
+            for (y = -4; y <= 4; ++y) {
+                BlockPos p1 = eyeBlockPos.add(0, y, 0);
+                if (p1.getY() < -64 || p1.getY() >= 320) continue;
+                int x;
+                for (x = -4; x <= 4; ++x) {
+                    BlockPos p2 = p1.add(x, 0, 0);
+                    int z;
+                    for (z = -4; z <= 4; ++z) {
+                        BlockPos pos = p2.add(0, 0, z);
+                        Vec3d posD = new Vec3d(pos.getX(), pos.getY(), pos.getZ());
+                        if (posD.distanceTo(eyePos) >= reachDistanceConfig.getValue()) continue;
+                        if(x == 0 && z == 0 && (y == 0 || y == -1)) continue;
+                        if(tryPut(pos)){
+                            if(unpassable(pos)){
+                                setMapVec3i(pos.subtract(currentPosition), true);
+                                blockSetted = true;
+                                --canSetBlockCount;
+                            }
+                        }
+                        if(canSetBlockCount < 1) break;
+                        if(!enabled()) break;
+                    }
+                    if(z != 5) break;
+                }
+                if(x != 5) break;
+            }
+            if(y != 5) break;
+        }while(blockSetted);
+    }
+    @Override public void onInGameEndMouse(int button, int action, int mods) {
+        if(disableOnLeftDownConfig.getValue() && button == 0 && action == 1)
+            disableTool("lpctools.tools.fillingAssistant.disableReason.mouseLeftDown");
+    }
+
     private boolean put(BlockPos blockpos){
         MinecraftClient client = MinecraftClient.getInstance();
         if(client.interactionManager == null) return false;
@@ -35,17 +113,11 @@ public class PlaceBlockTick implements ClientTickEvents.EndTick, Registry.InGame
         return client.interactionManager.interactBlock(client.player, Hand.MAIN_HAND, hit) == ActionResult.SUCCESS;
     }
     private BlockPos currentPosition;//当前map区域的xyz值最小角坐标
-    private int testDistance = 5;
-    private int testSize = 11;
-    private boolean[][][] map = new boolean[testSize][testSize][testSize];
-    private boolean[][][] testBuffer = new boolean[testSize][testSize][testSize];
+    private int testDistance;
+    private int testSize;
+    private boolean@NotNull [] @NotNull [] @NotNull [] map = new boolean[0][][];
+    private boolean@NotNull [] @NotNull [] @NotNull [] testBuffer = new boolean[0][][];
     private double canSetBlockCount;
-    public void setTestDistance(int distance){
-        testDistance = distance;
-        testSize = distance * 2 + 1;
-        map = new boolean[testSize][testSize][testSize];
-        testBuffer = new boolean[testSize][testSize][testSize];
-    }
     private void resetTestBuffer(){
         for (boolean[][] bufferX : testBuffer) {
             for (boolean[] bufferXY : bufferX) {
@@ -193,7 +265,6 @@ public class PlaceBlockTick implements ClientTickEvents.EndTick, Registry.InGame
         setMapVec3i(mapPos, false);
         return a == numPositions;
     }
-
     private boolean tryPut(BlockPos pos){
         if (unpassable(pos)) return false;
         if (required(pos)) return false;
@@ -206,76 +277,5 @@ public class PlaceBlockTick implements ClientTickEvents.EndTick, Registry.InGame
         if (canPut(pos.subtract(currentPosition)))
             return put(pos);
         return false;
-    }
-
-    @Override
-    public void onEndTick(MinecraftClient client){
-        if(client.player == null){
-            disableTool("lpctools.tools.fillingAssistant.disableReason.nullClientPlayerEntity");
-            return;
-        }
-        ClientPlayerInteractionManager manager = client.interactionManager;
-        if(manager == null){
-            disableTool("lpctools.tools.fillingAssistant.disableReason.nullInteractionManager");
-            return;
-        }
-        if (manager.getCurrentGameMode() == GameMode.SPECTATOR || manager.getCurrentGameMode() == GameMode.ADVENTURE){
-            disableTool("lpctools.tools.fillingAssistant.disableReason.unsupportedGameMode");
-            return;
-        }
-        if(disableOnGUIOpened.getValue() && LPCAPIInit.isInTextOrGui()){
-            disableTool("lpctools.tools.fillingAssistant.disableReason.GUIOpened");
-            return;
-        }
-        if(HandRestock.search(getPlaceableItems()) == -1){//这个或许应该放在函数末尾，但是放在这里似乎也没什么坏处
-            disableTool("lpctools.tools.fillingAssistant.disableReason.placeableItemRanOut");
-            return;
-        }
-        Vec3d eyePos = client.player.getEyePos();
-        BlockPos eyeBlockPos = new BlockPos((int)Math.floor(eyePos.getX()), (int)Math.floor(eyePos.getY()), (int)Math.floor(eyePos.getZ()));
-        boolean blockSetted;
-        if(limitPlaceSpeedConfig.getValue()){
-            if(canSetBlockCount > 1) canSetBlockCount = 0;
-            canSetBlockCount += maxBlockPerTick.getValue();
-        }
-        else canSetBlockCount = 65536;
-        initializeMap(eyeBlockPos);
-        do {
-            blockSetted = false;
-            int y;
-            for (y = -4; y <= 4; ++y) {
-                BlockPos p1 = eyeBlockPos.add(0, y, 0);
-                if (p1.getY() < -64 || p1.getY() >= 320) continue;
-                int x;
-                for (x = -4; x <= 4; ++x) {
-                    BlockPos p2 = p1.add(x, 0, 0);
-                    int z;
-                    for (z = -4; z <= 4; ++z) {
-                        BlockPos pos = p2.add(0, 0, z);
-                        Vec3d posD = new Vec3d(pos.getX(), pos.getY(), pos.getZ());
-                        if (posD.distanceTo(eyePos) >= 4.0) continue;
-                        if(x == 0 && z == 0 && (y == 0 || y == -1)) continue;
-                        if(tryPut(pos)){
-                            if(unpassable(pos)){
-                                setMapVec3i(pos.subtract(currentPosition), true);
-                                blockSetted = true;
-                                --canSetBlockCount;
-                            }
-                        }
-                        if(canSetBlockCount < 1) break;
-                        if(!enabled()) break;
-                    }
-                    if(z != 5) break;
-                }
-                if(x != 5) break;
-            }
-            if(y != 5) break;
-        }while(blockSetted);
-    }
-
-    @Override
-    public void onInGameEndMouse(int button, int action, int mods) {
-        if(disableOnLeftDownConfig.getValue() && button == 0 && action == 1)
-            disableTool("lpctools.tools.fillingAssistant.disableReason.mouseLeftDown");
     }
 }

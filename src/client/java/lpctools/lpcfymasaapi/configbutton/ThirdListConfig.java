@@ -31,6 +31,26 @@ public class ThirdListConfig extends BooleanConfig{
         addConfig(config);
         return config;
     }
+    public IntegerConfig addIntegerConfig(String name, int defaultInteger){
+        IntegerConfig config = super.list.addIntegerConfig(name, defaultInteger);
+        addConfig(config);
+        return config;
+    }
+    public IntegerConfig addIntegerConfig(String name, int defaultInteger, IValueRefreshCallback callback){
+        IntegerConfig config = super.list.addIntegerConfig(name, defaultInteger, callback);
+        addConfig(config);
+        return config;
+    }
+    public IntegerConfig addIntegerConfig(String name, int defaultInteger, int minValue, int maxValue){
+        IntegerConfig config = super.list.addIntegerConfig(name, defaultInteger, minValue, maxValue);
+        addConfig(config);
+        return config;
+    }
+    public IntegerConfig addIntegerConfig(String name, int defaultInteger, int minValue, int maxValue, IValueRefreshCallback callback){
+        IntegerConfig config = super.list.addIntegerConfig(name, defaultInteger, minValue, maxValue, callback);
+        addConfig(config);
+        return config;
+    }
     public DoubleConfig addDoubleConfig(String name, double defaultDouble){
         DoubleConfig config = super.list.addDoubleConfig(name, defaultDouble);
         addConfig(config);
@@ -38,6 +58,16 @@ public class ThirdListConfig extends BooleanConfig{
     }
     public DoubleConfig addDoubleConfig(String name, double defaultDouble, IValueRefreshCallback callback){
         DoubleConfig config = super.list.addDoubleConfig(name, defaultDouble, callback);
+        addConfig(config);
+        return config;
+    }
+    public DoubleConfig addDoubleConfig(String name, double defaultDouble, double minValue, double maxValue){
+        DoubleConfig config = super.list.addDoubleConfig(name, defaultDouble, minValue, maxValue);
+        addConfig(config);
+        return config;
+    }
+    public DoubleConfig addDoubleConfig(String name, double defaultDouble, double minValue, double maxValue, IValueRefreshCallback callback){
+        DoubleConfig config = super.list.addDoubleConfig(name, defaultDouble, minValue, maxValue, callback);
         addConfig(config);
         return config;
     }

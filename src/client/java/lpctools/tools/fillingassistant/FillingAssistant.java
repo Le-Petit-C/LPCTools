@@ -45,8 +45,8 @@ public class FillingAssistant {
         player.sendMessage(Text.literal(reason), true);
     }
     public static boolean enabled(){return runner != null;}
-    public static HashSet<Item> getPlaceableItems(){return placeableItems;}
-    public static HashSet<Block> getPassableBlocks(){return passableBlocks;}
+    public static @NotNull HashSet<Item> getPlaceableItems(){return placeableItems;}
+    public static @NotNull HashSet<Block> getPassableBlocks(){return passableBlocks;}
     public static boolean unpassable(BlockPos pos){
         ClientWorld world = MinecraftClient.getInstance().world;
         if (world != null){
@@ -57,7 +57,7 @@ public class FillingAssistant {
         }
         else return true;
     }
-    public static HashSet<Block> getRequiredBlocks(){return requiredBlocks;}
+    public static @NotNull HashSet<Block> getRequiredBlocks(){return requiredBlocks;}
     public static boolean required(Block block){return getRequiredBlocks().contains(block);}
     public static boolean required(BlockPos pos){
         ClientWorld world = MinecraftClient.getInstance().world;
@@ -79,7 +79,9 @@ public class FillingAssistant {
     public static void init(ThirdListConfig FAConfig){
         hotkeyConfig = FAConfig.addHotkeyConfig("FA_Hotkey", "", new HotkeyCallback());
         limitPlaceSpeedConfig = FAConfig.addThirdListConfig("FA_limitPlaceSpeed", false);
-        maxBlockPerTick = limitPlaceSpeedConfig.addDoubleConfig("FA_maxBlockPerTick", 1.0);
+        maxBlockPerTickConfig = limitPlaceSpeedConfig.addDoubleConfig("FA_maxBlockPerTick", 1.0);
+        reachDistanceConfig = FAConfig.addDoubleConfig("FA_reachDistance", 4.5, 0, 5);
+        testDistanceConfig = FAConfig.addIntegerConfig("FA_testDistance", 6, 6, 64, new TestDistanceRefreshCallback());
         disableOnLeftDownConfig = FAConfig.addBooleanConfig("FA_disableOnLeftDown", true);
         disableOnGUIOpened = FAConfig.addBooleanConfig("FA_disableOnGUIOpened", false);
         placeableItemsConfig = FAConfig.addStringListConfig("FA_placeableItems", defaultPlaceableItemIdList, new PlaceableItemsRefreshCallback());
@@ -101,7 +103,9 @@ public class FillingAssistant {
 
     static HotkeyConfig hotkeyConfig;
     static ThirdListConfig limitPlaceSpeedConfig;
-    static DoubleConfig maxBlockPerTick;
+    static DoubleConfig maxBlockPerTickConfig;
+    static DoubleConfig reachDistanceConfig;
+    static IntegerConfig testDistanceConfig;
     static BooleanConfig disableOnLeftDownConfig;
     static BooleanConfig disableOnGUIOpened;
     static StringListConfig placeableItemsConfig;
@@ -123,10 +127,10 @@ public class FillingAssistant {
             ret.add(Registries.BLOCK.get(Identifier.of(s)));
         return ret;
     }
-    private static PlaceBlockTick runner = null;
-    private static HashSet<Item> placeableItems;
-    private static HashSet<Block> passableBlocks;
-    private static HashSet<Block> requiredBlocks;
+    @Nullable private static PlaceBlockTick runner = null;
+    @NotNull private static HashSet<Item> placeableItems = new HashSet<>();
+    @NotNull private static HashSet<Block> passableBlocks = new HashSet<>();
+    @NotNull private static HashSet<Block> requiredBlocks = new HashSet<>();
 
     private static class HotkeyCallback implements IHotkeyCallback{
         @Override
@@ -134,6 +138,12 @@ public class FillingAssistant {
             if(enabled()) disableTool(null);
             else enableTool();
             return true;
+        }
+    }
+    private static class TestDistanceRefreshCallback implements IValueRefreshCallback{
+        @Override public void valueRefreshCallback() {
+            if(runner != null)
+                runner.setTestDistance(testDistanceConfig.getValue());
         }
     }
     private static class PlaceableItemsRefreshCallback implements IValueRefreshCallback{

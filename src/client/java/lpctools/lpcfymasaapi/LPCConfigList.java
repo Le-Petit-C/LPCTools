@@ -35,6 +35,26 @@ public class LPCConfigList {
         addConfig(config);
         return config;
     }
+    public IntegerConfig addIntegerConfig(String name, int defaultInteger){
+        IntegerConfig config = new IntegerConfig(this, name, defaultInteger);
+        addConfig(config);
+        return config;
+    }
+    public IntegerConfig addIntegerConfig(String name, int defaultInteger, IValueRefreshCallback callback){
+        IntegerConfig config = new IntegerConfig(this, name, defaultInteger, callback);
+        addConfig(config);
+        return config;
+    }
+    public IntegerConfig addIntegerConfig(String name, int defaultInteger, int minValue, int maxValue){
+        IntegerConfig config = new IntegerConfig(this, name, defaultInteger, minValue, maxValue);
+        addConfig(config);
+        return config;
+    }
+    public IntegerConfig addIntegerConfig(String name, int defaultInteger, int minValue, int maxValue, IValueRefreshCallback callback){
+        IntegerConfig config = new IntegerConfig(this, name, defaultInteger, minValue, maxValue, callback);
+        addConfig(config);
+        return config;
+    }
     public DoubleConfig addDoubleConfig(String name, double defaultDouble){
         DoubleConfig config = new DoubleConfig(this, name, defaultDouble);
         addConfig(config);
@@ -42,6 +62,16 @@ public class LPCConfigList {
     }
     public DoubleConfig addDoubleConfig(String name, double defaultDouble, IValueRefreshCallback callback){
         DoubleConfig config = new DoubleConfig(this, name, defaultDouble, callback);
+        addConfig(config);
+        return config;
+    }
+    public DoubleConfig addDoubleConfig(String name, double defaultDouble, double minValue, double maxValue){
+        DoubleConfig config = new DoubleConfig(this, name, defaultDouble, minValue, maxValue);
+        addConfig(config);
+        return config;
+    }
+    public DoubleConfig addDoubleConfig(String name, double defaultDouble, double minValue, double maxValue, IValueRefreshCallback callback){
+        DoubleConfig config = new DoubleConfig(this, name, defaultDouble, minValue, maxValue, callback);
         addConfig(config);
         return config;
     }
