@@ -21,6 +21,7 @@ import java.util.LinkedList;
 import java.util.Queue;
 
 import static lpctools.tools.fillingassistant.FillingAssistant.*;
+import static lpctools.util.BlockStateUtils.*;
 
 public class PlaceBlockTick implements ClientTickEvents.EndTick, Registry.InGameEndMouse {
     public PlaceBlockTick(){
@@ -267,6 +268,7 @@ public class PlaceBlockTick implements ClientTickEvents.EndTick, Registry.InGame
         return a == numPositions;
     }
     private boolean tryPut(BlockPos pos){
+        if (!isReplaceable(pos)) return false;
         if (unpassable(pos)) return false;
         if (required(pos)) return false;
         if (required(pos.east())) return false;
