@@ -106,6 +106,16 @@ public class ThirdListConfig extends BooleanConfig{
         addConfig(config);
         return config;
     }
+    public <T> OptionListConfig<T> addOptionListConfig(String name){
+        OptionListConfig<T> config = super.list.addOptionListConfig(name);
+        addConfig(config);
+        return config;
+    }
+    public <T> OptionListConfig<T> addOptionListConfig(String name, IValueRefreshCallback callback){
+        OptionListConfig<T> config = super.list.addOptionListConfig(name, callback);
+        addConfig(config);
+        return config;
+    }
 
     private boolean lastValue;
     private void refreshSingle(ILPCConfig config){

@@ -115,6 +115,16 @@ public class LPCConfigList {
         addConfig(config);
         return config;
     }
+    public <T> OptionListConfig<T> addOptionListConfig(String name){
+        OptionListConfig<T> config = new OptionListConfig<>(this, name);
+        addConfig(config);
+        return config;
+    }
+    public <T> OptionListConfig<T> addOptionListConfig(String name, IValueRefreshCallback callback){
+        OptionListConfig<T> config = new OptionListConfig<>(this, name, callback);
+        addConfig(config);
+        return config;
+    }
     public String getTitleFullTranslationKey(){return parent.getModReference().modId + ".configs." + translationKey + ".title";}
     public String getTranslationKey(){return translationKey;}
     public String getFullTranslationKey(){return getPage().getModReference().modId + ".configs." + getTranslationKey();}
