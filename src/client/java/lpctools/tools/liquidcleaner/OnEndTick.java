@@ -2,11 +2,15 @@ package lpctools.tools.liquidcleaner;
 
 import lpctools.util.HandRestock;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
-import net.minecraft.block.BlockState;
+import net.minecraft.block.*;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.client.network.ClientPlayerInteractionManager;
 import net.minecraft.client.world.ClientWorld;
+import net.minecraft.item.BlockItem;
+import net.minecraft.item.Item;
+import net.minecraft.item.ItemStack;
+import net.minecraft.state.property.Properties;
 import net.minecraft.util.Hand;
 import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.math.BlockPos;
@@ -47,7 +51,7 @@ public class OnEndTick implements ClientTickEvents.EndTick {
                 }
             }
         }
-        if (HandRestock.search(placeableItems, 0) == -1) return;
+        if (HandRestock.search(IsPlaceableItem.instance, 0) == -1) return;
         for (int a = -5; a <= 5; ++a) {
             for (int b = -5; b <= 5; ++b) {
                 for (int c = -5; c <= 5; ++c) {
@@ -56,7 +60,7 @@ public class OnEndTick implements ClientTickEvents.EndTick {
                     if (midPos.subtract(player.getPos()).length() >= 4.5) continue;
                     BlockState state = world.getBlockState(pos);
                     if (isReplaceableLiquid(state)) {
-                        if (!HandRestock.restock(placeableItems, 0)) return;
+                        if (!HandRestock.restock(IsPlaceableItem.instance, 0)) return;
                         BlockHitResult hitResult = new BlockHitResult(midPos, Direction.UP, pos, false);
                         itm.interactBlock(player, Hand.MAIN_HAND, hitResult);
                     }
@@ -76,5 +80,29 @@ public class OnEndTick implements ClientTickEvents.EndTick {
         if(isContainingLiquid(world.getBlockState(pos.up()))) return false;
         if(isContainingLiquid(world.getBlockState(pos.north()))) return false;
         return !isContainingLiquid(world.getBlockState(pos.south()));
+    }
+    private static class IsPlaceableItem implements HandRestock.IRestockTest{
+        @Override public boolean isStackOk(ItemStack stack){
+            Item item = stack.getItem();
+            if(item instanceof BlockItem blockItem){
+                Block block = blockItem.getBlock();
+                if(block.getHardness() != 0) return false;
+                if(block.getDefaultState().getProperties().contains(Properties.WATERLOGGED)) return false;
+                if(block.getDefaultState().getFluidState().getLevel() != 0) return false;
+                //if(block.getDefaultState().isSolidBlock(MinecraftClient.getInstance().world, BlockPos.ORIGIN)) return true;
+                if(block.getDefaultState().getProperties().contains(Properties.AGE_1)) return false;
+                if(block.getDefaultState().getProperties().contains(Properties.AGE_2)) return false;
+                if(block.getDefaultState().getProperties().contains(Properties.AGE_3)) return false;
+                if(block.getDefaultState().getProperties().contains(Properties.AGE_4)) return false;
+                if(block.getDefaultState().getProperties().contains(Properties.AGE_5)) return false;
+                if(block.getDefaultState().getProperties().contains(Properties.AGE_7)) return false;
+                if(block.getDefaultState().getProperties().contains(Properties.AGE_15)) return false;
+                if(block.getDefaultState().getProperties().contains(Properties.AGE_25)) return false;
+                //if(block instanceof PlantBlock) return  false;
+                return true;
+            }
+            return false;
+        }
+        public static IsPlaceableItem instance = new IsPlaceableItem();
     }
 }
