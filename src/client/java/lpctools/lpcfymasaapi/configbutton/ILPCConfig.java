@@ -13,6 +13,7 @@ public interface ILPCConfig {
     //获取当前配置所属的配置列
     @NotNull LPCConfigList getList();
     //获取当前配置名
+    @NotNull String getNameKey();
     @NotNull String getName();
     //当前配置是否有关热键，决定是否启用热键查找
     boolean hasHotkey();

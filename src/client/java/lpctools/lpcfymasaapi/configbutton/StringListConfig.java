@@ -12,21 +12,18 @@ public class StringListConfig extends LPCConfig<ConfigStringList>{
         super(list, name, false);
         this.defaultValue = defaultValue;
     }
-
     public StringListConfig(LPCConfigList list, String name, ImmutableList<String> defaultValue, IValueRefreshCallback callback){
         this(list, name, defaultValue);
         refreshCallback = callback;
     }
-
     @NotNull public List<String> getStrings(){return getInstance() != null ? getInstance().getStrings() : defaultValue;}
 
-    private final ImmutableList<String> defaultValue;
-
-    @Override
-    protected @NotNull ConfigStringList createInstance() {
-        ConfigStringList config = new ConfigStringList(name, defaultValue);
+    @Override protected @NotNull ConfigStringList createInstance() {
+        ConfigStringList config = new ConfigStringList(nameKey, defaultValue);
         config.apply(list.getFullTranslationKey());
         config.setValueChangeCallback(new LPCConfigCallback<>(this));
         return config;
     }
+
+    private final ImmutableList<String> defaultValue;
 }

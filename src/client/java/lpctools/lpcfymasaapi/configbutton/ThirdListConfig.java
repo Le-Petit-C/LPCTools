@@ -16,7 +16,7 @@ public class ThirdListConfig extends BooleanConfig{
     public ThirdListConfig(LPCConfigList list, String name, boolean defaultBoolean, @Nullable ThirdListConfig parent) {
         super(list, name, defaultBoolean);
         this.parent = parent;
-        if(parent != null) enabled = parent.enabled && parent.getValue();
+        if(parent != null) enabled = parent.enabled && parent.getAsBoolean();
         else enabled = true;
         lastValue = enabled && defaultBoolean;
         setCallback(new ThirdListCallback(this));
@@ -119,14 +119,14 @@ public class ThirdListConfig extends BooleanConfig{
 
     private boolean lastValue;
     private void refreshSingle(ILPCConfig config){
-        boolean parentEnable = enabled && getValue();
+        boolean parentEnable = enabled && getAsBoolean();
         if(config instanceof ThirdListConfig thCon)
             thCon.refreshEnable();
         else config.setEnabled(parentEnable);
     }
     private boolean refreshEnable(){
-        if(parent != null) enabled = parent.enabled && parent.getValue();
-        boolean currentValue = enabled && getValue();
+        if(parent != null) enabled = parent.enabled && parent.getAsBoolean();
+        boolean currentValue = enabled && getAsBoolean();
         if(currentValue != lastValue){
             for(ILPCConfig config : thirdList)
                 refreshSingle(config);
@@ -137,7 +137,7 @@ public class ThirdListConfig extends BooleanConfig{
     }
     private void addConfig(ILPCConfig config){
         thirdList.add(config);
-        config.setEnabled(enabled && getValue());
+        config.setEnabled(enabled && getAsBoolean());
     }
     private record ThirdListCallback(ThirdListConfig parent) implements IValueRefreshCallback {
         @Override public void valueRefreshCallback() {

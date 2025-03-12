@@ -28,7 +28,10 @@ public class OptionListConfig<T> extends LPCConfig<ConfigOptionList> {
         return ((OptionData<T>)instance.getOptionListValue()).userData;
     }
     @Override protected @NotNull ConfigOptionList createInstance() {
-        return new ConfigOptionList(name, options.isEmpty() ? null : options.getFirst());
+        ConfigOptionList config = new ConfigOptionList(nameKey, options.isEmpty() ? null : options.getFirst());
+        config.apply(list.getFullTranslationKey());
+        config.setValueChangeCallback(new LPCConfigCallback<>(this));
+        return config;
     }
     @NotNull private final ArrayList<@NotNull OptionData<T>> options = new ArrayList<>();
     private record OptionData<T>(@NotNull ArrayList<OptionData<T>> options, @NotNull String translationKey, @Nullable T userData, int index) implements IConfigOptionListEntry{

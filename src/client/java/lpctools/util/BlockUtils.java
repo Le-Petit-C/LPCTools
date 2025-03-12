@@ -1,12 +1,17 @@
 package lpctools.util;
 
+import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.world.ClientWorld;
+import net.minecraft.fluid.Fluid;
+import net.minecraft.item.BlockItem;
+import net.minecraft.item.Item;
+import net.minecraft.registry.Registries;
 import net.minecraft.util.math.BlockPos;
 
-public class BlockStateUtils {
+public class BlockUtils {
     public static boolean isReplaceable(BlockState state){
         return state.isReplaceable() || state.getBlock().equals(Blocks.SCULK_VEIN);
     }
@@ -23,5 +28,22 @@ public class BlockStateUtils {
     }
     public static boolean isZeroHardBlock(BlockState state){
         return state.getBlock().getHardness() == 0 || state.getBlock() == Blocks.KELP || state.getBlock() == Blocks.KELP_PLANT;
+    }
+    public static boolean canBeReplacedByFluid(BlockState state){
+        for(Fluid fluid : Registries.FLUID)
+            if (state.canBucketPlace(fluid))
+                return true;
+        return false;
+    }
+    public static boolean canBeReplacedByFluid(Block block){
+        return canBeReplacedByFluid(block.getDefaultState());
+    }
+    public static boolean canBeReplacedByFluid(BlockItem item){
+        return canBeReplacedByFluid(item.getBlock());
+    }
+    public static boolean canBeReplacedByFluid(Item item){
+        if(item instanceof BlockItem blockItem)
+            return canBeReplacedByFluid(blockItem);
+        return false;
     }
 }

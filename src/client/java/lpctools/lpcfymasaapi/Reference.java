@@ -1,12 +1,11 @@
 package lpctools.lpcfymasaapi;
 
-import fi.dy.masa.malilib.util.StringUtils;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.MinecraftVersion;
 
 public class Reference {
-    public String modName;
-    public String modId;
+    public final String modName;
+    public final String modId;
 
     public static String getMCVersion(){return MinecraftVersion.CURRENT.getName();}
     public static String getModType(){return "fabric";}

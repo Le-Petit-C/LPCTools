@@ -179,17 +179,11 @@ public class LPCConfigPage implements IConfigHandler, Supplier<GuiBase>{
         }
         private final LPCConfigPage parent;
 
-        private static class ButtonListener implements IButtonActionListener {
-            int index;
-            ConfigPageInstance parent;
-            ButtonListener(int index, ConfigPageInstance parent){
-                this.index = index;
-                this.parent = parent;
-            }
+        private record ButtonListener(int index, ConfigPageInstance parent) implements IButtonActionListener {
             @Override
-            public void actionPerformedWithButton(ButtonBase button, int mouseButton) {
-                parent.select(index);
-            }
-        }
+                    public void actionPerformedWithButton(ButtonBase button, int mouseButton) {
+                        parent.select(index);
+                    }
+                }
     }
 }

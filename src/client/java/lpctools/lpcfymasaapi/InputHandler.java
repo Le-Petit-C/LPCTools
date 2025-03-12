@@ -10,7 +10,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class InputHandler implements IKeybindProvider {
-    @NotNull Reference modReference;
+    @NotNull final Reference modReference;
     private ArrayList<ILPCHotkey> keysToAdd;
     public InputHandler(@NotNull Reference modReference) {
         super();

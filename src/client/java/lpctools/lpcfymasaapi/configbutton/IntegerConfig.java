@@ -4,7 +4,10 @@ import fi.dy.masa.malilib.config.options.ConfigInteger;
 import lpctools.lpcfymasaapi.LPCConfigList;
 import org.jetbrains.annotations.NotNull;
 
-public class IntegerConfig extends LPCConfig<ConfigInteger>{
+import java.util.function.IntConsumer;
+import java.util.function.IntSupplier;
+
+public class IntegerConfig extends LPCConfig<ConfigInteger> implements IntSupplier, IntConsumer {
     public final int defaultInteger;
     public final int minValue, maxValue;
     public IntegerConfig(LPCConfigList list, String name, int defaultInteger){
@@ -23,11 +26,18 @@ public class IntegerConfig extends LPCConfig<ConfigInteger>{
         this.maxValue = maxValue;
         setCallback(callback);
     }
-    public int getValue(){return getInstance() != null ? getInstance().getIntegerValue() : defaultInteger;}
-    @Override @NotNull public ConfigInteger createInstance(){
-        ConfigInteger config = new ConfigInteger(name, defaultInteger, minValue, maxValue);
+    @Override @NotNull protected ConfigInteger createInstance(){
+        ConfigInteger config = new ConfigInteger(nameKey, defaultInteger, minValue, maxValue);
         config.apply(list.getFullTranslationKey());
         config.setValueChangeCallback(new LPCConfigCallback<>(this));
         return config;
     }
+    @Override public int getAsInt() {
+        return getInstance() != null ? getInstance().getIntegerValue() : defaultInteger;
+    }
+    //accept不应在初始化时调用
+    @Override public void accept(int value) {
+        getConfig().setIntegerValue(value);
+    }
+
 }

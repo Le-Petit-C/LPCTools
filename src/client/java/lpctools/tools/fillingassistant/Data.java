@@ -14,11 +14,11 @@ import java.util.List;
 
 public class Data {
     @NotNull public static final ImmutableList<Item> defaultPlaceableItemList = initDefaultPlaceableItemList();
-    @NotNull public static ImmutableList<String> defaultPlaceableItemIdList = idListFromItemList(defaultPlaceableItemList);
-    @NotNull public static ImmutableList<Block> defaultPassableBlockList = ImmutableList.of();
-    @NotNull public static ImmutableList<String> defaultPassableBlockIdList = idListFromBlockList(defaultPassableBlockList);
-    @NotNull public static ImmutableList<Block> defaultRequiredBlockWhiteList = initDefaultRequiredBlockWhiteList();
-    @NotNull public static ImmutableList<String> defaultRequiredBlockIdList = idListFromBlockList(defaultRequiredBlockWhiteList);
+    @NotNull public static final ImmutableList<String> defaultPlaceableItemIdList = idListFromItemList(defaultPlaceableItemList);
+    @NotNull public static final ImmutableList<Block> defaultPassableBlockList = ImmutableList.of();
+    @NotNull public static final ImmutableList<String> defaultPassableBlockIdList = idListFromBlockList(defaultPassableBlockList);
+    @NotNull public static final ImmutableList<Block> defaultRequiredBlockWhiteList = initDefaultRequiredBlockWhiteList();
+    @NotNull public static final ImmutableList<String> defaultRequiredBlockIdList = idListFromBlockList(defaultRequiredBlockWhiteList);
 
     public static String getItemId(Item item){return Registries.ITEM.getEntry(item).getIdAsString();}
     public static String getBlockId(Block block){return Registries.BLOCK.getEntry(block).getIdAsString();}

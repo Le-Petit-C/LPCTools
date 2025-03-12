@@ -21,11 +21,11 @@ import java.util.LinkedList;
 import java.util.Queue;
 
 import static lpctools.tools.fillingassistant.FillingAssistant.*;
-import static lpctools.util.BlockStateUtils.*;
+import static lpctools.util.BlockUtils.*;
 
 public class PlaceBlockTick implements ClientTickEvents.EndTick, Registry.InGameEndMouse {
     public PlaceBlockTick(){
-        setTestDistance(testDistanceConfig.getValue());
+        setTestDistance(testDistanceConfig.getAsInt());
     }
     public void setTestDistance(int distance){
         testDistance = distance;
@@ -35,40 +35,44 @@ public class PlaceBlockTick implements ClientTickEvents.EndTick, Registry.InGame
     }
 
     @Override public void onEndTick(MinecraftClient client){
+        if(client.world == null){
+            disableTool("nullClientWorld");
+            return;
+        }
         if(client.player == null){
-            disableTool("lpctools.tools.fillingAssistant.disableReason.nullClientPlayerEntity");
+            disableTool("nullClientPlayerEntity");
             return;
         }
         ClientPlayerInteractionManager manager = client.interactionManager;
         if(manager == null){
-            disableTool("lpctools.tools.fillingAssistant.disableReason.nullInteractionManager");
+            disableTool("nullInteractionManager");
             return;
         }
         if (manager.getCurrentGameMode() == GameMode.SPECTATOR || manager.getCurrentGameMode() == GameMode.ADVENTURE){
-            disableTool("lpctools.tools.fillingAssistant.disableReason.unsupportedGameMode");
+            disableTool("unsupportedGameMode");
             return;
         }
-        if(disableOnGUIOpened.getValue() && LPCAPIInit.isInTextOrGui()){
-            disableTool("lpctools.tools.fillingAssistant.disableReason.GUIOpened");
+        if(disableOnGUIOpened.getAsBoolean() && LPCAPIInit.isInTextOrGui()){
+            disableTool("GUIOpened");
             return;
         }
         if(HandRestock.search(new HandRestock.SearchInSet(getPlaceableItems()), 0) == -1){//这个或许应该放在函数末尾，但是放在这里似乎也没什么坏处
-            disableTool("lpctools.tools.fillingAssistant.disableReason.placeableItemRanOut");
+            disableTool("placeableItemRanOut");
             return;
         }
         Vec3d eyePos = client.player.getEyePos();
         BlockPos eyeBlockPos = new BlockPos((int)Math.floor(eyePos.getX()), (int)Math.floor(eyePos.getY()), (int)Math.floor(eyePos.getZ()));
         boolean blockSetted;
-        if(limitPlaceSpeedConfig.getValue()){
+        if(limitPlaceSpeedConfig.getAsBoolean()){
             if(canSetBlockCount > 1) canSetBlockCount = 0;
-            canSetBlockCount += maxBlockPerTickConfig.getValue();
+            canSetBlockCount += maxBlockPerTickConfig.getAsDouble();
         }
         else canSetBlockCount = 65536;
         initializeMap(eyeBlockPos);
         do {
             blockSetted = false;
             int y;
-            int r = (int) Math.ceil(reachDistanceConfig.getValue());
+            int r = (int) Math.ceil(reachDistanceConfig.getAsDouble());
             for (y = -r; y <= r; ++y) {
                 BlockPos p1 = eyeBlockPos.add(0, y, 0);
                 if (p1.getY() < -64 || p1.getY() >= 320) continue;
@@ -79,7 +83,7 @@ public class PlaceBlockTick implements ClientTickEvents.EndTick, Registry.InGame
                     for (z = -r; z <= r; ++z) {
                         BlockPos pos = p2.add(0, 0, z);
                         Vec3d posD = new Vec3d(pos.getX(), pos.getY(), pos.getZ());
-                        if (posD.distanceTo(eyePos) >= reachDistanceConfig.getValue()) continue;
+                        if (posD.distanceTo(eyePos) >= reachDistanceConfig.getAsDouble()) continue;
                         if(x == 0 && z == 0 && (y == 0 || y == -1)) continue;
                         if(tryPut(pos)){
                             if(unpassable(pos)){
@@ -99,8 +103,8 @@ public class PlaceBlockTick implements ClientTickEvents.EndTick, Registry.InGame
         }while(blockSetted);
     }
     @Override public void onInGameEndMouse(int button, int action, int mods) {
-        if(disableOnLeftDownConfig.getValue() && button == 0 && action == 1)
-            disableTool("lpctools.tools.fillingAssistant.disableReason.mouseLeftDown");
+        if(disableOnLeftDownConfig.getAsBoolean() && button == 0 && action == 1)
+            disableTool("lpctools.tools.disableReason.mouseLeftDown");
     }
 
     private boolean put(BlockPos blockpos){

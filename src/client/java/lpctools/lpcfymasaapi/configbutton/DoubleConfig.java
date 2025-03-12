@@ -4,7 +4,10 @@ import fi.dy.masa.malilib.config.options.ConfigDouble;
 import lpctools.lpcfymasaapi.LPCConfigList;
 import org.jetbrains.annotations.NotNull;
 
-public class DoubleConfig extends LPCConfig<ConfigDouble>{
+import java.util.function.DoubleConsumer;
+import java.util.function.DoubleSupplier;
+
+public class DoubleConfig extends LPCConfig<ConfigDouble> implements DoubleSupplier, DoubleConsumer {
     public final double defaultDouble;
     public final double minValue, maxValue;
     public DoubleConfig(LPCConfigList list, String name, double defaultDouble){
@@ -23,11 +26,16 @@ public class DoubleConfig extends LPCConfig<ConfigDouble>{
         this.maxValue = maxValue;
         setCallback(callback);
     }
-    public double getValue(){return getInstance() != null ? getInstance().getDoubleValue() : defaultDouble;}
-    @Override @NotNull public ConfigDouble createInstance(){
-        ConfigDouble config = new ConfigDouble(name, defaultDouble, minValue, maxValue);
+    @Override @NotNull protected ConfigDouble createInstance(){
+        ConfigDouble config = new ConfigDouble(nameKey, defaultDouble, minValue, maxValue);
         config.apply(list.getFullTranslationKey());
         config.setValueChangeCallback(new LPCConfigCallback<>(this));
         return config;
+    }
+    @Override public void accept(double value) {
+        getConfig().setDoubleValue(value);
+    }
+    @Override public double getAsDouble() {
+        return getInstance() != null ? getInstance().getDoubleValue() : defaultDouble;
     }
 }

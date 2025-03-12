@@ -3,6 +3,7 @@ package lpctools.lpcfymasaapi.configbutton;
 import com.google.gson.JsonElement;
 import fi.dy.masa.malilib.config.IConfigBase;
 import fi.dy.masa.malilib.interfaces.IValueChangeCallback;
+import fi.dy.masa.malilib.util.StringUtils;
 import lpctools.lpcfymasaapi.LPCConfigList;
 import lpctools.lpcfymasaapi.LPCConfigPage;
 import org.jetbrains.annotations.NotNull;
@@ -10,13 +11,13 @@ import org.jetbrains.annotations.Nullable;
 
 public abstract class LPCConfig<T extends IConfigBase> implements ILPCConfig{
     @NotNull public final LPCConfigList list;
-    @NotNull public final String name;
+    @NotNull public final String nameKey;
     public final boolean hasHotkey;
     public boolean enabled = true;
     @Nullable public IValueRefreshCallback refreshCallback;//值刷新时会调用其中的方法
-    public LPCConfig(@NotNull LPCConfigList list, @NotNull String name, boolean hasHotkey){
+    public LPCConfig(@NotNull LPCConfigList list, @NotNull String nameKey, boolean hasHotkey){
         this.list = list;
-        this.name = name;
+        this.nameKey = nameKey;
         this.hasHotkey = hasHotkey;
     }
     @Override @NotNull public LPCConfigPage getPage(){return list.getPage();}
@@ -26,7 +27,10 @@ public abstract class LPCConfig<T extends IConfigBase> implements ILPCConfig{
     @Override public boolean isEnabled(){return enabled;}
     @Override public void setCallback(IValueRefreshCallback callBack){refreshCallback = callBack;}
     @Override public IValueRefreshCallback getCallback(){return refreshCallback;}
-    @Override @NotNull public String getName(){return name;}
+    @Override @NotNull public String getNameKey(){return nameKey;}
+    @Override @NotNull public String getName(){
+        return StringUtils.translate(list.getFullTranslationKey() + ".name." + getNameKey());
+    }
     @Override public void setValueFromJsonElement(JsonElement element){
         getConfig().setValueFromJsonElement(element);
         callRefresh();

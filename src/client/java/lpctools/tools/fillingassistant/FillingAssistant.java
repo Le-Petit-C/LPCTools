@@ -6,6 +6,7 @@ import fi.dy.masa.malilib.hotkeys.KeyAction;
 import fi.dy.masa.malilib.util.StringUtils;
 import lpctools.lpcfymasaapi.Registry;
 import lpctools.lpcfymasaapi.configbutton.*;
+import lpctools.tools.ToolConfigs;
 import net.minecraft.block.Block;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ClientPlayerEntity;
@@ -31,18 +32,14 @@ public class FillingAssistant {
         runner = new PlaceBlockTick();
         Registry.registerEndClientTickCallback(runner);
         Registry.registerInGameEndMouseCallback(runner);
-        player.sendMessage(Text.literal(StringUtils.translate("lpctools.tools.fillingAssistant.enableNotification")), true);
+        player.sendMessage(Text.literal(StringUtils.translate("lpctools.tools.FA_enableNotification")), true);
     }
     public static void disableTool(@Nullable String reasonKey){
         if(!enabled()) return;
         Registry.unregisterEndClientTickCallback(runner);
         Registry.unregisterInGameEndMouseCallback(runner);
         runner = null;
-        ClientPlayerEntity player = MinecraftClient.getInstance().player;
-        if(player == null) return;
-        String reason = StringUtils.translate("lpctools.tools.fillingAssistant.disableNotification");
-        if(reasonKey != null) reason += " : " + StringUtils.translate(reasonKey);
-        player.sendMessage(Text.literal(reason), true);
+        ToolConfigs.displayDisableReason("FA_disableNotification", reasonKey);
     }
     public static boolean enabled(){return runner != null;}
     public static @NotNull HashSet<Item> getPlaceableItems(){return placeableItems;}
@@ -51,8 +48,8 @@ public class FillingAssistant {
         ClientWorld world = MinecraftClient.getInstance().world;
         if (world != null){
             Block block = world.getBlockState(pos).getBlock();
-            if(transparentAsPassableConfig.getValue() && block.getDefaultState().isTransparent()) return false;
-            if(notOpaqueAsPassableConfig.getValue() && !block.getDefaultState().isOpaque()) return false;
+            if(transparentAsPassableConfig.getAsBoolean() && block.getDefaultState().isTransparent()) return false;
+            if(notOpaqueAsPassableConfig.getAsBoolean() && !block.getDefaultState().isOpaque()) return false;
             return !getPassableBlocks().contains(block);
         }
         else return true;
@@ -143,7 +140,7 @@ public class FillingAssistant {
     private static class TestDistanceRefreshCallback implements IValueRefreshCallback{
         @Override public void valueRefreshCallback() {
             if(runner != null)
-                runner.setTestDistance(testDistanceConfig.getValue());
+                runner.setTestDistance(testDistanceConfig.getAsInt());
         }
     }
     private static class PlaceableItemsRefreshCallback implements IValueRefreshCallback{

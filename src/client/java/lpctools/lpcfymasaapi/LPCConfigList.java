@@ -135,7 +135,7 @@ public class LPCConfigList {
     }
     public boolean hasHotkeyConfig() {return hasHotkeyConfig;}
 
-    @NotNull ArrayList<ILPCConfig> configs = new ArrayList<>();
+    @NotNull final ArrayList<ILPCConfig> configs = new ArrayList<>();
     //使用此JsonObject替换现有JsonObject
     void resetListJson(JsonObject configPageJson){
         configListJson = JsonUtils.getNestedObject(configPageJson, getTranslationKey(), true);
@@ -154,7 +154,7 @@ public class LPCConfigList {
     private void reloadConfigFromJson(ILPCConfig config){
         if(config == null) return;
         if(configListJson == null) return;
-        String name = config.getName();
+        String name = config.getNameKey();
         if (!configListJson.has(name)) return;
         config.setValueFromJsonElement(configListJson.get(name));
     }
