@@ -1,7 +1,7 @@
 package lpctools.lpcfymasaapi.mixins;
 
-import lpctools.lpcfymasaapi.LPCAPIInit;
 import lpctools.lpcfymasaapi.Registry;
+import lpctools.util.GuiUtils;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.Mouse;
 import org.spongepowered.asm.mixin.Final;
@@ -17,7 +17,7 @@ public abstract class OnMouseButtonReturnMixin {
     @Inject(method = "onMouseButton", at = @At("RETURN"))
     private void onMouseButton(long window, int button, int action, int mods, CallbackInfo ci){
         if(window != this.client.getWindow().getHandle()) return;
-        if(!LPCAPIInit.isInTextOrGui())
+        if(!GuiUtils.isInTextOrGui())
             Registry.runInGameEndMouseCallbacks(button, action, mods);
     }
 }

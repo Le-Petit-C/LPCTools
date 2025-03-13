@@ -2,8 +2,8 @@ package lpctools.lpcfymasaapi.configbutton;
 
 import com.google.common.collect.ImmutableList;
 import fi.dy.masa.malilib.hotkeys.IHotkeyCallback;
-import lpctools.lpcfymasaapi.LPCAPIInit;
 import lpctools.lpcfymasaapi.LPCConfigList;
+import lpctools.util.GuiUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -141,7 +141,7 @@ public class ThirdListConfig extends BooleanConfig{
     }
     private record ThirdListCallback(ThirdListConfig parent) implements IValueRefreshCallback {
         @Override public void valueRefreshCallback() {
-            if (parent.refreshEnable() && LPCAPIInit.isInTextOrGui())
+            if (parent.refreshEnable() && GuiUtils.isInTextOrGui())
                 parent.list.getPage().showPage();
         }
     }

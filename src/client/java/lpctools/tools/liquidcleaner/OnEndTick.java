@@ -1,5 +1,6 @@
 package lpctools.tools.liquidcleaner;
 
+import lpctools.util.GuiUtils;
 import lpctools.util.HandRestock;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.minecraft.block.*;
@@ -18,52 +19,76 @@ import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.Vec3d;
+import net.minecraft.world.GameMode;
+import net.minecraft.world.dimension.DimensionType;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Collection;
 
 import static lpctools.tools.liquidcleaner.LiquidCleaner.*;
 import static lpctools.util.BlockUtils.*;
+import static lpctools.util.LPCMathUtils.*;
 
 public class OnEndTick implements ClientTickEvents.EndTick {
-    @Override
-    public void onEndTick(MinecraftClient minecraftClient) {
-        ClientPlayerEntity player = MinecraftClient.getInstance().player;
+    @Override public void onEndTick(MinecraftClient client) {
+        ClientPlayerEntity player = client.player;
         if (player == null) {
-            disable("nullClientPlayerEntity");
+            disableTool("nullClientPlayerEntity");
             return;
         }
-        BlockPos playerBlock = player.getBlockPos();
-        ClientWorld world = MinecraftClient.getInstance().world;
+        BlockPos playerEyeBlock = new BlockPos(floorVec3d(player.getEyePos()));
+        ClientWorld world = client.world;
         if (world == null) {
-            disable(null);
+            disableTool("nullClientWorld");
             return;
         }
-        ClientPlayerInteractionManager itm = MinecraftClient.getInstance().interactionManager;
-        if (itm == null) {
-            disable(null);
+        ClientPlayerInteractionManager manager = client.interactionManager;
+        if (manager == null) {
+            disableTool("nullInteractionManager");
             return;
         }
-        int minX = playerBlock.getX() - 5;
-        int maxX = playerBlock.getX() + 5;
-        int minY = playerBlock.getY() - 5;
-        int maxY = playerBlock.getY() + 5;
-        int minZ = playerBlock.getZ() - 5;
-        int maxZ = playerBlock.getZ() + 5;
-        if(minX < minXConfig.getAsInt()) minX = minXConfig.getAsInt();
-        if(maxX > maxXConfig.getAsInt()) maxX = maxXConfig.getAsInt();
-        if(minY < minYConfig.getAsInt()) minY = minYConfig.getAsInt();
-        if(maxY > maxYConfig.getAsInt()) maxY = maxYConfig.getAsInt();
-        if(minZ < minZConfig.getAsInt()) minZ = minZConfig.getAsInt();
-        if(maxZ > maxZConfig.getAsInt()) maxZ = maxZConfig.getAsInt();
+        if (manager.getCurrentGameMode() == GameMode.SPECTATOR || manager.getCurrentGameMode() == GameMode.ADVENTURE){
+            disableTool("unsupportedGameMode");
+            return;
+        }
+        if(disableOnGUIOpened.getAsBoolean() && GuiUtils.isInTextOrGui()){
+            disableTool("GUIOpened");
+            return;
+        }
+        double d = reachDistanceConfig.getAsDouble();
+        int r = (int)Math.ceil(d);
+        int minX = playerEyeBlock.getX() - r;
+        int maxX = playerEyeBlock.getX() + r;
+        int minY = playerEyeBlock.getY() - r;
+        int maxY = playerEyeBlock.getY() + r;
+        int minZ = playerEyeBlock.getZ() - r;
+        int maxZ = playerEyeBlock.getZ() + r;
+        if(limitCleaningRange.getAsBoolean()){
+            if(minX < minXConfig.getAsInt()) minX = minXConfig.getAsInt();
+            if(maxX > maxXConfig.getAsInt()) maxX = maxXConfig.getAsInt();
+            if(minY < minYConfig.getAsInt()) minY = minYConfig.getAsInt();
+            if(maxY > maxYConfig.getAsInt()) maxY = maxYConfig.getAsInt();
+            if(minZ < minZConfig.getAsInt()) minZ = minZConfig.getAsInt();
+            if(maxZ > maxZConfig.getAsInt()) maxZ = maxZConfig.getAsInt();
+        }
+        DimensionType dimensionType = client.world.getDimension();
+        if(minY < dimensionType.minY()) minY = dimensionType.minY();
+        if(maxY > dimensionType.minY() + dimensionType.height() - 1) maxY = dimensionType.minY() + dimensionType.height() - 1;
+        if(limitInteractSpeedConfig.getAsBoolean()){
+            if(canInteractBlockCount > 1) canInteractBlockCount = 0;
+            canInteractBlockCount += maxBlockPerTickConfig.getAsDouble();
+        }
+        else canInteractBlockCount = Double.MAX_VALUE;
         for (int y = maxY; y >= minY; --y) {
             for (int x = minX; x <= maxX; ++x) {
                 for (int z = minZ; z <= maxZ; ++z) {
                     BlockPos pos = new BlockPos(x, y, z);
                     Vec3d midPos = pos.toCenterPos();
-                    if (midPos.subtract(player.getPos()).length() >= 4.5) continue;
-                    if (shouldAttackBlock(world, pos))
-                        itm.attackBlock(pos, Direction.UP);
+                    if (midPos.subtract(player.getEyePos()).length() >= d) continue;
+                    if (shouldAttackBlock(world, pos)){
+                        manager.attackBlock(pos, Direction.UP);
+                        if(--canInteractBlockCount < 1) return;
+                    }
                 }
             }
         }
@@ -73,23 +98,26 @@ public class OnEndTick implements ClientTickEvents.EndTick {
                 for (int z = minZ; z <= maxZ; ++z) {
                     BlockPos pos = new BlockPos(x, y, z);
                     Vec3d midPos = pos.toCenterPos();
-                    if (midPos.subtract(player.getPos()).length() >= 4.5) continue;
+                    if (midPos.subtract(player.getEyePos()).length() >= d) continue;
                     BlockState state = world.getBlockState(pos);
                     if (isReplaceableLiquid(state)) {
                         if (!HandRestock.restock(IsPlaceableItem.instance, 0)) return;
                         BlockHitResult hitResult = new BlockHitResult(midPos, Direction.UP, pos, false);
-                        itm.interactBlock(player, Hand.MAIN_HAND, hitResult);
+                        manager.interactBlock(player, Hand.MAIN_HAND, hitResult);
+                        if(--canInteractBlockCount < 1) return;
                     }
                 }
             }
         }
     }
 
+    private double canInteractBlockCount = 0;
     private static boolean shouldAttackBlock(@NotNull ClientWorld world, BlockPos pos){
         BlockState state = world.getBlockState(pos);
         if(!isZeroHardBlock(state)) return false;
         if(state.isAir()) return false;
         if(!isReplaceable(state) && isContainingLiquid(state)) return true;
+        if(canBeReplacedByFluid(state)) return false;
         if(isContainingLiquid(world.getBlockState(pos.west()))) return false;
         if(isContainingLiquid(world.getBlockState(pos.east()))) return false;
         if(isContainingLiquid(world.getBlockState(pos.down()))) return false;

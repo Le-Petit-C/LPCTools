@@ -15,6 +15,10 @@ import org.jetbrains.annotations.Nullable;
 public class LiquidCleaner {
     public static void init(ThirdListConfig LCConfig){
         hotkeyConfig = LCConfig.addHotkeyConfig("LC_Hotkey", "", new HotkeyCallback());
+        limitInteractSpeedConfig = LCConfig.addThirdListConfig("LC_limitInteractSpeed", false);
+        maxBlockPerTickConfig = limitInteractSpeedConfig.addDoubleConfig("LC_maxBlockPerTick", 1.0, 0, 64);
+        reachDistanceConfig = LCConfig.addDoubleConfig("LC_reachDistance", 4.5, 0, 5);
+        disableOnGUIOpened = LCConfig.addBooleanConfig("FA_disableOnGUIOpened", false);
         limitCleaningRange = LCConfig.addThirdListConfig("LC_LimitCleaningRange", false);
         minXConfig = limitCleaningRange.addIntegerConfig("LC_minX", Integer.MIN_VALUE);
         maxXConfig = limitCleaningRange.addIntegerConfig("LC_maxX", Integer.MAX_VALUE);
@@ -35,7 +39,7 @@ public class LiquidCleaner {
                 new HotkeyConfig.IntegerChanger(-1, valueChangeConfig, limitCleaningRange));
     }
     public static boolean isEnabled(){return onEndTick != null;}
-    public static void enable(){
+    public static void enableTool(){
         if(isEnabled()) return;
         ClientPlayerEntity player = MinecraftClient.getInstance().player;
         if(player == null) return;
@@ -43,7 +47,7 @@ public class LiquidCleaner {
         onEndTick = new OnEndTick();
         Registry.registerEndClientTickCallback(onEndTick);
     }
-    public static void disable(@Nullable String reasonKey){
+    public static void disableTool(@Nullable String reasonKey){
         if(!isEnabled()) return;
         Registry.unregisterEndClientTickCallback(onEndTick);
         onEndTick = null;
@@ -51,6 +55,10 @@ public class LiquidCleaner {
     }
 
     static HotkeyConfig hotkeyConfig;
+    static ThirdListConfig limitInteractSpeedConfig;
+    static DoubleConfig maxBlockPerTickConfig;
+    static DoubleConfig reachDistanceConfig;
+    static BooleanConfig disableOnGUIOpened;
     static ThirdListConfig limitCleaningRange;
     static IntegerConfig minXConfig;
     static IntegerConfig maxXConfig;
@@ -65,8 +73,8 @@ public class LiquidCleaner {
 
     private static class HotkeyCallback implements IHotkeyCallback{
         @Override public boolean onKeyAction(KeyAction action, IKeybind key) {
-            if(isEnabled()) disable(null);
-            else enable();
+            if(isEnabled()) disableTool(null);
+            else enableTool();
             return true;
         }
     }
