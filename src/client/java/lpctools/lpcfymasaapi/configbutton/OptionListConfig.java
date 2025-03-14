@@ -9,29 +9,33 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 
-public class OptionListConfig<T> extends LPCConfig<ConfigOptionList> {
-    public OptionListConfig(@NotNull LPCConfigList list, @NotNull String name) {
-        this(list, name, null);
+public class OptionListConfig<T> extends LPCConfig<ConfigOptionList> implements IButtonDisplay{
+    public OptionListConfig(@NotNull LPCConfigList list, @NotNull String nameKey) {
+        this(list, nameKey, null);
     }
-    public OptionListConfig(@NotNull LPCConfigList list, @NotNull String name, @Nullable IValueRefreshCallback callback) {
-        super(list, name, false);
+    public OptionListConfig(@NotNull LPCConfigList list, @NotNull String nameKey, @Nullable IValueRefreshCallback callback) {
+        super(list, nameKey, false);
         setCallback(callback);
     }
     //构造后应立即调用至少一次addOption
     public void addOption(@NotNull String translationKey, @Nullable T userData){
         options.add(new OptionData<>(options, translationKey, userData, options.size()));
     }
-    @SuppressWarnings("unchecked")
-    public T getCurrentUserdata(){
-        ConfigOptionList instance = getInstance();
-        if(instance == null) return options.getFirst().userData;
-        return ((OptionData<T>)instance.getOptionListValue()).userData;
-    }
+    public T getCurrentUserdata(){return getCurrentOptionData().userData;}
+    @Override @NotNull public String getDisplayName(){return getCurrentOptionData().getDisplayName();}
+
     @Override protected @NotNull ConfigOptionList createInstance() {
-        ConfigOptionList config = new ConfigOptionList(nameKey, options.isEmpty() ? null : options.getFirst());
-        config.apply(list.getFullTranslationKey());
+        ConfigOptionList config = new ConfigOptionList(getTranslationKey(), options.isEmpty() ? null : options.getFirst());
+        config.apply(getList().getFullTranslationKey());
         config.setValueChangeCallback(new LPCConfigCallback<>(this));
         return config;
+    }
+
+    @SuppressWarnings("unchecked")
+    @NotNull OptionData<T> getCurrentOptionData(){
+        ConfigOptionList instance = getInstance();
+        if(instance == null) return options.getFirst();
+        return ((OptionData<T>)instance.getOptionListValue());
     }
     @NotNull private final ArrayList<@NotNull OptionData<T>> options = new ArrayList<>();
     private record OptionData<T>(@NotNull ArrayList<OptionData<T>> options, @NotNull String translationKey, @Nullable T userData, int index) implements IConfigOptionListEntry{

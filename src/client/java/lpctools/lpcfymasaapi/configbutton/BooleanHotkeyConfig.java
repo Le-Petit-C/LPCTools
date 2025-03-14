@@ -11,14 +11,14 @@ import java.util.function.BooleanSupplier;
 public class BooleanHotkeyConfig extends LPCConfig<ConfigBooleanHotkeyed> implements ILPCHotkey, BooleanSupplier, BooleanConsumer {
     public final boolean defaultBoolean;
     public final String defaultStorageString;
-    public BooleanHotkeyConfig(LPCConfigList list, String name, boolean defaultBoolean, String defaultStorageString){
-        super(list, name, true);
+    public BooleanHotkeyConfig(LPCConfigList list, String nameKey, boolean defaultBoolean, String defaultStorageString){
+        super(list, nameKey, true);
         this.defaultBoolean = defaultBoolean;
         this.defaultStorageString = defaultStorageString;
         list.getPage().getInputHandler().addHotkey(this);
     }
-    public BooleanHotkeyConfig(LPCConfigList list, String name, boolean defaultBoolean, String defaultStorageString, IValueRefreshCallback callback){
-        this(list, name, defaultBoolean, defaultStorageString);
+    public BooleanHotkeyConfig(LPCConfigList list, String nameKey, boolean defaultBoolean, String defaultStorageString, IValueRefreshCallback callback){
+        this(list, nameKey, defaultBoolean, defaultStorageString);
         setCallback(callback);
     }
     @Override public IHotkey LPCGetHotkey() {return getConfig();}
@@ -32,8 +32,8 @@ public class BooleanHotkeyConfig extends LPCConfig<ConfigBooleanHotkeyed> implem
     }
 
     @Override @NotNull protected ConfigBooleanHotkeyed createInstance() {
-        ConfigBooleanHotkeyed config = new ConfigBooleanHotkeyed(getNameKey(), defaultBoolean, defaultStorageString);
-        config.apply(list.getFullTranslationKey());
+        ConfigBooleanHotkeyed config = new ConfigBooleanHotkeyed(getTranslationKey(), defaultBoolean, defaultStorageString);
+        config.apply(getList().getFullTranslationKey());
         config.setValueChangeCallback(new LPCConfigCallback<>(this));
         return config;
     }

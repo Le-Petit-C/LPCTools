@@ -57,7 +57,8 @@ public class PlaceBlockTick implements ClientTickEvents.EndTick, Registry.InGame
             disableTool("GUIOpened");
             return;
         }
-        if(HandRestock.search(new HandRestock.SearchInSet(getPlaceableItems()), 0) == -1){//这个或许应该放在函数末尾，但是放在这里似乎也没什么坏处
+        HandRestock.IRestockTest restockTest = new HandRestock.SearchInSet(getPlaceableItems());
+        if(HandRestock.search(restockTest, offhandFillingConfig.getAsBoolean() ? -1 : 0) == -1){//这个或许应该放在函数末尾，但是放在这里似乎也没什么坏处
             disableTool("placeableItemRanOut");
             return;
         }
@@ -96,7 +97,7 @@ public class PlaceBlockTick implements ClientTickEvents.EndTick, Registry.InGame
                         BlockPos pos = new BlockPos(x, y, z);
                         Vec3d posD = pos.toCenterPos();
                         if (posD.distanceTo(eyePos) >= reachDistanceConfig.getAsDouble()) continue;
-                        if(tryPut(pos)){
+                        if(tryPut(pos, restockTest)){
                             if(isUnpassable(pos)){
                                 setMapVec3i(pos.subtract(currentPosition), true);
                                 blockSetted = true;
@@ -115,16 +116,20 @@ public class PlaceBlockTick implements ClientTickEvents.EndTick, Registry.InGame
             disableTool("mouseLeftDown");
     }
 
-    private boolean put(BlockPos blockpos){
+    private boolean put(BlockPos blockpos, HandRestock.IRestockTest restockTest){
         MinecraftClient client = MinecraftClient.getInstance();
         if(client.interactionManager == null) return false;
-        if(!HandRestock.restock(new HandRestock.SearchInSet(getPlaceableItems()), 0)){
+        if(!HandRestock.restock(restockTest, offhandFillingConfig.getAsBoolean() ? -1 : 0)){
             disableTool("placeableItemRanOut");
             return false;
         }
         Vec3d pos = new Vec3d(blockpos.getX() + 0.5, blockpos.getY() + 0.5, blockpos.getZ() + 0.5);
         BlockHitResult hit = new BlockHitResult(pos, Direction.UP, blockpos, false);
-        return client.interactionManager.interactBlock(client.player, Hand.MAIN_HAND, hit) == ActionResult.SUCCESS;
+        return client.interactionManager.interactBlock(
+                client.player,
+                offhandFillingConfig.getAsBoolean() ? Hand.OFF_HAND : Hand.MAIN_HAND,
+                hit
+        ) == ActionResult.SUCCESS;
     }
     private BlockPos currentPosition;//当前map区域的xyz值最小角坐标
     private int testDistance;
@@ -279,7 +284,7 @@ public class PlaceBlockTick implements ClientTickEvents.EndTick, Registry.InGame
         setMapVec3i(mapPos, false);
         return a == numPositions;
     }
-    private boolean tryPut(BlockPos pos){
+    private boolean tryPut(BlockPos pos, HandRestock.IRestockTest restockTest){
         if (!isReplaceable(pos)) return false;
         if (isUnpassable(pos)) return false;
         if (required(pos)) return false;
@@ -290,7 +295,7 @@ public class PlaceBlockTick implements ClientTickEvents.EndTick, Registry.InGame
         if (required(pos.up())) return false;
         if (required(pos.down())) return false;
         if (canPut(pos.subtract(currentPosition)))
-            return put(pos);
+            return put(pos, restockTest);
         return false;
     }
 }

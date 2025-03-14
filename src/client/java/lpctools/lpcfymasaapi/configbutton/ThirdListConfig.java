@@ -8,125 +8,137 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
+import java.util.function.IntConsumer;
+import java.util.function.IntSupplier;
 
 //第三级列表，配置中切换true或false可以展开或收起内含的配置项
+@SuppressWarnings("unused")
 public class ThirdListConfig extends BooleanConfig{
     @NotNull public final ArrayList<ILPCConfig> thirdList = new ArrayList<>();
     @Nullable public final ThirdListConfig parent;
-    public ThirdListConfig(LPCConfigList list, String name, boolean defaultBoolean, @Nullable ThirdListConfig parent) {
-        super(list, name, defaultBoolean);
+    public ThirdListConfig(LPCConfigList list, String nameKey, boolean defaultBoolean, @Nullable ThirdListConfig parent) {
+        super(list, nameKey, defaultBoolean);
         this.parent = parent;
-        if(parent != null) enabled = parent.enabled && parent.getAsBoolean();
-        else enabled = true;
-        lastValue = enabled && defaultBoolean;
+        setEnabled(parent == null || (parent.isEnabled() && parent.getAsBoolean()));
+        lastValue = isEnabled() && defaultBoolean;
         setCallback(new ThirdListCallback(this));
     }
-    public BooleanConfig addBooleanConfig(String name, boolean defaultBoolean){
-        BooleanConfig config = super.list.addBooleanConfig(name, defaultBoolean);
+    public BooleanConfig addBooleanConfig(String nameKey, boolean defaultBoolean){
+        BooleanConfig config = super.getList().addBooleanConfig(nameKey, defaultBoolean);
         addConfig(config);
         return config;
     }
-    public BooleanConfig addBooleanConfig(String name, boolean defaultBoolean, IValueRefreshCallback callback){
-        BooleanConfig config = super.list.addBooleanConfig(name, defaultBoolean, callback);
+    public BooleanConfig addBooleanConfig(String nameKey, boolean defaultBoolean, IValueRefreshCallback callback){
+        BooleanConfig config = super.getList().addBooleanConfig(nameKey, defaultBoolean, callback);
         addConfig(config);
         return config;
     }
-    public IntegerConfig addIntegerConfig(String name, int defaultInteger){
-        IntegerConfig config = super.list.addIntegerConfig(name, defaultInteger);
+    public IntegerConfig addIntegerConfig(String nameKey, int defaultInteger){
+        IntegerConfig config = super.getList().addIntegerConfig(nameKey, defaultInteger);
         addConfig(config);
         return config;
     }
-    public IntegerConfig addIntegerConfig(String name, int defaultInteger, IValueRefreshCallback callback){
-        IntegerConfig config = super.list.addIntegerConfig(name, defaultInteger, callback);
+    public IntegerConfig addIntegerConfig(String nameKey, int defaultInteger, IValueRefreshCallback callback){
+        IntegerConfig config = super.getList().addIntegerConfig(nameKey, defaultInteger, callback);
         addConfig(config);
         return config;
     }
-    public IntegerConfig addIntegerConfig(String name, int defaultInteger, int minValue, int maxValue){
-        IntegerConfig config = super.list.addIntegerConfig(name, defaultInteger, minValue, maxValue);
+    public IntegerConfig addIntegerConfig(String nameKey, int defaultInteger, int minValue, int maxValue){
+        IntegerConfig config = super.getList().addIntegerConfig(nameKey, defaultInteger, minValue, maxValue);
         addConfig(config);
         return config;
     }
-    public IntegerConfig addIntegerConfig(String name, int defaultInteger, int minValue, int maxValue, IValueRefreshCallback callback){
-        IntegerConfig config = super.list.addIntegerConfig(name, defaultInteger, minValue, maxValue, callback);
+    public IntegerConfig addIntegerConfig(String nameKey, int defaultInteger, int minValue, int maxValue, IValueRefreshCallback callback){
+        IntegerConfig config = super.getList().addIntegerConfig(nameKey, defaultInteger, minValue, maxValue, callback);
         addConfig(config);
         return config;
     }
-    public DoubleConfig addDoubleConfig(String name, double defaultDouble){
-        DoubleConfig config = super.list.addDoubleConfig(name, defaultDouble);
+    public DoubleConfig addDoubleConfig(String nameKey, double defaultDouble){
+        DoubleConfig config = super.getList().addDoubleConfig(nameKey, defaultDouble);
         addConfig(config);
         return config;
     }
-    public DoubleConfig addDoubleConfig(String name, double defaultDouble, IValueRefreshCallback callback){
-        DoubleConfig config = super.list.addDoubleConfig(name, defaultDouble, callback);
+    public DoubleConfig addDoubleConfig(String nameKey, double defaultDouble, IValueRefreshCallback callback){
+        DoubleConfig config = super.getList().addDoubleConfig(nameKey, defaultDouble, callback);
         addConfig(config);
         return config;
     }
-    public DoubleConfig addDoubleConfig(String name, double defaultDouble, double minValue, double maxValue){
-        DoubleConfig config = super.list.addDoubleConfig(name, defaultDouble, minValue, maxValue);
+    public DoubleConfig addDoubleConfig(String nameKey, double defaultDouble, double minValue, double maxValue){
+        DoubleConfig config = super.getList().addDoubleConfig(nameKey, defaultDouble, minValue, maxValue);
         addConfig(config);
         return config;
     }
-    public DoubleConfig addDoubleConfig(String name, double defaultDouble, double minValue, double maxValue, IValueRefreshCallback callback){
-        DoubleConfig config = super.list.addDoubleConfig(name, defaultDouble, minValue, maxValue, callback);
+    public DoubleConfig addDoubleConfig(String nameKey, double defaultDouble, double minValue, double maxValue, IValueRefreshCallback callback){
+        DoubleConfig config = super.getList().addDoubleConfig(nameKey, defaultDouble, minValue, maxValue, callback);
         addConfig(config);
         return config;
     }
-    public HotkeyConfig addHotkeyConfig(String name, String defaultStorageString, IHotkeyCallback callBack){
-        HotkeyConfig config = super.list.addHotkeyConfig(name, defaultStorageString, callBack);
+    public HotkeyConfig addHotkeyConfig(String nameKey, String defaultStorageString, IHotkeyCallback callBack){
+        HotkeyConfig config = super.getList().addHotkeyConfig(nameKey, defaultStorageString, callBack);
         addConfig(config);
         return config;
     }
-    public BooleanHotkeyConfig addBooleanHotkeyConfig(String name, boolean defaultBoolean, String defaultStorageString){
-        BooleanHotkeyConfig config = super.list.addBooleanHotkeyConfig(name, defaultBoolean, defaultStorageString);
+    public BooleanHotkeyConfig addBooleanHotkeyConfig(String nameKey, boolean defaultBoolean, String defaultStorageString){
+        BooleanHotkeyConfig config = super.getList().addBooleanHotkeyConfig(nameKey, defaultBoolean, defaultStorageString);
         addConfig(config);
         return config;
     }
-    public BooleanHotkeyConfig addBooleanHotkeyConfig(String name, boolean defaultBoolean, String defaultStorageString, IValueRefreshCallback callback){
-        BooleanHotkeyConfig config = super.list.addBooleanHotkeyConfig(name, defaultBoolean, defaultStorageString, callback);
+    public BooleanHotkeyConfig addBooleanHotkeyConfig(String nameKey, boolean defaultBoolean, String defaultStorageString, IValueRefreshCallback callback){
+        BooleanHotkeyConfig config = super.getList().addBooleanHotkeyConfig(nameKey, defaultBoolean, defaultStorageString, callback);
         addConfig(config);
         return config;
     }
-    public StringListConfig addStringListConfig(String name, ImmutableList<String> defaultValue){
-        StringListConfig config = super.list.addStringListConfig(name, defaultValue);
+    public StringListConfig addStringListConfig(String nameKey, ImmutableList<String> defaultValue){
+        StringListConfig config = super.getList().addStringListConfig(nameKey, defaultValue);
         addConfig(config);
         return config;
     }
-    public StringListConfig addStringListConfig(String name, ImmutableList<String> defaultValue, IValueRefreshCallback callback){
-        StringListConfig config = super.list.addStringListConfig(name, defaultValue, callback);
+    public StringListConfig addStringListConfig(String nameKey, ImmutableList<String> defaultValue, IValueRefreshCallback callback){
+        StringListConfig config = super.getList().addStringListConfig(nameKey, defaultValue, callback);
         addConfig(config);
         return config;
     }
     public ConfigOpenGuiConfig addConfigOpenGuiConfig(String defaultStorageString){
-        ConfigOpenGuiConfig config = super.list.addConfigOpenGuiConfig(defaultStorageString);
+        ConfigOpenGuiConfig config = super.getList().addConfigOpenGuiConfig(defaultStorageString);
         addConfig(config);
         return config;
     }
-    public ThirdListConfig addThirdListConfig(String name, boolean defaultBoolean){
-        ThirdListConfig config = super.list.addThirdListConfig(name, defaultBoolean, this);
+    public ThirdListConfig addThirdListConfig(String nameKey, boolean defaultBoolean){
+        ThirdListConfig config = super.getList().addThirdListConfig(nameKey, defaultBoolean, this);
         addConfig(config);
         return config;
     }
-    public <T> OptionListConfig<T> addOptionListConfig(String name){
-        OptionListConfig<T> config = super.list.addOptionListConfig(name);
+    public <T> OptionListConfig<T> addOptionListConfig(String nameKey){
+        OptionListConfig<T> config = super.getList().addOptionListConfig(nameKey);
         addConfig(config);
         return config;
     }
-    public <T> OptionListConfig<T> addOptionListConfig(String name, IValueRefreshCallback callback){
-        OptionListConfig<T> config = super.list.addOptionListConfig(name, callback);
+    public <T> OptionListConfig<T> addOptionListConfig(String nameKey, IValueRefreshCallback callback){
+        OptionListConfig<T> config = super.getList().addOptionListConfig(nameKey, callback);
+        addConfig(config);
+        return config;
+    }
+    public <T extends IntSupplier & IntConsumer> IntegerListConfig<T> addIntegerListConfig(String nameKey){
+        IntegerListConfig<T> config = super.getList().addIntegerListConfig(nameKey);
+        addConfig(config);
+        return config;
+    }
+    public <T extends IntSupplier & IntConsumer> IntegerListConfig<T> addIntegerListConfig(String nameKey, IValueRefreshCallback callback){
+        IntegerListConfig<T> config = super.getList().addIntegerListConfig(nameKey, callback);
         addConfig(config);
         return config;
     }
 
     private boolean lastValue;
     private void refreshSingle(ILPCConfig config){
-        boolean parentEnable = enabled && getAsBoolean();
+        boolean parentEnable = isEnabled() && getAsBoolean();
         if(config instanceof ThirdListConfig thCon)
             thCon.refreshEnable();
         else config.setEnabled(parentEnable);
     }
     private boolean refreshEnable(){
-        if(parent != null) enabled = parent.enabled && parent.getAsBoolean();
-        boolean currentValue = enabled && getAsBoolean();
+        if(parent != null) setEnabled(parent.isEnabled() && parent.getAsBoolean());
+        boolean currentValue = isEnabled() && getAsBoolean();
         if(currentValue != lastValue){
             for(ILPCConfig config : thirdList)
                 refreshSingle(config);
@@ -137,12 +149,12 @@ public class ThirdListConfig extends BooleanConfig{
     }
     private void addConfig(ILPCConfig config){
         thirdList.add(config);
-        config.setEnabled(enabled && getAsBoolean());
+        config.setEnabled(isEnabled() && getAsBoolean());
     }
     private record ThirdListCallback(ThirdListConfig parent) implements IValueRefreshCallback {
         @Override public void valueRefreshCallback() {
             if (parent.refreshEnable() && GuiUtils.isInTextOrGui())
-                parent.list.getPage().showPage();
+                parent.getList().getPage().showPage();
         }
     }
 }

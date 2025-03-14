@@ -10,25 +10,25 @@ import java.util.function.IntSupplier;
 public class IntegerConfig extends LPCConfig<ConfigInteger> implements IntSupplier, IntConsumer {
     public final int defaultInteger;
     public final int minValue, maxValue;
-    public IntegerConfig(LPCConfigList list, String name, int defaultInteger){
-        this(list, name, defaultInteger, Integer.MIN_VALUE, Integer.MAX_VALUE, null);
+    public IntegerConfig(LPCConfigList list, String nameKey, int defaultInteger){
+        this(list, nameKey, defaultInteger, Integer.MIN_VALUE, Integer.MAX_VALUE, null);
     }
-    public IntegerConfig(LPCConfigList list, String name, int defaultInteger, IValueRefreshCallback callback){
-        this(list, name, defaultInteger, Integer.MIN_VALUE, Integer.MAX_VALUE, callback);
+    public IntegerConfig(LPCConfigList list, String nameKey, int defaultInteger, IValueRefreshCallback callback){
+        this(list, nameKey, defaultInteger, Integer.MIN_VALUE, Integer.MAX_VALUE, callback);
     }
-    public IntegerConfig(LPCConfigList list, String name, int defaultInteger, int minValue, int maxValue){
-        this(list, name, defaultInteger, minValue, maxValue, null);
+    public IntegerConfig(LPCConfigList list, String nameKey, int defaultInteger, int minValue, int maxValue){
+        this(list, nameKey, defaultInteger, minValue, maxValue, null);
     }
-    public IntegerConfig(LPCConfigList list, String name, int defaultInteger, int minValue, int maxValue, IValueRefreshCallback callback){
-        super(list, name, false);
+    public IntegerConfig(LPCConfigList list, String nameKey, int defaultInteger, int minValue, int maxValue, IValueRefreshCallback callback){
+        super(list, nameKey, false);
         this.defaultInteger = defaultInteger;
         this.minValue = minValue;
         this.maxValue = maxValue;
         setCallback(callback);
     }
     @Override @NotNull protected ConfigInteger createInstance(){
-        ConfigInteger config = new ConfigInteger(nameKey, defaultInteger, minValue, maxValue);
-        config.apply(list.getFullTranslationKey());
+        ConfigInteger config = new ConfigInteger(getTranslationKey(), defaultInteger, minValue, maxValue);
+        config.apply(getList().getFullTranslationKey());
         config.setValueChangeCallback(new LPCConfigCallback<>(this));
         return config;
     }

@@ -18,7 +18,8 @@ public class LiquidCleaner {
         limitInteractSpeedConfig = LCConfig.addThirdListConfig("LC_limitInteractSpeed", false);
         maxBlockPerTickConfig = limitInteractSpeedConfig.addDoubleConfig("LC_maxBlockPerTick", 1.0, 0, 64);
         reachDistanceConfig = LCConfig.addDoubleConfig("LC_reachDistance", 4.5, 0, 5);
-        disableOnGUIOpened = LCConfig.addBooleanConfig("FA_disableOnGUIOpened", false);
+        disableOnGUIOpened = LCConfig.addBooleanConfig("LC_disableOnGUIOpened", false);
+        offhandFillingConfig = LCConfig.addBooleanConfig("LC_OffhandFilling", false);
         limitCleaningRange = LCConfig.addThirdListConfig("LC_LimitCleaningRange", false);
         minXConfig = limitCleaningRange.addIntegerConfig("LC_minX", Integer.MIN_VALUE);
         maxXConfig = limitCleaningRange.addIntegerConfig("LC_maxX", Integer.MAX_VALUE);
@@ -26,7 +27,7 @@ public class LiquidCleaner {
         maxYConfig = limitCleaningRange.addIntegerConfig("LC_maxY", Integer.MAX_VALUE);
         minZConfig = limitCleaningRange.addIntegerConfig("LC_minZ", Integer.MIN_VALUE);
         maxZConfig = limitCleaningRange.addIntegerConfig("LC_maxZ", Integer.MAX_VALUE);
-        valueChangeConfig = limitCleaningRange.addOptionListConfig("LC_ValueChange");
+        valueChangeConfig = limitCleaningRange.addIntegerListConfig("LC_ValueChange");
         valueChangeConfig.addOption("minX", minXConfig);
         valueChangeConfig.addOption("maxX", maxXConfig);
         valueChangeConfig.addOption("minY", minYConfig);
@@ -34,9 +35,9 @@ public class LiquidCleaner {
         valueChangeConfig.addOption("minZ", minZConfig);
         valueChangeConfig.addOption("maxZ", maxZConfig);
         valueAddHotkeyConfig = limitCleaningRange.addHotkeyConfig("LC_AddValueKey", "",
-                new HotkeyConfig.IntegerChanger(1, valueChangeConfig, limitCleaningRange));
+                new HotkeyConfig.IntegerChanger<>(1, valueChangeConfig, limitCleaningRange));
         valueSubtractHotkeyConfig = limitCleaningRange.addHotkeyConfig("LC_SubtractValueKey", "",
-                new HotkeyConfig.IntegerChanger(-1, valueChangeConfig, limitCleaningRange));
+                new HotkeyConfig.IntegerChanger<>(-1, valueChangeConfig, limitCleaningRange));
     }
     public static boolean isEnabled(){return onEndTick != null;}
     public static void enableTool(){
@@ -59,6 +60,7 @@ public class LiquidCleaner {
     static DoubleConfig maxBlockPerTickConfig;
     static DoubleConfig reachDistanceConfig;
     static BooleanConfig disableOnGUIOpened;
+    static BooleanConfig offhandFillingConfig;
     static ThirdListConfig limitCleaningRange;
     static IntegerConfig minXConfig;
     static IntegerConfig maxXConfig;
@@ -66,7 +68,7 @@ public class LiquidCleaner {
     static IntegerConfig maxYConfig;
     static IntegerConfig minZConfig;
     static IntegerConfig maxZConfig;
-    static OptionListConfig<IntegerConfig> valueChangeConfig;
+    static IntegerListConfig<IntegerConfig> valueChangeConfig;
     static HotkeyConfig valueAddHotkeyConfig;
     static HotkeyConfig valueSubtractHotkeyConfig;
     @Nullable static OnEndTick onEndTick;
