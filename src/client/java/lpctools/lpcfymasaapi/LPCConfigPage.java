@@ -7,10 +7,8 @@ import fi.dy.masa.malilib.config.ConfigManager;
 import fi.dy.masa.malilib.config.IConfigHandler;
 import fi.dy.masa.malilib.event.InputEventHandler;
 import fi.dy.masa.malilib.gui.GuiBase;
-import fi.dy.masa.malilib.registry.Registry;
 import fi.dy.masa.malilib.util.FileUtils;
 import fi.dy.masa.malilib.util.JsonUtils;
-import fi.dy.masa.malilib.util.data.ModInfo;
 import fi.dy.masa.malilib.gui.GuiConfigsBase;
 import fi.dy.masa.malilib.gui.button.IButtonActionListener;
 import fi.dy.masa.malilib.gui.button.ButtonBase;
@@ -18,8 +16,7 @@ import fi.dy.masa.malilib.gui.button.ButtonGeneric;
 import lpctools.lpcfymasaapi.configbutton.ILPCConfig;
 import org.jetbrains.annotations.NotNull;
 
-import java.nio.file.Files;
-import java.nio.file.Path;
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -58,9 +55,9 @@ public class LPCConfigPage implements IConfigHandler, Supplier<GuiBase>{
     //保存和加载已有的全部配置文件内容
     //如果文件中有目前未注册的配置项，不理它但是保留
     @Override public void load() {
-        Path configFile = FileUtils.getConfigDirectoryAsPath().resolve(configFileName);
-        if (Files.exists(configFile) && Files.isReadable(configFile)) {
-            JsonElement element = JsonUtils.parseJsonFileAsPath(configFile);
+        File configFile = new File(FileUtils.getConfigDirectory(), configFileName);
+        if (configFile.exists() && configFile.isFile() && configFile.canRead()) {
+            JsonElement element = JsonUtils.parseJsonFile(configFile);
             if (element != null && element.isJsonObject()){
                 JsonObject pageJson = element.getAsJsonObject();
                 for(LPCConfigList list : lists)
@@ -68,19 +65,17 @@ public class LPCConfigPage implements IConfigHandler, Supplier<GuiBase>{
             }
             else LPCAPIInit.LOGGER.error(
                     "load(): Failed to parse config file '{}' as a JSON element.",
-                    configFile.toAbsolutePath());
+                    configFile.getPath());
         }
     }
     @Override public void save() {
         JsonObject pageJson = new JsonObject();
-        Path dir = FileUtils.getConfigDirectoryAsPath();
-        if (!Files.exists(dir))
-            FileUtils.createDirectoriesIfMissing(dir);
-        if (Files.isDirectory(dir)) {
+        File dir = FileUtils.getConfigDirectory();
+        if ((dir.exists() && dir.isDirectory()) || dir.mkdirs()) {
             for(LPCConfigList list : lists)
                 list.addIntoConfigPageJson(pageJson);
-            Path file = dir.resolve(configFileName);
-            JsonUtils.writeJsonToFileAsPath(pageJson, file);
+            File file = new File(dir, configFileName);
+            JsonUtils.writeJsonToFile(pageJson, file);
         }
     }
 
@@ -104,7 +99,7 @@ public class LPCConfigPage implements IConfigHandler, Supplier<GuiBase>{
     private ConfigPageInstance pageInstance;
     private void afterInit(){
         ConfigManager.getInstance().registerConfigHandler(modReference.modId, this);
-        Registry.CONFIG_SCREEN.registerConfigScreenFactory(new ModInfo(modReference.modId, modReference.modName, this));
+        //Registry.CONFIG_SCREEN.registerConfigScreenFactory(new ModInfo(modReference.modId, modReference.modName, this));
         if(inputHandler == null) inputHandler = new InputHandler(modReference);
         //load();
     }

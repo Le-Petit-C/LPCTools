@@ -25,8 +25,7 @@ public class BooleanConfig extends LPCConfig<ConfigBoolean> implements BooleanSu
     }
 
     @Override @NotNull protected ConfigBoolean createInstance(){
-        ConfigBoolean config = new ConfigBoolean(getTranslationKey(), defaultBoolean);
-        config.apply(getList().getFullTranslationKey());
+        ConfigBoolean config = new ConfigBoolean(getTranslationKey(), defaultBoolean, getCommentKey());
         config.setValueChangeCallback(new LPCConfigCallback<>(this));
         return config;
     }

@@ -32,8 +32,7 @@ public class BooleanHotkeyConfig extends LPCConfig<ConfigBooleanHotkeyed> implem
     }
 
     @Override @NotNull protected ConfigBooleanHotkeyed createInstance() {
-        ConfigBooleanHotkeyed config = new ConfigBooleanHotkeyed(getTranslationKey(), defaultBoolean, defaultStorageString);
-        config.apply(getList().getFullTranslationKey());
+        ConfigBooleanHotkeyed config = new ConfigBooleanHotkeyed(getTranslationKey(), defaultBoolean, defaultStorageString, getCommentKey());
         config.setValueChangeCallback(new LPCConfigCallback<>(this));
         return config;
     }
