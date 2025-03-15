@@ -21,7 +21,7 @@ public abstract class LPCConfig<T extends IConfigBase> implements ILPCConfig{
     @Override public boolean isEnabled(){return enabled;}
     @Override public void setCallback(IValueRefreshCallback callBack){refreshCallback = callBack;}
     @Override public IValueRefreshCallback getCallback(){return refreshCallback;}
-    @Override @NotNull public String getTranslationKey(){return nameKey;}
+    @Override @NotNull public String getNameKey(){return nameKey;}
     @Override @NotNull public IConfigBase IGetConfig(){return getConfig();}
     @Override public void callRefresh(){if(refreshCallback != null) refreshCallback.valueRefreshCallback();}
     @Override public String toString(){return getName();}

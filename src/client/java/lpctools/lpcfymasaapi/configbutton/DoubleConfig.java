@@ -27,7 +27,7 @@ public class DoubleConfig extends LPCConfig<ConfigDouble> implements DoubleSuppl
         setCallback(callback);
     }
     @Override @NotNull protected ConfigDouble createInstance(){
-        ConfigDouble config = new ConfigDouble(getTranslationKey(), defaultDouble, minValue, maxValue);
+        ConfigDouble config = new ConfigDouble(getNameKey(), defaultDouble, minValue, maxValue);
         config.apply(getList().getFullTranslationKey());
         config.setValueChangeCallback(new LPCConfigCallback<>(this));
         return config;

@@ -29,12 +29,13 @@ public class HotkeyConfig extends LPCConfig<ConfigHotkey> implements ILPCHotkey{
     @Override public IHotkey LPCGetHotkey() {return getConfig();}
 
     @Override @NotNull protected ConfigHotkey createInstance(){
-        ConfigHotkey config = new ConfigHotkey(getTranslationKey(), defaultStorageString);
+        ConfigHotkey config = new ConfigHotkey(getNameKey(), defaultStorageString);
         config.apply(getList().getFullTranslationKey());
         config.getKeybind().setCallback(hotkeyCallback);
         return config;
     }
 
+    @SuppressWarnings("unused")
     public static class IntegerChanger<T extends IntSupplier & IntConsumer & IButtonDisplay> implements IHotkeyCallback{
         public IntegerChanger(int changeValue, @NotNull T valueToChange){
             this(changeValue, valueToChange, null);
