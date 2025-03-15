@@ -45,7 +45,9 @@ public class FillingAssistant {
     public static @NotNull HashSet<Item> getPlaceableItems(){return placeableItems;}
     public static @NotNull HashSet<Block> getPassableBlocks(){return passableBlocks;}
     public static boolean isBlockUnpassable(Block block){
-        if(transparentAsPassableConfig.getAsBoolean() && block.getDefaultState().isTransparent()) return false;
+        ClientWorld world = MinecraftClient.getInstance().world;
+        if(world == null) return false;
+        if(transparentAsPassableConfig.getAsBoolean() && block.getDefaultState().isTransparent(world, BlockPos.ORIGIN)) return false;
         if(notOpaqueAsPassableConfig.getAsBoolean() && !block.getDefaultState().isOpaque()) return false;
         return !getPassableBlocks().contains(block);
     }

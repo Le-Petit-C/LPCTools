@@ -25,8 +25,7 @@ public class OptionListConfig<T> extends LPCConfig<ConfigOptionList> implements 
     @Override @NotNull public String getDisplayName(){return getCurrentOptionData().getDisplayName();}
 
     @Override protected @NotNull ConfigOptionList createInstance() {
-        ConfigOptionList config = new ConfigOptionList(getTranslationKey(), options.isEmpty() ? null : options.getFirst());
-        config.apply(getList().getFullTranslationKey());
+        ConfigOptionList config = new ConfigOptionList(getFullTranslationKey(), options.isEmpty() ? null : options.getFirst(), getCommentKey());
         config.setValueChangeCallback(new LPCConfigCallback<>(this));
         return config;
     }

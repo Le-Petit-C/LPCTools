@@ -15,7 +15,7 @@ public interface ILPCConfig {
     //获取当前配置所属的配置列
     @NotNull LPCConfigList getList();
     //获取当前配置本地化键名后缀
-    @NotNull String getTranslationKey();
+    @NotNull String getNameKey();
     //当前配置是否有关热键，决定是否启用热键查找
     boolean hasHotkey();
     //设置当前配置是否显示在列表中
@@ -33,7 +33,7 @@ public interface ILPCConfig {
 
     //获取当前配置完整本地化键名
     @NotNull default String getFullTranslationKey(){
-        return getList().getFullTranslationKey() + ".name." + getTranslationKey();
+        return getList().getFullTranslationKey() + ".name." + getNameKey();
     }
     //获取当前配置的本地化键值
     @NotNull default String getName(){
@@ -45,11 +45,11 @@ public interface ILPCConfig {
     }
     //转化为JSON加入到配置列表JSON中
     default void addIntoConfigListJson(@NotNull JsonObject configListJson){
-        configListJson.add(getTranslationKey(), getAsJsonElement());
+        configListJson.add(getNameKey(), getAsJsonElement());
     }
     //从配置列表JSON中加载配置
     default void loadFromConfigListJson(@NotNull JsonObject configListJson){
-        String key = getTranslationKey();
+        String key = getNameKey();
         if (!configListJson.has(key)) return;
         IGetConfig().setValueFromJsonElement(configListJson.get(key));
         callRefresh();
