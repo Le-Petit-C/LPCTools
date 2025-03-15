@@ -97,6 +97,7 @@ public class FillingAssistant {
         transparentAsPassableConfig = FAConfig.addBooleanConfig("FA_transparentAsPassable", true);
         notOpaqueAsPassableConfig = FAConfig.addBooleanConfig("FA_notOpaqueAsPassable", true);
         requiredBlocksConfig = FAConfig.addStringListConfig("FA_requiredBlocks", defaultRequiredBlockIdList, new RequiredBlocksRefreshCallback());
+        offhandFillingConfig = FAConfig.addBooleanConfig("FA_OffhandFilling", false);
         limitFillingRange = FAConfig.addThirdListConfig("FA_LimitFillingRange", false);
         outerRangeBlockMethod = limitFillingRange.addOptionListConfig("FA_OuterRangeBlockMethod");
         outerRangeBlockMethod.addOption(outerRangeBlockMethods.AS_UNPASSABLE.getKey(), outerRangeBlockMethods.AS_UNPASSABLE);
@@ -108,7 +109,7 @@ public class FillingAssistant {
         maxYConfig = limitFillingRange.addIntegerConfig("FA_maxY", Integer.MAX_VALUE);
         minZConfig = limitFillingRange.addIntegerConfig("FA_minZ", Integer.MIN_VALUE);
         maxZConfig = limitFillingRange.addIntegerConfig("FA_maxZ", Integer.MAX_VALUE);
-        valueChangeConfig = limitFillingRange.addOptionListConfig("FA_ValueChange");
+        valueChangeConfig = limitFillingRange.addIntegerListConfig("FA_ValueChange");
         valueChangeConfig.addOption("minX", minXConfig);
         valueChangeConfig.addOption("maxX", maxXConfig);
         valueChangeConfig.addOption("minY", minYConfig);
@@ -116,9 +117,9 @@ public class FillingAssistant {
         valueChangeConfig.addOption("minZ", minZConfig);
         valueChangeConfig.addOption("maxZ", maxZConfig);
         valueAddHotkeyConfig = limitFillingRange.addHotkeyConfig("FA_AddValueKey", "",
-                new HotkeyConfig.IntegerChanger(1, valueChangeConfig, limitFillingRange));
+                new HotkeyConfig.IntegerChanger<>(1, valueChangeConfig, limitFillingRange));
         valueSubtractHotkeyConfig = limitFillingRange.addHotkeyConfig("FA_SubtractValueKey", "",
-                new HotkeyConfig.IntegerChanger(-1, valueChangeConfig, limitFillingRange));
+                new HotkeyConfig.IntegerChanger<>(-1, valueChangeConfig, limitFillingRange));
     }
 
     enum outerRangeBlockMethods{
@@ -158,6 +159,7 @@ public class FillingAssistant {
     static BooleanConfig transparentAsPassableConfig;
     static BooleanConfig notOpaqueAsPassableConfig;
     static StringListConfig requiredBlocksConfig;
+    static BooleanConfig offhandFillingConfig;
     static ThirdListConfig limitFillingRange;
     static OptionListConfig<outerRangeBlockMethods> outerRangeBlockMethod;
     static IntegerConfig minXConfig;
@@ -166,7 +168,7 @@ public class FillingAssistant {
     static IntegerConfig maxYConfig;
     static IntegerConfig minZConfig;
     static IntegerConfig maxZConfig;
-    static OptionListConfig<IntegerConfig> valueChangeConfig;
+    static IntegerListConfig<IntegerConfig> valueChangeConfig;
     static HotkeyConfig valueAddHotkeyConfig;
     static HotkeyConfig valueSubtractHotkeyConfig;
     @NotNull private static HashSet<Item> itemSetFromIdList(@Nullable List<String> list){

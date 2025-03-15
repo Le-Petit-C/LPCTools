@@ -58,27 +58,29 @@ public class LPCConfigPage implements IConfigHandler, Supplier<GuiBase>{
     //保存和加载已有的全部配置文件内容
     //如果文件中有目前未注册的配置项，不理它但是保留
     @Override public void load() {
-        JsonObject object = null;
         Path configFile = FileUtils.getConfigDirectoryAsPath().resolve(configFileName);
         if (Files.exists(configFile) && Files.isReadable(configFile)) {
             JsonElement element = JsonUtils.parseJsonFileAsPath(configFile);
-            if (element != null && element.isJsonObject())
-                object = element.getAsJsonObject();
+            if (element != null && element.isJsonObject()){
+                JsonObject pageJson = element.getAsJsonObject();
+                for(LPCConfigList list : lists)
+                    list.loadFromConfigPageJson(pageJson);
+            }
             else LPCAPIInit.LOGGER.error(
                     "load(): Failed to parse config file '{}' as a JSON element.",
                     configFile.toAbsolutePath());
         }
-        resetConfigPageJson(object);
     }
     @Override public void save() {
-        for(LPCConfigList list : lists)
-            list.rebuildConfigJson();
+        JsonObject pageJson = new JsonObject();
         Path dir = FileUtils.getConfigDirectoryAsPath();
         if (!Files.exists(dir))
             FileUtils.createDirectoriesIfMissing(dir);
         if (Files.isDirectory(dir)) {
+            for(LPCConfigList list : lists)
+                list.addIntoConfigPageJson(pageJson);
             Path file = dir.resolve(configFileName);
-            JsonUtils.writeJsonToFileAsPath(configPageJson, file);
+            JsonUtils.writeJsonToFileAsPath(pageJson, file);
         }
     }
 
@@ -99,21 +101,12 @@ public class LPCConfigPage implements IConfigHandler, Supplier<GuiBase>{
     private final String configFileName;
     private ArrayList<LPCConfigList> lists = null;
     private int selectedIndex = 0;
-    private JsonObject configPageJson;
     private ConfigPageInstance pageInstance;
     private void afterInit(){
         ConfigManager.getInstance().registerConfigHandler(modReference.modId, this);
         Registry.CONFIG_SCREEN.registerConfigScreenFactory(new ModInfo(modReference.modId, modReference.modName, this));
         if(inputHandler == null) inputHandler = new InputHandler(modReference);
         //load();
-    }
-    //使用此JsonObject替换现有JsonObject
-    private void resetConfigPageJson(JsonObject configPageJson){
-        this.configPageJson = configPageJson;
-        if(this.configPageJson == null)
-            this.configPageJson = new JsonObject();
-        for(LPCConfigList list : lists)
-            list.resetListJson(this.configPageJson);
     }
 
     private static class ConfigPageInstance extends GuiConfigsBase{

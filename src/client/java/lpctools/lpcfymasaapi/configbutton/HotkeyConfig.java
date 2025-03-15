@@ -14,12 +14,14 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.function.BooleanSupplier;
+import java.util.function.IntConsumer;
+import java.util.function.IntSupplier;
 
 public class HotkeyConfig extends LPCConfig<ConfigHotkey> implements ILPCHotkey{
     @Nullable public final String defaultStorageString;
     @NotNull public final IHotkeyCallback hotkeyCallback;
-    public HotkeyConfig(@NotNull LPCConfigList list, @NotNull String name, @Nullable String defaultStorageString, @NotNull IHotkeyCallback hotkeyCallback){
-        super(list, name, true);
+    public HotkeyConfig(@NotNull LPCConfigList list, @NotNull String nameKey, @Nullable String defaultStorageString, @NotNull IHotkeyCallback hotkeyCallback){
+        super(list, nameKey, true);
         this.defaultStorageString = defaultStorageString;
         this.hotkeyCallback = hotkeyCallback;
         list.getPage().getInputHandler().addHotkey(this);
@@ -27,33 +29,32 @@ public class HotkeyConfig extends LPCConfig<ConfigHotkey> implements ILPCHotkey{
     @Override public IHotkey LPCGetHotkey() {return getConfig();}
 
     @Override @NotNull protected ConfigHotkey createInstance(){
-        ConfigHotkey config = new ConfigHotkey(nameKey, defaultStorageString);
-        config.apply(list.getFullTranslationKey());
+        ConfigHotkey config = new ConfigHotkey(getTranslationKey(), defaultStorageString);
+        config.apply(getList().getFullTranslationKey());
         config.getKeybind().setCallback(hotkeyCallback);
         return config;
     }
 
-    public static class IntegerChanger implements IHotkeyCallback{
-        public IntegerChanger(int changeValue, @NotNull OptionListConfig<IntegerConfig> valueToChange){
+    public static class IntegerChanger<T extends IntSupplier & IntConsumer & IButtonDisplay> implements IHotkeyCallback{
+        public IntegerChanger(int changeValue, @NotNull T valueToChange){
             this(changeValue, valueToChange, null);
         }
-        public IntegerChanger(int changeValue, @NotNull OptionListConfig<IntegerConfig> valueToChange, @Nullable BooleanSupplier enabled){
+        public IntegerChanger(int changeValue, @NotNull T valueToChange, @Nullable BooleanSupplier enabled){
             this.changeValue = changeValue;
             this.valueToChange = valueToChange;
             this.enabled = enabled;
         }
         @Override public boolean onKeyAction(KeyAction action, IKeybind key){
             if(enabled != null && !enabled.getAsBoolean()) return false;
-            IntegerConfig config = valueToChange.getCurrentUserdata();
-            config.accept(config.getAsInt() + changeValue);
+            valueToChange.accept(valueToChange.getAsInt() + changeValue);
             ClientPlayerEntity player = MinecraftClient.getInstance().player;
             if(player != null) player.sendMessage(Text.of(
-                    StringUtils.translate("lpcfymalilib.hotkeyValueDisplay", config.getName().trim()) + " " + config.getAsInt()
+                    StringUtils.translate("lpcfymalilib.hotkeyValueDisplay", valueToChange.getDisplayName().trim()) + " " + valueToChange.getAsInt()
                     ), true);
             return true;
         }
         private final int changeValue;
-        @NotNull private final OptionListConfig<IntegerConfig> valueToChange;
+        @NotNull private final T valueToChange;
         @Nullable private final BooleanSupplier enabled;
     }
 }

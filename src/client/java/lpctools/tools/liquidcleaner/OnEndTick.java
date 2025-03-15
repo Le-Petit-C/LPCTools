@@ -92,7 +92,7 @@ public class OnEndTick implements ClientTickEvents.EndTick {
                 }
             }
         }
-        if (HandRestock.search(IsPlaceableItem.instance, 0) == -1) return;
+        if (HandRestock.search(IsPlaceableItem.instance, offhandFillingConfig.getAsBoolean() ? -1 : 0) == -1) return;
         for (int y = maxY; y >= minY; --y) {
             for (int x = minX; x <= maxX; ++x) {
                 for (int z = minZ; z <= maxZ; ++z) {
@@ -101,9 +101,9 @@ public class OnEndTick implements ClientTickEvents.EndTick {
                     if (midPos.subtract(player.getEyePos()).length() >= d) continue;
                     BlockState state = world.getBlockState(pos);
                     if (isReplaceableLiquid(state)) {
-                        if (!HandRestock.restock(IsPlaceableItem.instance, 0)) return;
+                        if (!HandRestock.restock(IsPlaceableItem.instance, offhandFillingConfig.getAsBoolean() ? -1 : 0)) return;
                         BlockHitResult hitResult = new BlockHitResult(midPos, Direction.UP, pos, false);
-                        manager.interactBlock(player, Hand.MAIN_HAND, hitResult);
+                        manager.interactBlock(player, offhandFillingConfig.getAsBoolean() ? Hand.OFF_HAND : Hand.MAIN_HAND, hitResult);
                         if(--canInteractBlockCount < 1) return;
                     }
                 }
