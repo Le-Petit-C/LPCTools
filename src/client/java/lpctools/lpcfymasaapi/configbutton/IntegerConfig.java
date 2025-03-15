@@ -27,8 +27,7 @@ public class IntegerConfig extends LPCConfig<ConfigInteger> implements IntSuppli
         setCallback(callback);
     }
     @Override @NotNull protected ConfigInteger createInstance(){
-        ConfigInteger config = new ConfigInteger(getNameKey(), defaultInteger, minValue, maxValue);
-        config.apply(getList().getFullTranslationKey());
+        ConfigInteger config = new ConfigInteger(getFullNameTranslationKey(), defaultInteger, minValue, maxValue, getFullCommentTranslationKey());
         config.setValueChangeCallback(new LPCConfigCallback<>(this));
         return config;
     }

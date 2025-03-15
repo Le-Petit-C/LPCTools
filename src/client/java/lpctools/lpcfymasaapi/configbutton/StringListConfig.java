@@ -19,8 +19,7 @@ public class StringListConfig extends LPCConfig<ConfigStringList>{
     @NotNull public List<String> getStrings(){return getInstance() != null ? getInstance().getStrings() : defaultValue;}
 
     @Override protected @NotNull ConfigStringList createInstance() {
-        ConfigStringList config = new ConfigStringList(getNameKey(), defaultValue);
-        config.apply(getList().getFullTranslationKey());
+        ConfigStringList config = new ConfigStringList(getFullNameTranslationKey(), defaultValue, getFullCommentTranslationKey());
         config.setValueChangeCallback(new LPCConfigCallback<>(this));
         return config;
     }

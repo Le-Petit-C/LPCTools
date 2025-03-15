@@ -29,8 +29,7 @@ public class HotkeyConfig extends LPCConfig<ConfigHotkey> implements ILPCHotkey{
     @Override public IHotkey LPCGetHotkey() {return getConfig();}
 
     @Override @NotNull protected ConfigHotkey createInstance(){
-        ConfigHotkey config = new ConfigHotkey(getNameKey(), defaultStorageString);
-        config.apply(getList().getFullTranslationKey());
+        ConfigHotkey config = new ConfigHotkey(getFullNameTranslationKey(), defaultStorageString, getFullCommentTranslationKey());
         config.getKeybind().setCallback(hotkeyCallback);
         return config;
     }
