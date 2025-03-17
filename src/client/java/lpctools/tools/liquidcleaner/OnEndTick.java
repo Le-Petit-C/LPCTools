@@ -2,6 +2,7 @@ package lpctools.tools.liquidcleaner;
 
 import lpctools.util.GuiUtils;
 import lpctools.util.HandRestock;
+import lpctools.util.LPCMathUtils;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.minecraft.block.*;
 import net.minecraft.client.MinecraftClient;
@@ -83,7 +84,7 @@ public class OnEndTick implements ClientTickEvents.EndTick {
             for (int x = minX; x <= maxX; ++x) {
                 for (int z = minZ; z <= maxZ; ++z) {
                     BlockPos pos = new BlockPos(x, y, z);
-                    Vec3d midPos = pos.toCenterPos();
+                    Vec3d midPos = LPCMathUtils.getBlockCenterPos(pos);
                     if (midPos.subtract(player.getEyePos()).length() >= d) continue;
                     if (shouldAttackBlock(world, pos)){
                         manager.attackBlock(pos, Direction.UP);
@@ -97,7 +98,7 @@ public class OnEndTick implements ClientTickEvents.EndTick {
             for (int x = minX; x <= maxX; ++x) {
                 for (int z = minZ; z <= maxZ; ++z) {
                     BlockPos pos = new BlockPos(x, y, z);
-                    Vec3d midPos = pos.toCenterPos();
+                    Vec3d midPos = LPCMathUtils.getBlockCenterPos(pos);
                     if (midPos.subtract(player.getEyePos()).length() >= d) continue;
                     BlockState state = world.getBlockState(pos);
                     if (isReplaceableLiquid(state)) {

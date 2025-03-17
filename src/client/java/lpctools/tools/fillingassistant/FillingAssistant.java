@@ -12,7 +12,6 @@ import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.item.Item;
-import net.minecraft.registry.Registries;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
@@ -177,14 +176,14 @@ public class FillingAssistant {
         HashSet<Item> ret = new HashSet<>();
         if(list == null) return ret;
         for(String s : list)
-            ret.add(Registries.ITEM.get(Identifier.tryParse(s)));
+            ret.add(net.minecraft.util.registry.Registry.ITEM.get(Identifier.tryParse(s)));
         return ret;
     }
     @NotNull private static HashSet<Block> blockSetFromIdList(@Nullable List<String> list){
         HashSet<Block> ret = new HashSet<>();
         if(list == null) return ret;
         for(String s : list)
-            ret.add(Registries.BLOCK.get(Identifier.tryParse(s)));
+            ret.add(net.minecraft.util.registry.Registry.BLOCK.get(Identifier.tryParse(s)));
         return ret;
     }
     @Nullable private static PlaceBlockTick runner = null;

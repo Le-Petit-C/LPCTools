@@ -3,6 +3,7 @@ package lpctools.tools.fillingassistant;
 import lpctools.lpcfymasaapi.Registry;
 import lpctools.util.GuiUtils;
 import lpctools.util.HandRestock;
+import lpctools.util.LPCMathUtils;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ClientPlayerInteractionManager;
@@ -95,7 +96,7 @@ public class PlaceBlockTick implements ClientTickEvents.EndTick, Registry.InGame
                 for (int x = minX; x <= maxX; ++x) {
                     for (int z = minZ; z <= maxZ; ++z) {
                         BlockPos pos = new BlockPos(x, y, z);
-                        Vec3d posD = pos.toCenterPos();
+                        Vec3d posD = LPCMathUtils.getBlockCenterPos(pos);
                         if (posD.distanceTo(eyePos) >= reachDistanceConfig.getAsDouble()) continue;
                         if(tryPut(pos, restockTest)){
                             if(isUnpassable(pos)){

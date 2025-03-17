@@ -8,12 +8,12 @@ import net.minecraft.client.world.ClientWorld;
 import net.minecraft.fluid.Fluid;
 import net.minecraft.item.BlockItem;
 import net.minecraft.item.Item;
-import net.minecraft.registry.Registries;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.registry.Registry;
 
 public class BlockUtils {
     public static boolean isReplaceable(BlockState state){
-        return state.isReplaceable() || state.getBlock().equals(Blocks.SCULK_VEIN);
+        return state.getMaterial().isReplaceable() || state.getBlock().equals(Blocks.SCULK_VEIN);
     }
     public static boolean isReplaceable(BlockPos pos){
         ClientWorld world = MinecraftClient.getInstance().world;
@@ -30,7 +30,7 @@ public class BlockUtils {
         return state.getBlock().getHardness() == 0 || state.getBlock() == Blocks.KELP || state.getBlock() == Blocks.KELP_PLANT;
     }
     public static boolean canBeReplacedByFluid(BlockState state){
-        for(Fluid fluid : Registries.FLUID)
+        for(Fluid fluid : Registry.FLUID)
             if (state.canBucketPlace(fluid))
                 return true;
         return false;

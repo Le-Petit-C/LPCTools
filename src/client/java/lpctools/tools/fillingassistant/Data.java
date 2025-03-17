@@ -5,7 +5,7 @@ import net.minecraft.block.Block;
 import net.minecraft.block.Blocks;
 import net.minecraft.item.Item;
 import net.minecraft.item.Items;
-import net.minecraft.registry.Registries;
+import net.minecraft.util.registry.Registry;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -20,8 +20,8 @@ public class Data {
     @NotNull public static final ImmutableList<Block> defaultRequiredBlockWhiteList = initDefaultRequiredBlockWhiteList();
     @NotNull public static final ImmutableList<String> defaultRequiredBlockIdList = idListFromBlockList(defaultRequiredBlockWhiteList);
 
-    public static String getItemId(Item item){return Registries.ITEM.getId(item).toString();}
-    public static String getBlockId(Block block){return Registries.BLOCK.getId(block).toString();}
+    public static String getItemId(Item item){return Registry.ITEM.getId(item).toString();}
+    public static String getBlockId(Block block){return Registry.BLOCK.getId(block).toString();}
     @NotNull private static ImmutableList<Item> initDefaultPlaceableItemList(){
         return ImmutableList.of(
                 Items.STONE,
