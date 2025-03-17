@@ -47,7 +47,7 @@ public class FillingAssistant {
     public static boolean isBlockUnpassable(Block block){
         ClientWorld world = MinecraftClient.getInstance().world;
         if(world == null) return false;
-        if(transparentAsPassableConfig.getAsBoolean() && block.getDefaultState().isTransparent(world, BlockPos.ORIGIN)) return false;
+        if(transparentAsPassableConfig.getAsBoolean() && block.getDefaultState().hasSidedTransparency()) return false;
         if(notOpaqueAsPassableConfig.getAsBoolean() && !block.getDefaultState().isOpaque()) return false;
         return !getPassableBlocks().contains(block);
     }
