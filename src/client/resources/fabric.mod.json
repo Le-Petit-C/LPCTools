@@ -29,11 +29,12 @@
 	"depends": {
 		"fabricloader": ">=0.16.2",
 		"minecraft": [
-			"1.19.2"
+			"1.19.1",
+			"1.19"
 		],
 		"java": ">=21",
 		"malilib": "*",
-		"fabric-api": "*"
+		"fabric": "*"
 	},
 	"suggests": {
 		"another-mod": "*"
