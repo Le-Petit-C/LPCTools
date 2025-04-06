@@ -1,6 +1,7 @@
 package lpctools.tools.liquidcleaner;
 
 import lpctools.LPCTools;
+import lpctools.compat.minihud.ShapeList;
 import lpctools.util.GuiUtils;
 import lpctools.util.HandRestock;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
@@ -62,8 +63,13 @@ public class OnEndTick implements ClientTickEvents.EndTick {
         }
         else canInteractBlockCount = Double.MAX_VALUE;
         Iterable<BlockPos> iterateRegion = BlockPos.iterate(getIterateBox(client, d));
+        ShapeList list;
+        if(limitCleaningRange.getAsBoolean() && LPCTools.getMiniHUDMethods() != null)
+            list = LPCTools.getMiniHUDMethods().getShapes(rangeNamePrefix.get());
+        else list = null;
         for(BlockPos pos1 : iterateRegion){
             BlockPos pos = new BlockPos(pos1);//固定当前BlockPos
+            if(list != null && !list.testPos(pos)) continue;
             Vec3d midPos = pos.toCenterPos();
             if (midPos.subtract(player.getEyePos()).length() >= d) continue;
             if (shouldAttackBlock(world, pos)){
@@ -76,13 +82,13 @@ public class OnEndTick implements ClientTickEvents.EndTick {
         if (HandRestock.search(this::isStackOk, offhandPriority) == -1) return;
         for(BlockPos pos1 : iterateRegion){
             BlockPos pos = new BlockPos(pos1);//固定当前BlockPos
+            if(list != null && !list.testPos(pos)) continue;
             Vec3d midPos = pos.toCenterPos();
             if (midPos.subtract(player.getEyePos()).length() >= d) continue;
             BlockState state = world.getBlockState(pos);
             if (isReplaceableLiquid(state)) {
                 if (!HandRestock.restock(this::isStackOk, offhandPriority)) return;
                 BlockHitResult hitResult = new BlockHitResult(midPos, Direction.DOWN, pos, false);
-                LPCTools.LOGGER.info("{},{}", pos, midPos);
                 manager.interactBlock(player, hand, hitResult);
                 if (--canInteractBlockCount < 1) return;
             }
@@ -100,14 +106,6 @@ public class OnEndTick implements ClientTickEvents.EndTick {
         double maxY = eyePos.getY() + reachDistance;
         double minZ = eyePos.getZ() - reachDistance;
         double maxZ = eyePos.getZ() + reachDistance;
-        if(limitCleaningRange.getAsBoolean()){
-            if(minX < minXConfig.getAsInt()) minX = minXConfig.getAsInt();
-            if(maxX > maxXConfig.getAsInt()) maxX = maxXConfig.getAsInt();
-            if(minY < minYConfig.getAsInt()) minY = minYConfig.getAsInt();
-            if(maxY > maxYConfig.getAsInt()) maxY = maxYConfig.getAsInt();
-            if(minZ < minZConfig.getAsInt()) minZ = minZConfig.getAsInt();
-            if(maxZ > maxZConfig.getAsInt()) maxZ = maxZConfig.getAsInt();
-        }
         DimensionType dimensionType = client.world.getDimension();
         if(minY < dimensionType.minY()) minY = dimensionType.minY();
         double dimensionTop = dimensionType.minY() + dimensionType.height();

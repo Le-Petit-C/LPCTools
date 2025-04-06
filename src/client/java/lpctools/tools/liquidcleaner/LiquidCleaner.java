@@ -30,23 +30,7 @@ public class LiquidCleaner {
         offhandFillingConfig = LCConfig.addBooleanConfig("LC_OffhandFilling", false);
         blockBlackListConfig = LCConfig.addStringListConfig("LC_BlockBlackList", ImmutableList.of(), LiquidCleaner::onBlacklistRefresh);
         limitCleaningRange = LCConfig.addThirdListConfig("LC_LimitCleaningRange", false);
-        minXConfig = limitCleaningRange.addIntegerConfig("LC_minX", Integer.MIN_VALUE);
-        maxXConfig = limitCleaningRange.addIntegerConfig("LC_maxX", Integer.MAX_VALUE);
-        minYConfig = limitCleaningRange.addIntegerConfig("LC_minY", Integer.MIN_VALUE);
-        maxYConfig = limitCleaningRange.addIntegerConfig("LC_maxY", Integer.MAX_VALUE);
-        minZConfig = limitCleaningRange.addIntegerConfig("LC_minZ", Integer.MIN_VALUE);
-        maxZConfig = limitCleaningRange.addIntegerConfig("LC_maxZ", Integer.MAX_VALUE);
-        valueChangeConfig = limitCleaningRange.addIntegerListConfig("LC_ValueChange");
-        valueChangeConfig.addOption("minX", minXConfig);
-        valueChangeConfig.addOption("maxX", maxXConfig);
-        valueChangeConfig.addOption("minY", minYConfig);
-        valueChangeConfig.addOption("maxY", maxYConfig);
-        valueChangeConfig.addOption("minZ", minZConfig);
-        valueChangeConfig.addOption("maxZ", maxZConfig);
-        valueAddHotkeyConfig = limitCleaningRange.addHotkeyConfig("LC_AddValueKey", "",
-                new HotkeyConfig.IntegerChanger<>(1, valueChangeConfig, limitCleaningRange));
-        valueSubtractHotkeyConfig = limitCleaningRange.addHotkeyConfig("LC_SubtractValueKey", "",
-                new HotkeyConfig.IntegerChanger<>(-1, valueChangeConfig, limitCleaningRange));
+        rangeNamePrefix = limitCleaningRange.addStringConfig("LC_RangeNamePrefix");
     }
     public static boolean isEnabled(){return onEndTick != null;}
     public static void enableTool(){
@@ -64,23 +48,15 @@ public class LiquidCleaner {
         ToolConfigs.displayDisableReason("LC_disableNotification", reasonKey);
     }
 
-    static HotkeyConfig hotkeyConfig;
-    static ThirdListConfig limitInteractSpeedConfig;
-    static DoubleConfig maxBlockPerTickConfig;
-    static DoubleConfig reachDistanceConfig;
-    static BooleanConfig disableOnGUIOpened;
-    static BooleanConfig offhandFillingConfig;
-    static StringListConfig blockBlackListConfig;
-    static ThirdListConfig limitCleaningRange;
-    static IntegerConfig minXConfig;
-    static IntegerConfig maxXConfig;
-    static IntegerConfig minYConfig;
-    static IntegerConfig maxYConfig;
-    static IntegerConfig minZConfig;
-    static IntegerConfig maxZConfig;
-    static IntegerListConfig<IntegerConfig> valueChangeConfig;
-    static HotkeyConfig valueAddHotkeyConfig;
-    static HotkeyConfig valueSubtractHotkeyConfig;
+    public static HotkeyConfig hotkeyConfig;
+    public static ThirdListConfig limitInteractSpeedConfig;
+    public static DoubleConfig maxBlockPerTickConfig;
+    public static DoubleConfig reachDistanceConfig;
+    public static BooleanConfig disableOnGUIOpened;
+    public static BooleanConfig offhandFillingConfig;
+    public static StringListConfig blockBlackListConfig;
+    public static ThirdListConfig limitCleaningRange;
+    public static StringConfig rangeNamePrefix;
     @Nullable static OnEndTick onEndTick;
     @NotNull static HashSet<Block> blacklistBlocks = new HashSet<>();
     @NotNull static HashSet<Item> blacklistItems = new HashSet<>();

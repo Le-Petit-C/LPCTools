@@ -12,6 +12,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.ArrayList;
 import java.util.function.IntConsumer;
 import java.util.function.IntSupplier;
+import java.util.function.Supplier;
 
 //配置列表
 public class LPCConfigList {
@@ -138,12 +139,29 @@ public class LPCConfigList {
         addConfig(config);
         return config;
     }
+    public StringConfig addStringConfig(@NotNull String nameKey, @Nullable String defaultString, @Nullable IValueRefreshCallback callback){
+        return emplaceConfig(()->new StringConfig(this, nameKey, defaultString, callback));
+    }
+    public StringConfig addStringConfig(@NotNull String nameKey, @Nullable String defaultString){
+        return emplaceConfig(()->new StringConfig(this, nameKey, defaultString));
+    }
+    public StringConfig addStringConfig(@NotNull String nameKey,@Nullable IValueRefreshCallback callback){
+        return emplaceConfig(()->new StringConfig(this, nameKey, callback));
+    }
+    public StringConfig addStringConfig(@NotNull String nameKey){
+        return emplaceConfig(()->new StringConfig(this, nameKey));
+    }
     public String getTitleFullTranslationKey(){return parent.getModReference().modId + ".configs." + translationKey + ".title";}
     public String getTranslationKey(){return translationKey;}
     public String getFullTranslationKey(){return getPage().getModReference().modId + ".configs." + getTranslationKey();}
     public String getTitleDisplayName(){return StringUtils.translate(getTitleFullTranslationKey());}
     public boolean hasHotkeyConfig() {return hasHotkeyConfig;}
 
+    private <T extends ILPCConfig> T emplaceConfig(Supplier<T> supplier){
+        T config = supplier.get();
+        addConfig(config);
+        return config;
+    }
     @NotNull final ArrayList<ILPCConfig> configs = new ArrayList<>();
     //使用此方法从PageJson中加载列表配置
     void loadFromConfigPageJson(@NotNull JsonObject configPageJson){

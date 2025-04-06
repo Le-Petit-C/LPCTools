@@ -128,7 +128,27 @@ public class ThirdListConfig extends BooleanConfig{
         addConfig(config);
         return config;
     }
+    public StringConfig addStringConfig(String nameKey, @Nullable String defaultString, @Nullable IValueRefreshCallback callback){
+        return emplaceConfig((list)->list.addStringConfig(nameKey, defaultString, callback));
+    }
+    public StringConfig addStringConfig(String nameKey, @Nullable String defaultString){
+        return emplaceConfig((list)->list.addStringConfig(nameKey, defaultString));
+    }
+    public StringConfig addStringConfig(String nameKey, @Nullable IValueRefreshCallback callback){
+        return emplaceConfig((list)->list.addStringConfig(nameKey, callback));
+    }
+    public StringConfig addStringConfig(String nameKey){
+        return emplaceConfig((list)->list.addStringConfig(nameKey));
+    }
 
+    private interface listConfigBuilder<T extends ILPCConfig>{
+        T build(LPCConfigList list);
+    }
+    private <T extends ILPCConfig> T emplaceConfig(listConfigBuilder<T> builder){
+        T config = builder.build(super.getList());
+        addConfig(config);
+        return config;
+    }
     private boolean lastValue;
     private void refreshSingle(ILPCConfig config){
         boolean parentEnable = isEnabled() && getAsBoolean();
