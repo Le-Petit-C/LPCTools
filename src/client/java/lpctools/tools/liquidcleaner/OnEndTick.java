@@ -1,5 +1,6 @@
 package lpctools.tools.liquidcleaner;
 
+import lpctools.LPCTools;
 import lpctools.util.GuiUtils;
 import lpctools.util.HandRestock;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
@@ -17,6 +18,7 @@ import net.minecraft.state.property.Property;
 import net.minecraft.util.Hand;
 import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.Box;
 import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.GameMode;
@@ -27,7 +29,6 @@ import java.util.Collection;
 
 import static lpctools.tools.liquidcleaner.LiquidCleaner.*;
 import static lpctools.util.BlockUtils.*;
-import static lpctools.util.LPCMathUtils.*;
 
 public class OnEndTick implements ClientTickEvents.EndTick {
     @Override public void onEndTick(MinecraftClient client) {
@@ -36,7 +37,6 @@ public class OnEndTick implements ClientTickEvents.EndTick {
             disableTool("nullClientPlayerEntity");
             return;
         }
-        BlockPos playerEyeBlock = new BlockPos(floorVec3d(player.getEyePos()));
         ClientWorld world = client.world;
         if (world == null) {
             disableTool("nullClientWorld");
@@ -56,13 +56,50 @@ public class OnEndTick implements ClientTickEvents.EndTick {
             return;
         }
         double d = reachDistanceConfig.getAsDouble();
-        int r = (int)Math.ceil(d);
-        int minX = playerEyeBlock.getX() - r;
-        int maxX = playerEyeBlock.getX() + r;
-        int minY = playerEyeBlock.getY() - r;
-        int maxY = playerEyeBlock.getY() + r;
-        int minZ = playerEyeBlock.getZ() - r;
-        int maxZ = playerEyeBlock.getZ() + r;
+        if(limitInteractSpeedConfig.getAsBoolean()){
+            if(canInteractBlockCount > 1) canInteractBlockCount = 0;
+            canInteractBlockCount += maxBlockPerTickConfig.getAsDouble();
+        }
+        else canInteractBlockCount = Double.MAX_VALUE;
+        Iterable<BlockPos> iterateRegion = BlockPos.iterate(getIterateBox(client, d));
+        for(BlockPos pos1 : iterateRegion){
+            BlockPos pos = new BlockPos(pos1);//固定当前BlockPos
+            Vec3d midPos = pos.toCenterPos();
+            if (midPos.subtract(player.getEyePos()).length() >= d) continue;
+            if (shouldAttackBlock(world, pos)){
+                manager.attackBlock(pos, Direction.DOWN);
+                if(--canInteractBlockCount < 1) return;
+            }
+        }
+        int offhandPriority = offhandFillingConfig.getAsBoolean() ? -1 : 0;
+        Hand hand = offhandFillingConfig.getAsBoolean() ? Hand.OFF_HAND : Hand.MAIN_HAND;
+        if (HandRestock.search(this::isStackOk, offhandPriority) == -1) return;
+        for(BlockPos pos1 : iterateRegion){
+            BlockPos pos = new BlockPos(pos1);//固定当前BlockPos
+            Vec3d midPos = pos.toCenterPos();
+            if (midPos.subtract(player.getEyePos()).length() >= d) continue;
+            BlockState state = world.getBlockState(pos);
+            if (isReplaceableLiquid(state)) {
+                if (!HandRestock.restock(this::isStackOk, offhandPriority)) return;
+                BlockHitResult hitResult = new BlockHitResult(midPos, Direction.DOWN, pos, false);
+                LPCTools.LOGGER.info("{},{}", pos, midPos);
+                manager.interactBlock(player, hand, hitResult);
+                if (--canInteractBlockCount < 1) return;
+            }
+        }
+    }
+
+    private double canInteractBlockCount = 0;
+    private Box getIterateBox(@NotNull MinecraftClient client, double reachDistance){
+        if(client.player == null || client.world == null)
+            return new Box(0, 0, 0, 0, 0, 0);
+        Vec3d eyePos = client.player.getEyePos();
+        double minX = eyePos.getX() - reachDistance;
+        double maxX = eyePos.getX() + reachDistance;
+        double minY = eyePos.getY() - reachDistance;
+        double maxY = eyePos.getY() + reachDistance;
+        double minZ = eyePos.getZ() - reachDistance;
+        double maxZ = eyePos.getZ() + reachDistance;
         if(limitCleaningRange.getAsBoolean()){
             if(minX < minXConfig.getAsInt()) minX = minXConfig.getAsInt();
             if(maxX > maxXConfig.getAsInt()) maxX = maxXConfig.getAsInt();
@@ -73,46 +110,11 @@ public class OnEndTick implements ClientTickEvents.EndTick {
         }
         DimensionType dimensionType = client.world.getDimension();
         if(minY < dimensionType.minY()) minY = dimensionType.minY();
-        if(maxY > dimensionType.minY() + dimensionType.height() - 1) maxY = dimensionType.minY() + dimensionType.height() - 1;
-        if(limitInteractSpeedConfig.getAsBoolean()){
-            if(canInteractBlockCount > 1) canInteractBlockCount = 0;
-            canInteractBlockCount += maxBlockPerTickConfig.getAsDouble();
-        }
-        else canInteractBlockCount = Double.MAX_VALUE;
-        for (int y = maxY; y >= minY; --y) {
-            for (int x = minX; x <= maxX; ++x) {
-                for (int z = minZ; z <= maxZ; ++z) {
-                    BlockPos pos = new BlockPos(x, y, z);
-                    Vec3d midPos = pos.toCenterPos();
-                    if (midPos.subtract(player.getEyePos()).length() >= d) continue;
-                    if (shouldAttackBlock(world, pos)){
-                        manager.attackBlock(pos, Direction.UP);
-                        if(--canInteractBlockCount < 1) return;
-                    }
-                }
-            }
-        }
-        if (HandRestock.search(this::isStackOk, offhandFillingConfig.getAsBoolean() ? -1 : 0) == -1) return;
-        for (int y = maxY; y >= minY; --y) {
-            for (int x = minX; x <= maxX; ++x) {
-                for (int z = minZ; z <= maxZ; ++z) {
-                    BlockPos pos = new BlockPos(x, y, z);
-                    Vec3d midPos = pos.toCenterPos();
-                    if (midPos.subtract(player.getEyePos()).length() >= d) continue;
-                    BlockState state = world.getBlockState(pos);
-                    if (isReplaceableLiquid(state)) {
-                        if (!HandRestock.restock(this::isStackOk, offhandFillingConfig.getAsBoolean() ? -1 : 0)) return;
-                        BlockHitResult hitResult = new BlockHitResult(midPos, Direction.UP, pos, false);
-                        manager.interactBlock(player, offhandFillingConfig.getAsBoolean() ? Hand.OFF_HAND : Hand.MAIN_HAND, hitResult);
-                        if(--canInteractBlockCount < 1) return;
-                    }
-                }
-            }
-        }
+        double dimensionTop = dimensionType.minY() + dimensionType.height();
+        if(maxY > dimensionTop) maxY = dimensionTop;
+        return new Box(minX, minY, minZ, maxX, maxY, maxZ);
     }
-
-    private double canInteractBlockCount = 0;
-    private static boolean shouldAttackBlock(@NotNull ClientWorld world, BlockPos pos){
+    private static boolean shouldAttackBlock(@NotNull ClientWorld world, @NotNull BlockPos pos){
         BlockState state = world.getBlockState(pos);
         if(blacklistBlocks.contains(state.getBlock())) return false;
         if(!isZeroHardBlock(state)) return false;
@@ -145,7 +147,6 @@ public class OnEndTick implements ClientTickEvents.EndTick {
         if (properties.contains(Properties.AGE_5)) return false;
         if (properties.contains(Properties.AGE_7)) return false;
         if (properties.contains(Properties.AGE_15)) return false;
-        if (properties.contains(Properties.AGE_25)) return false;
-        return true;
+        return !properties.contains(Properties.AGE_25);
     }
 }
