@@ -5,9 +5,11 @@ import fi.dy.masa.malilib.hotkeys.IKeybind;
 import fi.dy.masa.malilib.hotkeys.KeyAction;
 import lpctools.lpcfymasaapi.LPCConfigList;
 import lpctools.lpcfymasaapi.LPCConfigPage;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class ConfigOpenGuiConfig extends HotkeyConfig{
-    public ConfigOpenGuiConfig(LPCConfigList list, String defaultStorageString){
+    public ConfigOpenGuiConfig(@NotNull LPCConfigList list,@Nullable String defaultStorageString){
         super(list, "configOpenGui", defaultStorageString, new ConfigOpenGuiConfigInstance(list.getPage()));
     }
     private record ConfigOpenGuiConfigInstance(LPCConfigPage page) implements IHotkeyCallback{

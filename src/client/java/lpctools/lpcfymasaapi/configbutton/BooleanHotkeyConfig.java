@@ -5,19 +5,20 @@ import fi.dy.masa.malilib.hotkeys.IHotkey;
 import it.unimi.dsi.fastutil.booleans.BooleanConsumer;
 import lpctools.lpcfymasaapi.LPCConfigList;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.function.BooleanSupplier;
 
 public class BooleanHotkeyConfig extends LPCConfig<ConfigBooleanHotkeyed> implements ILPCHotkey, BooleanSupplier, BooleanConsumer {
     public final boolean defaultBoolean;
     public final String defaultStorageString;
-    public BooleanHotkeyConfig(LPCConfigList list, String nameKey, boolean defaultBoolean, String defaultStorageString){
+    public BooleanHotkeyConfig(@NotNull LPCConfigList list, @NotNull String nameKey, boolean defaultBoolean, @Nullable String defaultStorageString){
         super(list, nameKey, true);
         this.defaultBoolean = defaultBoolean;
         this.defaultStorageString = defaultStorageString;
         list.getPage().getInputHandler().addHotkey(this);
     }
-    public BooleanHotkeyConfig(LPCConfigList list, String nameKey, boolean defaultBoolean, String defaultStorageString, IValueRefreshCallback callback){
+    public BooleanHotkeyConfig(@NotNull LPCConfigList list, @NotNull String nameKey, boolean defaultBoolean, @Nullable String defaultStorageString, @Nullable IValueRefreshCallback callback){
         this(list, nameKey, defaultBoolean, defaultStorageString);
         setCallback(callback);
     }

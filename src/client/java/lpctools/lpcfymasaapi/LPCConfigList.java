@@ -7,6 +7,7 @@ import fi.dy.masa.malilib.util.JsonUtils;
 import fi.dy.masa.malilib.util.StringUtils;
 import lpctools.lpcfymasaapi.configbutton.*;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.function.IntConsumer;
@@ -27,112 +28,112 @@ public class LPCConfigList {
         if(config.hasHotkey())
             hasHotkeyConfig = true;
     }
-    public BooleanConfig addBooleanConfig(String nameKey, boolean defaultBoolean){
+    public BooleanConfig addBooleanConfig(@NotNull String nameKey, boolean defaultBoolean){
         BooleanConfig config = new BooleanConfig(this, nameKey, defaultBoolean);
         addConfig(config);
         return config;
     }
-    public BooleanConfig addBooleanConfig(String nameKey, boolean defaultBoolean, IValueRefreshCallback callback){
+    public BooleanConfig addBooleanConfig(@NotNull String nameKey, boolean defaultBoolean, @Nullable IValueRefreshCallback callback){
         BooleanConfig config = new BooleanConfig(this, nameKey, defaultBoolean, callback);
         addConfig(config);
         return config;
     }
-    public IntegerConfig addIntegerConfig(String nameKey, int defaultInteger){
+    public IntegerConfig addIntegerConfig(@NotNull String nameKey, int defaultInteger){
         IntegerConfig config = new IntegerConfig(this, nameKey, defaultInteger);
         addConfig(config);
         return config;
     }
-    public IntegerConfig addIntegerConfig(String nameKey, int defaultInteger, IValueRefreshCallback callback){
+    public IntegerConfig addIntegerConfig(@NotNull String nameKey, int defaultInteger, @Nullable IValueRefreshCallback callback){
         IntegerConfig config = new IntegerConfig(this, nameKey, defaultInteger, callback);
         addConfig(config);
         return config;
     }
-    public IntegerConfig addIntegerConfig(String nameKey, int defaultInteger, int minValue, int maxValue){
+    public IntegerConfig addIntegerConfig(@NotNull String nameKey, int defaultInteger, int minValue, int maxValue){
         IntegerConfig config = new IntegerConfig(this, nameKey, defaultInteger, minValue, maxValue);
         addConfig(config);
         return config;
     }
-    public IntegerConfig addIntegerConfig(String nameKey, int defaultInteger, int minValue, int maxValue, IValueRefreshCallback callback){
+    public IntegerConfig addIntegerConfig(@NotNull String nameKey, int defaultInteger, int minValue, int maxValue, @Nullable IValueRefreshCallback callback){
         IntegerConfig config = new IntegerConfig(this, nameKey, defaultInteger, minValue, maxValue, callback);
         addConfig(config);
         return config;
     }
-    public DoubleConfig addDoubleConfig(String nameKey, double defaultDouble){
+    public DoubleConfig addDoubleConfig(@NotNull String nameKey, double defaultDouble){
         DoubleConfig config = new DoubleConfig(this, nameKey, defaultDouble);
         addConfig(config);
         return config;
     }
-    public DoubleConfig addDoubleConfig(String nameKey, double defaultDouble, IValueRefreshCallback callback){
+    public DoubleConfig addDoubleConfig(@NotNull String nameKey, double defaultDouble, @Nullable IValueRefreshCallback callback){
         DoubleConfig config = new DoubleConfig(this, nameKey, defaultDouble, callback);
         addConfig(config);
         return config;
     }
-    public DoubleConfig addDoubleConfig(String nameKey, double defaultDouble, double minValue, double maxValue){
+    public DoubleConfig addDoubleConfig(@NotNull String nameKey, double defaultDouble, double minValue, double maxValue){
         DoubleConfig config = new DoubleConfig(this, nameKey, defaultDouble, minValue, maxValue);
         addConfig(config);
         return config;
     }
-    public DoubleConfig addDoubleConfig(String nameKey, double defaultDouble, double minValue, double maxValue, IValueRefreshCallback callback){
+    public DoubleConfig addDoubleConfig(@NotNull String nameKey, double defaultDouble, double minValue, double maxValue, @Nullable IValueRefreshCallback callback){
         DoubleConfig config = new DoubleConfig(this, nameKey, defaultDouble, minValue, maxValue, callback);
         addConfig(config);
         return config;
     }
-    public HotkeyConfig addHotkeyConfig(String nameKey, String defaultStorageString, IHotkeyCallback callBack){
+    public HotkeyConfig addHotkeyConfig(@NotNull String nameKey, @Nullable String defaultStorageString, @NotNull IHotkeyCallback callBack){
         HotkeyConfig config = new HotkeyConfig(this, nameKey, defaultStorageString, callBack);
         addConfig(config);
         return config;
     }
-    public BooleanHotkeyConfig addBooleanHotkeyConfig(String nameKey, boolean defaultBoolean, String defaultStorageString){
+    public BooleanHotkeyConfig addBooleanHotkeyConfig(@NotNull String nameKey, boolean defaultBoolean, @Nullable String defaultStorageString){
         BooleanHotkeyConfig config = new BooleanHotkeyConfig(this, nameKey, defaultBoolean, defaultStorageString);
         addConfig(config);
         return config;
     }
-    public BooleanHotkeyConfig addBooleanHotkeyConfig(String nameKey, boolean defaultBoolean, String defaultStorageString, IValueRefreshCallback callback){
+    public BooleanHotkeyConfig addBooleanHotkeyConfig(@NotNull String nameKey, boolean defaultBoolean, @Nullable String defaultStorageString, @Nullable IValueRefreshCallback callback){
         BooleanHotkeyConfig config = new BooleanHotkeyConfig(this, nameKey, defaultBoolean, defaultStorageString, callback);
         addConfig(config);
         return config;
     }
-    public StringListConfig addStringListConfig(String nameKey, ImmutableList<String> defaultValue){
+    public StringListConfig addStringListConfig(@NotNull String nameKey, @Nullable ImmutableList<String> defaultValue){
         StringListConfig config = new StringListConfig(this, nameKey, defaultValue);
         addConfig(config);
         return config;
     }
-    public StringListConfig addStringListConfig(String nameKey, ImmutableList<String> defaultValue, IValueRefreshCallback callback){
+    public StringListConfig addStringListConfig(@NotNull String nameKey, @Nullable ImmutableList<String> defaultValue, @Nullable IValueRefreshCallback callback){
         StringListConfig config = new StringListConfig(this, nameKey, defaultValue, callback);
         addConfig(config);
         return config;
     }
-    public ConfigOpenGuiConfig addConfigOpenGuiConfig(String defaultStorageString){
+    public ConfigOpenGuiConfig addConfigOpenGuiConfig(@Nullable String defaultStorageString){
         ConfigOpenGuiConfig config = new ConfigOpenGuiConfig(this, defaultStorageString);
         addConfig(config);
         return config;
     }
-    public ThirdListConfig addThirdListConfig(String nameKey, boolean defaultBoolean){
+    public ThirdListConfig addThirdListConfig(@NotNull String nameKey, boolean defaultBoolean){
         ThirdListConfig config = new ThirdListConfig(this, nameKey, defaultBoolean, null);
         addConfig(config);
         return config;
     }
-    public ThirdListConfig addThirdListConfig(String nameKey, boolean defaultBoolean, ThirdListConfig parent){
+    public ThirdListConfig addThirdListConfig(@NotNull String nameKey, boolean defaultBoolean, @Nullable ThirdListConfig parent){
         ThirdListConfig config = new ThirdListConfig(this, nameKey, defaultBoolean, parent);
         addConfig(config);
         return config;
     }
-    public <T> OptionListConfig<T> addOptionListConfig(String nameKey){
+    public <T> OptionListConfig<T> addOptionListConfig(@NotNull String nameKey){
         OptionListConfig<T> config = new OptionListConfig<>(this, nameKey);
         addConfig(config);
         return config;
     }
-    public <T> OptionListConfig<T> addOptionListConfig(String nameKey, IValueRefreshCallback callback){
+    public <T> OptionListConfig<T> addOptionListConfig(@NotNull String nameKey, @Nullable IValueRefreshCallback callback){
         OptionListConfig<T> config = new OptionListConfig<>(this, nameKey, callback);
         addConfig(config);
         return config;
     }
-    public <T extends IntSupplier & IntConsumer> IntegerListConfig<T> addIntegerListConfig(String nameKey){
+    public <T extends IntSupplier & IntConsumer> IntegerListConfig<T> addIntegerListConfig(@NotNull String nameKey){
         IntegerListConfig<T> config = new IntegerListConfig<>(this, nameKey);
         addConfig(config);
         return config;
     }
-    public <T extends IntSupplier & IntConsumer> IntegerListConfig<T> addIntegerListConfig(String nameKey, IValueRefreshCallback callback){
+    public <T extends IntSupplier & IntConsumer> IntegerListConfig<T> addIntegerListConfig(@NotNull String nameKey, @Nullable IValueRefreshCallback callback){
         IntegerListConfig<T> config = new IntegerListConfig<>(this, nameKey, callback);
         addConfig(config);
         return config;

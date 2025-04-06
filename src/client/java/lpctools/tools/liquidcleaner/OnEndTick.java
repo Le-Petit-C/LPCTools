@@ -92,7 +92,7 @@ public class OnEndTick implements ClientTickEvents.EndTick {
                 }
             }
         }
-        if (HandRestock.search(IsPlaceableItem.instance, offhandFillingConfig.getAsBoolean() ? -1 : 0) == -1) return;
+        if (HandRestock.search(this::isStackOk, offhandFillingConfig.getAsBoolean() ? -1 : 0) == -1) return;
         for (int y = maxY; y >= minY; --y) {
             for (int x = minX; x <= maxX; ++x) {
                 for (int z = minZ; z <= maxZ; ++z) {
@@ -101,7 +101,7 @@ public class OnEndTick implements ClientTickEvents.EndTick {
                     if (midPos.subtract(player.getEyePos()).length() >= d) continue;
                     BlockState state = world.getBlockState(pos);
                     if (isReplaceableLiquid(state)) {
-                        if (!HandRestock.restock(IsPlaceableItem.instance, offhandFillingConfig.getAsBoolean() ? -1 : 0)) return;
+                        if (!HandRestock.restock(this::isStackOk, offhandFillingConfig.getAsBoolean() ? -1 : 0)) return;
                         BlockHitResult hitResult = new BlockHitResult(midPos, Direction.UP, pos, false);
                         manager.interactBlock(player, offhandFillingConfig.getAsBoolean() ? Hand.OFF_HAND : Hand.MAIN_HAND, hitResult);
                         if(--canInteractBlockCount < 1) return;
@@ -114,6 +114,7 @@ public class OnEndTick implements ClientTickEvents.EndTick {
     private double canInteractBlockCount = 0;
     private static boolean shouldAttackBlock(@NotNull ClientWorld world, BlockPos pos){
         BlockState state = world.getBlockState(pos);
+        if(blacklistBlocks.contains(state.getBlock())) return false;
         if(!isZeroHardBlock(state)) return false;
         if(state.isAir()) return false;
         if(!isReplaceable(state) && isContainingLiquid(state)) return true;
@@ -125,28 +126,26 @@ public class OnEndTick implements ClientTickEvents.EndTick {
         if(isContainingLiquid(world.getBlockState(pos.north()))) return false;
         return !isContainingLiquid(world.getBlockState(pos.south()));
     }
-    private static class IsPlaceableItem implements HandRestock.IRestockTest{
-        @Override public boolean isStackOk(ItemStack stack){
-            Item item = stack.getItem();
-            if(!(item instanceof BlockItem blockItem)) return false;
-            Block block = blockItem.getBlock();
-            if (block.getHardness() != 0) return false;
-            BlockState state = block.getDefaultState();
-            if (canBeReplacedByFluid(state)) return false;
-            FluidState fluidState = state.getFluidState();
-            if (fluidState.getLevel() != 0) return false;
-            Collection<Property<?>> properties = state.getProperties();
-            if (properties.contains(Properties.WATERLOGGED)) return false;
-            if (properties.contains(Properties.AGE_1)) return false;
-            if (properties.contains(Properties.AGE_2)) return false;
-            if (properties.contains(Properties.AGE_3)) return false;
-            if (properties.contains(Properties.AGE_4)) return false;
-            if (properties.contains(Properties.AGE_5)) return false;
-            if (properties.contains(Properties.AGE_7)) return false;
-            if (properties.contains(Properties.AGE_15)) return false;
-            if (properties.contains(Properties.AGE_25)) return false;
-            return true;
-        }
-        public static final IsPlaceableItem instance = new IsPlaceableItem();
+    private boolean isStackOk(ItemStack stack){
+        Item item = stack.getItem();
+        if(blacklistItems.contains(item)) return false;
+        if (!(item instanceof BlockItem blockItem)) return false;
+        Block block = blockItem.getBlock();
+        if (block.getHardness() != 0) return false;
+        BlockState state = block.getDefaultState();
+        if (canBeReplacedByFluid(state)) return false;
+        FluidState fluidState = state.getFluidState();
+        if (fluidState.getLevel() != 0) return false;
+        Collection<Property<?>> properties = state.getProperties();
+        if (properties.contains(Properties.WATERLOGGED)) return false;
+        if (properties.contains(Properties.AGE_1)) return false;
+        if (properties.contains(Properties.AGE_2)) return false;
+        if (properties.contains(Properties.AGE_3)) return false;
+        if (properties.contains(Properties.AGE_4)) return false;
+        if (properties.contains(Properties.AGE_5)) return false;
+        if (properties.contains(Properties.AGE_7)) return false;
+        if (properties.contains(Properties.AGE_15)) return false;
+        if (properties.contains(Properties.AGE_25)) return false;
+        return true;
     }
 }

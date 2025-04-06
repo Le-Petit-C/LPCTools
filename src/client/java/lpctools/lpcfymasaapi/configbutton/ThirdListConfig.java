@@ -88,7 +88,7 @@ public class ThirdListConfig extends BooleanConfig{
         addConfig(config);
         return config;
     }
-    public StringListConfig addStringListConfig(String nameKey, ImmutableList<String> defaultValue){
+    public StringListConfig addStringListConfig(String nameKey, @Nullable ImmutableList<String> defaultValue){
         StringListConfig config = super.getList().addStringListConfig(nameKey, defaultValue);
         addConfig(config);
         return config;

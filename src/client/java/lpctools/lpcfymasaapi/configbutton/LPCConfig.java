@@ -10,9 +10,13 @@ import org.jetbrains.annotations.Nullable;
 public abstract class LPCConfig<T extends IConfigBase> implements ILPCConfig{
     @Nullable public IValueRefreshCallback refreshCallback;//值刷新时会调用其中的方法
     public LPCConfig(@NotNull LPCConfigList list, @NotNull String nameKey, boolean hasHotkey){
+        this(list, nameKey, hasHotkey, null);
+    }
+    public LPCConfig(@NotNull LPCConfigList list, @NotNull String nameKey, boolean hasHotkey, @Nullable IValueRefreshCallback refreshCallback){
         this.list = list;
         this.nameKey = nameKey;
         this.hasHotkey = hasHotkey;
+        this.refreshCallback = refreshCallback;
     }
     @Override @NotNull public LPCConfigPage getPage(){return list.getPage();}
     @Override @NotNull public LPCConfigList getList(){return list;}

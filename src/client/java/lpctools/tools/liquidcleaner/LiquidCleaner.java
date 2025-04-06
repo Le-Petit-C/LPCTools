@@ -1,25 +1,34 @@
 package lpctools.tools.liquidcleaner;
 
-import fi.dy.masa.malilib.hotkeys.IHotkeyCallback;
+import com.google.common.collect.ImmutableList;
 import fi.dy.masa.malilib.hotkeys.IKeybind;
 import fi.dy.masa.malilib.hotkeys.KeyAction;
 import fi.dy.masa.malilib.util.StringUtils;
 import lpctools.lpcfymasaapi.Registry;
 import lpctools.lpcfymasaapi.configbutton.*;
 import lpctools.tools.ToolConfigs;
+import net.minecraft.block.Block;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ClientPlayerEntity;
+import net.minecraft.item.Item;
+import net.minecraft.registry.Registries;
 import net.minecraft.text.Text;
+import net.minecraft.util.Identifier;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.HashSet;
+import java.util.List;
 
 public class LiquidCleaner {
     public static void init(ThirdListConfig LCConfig){
-        hotkeyConfig = LCConfig.addHotkeyConfig("LC_Hotkey", "", new HotkeyCallback());
+        hotkeyConfig = LCConfig.addHotkeyConfig("LC_Hotkey", "", LiquidCleaner::hotkeyCallback);
         limitInteractSpeedConfig = LCConfig.addThirdListConfig("LC_limitInteractSpeed", false);
         maxBlockPerTickConfig = limitInteractSpeedConfig.addDoubleConfig("LC_maxBlockPerTick", 1.0, 0, 64);
         reachDistanceConfig = LCConfig.addDoubleConfig("LC_reachDistance", 4.5, 0, 5);
         disableOnGUIOpened = LCConfig.addBooleanConfig("LC_disableOnGUIOpened", false);
         offhandFillingConfig = LCConfig.addBooleanConfig("LC_OffhandFilling", false);
+        blockBlackListConfig = LCConfig.addStringListConfig("LC_BlockBlackList", ImmutableList.of(), LiquidCleaner::onBlacklistRefresh);
         limitCleaningRange = LCConfig.addThirdListConfig("LC_LimitCleaningRange", false);
         minXConfig = limitCleaningRange.addIntegerConfig("LC_minX", Integer.MIN_VALUE);
         maxXConfig = limitCleaningRange.addIntegerConfig("LC_maxX", Integer.MAX_VALUE);
@@ -61,6 +70,7 @@ public class LiquidCleaner {
     static DoubleConfig reachDistanceConfig;
     static BooleanConfig disableOnGUIOpened;
     static BooleanConfig offhandFillingConfig;
+    static StringListConfig blockBlackListConfig;
     static ThirdListConfig limitCleaningRange;
     static IntegerConfig minXConfig;
     static IntegerConfig maxXConfig;
@@ -72,12 +82,22 @@ public class LiquidCleaner {
     static HotkeyConfig valueAddHotkeyConfig;
     static HotkeyConfig valueSubtractHotkeyConfig;
     @Nullable static OnEndTick onEndTick;
+    @NotNull static HashSet<Block> blacklistBlocks = new HashSet<>();
+    @NotNull static HashSet<Item> blacklistItems = new HashSet<>();
 
-    private static class HotkeyCallback implements IHotkeyCallback{
-        @Override public boolean onKeyAction(KeyAction action, IKeybind key) {
-            if(isEnabled()) disableTool(null);
-            else enableTool();
-            return true;
+    private static boolean hotkeyCallback(KeyAction action, IKeybind key) {
+        if(isEnabled()) disableTool(null);
+        else enableTool();
+        return true;
+    }
+    private static void onBlacklistRefresh(){
+        blacklistBlocks.clear();
+        blacklistItems.clear();
+        List<String> blacklist = blockBlackListConfig.getStrings();
+        for(String str : blacklist){
+            Block block = Registries.BLOCK.get(Identifier.of(str));
+            blacklistBlocks.add(block);
+            blacklistItems.add(block.asItem());
         }
     }
 }
