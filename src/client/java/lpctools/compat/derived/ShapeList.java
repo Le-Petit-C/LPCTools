@@ -1,23 +1,25 @@
 package lpctools.compat.derived;
 
-import lpctools.compat.interfaces.IMinihudShape;
+import lpctools.compat.interfaces.ITestableShape;
 import lpctools.compat.litematica.LitematicaMethods;
+import lpctools.compat.minihud.MiniHUDMethods;
 import net.minecraft.util.math.BlockPos;
 
 import java.util.ArrayList;
 
-public class ShapeList extends ArrayList<IMinihudShape> {
-    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
-    public boolean testPos(boolean testLitematica, BlockPos pos){
-        boolean b;
-        if(!testLitematica || LitematicaMethods.getInstance() == null) b = false;
-        else b = LitematicaMethods.getInstance().isInsideRenderRange(pos);
-        for(IMinihudShape shape : this){
-            switch (shape.shapeTestResult(pos)){
-                case IMinihudShape.ShapeTestResult.SET_AS_TRUE -> b = true;
-                case IMinihudShape.ShapeTestResult.SET_AS_FALSE -> b = false;
-            }
+//不是动态连接litematica和minihud内容的，在它们的显示区域删添时不会自动更新，所以每个需要此表的工具每游戏刻的检测都会新建此表
+public class ShapeList extends ArrayList<ITestableShape> {
+    public ShapeList(SimpleTestableShape.TestType litematicaRenderRangeTestType, String namePrefix){
+        if(LitematicaMethods.getInstance() != null){
+            LitematicaMethods.getInstance().addSchematicShapes(this, namePrefix);
+            if(litematicaRenderRangeTestType != null)
+                LitematicaMethods.getInstance().addRenderRangeShape(this, litematicaRenderRangeTestType);
         }
-        return b;
+        if(MiniHUDMethods.getInstance() != null)
+            MiniHUDMethods.getInstance().addShapes(this, namePrefix);
+    }
+    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
+    public boolean testPos(BlockPos pos){
+        return ITestableShape.testShapes(this, pos).getAsBoolean();
     }
 }

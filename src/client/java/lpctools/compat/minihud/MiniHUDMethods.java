@@ -1,14 +1,14 @@
 package lpctools.compat.minihud;
 
 import fi.dy.masa.minihud.renderer.shapes.*;
-import lpctools.compat.derived.ShapeList;
-import lpctools.compat.interfaces.IMinihudShape.ShapeTestResult;
+import lpctools.compat.derived.SimpleTestableShape;
+import lpctools.compat.interfaces.ITestableShape;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
 import org.jetbrains.annotations.Nullable;
 
-import static lpctools.compat.interfaces.IMinihudShape.ShapeTestResult.*;
+import java.util.Collection;
 
 public class MiniHUDMethods{
     public static MiniHUDMethods getInstance(){
@@ -16,44 +16,20 @@ public class MiniHUDMethods{
         isLoaded = true;
         return instance = createInstance();
     }
-    public ShapeList getShapes(String namePrefix) {
-        ShapeList list = new ShapeList();
+    public void addShapes(Collection<ITestableShape> list, String namePrefix) {
         for(ShapeBase shape : ShapeManager.INSTANCE.getAllShapes()){
             String name = shape.getDisplayName();
-            boolean invert;
-            boolean cropping;
-            if(name.startsWith(namePrefix + "+")){
-                invert = false;
-                cropping = false;
+            SimpleTestableShape.TestType testType = SimpleTestableShape.testTestType(name, namePrefix);
+            if(testType == null) continue;
+            if(shape instanceof ShapeCircleBase circleBase){
+                if(circleBase instanceof ShapeSphereBlocky sphere)
+                    list.add(ITestableShape.byTester((pos)->shapeSphereTest(sphere, pos), testType));
+                else if (circleBase instanceof ShapeCircle circle)
+                    list.add(ITestableShape.byTester((pos)->shapeCircleTest(circle, pos), testType));
             }
-            else if(name.startsWith(namePrefix + "-")){
-                invert = false;
-                cropping = true;
-            }
-            else if(name.startsWith(namePrefix + "+~")){
-                invert = true;
-                cropping = false;
-            }
-            else if(name.startsWith(namePrefix + "-~")){
-                invert = true;
-                cropping = true;
-            }
-            else continue;
-            if(shape instanceof ShapeBox box)
-                list.add((pos)->combineResult(shapeBoxTest(box, pos), invert, cropping));
-            else if(shape instanceof ShapeCircleBase circleBase){
-                if(circleBase instanceof ShapeSphereBlocky sphere){
-                    list.add((pos)->combineResult(shapeSphereTest(sphere, pos), invert, cropping));
-                }
-                else if (circleBase instanceof ShapeCircle circle) {
-                    list.add((pos)->combineResult(shapeCircleTest(circle, pos), invert, cropping));
-                }
-            }
+            else if(shape instanceof ShapeBox box)
+                list.add(ITestableShape.byTester((pos)->shapeBoxTest(box, pos), testType));
         }
-        return list;
-    }
-    private static ShapeTestResult combineResult(boolean isInsideShape, boolean invert, boolean cropping){
-        return (isInsideShape == invert) ? NO_OPERATION : (cropping ? SET_AS_FALSE : SET_AS_TRUE);
     }
     private boolean shapeBoxTest(ShapeBox box, BlockPos pos){
         return box.getBox().contains(pos.toCenterPos());

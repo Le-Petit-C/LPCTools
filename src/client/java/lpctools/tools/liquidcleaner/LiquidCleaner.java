@@ -4,6 +4,7 @@ import com.google.common.collect.ImmutableList;
 import fi.dy.masa.malilib.hotkeys.IKeybind;
 import fi.dy.masa.malilib.hotkeys.KeyAction;
 import fi.dy.masa.malilib.util.StringUtils;
+import lpctools.compat.derived.SimpleTestableShape;
 import lpctools.lpcfymasaapi.Registry;
 import lpctools.lpcfymasaapi.configbutton.*;
 import lpctools.tools.ToolConfigs;
@@ -31,7 +32,10 @@ public class LiquidCleaner {
         blockBlackListConfig = LCConfig.addStringListConfig("LC_BlockBlackList", ImmutableList.of(), LiquidCleaner::onBlacklistRefresh);
         limitCleaningRange = LCConfig.addThirdListConfig("LC_LimitCleaningRange", false);
         rangeNamePrefix = limitCleaningRange.addStringConfig("LC_RangeNamePrefix", "LC");
-        rangeLitematica = limitCleaningRange.addBooleanConfig("LC_RangeLitematica", false);
+        rangeLitematica = limitCleaningRange.addThirdListConfig("LC_RangeLitematica", false);
+        renderRangeTestType = rangeLitematica.addOptionListConfig("LC_RenderRangeTestType");
+        for(SimpleTestableShape.TestType testType : SimpleTestableShape.TestType.values())
+            renderRangeTestType.addOption(testType.getPrefix(), testType);
     }
     public static boolean isEnabled(){return onEndTick != null;}
     public static void enableTool(){
@@ -58,7 +62,8 @@ public class LiquidCleaner {
     public static StringListConfig blockBlackListConfig;
     public static ThirdListConfig limitCleaningRange;
     public static StringConfig rangeNamePrefix;
-    public static BooleanConfig rangeLitematica;
+    public static ThirdListConfig rangeLitematica;
+    public static OptionListConfig<SimpleTestableShape.TestType> renderRangeTestType;
     @Nullable static OnEndTick onEndTick;
     @NotNull static HashSet<Block> blacklistBlocks = new HashSet<>();
     @NotNull static HashSet<Item> blacklistItems = new HashSet<>();
