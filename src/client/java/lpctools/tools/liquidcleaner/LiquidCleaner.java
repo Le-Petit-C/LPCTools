@@ -30,7 +30,8 @@ public class LiquidCleaner {
         offhandFillingConfig = LCConfig.addBooleanConfig("LC_OffhandFilling", false);
         blockBlackListConfig = LCConfig.addStringListConfig("LC_BlockBlackList", ImmutableList.of(), LiquidCleaner::onBlacklistRefresh);
         limitCleaningRange = LCConfig.addThirdListConfig("LC_LimitCleaningRange", false);
-        rangeNamePrefix = limitCleaningRange.addStringConfig("LC_RangeNamePrefix");
+        rangeNamePrefix = limitCleaningRange.addStringConfig("LC_RangeNamePrefix", "LC");
+        rangeLitematica = limitCleaningRange.addBooleanConfig("LC_RangeLitematica", false);
     }
     public static boolean isEnabled(){return onEndTick != null;}
     public static void enableTool(){
@@ -57,6 +58,7 @@ public class LiquidCleaner {
     public static StringListConfig blockBlackListConfig;
     public static ThirdListConfig limitCleaningRange;
     public static StringConfig rangeNamePrefix;
+    public static BooleanConfig rangeLitematica;
     @Nullable static OnEndTick onEndTick;
     @NotNull static HashSet<Block> blacklistBlocks = new HashSet<>();
     @NotNull static HashSet<Item> blacklistItems = new HashSet<>();

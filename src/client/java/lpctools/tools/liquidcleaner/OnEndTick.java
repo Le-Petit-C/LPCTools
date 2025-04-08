@@ -1,7 +1,8 @@
 package lpctools.tools.liquidcleaner;
 
 import lpctools.LPCTools;
-import lpctools.compat.minihud.ShapeList;
+import lpctools.compat.derived.ShapeList;
+import lpctools.compat.minihud.MiniHUDMethods;
 import lpctools.util.GuiUtils;
 import lpctools.util.HandRestock;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
@@ -64,12 +65,12 @@ public class OnEndTick implements ClientTickEvents.EndTick {
         else canInteractBlockCount = Double.MAX_VALUE;
         Iterable<BlockPos> iterateRegion = BlockPos.iterate(getIterateBox(client, d));
         ShapeList list;
-        if(limitCleaningRange.getAsBoolean() && LPCTools.getMiniHUDMethods() != null)
-            list = LPCTools.getMiniHUDMethods().getShapes(rangeNamePrefix.get());
+        if(limitCleaningRange.getAsBoolean() && MiniHUDMethods.getInstance() != null)
+            list = MiniHUDMethods.getInstance().getShapes(rangeNamePrefix.get());
         else list = null;
         for(BlockPos pos1 : iterateRegion){
             BlockPos pos = new BlockPos(pos1);//固定当前BlockPos
-            if(list != null && !list.testPos(pos)) continue;
+            if(list != null && !list.testPos(rangeLitematica.getAsBoolean(), pos)) continue;
             Vec3d midPos = pos.toCenterPos();
             if (midPos.subtract(player.getEyePos()).length() >= d) continue;
             if (shouldAttackBlock(world, pos)){
@@ -82,7 +83,7 @@ public class OnEndTick implements ClientTickEvents.EndTick {
         if (HandRestock.search(this::isStackOk, offhandPriority) == -1) return;
         for(BlockPos pos1 : iterateRegion){
             BlockPos pos = new BlockPos(pos1);//固定当前BlockPos
-            if(list != null && !list.testPos(pos)) continue;
+            if(list != null && !list.testPos(rangeLitematica.getAsBoolean(), pos)) continue;
             Vec3d midPos = pos.toCenterPos();
             if (midPos.subtract(player.getEyePos()).length() >= d) continue;
             BlockState state = world.getBlockState(pos);

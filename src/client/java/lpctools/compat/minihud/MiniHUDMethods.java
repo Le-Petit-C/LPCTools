@@ -1,14 +1,21 @@
 package lpctools.compat.minihud;
 
 import fi.dy.masa.minihud.renderer.shapes.*;
+import lpctools.compat.derived.ShapeList;
 import lpctools.compat.interfaces.IMinihudShape.ShapeTestResult;
+import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
+import org.jetbrains.annotations.Nullable;
 
 import static lpctools.compat.interfaces.IMinihudShape.ShapeTestResult.*;
 
 public class MiniHUDMethods{
-    public MiniHUDMethods(){}
+    public static MiniHUDMethods getInstance(){
+        if(isLoaded) return instance;
+        isLoaded = true;
+        return instance = createInstance();
+    }
     public ShapeList getShapes(String namePrefix) {
         ShapeList list = new ShapeList();
         for(ShapeBase shape : ShapeManager.INSTANCE.getAllShapes()){
@@ -60,5 +67,11 @@ public class MiniHUDMethods{
         if(center.getY() > blockCenter.getY()) return false;
         if(center.getY() + circle.getHeight() < blockCenter.getY()) return false;
         return center.squaredDistanceTo(blockCenter.getX(), center.getY(), blockCenter.getZ()) <= circle.getSquaredRadius();
+    }
+    private static boolean isLoaded = false;
+    @Nullable private static MiniHUDMethods instance;
+    @Nullable private static MiniHUDMethods createInstance(){
+        if(FabricLoader.getInstance().isModLoaded("minihud")) return new MiniHUDMethods();
+        else return null;
     }
 }
