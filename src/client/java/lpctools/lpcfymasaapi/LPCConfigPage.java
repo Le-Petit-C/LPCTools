@@ -70,7 +70,14 @@ public class LPCConfigPage implements IConfigHandler, Supplier<GuiBase>{
         }
     }
     @Override public void save() {
-        JsonObject pageJson = new JsonObject();
+        Path configFile = FileUtils.getConfigDirectoryAsPath().resolve(configFileName);
+        JsonObject pageJson = null;
+        if (Files.exists(configFile) && Files.isReadable(configFile)){
+            JsonElement element = JsonUtils.parseJsonFileAsPath(configFile);
+            if(element != null && element.isJsonObject())
+                pageJson = element.getAsJsonObject();
+        }
+        if(pageJson == null) pageJson = new JsonObject();
         Path dir = FileUtils.getConfigDirectoryAsPath();
         if (!Files.exists(dir))
             FileUtils.createDirectoriesIfMissing(dir);

@@ -30,7 +30,9 @@ public class LiquidCleaner {
         disableOnGUIOpened = LCConfig.addBooleanConfig("disableOnGUIOpened", false);
         offhandFillingConfig = LCConfig.addBooleanConfig("offhandFilling", false);
         blockBlackListConfig = LCConfig.addStringListConfig("blockBlackList", ImmutableList.of(), LiquidCleaner::onBlacklistRefresh);
+        ignoreDownwardTest = LCConfig.addBooleanConfig("ignoreDownwardTest", false);
         limitCleaningRange = LCConfig.addRangeLimitConfig(false, "LC");
+        expandRange = limitCleaningRange.addBooleanConfig("expandRange", false);
     }
     public static boolean isEnabled(){return onEndTick != null;}
     public static void enableTool(){
@@ -55,7 +57,9 @@ public class LiquidCleaner {
     public static BooleanConfig disableOnGUIOpened;
     public static BooleanConfig offhandFillingConfig;
     public static StringListConfig blockBlackListConfig;
+    public static BooleanConfig ignoreDownwardTest;
     public static RangeLimitConfig limitCleaningRange;
+    public static BooleanConfig expandRange;
     @Nullable static OnEndTick onEndTick;
     @NotNull static HashSet<Block> blacklistBlocks = new HashSet<>();
     @NotNull static HashSet<Item> blacklistItems = new HashSet<>();

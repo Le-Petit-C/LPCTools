@@ -68,7 +68,7 @@ public class OnEndTick implements ClientTickEvents.EndTick {
             if(!list.testPos(pos)) continue;
             Vec3d midPos = pos.toCenterPos();
             if (midPos.subtract(player.getEyePos()).length() >= d) continue;
-            if (shouldAttackBlock(world, pos)){
+            if (shouldAttackBlock(list, world, pos)){
                 manager.attackBlock(pos, Direction.DOWN);
                 if(--canInteractBlockCount < 1) return;
             }
@@ -76,15 +76,25 @@ public class OnEndTick implements ClientTickEvents.EndTick {
         int offhandPriority = offhandFillingConfig.getAsBoolean() ? -1 : 0;
         Hand hand = offhandFillingConfig.getAsBoolean() ? Hand.OFF_HAND : Hand.MAIN_HAND;
         if (HandRestock.search(this::isStackOk, offhandPriority) == -1) return;
-        for(BlockPos pos1 : iterateRegion){
-            BlockPos pos = new BlockPos(pos1);//固定当前BlockPos
-            if(!list.testPos(pos)) continue;
+        for(BlockPos pos : iterateRegion){
+            if(!list.testPos(pos)){
+                if(!expandRange.getAsBoolean()) continue;
+                boolean shouldContinue = true;
+                for(Direction direction : Direction.values()){
+                    if(ignoreDownwardTest.getAsBoolean() && direction == Direction.UP) continue;
+                    if(list.testPos(pos.offset(direction))){
+                        shouldContinue = false;
+                        break;
+                    }
+                }
+                if(shouldContinue) continue;
+            }
             Vec3d midPos = pos.toCenterPos();
             if (midPos.subtract(player.getEyePos()).length() >= d) continue;
             BlockState state = world.getBlockState(pos);
             if (isReplaceableLiquid(state)) {
                 if (!HandRestock.restock(this::isStackOk, offhandPriority)) return;
-                BlockHitResult hitResult = new BlockHitResult(midPos, Direction.DOWN, pos, false);
+                BlockHitResult hitResult = new BlockHitResult(midPos, Direction.DOWN, pos.mutableCopy(), false);
                 manager.interactBlock(player, hand, hitResult);
                 if (--canInteractBlockCount < 1) return;
             }
@@ -108,19 +118,31 @@ public class OnEndTick implements ClientTickEvents.EndTick {
         if(maxY > dimensionTop) maxY = dimensionTop;
         return new Box(minX, minY, minZ, maxX, maxY, maxZ);
     }
-    private static boolean shouldAttackBlock(@NotNull ClientWorld world, @NotNull BlockPos pos){
+    private static boolean shouldAttackBlock(@NotNull ShapeList shapeList ,@NotNull ClientWorld world, @NotNull BlockPos pos){
         BlockState state = world.getBlockState(pos);
+        if(!shapeList.testPos(pos)){
+            if(!expandRange.getAsBoolean()) return false;
+            boolean isNear = false;
+            for(Direction direction : Direction.values()){
+                if(ignoreDownwardTest.getAsBoolean() && direction == Direction.UP) continue;
+                if(shapeList.testPos(pos.offset(direction))){
+                    isNear = true;
+                    break;
+                }
+            }
+            if(!isNear) return false;
+            else if(!isContainingLiquid(state)) return false;
+        }
         if(blacklistBlocks.contains(state.getBlock())) return false;
         if(!isZeroHardBlock(state)) return false;
         if(state.isAir()) return false;
         if(!isReplaceable(state) && isContainingLiquid(state)) return true;
         if(canBeReplacedByFluid(state)) return false;
-        if(isContainingLiquid(world.getBlockState(pos.west()))) return false;
-        if(isContainingLiquid(world.getBlockState(pos.east()))) return false;
-        if(isContainingLiquid(world.getBlockState(pos.down()))) return false;
-        if(isContainingLiquid(world.getBlockState(pos.up()))) return false;
-        if(isContainingLiquid(world.getBlockState(pos.north()))) return false;
-        return !isContainingLiquid(world.getBlockState(pos.south()));
+        for(Direction direction : Direction.values()){
+            if(ignoreDownwardTest.getAsBoolean() && direction == Direction.DOWN) continue;
+            if(isContainingLiquid(world.getBlockState(pos.offset(direction)))) return false;
+        }
+        return true;
     }
     private boolean isStackOk(ItemStack stack){
         Item item = stack.getItem();
