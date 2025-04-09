@@ -22,4 +22,8 @@ public class ShapeList extends ArrayList<ITestableShape> {
     public boolean testPos(BlockPos pos){
         return ITestableShape.testShapes(this, pos).getAsBoolean();
     }
+    public static ShapeList emptyList(){
+        return new ShapeList();
+    }
+    private ShapeList(){}
 }

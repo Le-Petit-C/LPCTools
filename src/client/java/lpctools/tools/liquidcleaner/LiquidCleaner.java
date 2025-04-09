@@ -30,14 +30,14 @@ public class LiquidCleaner {
         disableOnGUIOpened = LCConfig.addBooleanConfig("disableOnGUIOpened", false);
         offhandFillingConfig = LCConfig.addBooleanConfig("offhandFilling", false);
         blockBlackListConfig = LCConfig.addStringListConfig("blockBlackList", ImmutableList.of(), LiquidCleaner::onBlacklistRefresh);
-        limitCleaningRange = LCConfig.addConfig(new RangeLimitConfig(LCConfig, false, 1, "LC"));
+        limitCleaningRange = LCConfig.addRangeLimitConfig(false, "LC");
     }
     public static boolean isEnabled(){return onEndTick != null;}
     public static void enableTool(){
         if(isEnabled()) return;
         ClientPlayerEntity player = MinecraftClient.getInstance().player;
         if(player == null) return;
-        player.sendMessage(Text.literal(StringUtils.translate("lpctools.tools.LC_enableNotification")), true);
+        player.sendMessage(Text.literal(StringUtils.translate("lpctools.tools.LC.enableNotification")), true);
         onEndTick = new OnEndTick();
         Registry.registerEndClientTickCallback(onEndTick);
     }
@@ -45,7 +45,7 @@ public class LiquidCleaner {
         if(!isEnabled()) return;
         Registry.unregisterEndClientTickCallback(onEndTick);
         onEndTick = null;
-        ToolConfigs.displayDisableReason("LC_disableNotification", reasonKey);
+        ToolConfigs.displayDisableReason("LC.disableNotification", reasonKey);
     }
 
     public static HotkeyConfig hotkeyConfig;

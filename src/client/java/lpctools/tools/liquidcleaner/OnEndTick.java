@@ -62,9 +62,7 @@ public class OnEndTick implements ClientTickEvents.EndTick {
         }
         else canInteractBlockCount = Double.MAX_VALUE;
         Iterable<BlockPos> iterateRegion = BlockPos.iterate(getIterateBox(client, d));
-        ShapeList list = new ShapeList(
-                limitCleaningRange.litematica.getAsBoolean() ? limitCleaningRange.testType.getCurrentUserdata() : null,
-                limitCleaningRange.prefix.get());
+        ShapeList list = limitCleaningRange.buildShapeList();
         for(BlockPos pos1 : iterateRegion){
             BlockPos pos = new BlockPos(pos1);//固定当前BlockPos
             if(!list.testPos(pos)) continue;

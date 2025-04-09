@@ -7,6 +7,7 @@ import fi.dy.masa.malilib.hotkeys.IHotkeyCallback;
 import fi.dy.masa.malilib.util.JsonUtils;
 import fi.dy.masa.malilib.util.StringUtils;
 import lpctools.lpcfymasaapi.LPCConfigPage;
+import lpctools.lpcfymasaapi.configbutton.derivedConfigs.RangeLimitConfig;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -102,6 +103,9 @@ public interface ILPCConfigList {
     }
     default StringConfig addStringConfig(@NotNull String nameKey){
         return addConfig(new StringConfig(this, nameKey));
+    }
+    default RangeLimitConfig addRangeLimitConfig(boolean defaultBoolean, String defaultPrefix){
+        return addConfig(new RangeLimitConfig(this, defaultBoolean, defaultPrefix));
     }
     //列表中配置项的配置值可能发生了更新，调用此方法让配置做出反应
     default void callRefresh(){
