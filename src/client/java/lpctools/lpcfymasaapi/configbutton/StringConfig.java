@@ -1,7 +1,6 @@
 package lpctools.lpcfymasaapi.configbutton;
 
 import fi.dy.masa.malilib.config.options.ConfigString;
-import lpctools.lpcfymasaapi.LPCConfigList;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -10,18 +9,18 @@ import java.util.function.Supplier;
 
 public class StringConfig extends LPCConfig<ConfigString> implements Supplier<String>, Consumer<String> {
     private final @NotNull String defaultString;
-    public StringConfig(@NotNull LPCConfigList list, @NotNull String nameKey, @Nullable String defaultString, @Nullable IValueRefreshCallback callback) {
-        super(list, nameKey, false, callback);
+    public StringConfig(@NotNull ILPCConfigList defaultParent, @NotNull String nameKey, @Nullable String defaultString, @Nullable IValueRefreshCallback callback) {
+        super(defaultParent, nameKey, false, callback);
         this.defaultString = defaultString == null ? "" : defaultString;
     }
-    public StringConfig(@NotNull LPCConfigList list, @NotNull String nameKey, @Nullable String defaultString) {
-        this(list, nameKey, defaultString, null);
+    public StringConfig(@NotNull ILPCConfigList defaultParent, @NotNull String nameKey, @Nullable String defaultString) {
+        this(defaultParent, nameKey, defaultString, null);
     }
-    public StringConfig(@NotNull LPCConfigList list, @NotNull String nameKey, @Nullable IValueRefreshCallback callback) {
-        this(list, nameKey, null, callback);
+    public StringConfig(@NotNull ILPCConfigList defaultParent, @NotNull String nameKey, @Nullable IValueRefreshCallback callback) {
+        this(defaultParent, nameKey, null, callback);
     }
-    public StringConfig(@NotNull LPCConfigList list, @NotNull String nameKey) {
-        this(list, nameKey, null, null);
+    public StringConfig(@NotNull ILPCConfigList defaultParent, @NotNull String nameKey) {
+        this(defaultParent, nameKey, null, null);
     }
 
     @Override public void accept(String s) {
@@ -36,7 +35,6 @@ public class StringConfig extends LPCConfig<ConfigString> implements Supplier<St
 
     @Override protected @NotNull ConfigString createInstance() {
         ConfigString config = new ConfigString(getNameKey(), defaultString);
-        config.apply(getList().getFullTranslationKey());
         config.setValueChangeCallback(new LPCConfigCallback<>(this));
         return config;
     }

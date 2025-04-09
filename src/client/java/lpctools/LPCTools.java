@@ -1,16 +1,12 @@
 package lpctools;
 
-import lpctools.compat.litematica.LitematicaMethods;
-import lpctools.compat.minihud.MiniHUDMethods;
 import lpctools.generic.GenericConfigs;
 import lpctools.lpcfymasaapi.LPCConfigPage;
 import lpctools.lpcfymasaapi.Reference;
 import lpctools.tools.ToolConfigs;
 import net.fabricmc.api.ClientModInitializer;
-import net.fabricmc.loader.api.FabricLoader;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.jetbrains.annotations.Nullable;
 
 public class LPCTools implements ClientModInitializer {
 	public static final Logger LOGGER = LogManager.getLogger("LPCTools");

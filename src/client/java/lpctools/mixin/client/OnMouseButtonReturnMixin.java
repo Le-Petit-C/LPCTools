@@ -1,4 +1,4 @@
-package lpctools.lpcfymasaapi.mixins;
+package lpctools.mixin.client;
 
 import lpctools.lpcfymasaapi.Registry;
 import lpctools.util.GuiUtils;

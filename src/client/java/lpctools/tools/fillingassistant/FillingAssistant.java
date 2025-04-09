@@ -85,40 +85,40 @@ public class FillingAssistant {
         else requiredBlocks = new HashSet<>(defaultRequiredBlockWhiteList);
     }
     public static void init(ThirdListConfig FAConfig){
-        hotkeyConfig = FAConfig.addHotkeyConfig("FA_Hotkey", "", new HotkeyCallback());
-        limitPlaceSpeedConfig = FAConfig.addThirdListConfig("FA_limitPlaceSpeed", false);
-        maxBlockPerTickConfig = limitPlaceSpeedConfig.addDoubleConfig("FA_maxBlockPerTick", 1.0, 0, 64);
-        reachDistanceConfig = FAConfig.addDoubleConfig("FA_reachDistance", 4.5, 0, 5);
-        testDistanceConfig = FAConfig.addIntegerConfig("FA_testDistance", 6, 6, 64, new TestDistanceRefreshCallback());
-        disableOnLeftDownConfig = FAConfig.addBooleanConfig("FA_disableOnLeftDown", true);
-        disableOnGUIOpened = FAConfig.addBooleanConfig("FA_disableOnGUIOpened", false);
-        placeableItemsConfig = FAConfig.addStringListConfig("FA_placeableItems", defaultPlaceableItemIdList, new PlaceableItemsRefreshCallback());
-        passableBlocksConfig = FAConfig.addStringListConfig("FA_passableBlocks", defaultPassableBlockIdList, new PassableBlocksRefreshCallback());
-        transparentAsPassableConfig = FAConfig.addBooleanConfig("FA_transparentAsPassable", true);
-        notOpaqueAsPassableConfig = FAConfig.addBooleanConfig("FA_notOpaqueAsPassable", true);
-        requiredBlocksConfig = FAConfig.addStringListConfig("FA_requiredBlocks", defaultRequiredBlockIdList, new RequiredBlocksRefreshCallback());
-        offhandFillingConfig = FAConfig.addBooleanConfig("FA_OffhandFilling", false);
-        limitFillingRange = FAConfig.addThirdListConfig("FA_LimitFillingRange", false);
-        outerRangeBlockMethod = limitFillingRange.addOptionListConfig("FA_OuterRangeBlockMethod");
+        hotkeyConfig = FAConfig.addHotkeyConfig("hotkey", "", new HotkeyCallback());
+        limitPlaceSpeedConfig = FAConfig.addThirdListConfig("limitPlaceSpeed", false);
+        maxBlockPerTickConfig = limitPlaceSpeedConfig.addDoubleConfig("maxBlockPerTick", 1.0, 0, 64);
+        reachDistanceConfig = FAConfig.addDoubleConfig("reachDistance", 4.5, 0, 5);
+        testDistanceConfig = FAConfig.addIntegerConfig("testDistance", 6, 6, 64, new TestDistanceRefreshCallback());
+        disableOnLeftDownConfig = FAConfig.addBooleanConfig("disableOnLeftDown", true);
+        disableOnGUIOpened = FAConfig.addBooleanConfig("disableOnGUIOpened", false);
+        placeableItemsConfig = FAConfig.addStringListConfig("placeableItems", defaultPlaceableItemIdList, new PlaceableItemsRefreshCallback());
+        passableBlocksConfig = FAConfig.addStringListConfig("passableBlocks", defaultPassableBlockIdList, new PassableBlocksRefreshCallback());
+        transparentAsPassableConfig = FAConfig.addBooleanConfig("transparentAsPassable", true);
+        notOpaqueAsPassableConfig = FAConfig.addBooleanConfig("notOpaqueAsPassable", true);
+        requiredBlocksConfig = FAConfig.addStringListConfig("requiredBlocks", defaultRequiredBlockIdList, new RequiredBlocksRefreshCallback());
+        offhandFillingConfig = FAConfig.addBooleanConfig("offhandFilling", false);
+        limitFillingRange = FAConfig.addThirdListConfig("limitFillingRange", false);
+        outerRangeBlockMethod = limitFillingRange.addOptionListConfig("outerRangeBlockMethod");
         outerRangeBlockMethod.addOption(outerRangeBlockMethods.AS_UNPASSABLE.getKey(), outerRangeBlockMethods.AS_UNPASSABLE);
         outerRangeBlockMethod.addOption(outerRangeBlockMethods.AS_PASSABLE.getKey(), outerRangeBlockMethods.AS_PASSABLE);
         outerRangeBlockMethod.addOption(outerRangeBlockMethods.AS_ORIGIN.getKey(), outerRangeBlockMethods.AS_ORIGIN);
-        minXConfig = limitFillingRange.addIntegerConfig("FA_minX", Integer.MIN_VALUE);
-        maxXConfig = limitFillingRange.addIntegerConfig("FA_maxX", Integer.MAX_VALUE);
-        minYConfig = limitFillingRange.addIntegerConfig("FA_minY", Integer.MIN_VALUE);
-        maxYConfig = limitFillingRange.addIntegerConfig("FA_maxY", Integer.MAX_VALUE);
-        minZConfig = limitFillingRange.addIntegerConfig("FA_minZ", Integer.MIN_VALUE);
-        maxZConfig = limitFillingRange.addIntegerConfig("FA_maxZ", Integer.MAX_VALUE);
-        valueChangeConfig = limitFillingRange.addIntegerListConfig("FA_ValueChange");
+        minXConfig = limitFillingRange.addIntegerConfig("minX", Integer.MIN_VALUE);
+        maxXConfig = limitFillingRange.addIntegerConfig("maxX", Integer.MAX_VALUE);
+        minYConfig = limitFillingRange.addIntegerConfig("minY", Integer.MIN_VALUE);
+        maxYConfig = limitFillingRange.addIntegerConfig("maxY", Integer.MAX_VALUE);
+        minZConfig = limitFillingRange.addIntegerConfig("minZ", Integer.MIN_VALUE);
+        maxZConfig = limitFillingRange.addIntegerConfig("maxZ", Integer.MAX_VALUE);
+        valueChangeConfig = limitFillingRange.addIntegerListConfig("valueChange");
         valueChangeConfig.addOption("minX", minXConfig);
         valueChangeConfig.addOption("maxX", maxXConfig);
         valueChangeConfig.addOption("minY", minYConfig);
         valueChangeConfig.addOption("maxY", maxYConfig);
         valueChangeConfig.addOption("minZ", minZConfig);
         valueChangeConfig.addOption("maxZ", maxZConfig);
-        valueAddHotkeyConfig = limitFillingRange.addHotkeyConfig("FA_AddValueKey", "",
+        valueAddHotkeyConfig = limitFillingRange.addHotkeyConfig("addValueKey", "",
                 new HotkeyConfig.IntegerChanger<>(1, valueChangeConfig, limitFillingRange));
-        valueSubtractHotkeyConfig = limitFillingRange.addHotkeyConfig("FA_SubtractValueKey", "",
+        valueSubtractHotkeyConfig = limitFillingRange.addHotkeyConfig("subtractValueKey", "",
                 new HotkeyConfig.IntegerChanger<>(-1, valueChangeConfig, limitFillingRange));
     }
 

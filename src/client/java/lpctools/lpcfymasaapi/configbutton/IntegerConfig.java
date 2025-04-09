@@ -1,7 +1,6 @@
 package lpctools.lpcfymasaapi.configbutton;
 
 import fi.dy.masa.malilib.config.options.ConfigInteger;
-import lpctools.lpcfymasaapi.LPCConfigList;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.function.IntConsumer;
@@ -10,17 +9,17 @@ import java.util.function.IntSupplier;
 public class IntegerConfig extends LPCConfig<ConfigInteger> implements IntSupplier, IntConsumer {
     public final int defaultInteger;
     public final int minValue, maxValue;
-    public IntegerConfig(LPCConfigList list, String nameKey, int defaultInteger){
-        this(list, nameKey, defaultInteger, Integer.MIN_VALUE, Integer.MAX_VALUE, null);
+    public IntegerConfig(ILPCConfigList defaultParent, String nameKey, int defaultInteger){
+        this(defaultParent, nameKey, defaultInteger, Integer.MIN_VALUE, Integer.MAX_VALUE, null);
     }
-    public IntegerConfig(LPCConfigList list, String nameKey, int defaultInteger, IValueRefreshCallback callback){
-        this(list, nameKey, defaultInteger, Integer.MIN_VALUE, Integer.MAX_VALUE, callback);
+    public IntegerConfig(ILPCConfigList defaultParent, String nameKey, int defaultInteger, IValueRefreshCallback callback){
+        this(defaultParent, nameKey, defaultInteger, Integer.MIN_VALUE, Integer.MAX_VALUE, callback);
     }
-    public IntegerConfig(LPCConfigList list, String nameKey, int defaultInteger, int minValue, int maxValue){
-        this(list, nameKey, defaultInteger, minValue, maxValue, null);
+    public IntegerConfig(ILPCConfigList defaultParent, String nameKey, int defaultInteger, int minValue, int maxValue){
+        this(defaultParent, nameKey, defaultInteger, minValue, maxValue, null);
     }
-    public IntegerConfig(LPCConfigList list, String nameKey, int defaultInteger, int minValue, int maxValue, IValueRefreshCallback callback){
-        super(list, nameKey, false);
+    public IntegerConfig(ILPCConfigList defaultParent, String nameKey, int defaultInteger, int minValue, int maxValue, IValueRefreshCallback callback){
+        super(defaultParent, nameKey, false);
         this.defaultInteger = defaultInteger;
         this.minValue = minValue;
         this.maxValue = maxValue;
@@ -28,7 +27,6 @@ public class IntegerConfig extends LPCConfig<ConfigInteger> implements IntSuppli
     }
     @Override @NotNull protected ConfigInteger createInstance(){
         ConfigInteger config = new ConfigInteger(getNameKey(), defaultInteger, minValue, maxValue);
-        config.apply(getList().getFullTranslationKey());
         config.setValueChangeCallback(new LPCConfigCallback<>(this));
         return config;
     }

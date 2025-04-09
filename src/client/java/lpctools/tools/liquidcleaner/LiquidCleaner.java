@@ -4,10 +4,10 @@ import com.google.common.collect.ImmutableList;
 import fi.dy.masa.malilib.hotkeys.IKeybind;
 import fi.dy.masa.malilib.hotkeys.KeyAction;
 import fi.dy.masa.malilib.util.StringUtils;
-import lpctools.compat.derived.SimpleTestableShape;
 import lpctools.lpcfymasaapi.Registry;
 import lpctools.lpcfymasaapi.configbutton.*;
 import lpctools.tools.ToolConfigs;
+import lpctools.lpcfymasaapi.configbutton.derivedConfigs.RangeLimitConfig;
 import net.minecraft.block.Block;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ClientPlayerEntity;
@@ -23,19 +23,14 @@ import java.util.List;
 
 public class LiquidCleaner {
     public static void init(ThirdListConfig LCConfig){
-        hotkeyConfig = LCConfig.addHotkeyConfig("LC_Hotkey", "", LiquidCleaner::hotkeyCallback);
-        limitInteractSpeedConfig = LCConfig.addThirdListConfig("LC_limitInteractSpeed", false);
-        maxBlockPerTickConfig = limitInteractSpeedConfig.addDoubleConfig("LC_maxBlockPerTick", 1.0, 0, 64);
-        reachDistanceConfig = LCConfig.addDoubleConfig("LC_reachDistance", 4.5, 0, 5);
-        disableOnGUIOpened = LCConfig.addBooleanConfig("LC_disableOnGUIOpened", false);
-        offhandFillingConfig = LCConfig.addBooleanConfig("LC_OffhandFilling", false);
-        blockBlackListConfig = LCConfig.addStringListConfig("LC_BlockBlackList", ImmutableList.of(), LiquidCleaner::onBlacklistRefresh);
-        limitCleaningRange = LCConfig.addThirdListConfig("LC_LimitCleaningRange", false);
-        rangeNamePrefix = limitCleaningRange.addStringConfig("LC_RangeNamePrefix", "LC");
-        rangeLitematica = limitCleaningRange.addThirdListConfig("LC_RangeLitematica", false);
-        renderRangeTestType = rangeLitematica.addOptionListConfig("LC_RenderRangeTestType");
-        for(SimpleTestableShape.TestType testType : SimpleTestableShape.TestType.values())
-            renderRangeTestType.addOption(testType.getPrefix(), testType);
+        hotkeyConfig = LCConfig.addHotkeyConfig("hotkey", "", LiquidCleaner::hotkeyCallback);
+        limitInteractSpeedConfig = LCConfig.addThirdListConfig("limitInteractSpeed", false);
+        maxBlockPerTickConfig = limitInteractSpeedConfig.addDoubleConfig("maxBlockPerTick", 1.0, 0, 64);
+        reachDistanceConfig = LCConfig.addDoubleConfig("reachDistance", 4.5, 0, 5);
+        disableOnGUIOpened = LCConfig.addBooleanConfig("disableOnGUIOpened", false);
+        offhandFillingConfig = LCConfig.addBooleanConfig("offhandFilling", false);
+        blockBlackListConfig = LCConfig.addStringListConfig("blockBlackList", ImmutableList.of(), LiquidCleaner::onBlacklistRefresh);
+        limitCleaningRange = LCConfig.addConfig(new RangeLimitConfig(LCConfig, false, 1, "LC"));
     }
     public static boolean isEnabled(){return onEndTick != null;}
     public static void enableTool(){
@@ -60,10 +55,7 @@ public class LiquidCleaner {
     public static BooleanConfig disableOnGUIOpened;
     public static BooleanConfig offhandFillingConfig;
     public static StringListConfig blockBlackListConfig;
-    public static ThirdListConfig limitCleaningRange;
-    public static StringConfig rangeNamePrefix;
-    public static ThirdListConfig rangeLitematica;
-    public static OptionListConfig<SimpleTestableShape.TestType> renderRangeTestType;
+    public static RangeLimitConfig limitCleaningRange;
     @Nullable static OnEndTick onEndTick;
     @NotNull static HashSet<Block> blacklistBlocks = new HashSet<>();
     @NotNull static HashSet<Item> blacklistItems = new HashSet<>();

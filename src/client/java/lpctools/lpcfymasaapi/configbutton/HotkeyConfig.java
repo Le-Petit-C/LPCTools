@@ -6,7 +6,6 @@ import fi.dy.masa.malilib.hotkeys.IHotkeyCallback;
 import fi.dy.masa.malilib.hotkeys.IKeybind;
 import fi.dy.masa.malilib.hotkeys.KeyAction;
 import fi.dy.masa.malilib.util.StringUtils;
-import lpctools.lpcfymasaapi.LPCConfigList;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.text.Text;
@@ -20,17 +19,17 @@ import java.util.function.IntSupplier;
 public class HotkeyConfig extends LPCConfig<ConfigHotkey> implements ILPCHotkey{
     @Nullable public final String defaultStorageString;
     @NotNull public final IHotkeyCallback hotkeyCallback;
-    public HotkeyConfig(@NotNull LPCConfigList list, @NotNull String nameKey, @Nullable String defaultStorageString, @NotNull IHotkeyCallback hotkeyCallback){
-        super(list, nameKey, true);
+    public HotkeyConfig(@NotNull ILPCConfigList defaultParent, @NotNull String nameKey, @Nullable String defaultStorageString, @NotNull IHotkeyCallback hotkeyCallback){
+        super(defaultParent, nameKey, true);
         this.defaultStorageString = defaultStorageString;
         this.hotkeyCallback = hotkeyCallback;
-        list.getPage().getInputHandler().addHotkey(this);
+        defaultParent.getPage().getInputHandler().addHotkey(this);
     }
     @Override public IHotkey LPCGetHotkey() {return getConfig();}
 
     @Override @NotNull protected ConfigHotkey createInstance(){
         ConfigHotkey config = new ConfigHotkey(getNameKey(), defaultStorageString);
-        config.apply(getList().getFullTranslationKey());
+        config.apply(getDefaultParent().getFullTranslationKey());
         config.getKeybind().setCallback(hotkeyCallback);
         return config;
     }

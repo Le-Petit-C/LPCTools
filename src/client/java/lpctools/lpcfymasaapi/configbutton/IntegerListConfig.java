@@ -1,6 +1,5 @@
 package lpctools.lpcfymasaapi.configbutton;
 
-import lpctools.lpcfymasaapi.LPCConfigList;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -11,9 +10,11 @@ import java.util.function.IntSupplier;
 //其实是给HotkeyConfig.IntegerChanger用的
 public class IntegerListConfig<T extends IntSupplier & IntConsumer>
         extends OptionListConfig<T> implements IntSupplier, IntConsumer{
-    public IntegerListConfig(@NotNull LPCConfigList list, @NotNull String nameKey) {super(list, nameKey);}
-    public IntegerListConfig(@NotNull LPCConfigList list, @NotNull String nameKey, @Nullable IValueRefreshCallback callback) {
-        super(list, nameKey, callback);
+    public IntegerListConfig(@NotNull ILPCConfigList defaultParent, @NotNull String nameKey) {
+        super(defaultParent, nameKey);
+    }
+    public IntegerListConfig(@NotNull ILPCConfigList defaultParent, @NotNull String nameKey, @Nullable IValueRefreshCallback callback) {
+        super(defaultParent, nameKey, callback);
     }
     @Override public int getAsInt() {return getCurrentUserdata().getAsInt();}
     @Override public void accept(int value) {getCurrentUserdata().accept(value);}
