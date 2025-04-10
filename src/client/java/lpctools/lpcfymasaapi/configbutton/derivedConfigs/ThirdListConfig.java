@@ -1,16 +1,18 @@
-package lpctools.lpcfymasaapi.configbutton;
+package lpctools.lpcfymasaapi.configbutton.derivedConfigs;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import lpctools.lpcfymasaapi.LPCConfigPage;
-import lpctools.util.GuiUtils;
+import lpctools.lpcfymasaapi.configbutton.transferredConfigs.BooleanConfig;
+import lpctools.lpcfymasaapi.configbutton.ILPCConfig;
+import lpctools.lpcfymasaapi.configbutton.ILPCConfigList;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 
 //第三级列表，配置中切换true或false可以展开或收起内含的配置项
-public class ThirdListConfig extends BooleanConfig implements ILPCConfigList{
+public class ThirdListConfig extends BooleanConfig implements ILPCConfigList {
     @NotNull public final ArrayList<ILPCConfig> thirdList = new ArrayList<>();
     public ThirdListConfig(ILPCConfigList defaultParent, String nameKey, boolean defaultBoolean) {
         super(defaultParent, nameKey, defaultBoolean);
@@ -18,8 +20,8 @@ public class ThirdListConfig extends BooleanConfig implements ILPCConfigList{
         if(parent != null) parent.addConfig(this);
         setCallback(()->{
             if (lastValue != getAsBoolean()){
-                if(GuiUtils.isInTextOrGui())
-                    getPage().showPage();
+                //if(GuiUtils.isInTextOrGui())
+                getPage().showPage();
                 lastValue = getAsBoolean();
             }
         });

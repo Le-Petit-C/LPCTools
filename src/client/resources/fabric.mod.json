@@ -18,6 +18,9 @@
 		"client": [
 			"lpctools.lpcfymasaapi.LPCAPIInit",
 			"lpctools.LPCTools"
+		],
+		"modmenu": [
+			"lpctools.compact.ModMenu.ModMenu"
 		]
 	},
 	"mixins": [

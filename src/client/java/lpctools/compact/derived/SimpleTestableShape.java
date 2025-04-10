@@ -1,13 +1,13 @@
-package lpctools.compat.derived;
+package lpctools.compact.derived;
 
-import lpctools.compat.interfaces.ITestableShape;
+import lpctools.compact.interfaces.ITestableShape;
 import net.minecraft.util.math.BlockPos;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 
-import static lpctools.compat.interfaces.ITestableShape.ShapeTestResult.*;
+import static lpctools.compact.interfaces.ITestableShape.ShapeTestResult.*;
 
 public class SimpleTestableShape implements ITestableShape {
     public interface ShapeTester{ boolean isInsideShape(BlockPos pos);}

@@ -7,6 +7,8 @@ import fi.dy.masa.malilib.util.StringUtils;
 import lpctools.lpcfymasaapi.Registry;
 import lpctools.lpcfymasaapi.configbutton.*;
 import lpctools.lpcfymasaapi.configbutton.derivedConfigs.RangeLimitConfig;
+import lpctools.lpcfymasaapi.configbutton.derivedConfigs.ThirdListConfig;
+import lpctools.lpcfymasaapi.configbutton.transferredConfigs.*;
 import lpctools.tools.ToolConfigs;
 import net.minecraft.block.Block;
 import net.minecraft.block.Blocks;

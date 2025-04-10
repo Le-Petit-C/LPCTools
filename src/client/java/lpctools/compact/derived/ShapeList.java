@@ -1,8 +1,7 @@
-package lpctools.compat.derived;
+package lpctools.compact.derived;
 
-import lpctools.compat.interfaces.ITestableShape;
-import lpctools.compat.litematica.LitematicaMethods;
-import lpctools.compat.minihud.MiniHUDMethods;
+import lpctools.compact.CompactMain;
+import lpctools.compact.interfaces.ITestableShape;
 import net.minecraft.util.math.BlockPos;
 
 import java.util.ArrayList;
@@ -10,13 +9,13 @@ import java.util.ArrayList;
 //不是动态连接litematica和minihud内容的，在它们的显示区域删添时不会自动更新，所以每个需要此表的工具每游戏刻的检测都会新建此表
 public class ShapeList extends ArrayList<ITestableShape> {
     public ShapeList(SimpleTestableShape.TestType litematicaRenderRangeTestType, String namePrefix){
-        if(LitematicaMethods.getInstance() != null){
-            LitematicaMethods.getInstance().addSchematicShapes(this, namePrefix);
+        if(CompactMain.getLitematicaInstance() != null){
+            CompactMain.getLitematicaInstance().addSchematicShapes(this, namePrefix);
             if(litematicaRenderRangeTestType != null)
-                LitematicaMethods.getInstance().addRenderRangeShape(this, litematicaRenderRangeTestType);
+                CompactMain.getLitematicaInstance().addRenderRangeShape(this, litematicaRenderRangeTestType);
         }
-        if(MiniHUDMethods.getInstance() != null)
-            MiniHUDMethods.getInstance().addShapes(this, namePrefix);
+        if(CompactMain.getMinihudInstance() != null)
+            CompactMain.getMinihudInstance().addShapes(this, namePrefix);
     }
     @SuppressWarnings("BooleanMethodIsAlwaysInverted")
     public boolean testPos(BlockPos pos){

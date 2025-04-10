@@ -1,7 +1,10 @@
-package lpctools.lpcfymasaapi.configbutton;
+package lpctools.lpcfymasaapi.configbutton.transferredConfigs;
 
 import fi.dy.masa.malilib.config.options.ConfigBoolean;
 import it.unimi.dsi.fastutil.booleans.BooleanConsumer;
+import lpctools.lpcfymasaapi.configbutton.ILPCConfigList;
+import lpctools.lpcfymasaapi.configbutton.IValueRefreshCallback;
+import lpctools.lpcfymasaapi.configbutton.LPCConfig;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 

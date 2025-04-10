@@ -1,14 +1,16 @@
-package lpctools.lpcfymasaapi.configbutton;
+package lpctools.lpcfymasaapi.configbutton.derivedConfigs;
 
 import fi.dy.masa.malilib.hotkeys.IHotkeyCallback;
 import fi.dy.masa.malilib.hotkeys.IKeybind;
 import fi.dy.masa.malilib.hotkeys.KeyAction;
 import lpctools.lpcfymasaapi.LPCConfigPage;
+import lpctools.lpcfymasaapi.configbutton.transferredConfigs.HotkeyConfig;
+import lpctools.lpcfymasaapi.configbutton.ILPCConfigList;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class ConfigOpenGuiConfig extends HotkeyConfig{
-    public ConfigOpenGuiConfig(@NotNull ILPCConfigList defaultParent,@Nullable String defaultStorageString){
+public class ConfigOpenGuiConfig extends HotkeyConfig {
+    public ConfigOpenGuiConfig(@NotNull ILPCConfigList defaultParent, @Nullable String defaultStorageString){
         super(defaultParent, "configOpenGui", defaultStorageString, new ConfigOpenGuiConfigInstance(defaultParent.getPage()));
     }
     private record ConfigOpenGuiConfigInstance(LPCConfigPage page) implements IHotkeyCallback{

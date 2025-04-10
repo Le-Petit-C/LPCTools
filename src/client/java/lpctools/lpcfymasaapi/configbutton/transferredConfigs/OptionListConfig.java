@@ -1,14 +1,18 @@
-package lpctools.lpcfymasaapi.configbutton;
+package lpctools.lpcfymasaapi.configbutton.transferredConfigs;
 
 import fi.dy.masa.malilib.config.IConfigOptionListEntry;
 import fi.dy.masa.malilib.config.options.ConfigOptionList;
 import fi.dy.masa.malilib.util.StringUtils;
+import lpctools.lpcfymasaapi.configbutton.IButtonDisplay;
+import lpctools.lpcfymasaapi.configbutton.ILPCConfigList;
+import lpctools.lpcfymasaapi.configbutton.IValueRefreshCallback;
+import lpctools.lpcfymasaapi.configbutton.LPCConfig;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 
-public class OptionListConfig<T> extends LPCConfig<ConfigOptionList> implements IButtonDisplay{
+public class OptionListConfig<T> extends LPCConfig<ConfigOptionList> implements IButtonDisplay {
     public OptionListConfig(@NotNull ILPCConfigList defaultParent, @NotNull String nameKey) {
         this(defaultParent, nameKey, null);
     }

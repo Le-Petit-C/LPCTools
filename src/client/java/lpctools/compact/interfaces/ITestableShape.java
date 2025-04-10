@@ -1,6 +1,6 @@
-package lpctools.compat.interfaces;
+package lpctools.compact.interfaces;
 
-import lpctools.compat.derived.SimpleTestableShape;
+import lpctools.compact.derived.SimpleTestableShape;
 import net.minecraft.util.math.BlockPos;
 import org.jetbrains.annotations.NotNull;
 

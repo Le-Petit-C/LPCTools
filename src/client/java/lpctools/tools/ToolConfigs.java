@@ -3,7 +3,7 @@ package lpctools.tools;
 import fi.dy.masa.malilib.util.StringUtils;
 import lpctools.lpcfymasaapi.LPCConfigList;
 import lpctools.lpcfymasaapi.LPCConfigPage;
-import lpctools.lpcfymasaapi.configbutton.ThirdListConfig;
+import lpctools.lpcfymasaapi.configbutton.derivedConfigs.ThirdListConfig;
 import lpctools.tools.fillingassistant.FillingAssistant;
 import lpctools.tools.liquidcleaner.LiquidCleaner;
 import net.minecraft.client.MinecraftClient;

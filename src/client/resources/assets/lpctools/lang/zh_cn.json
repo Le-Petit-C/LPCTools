@@ -40,8 +40,6 @@
   "lpctools.configs.tools.FA.requiredBlocks.comment": "填充时需要保留的方块\n填充助手不会在列表中的方块旁填充方块",
   "lpctools.configs.tools.FA.offhandFilling.name": "副手填充",
   "lpctools.configs.tools.FA.offhandFilling.comment": "开启后使用副手执行本工具的操作",
-  "lpctools.configs.tools.FA.limitFillingRange.name": "限制填充范围",
-  "lpctools.configs.tools.FA.limitFillingRange.comment": "最大最小值限制了放置方块坐标的最大最小值",
   "lpctools.configs.tools.FA.limitRange.outerRangeBlockMethod.name": "范围外方块处理方式",
   "lpctools.configs.tools.FA.limitRange.outerRangeBlockMethod.comment": "决定将范围外方块视作死路，通路还是按原处方块设置",
   "lpctools.configs.tools.outerRangeBlockMethods.asUnpassable": "视作死路",

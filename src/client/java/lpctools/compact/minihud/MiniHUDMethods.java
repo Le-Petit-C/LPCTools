@@ -1,21 +1,14 @@
-package lpctools.compat.minihud;
+package lpctools.compact.minihud;
 
 import fi.dy.masa.minihud.renderer.shapes.*;
-import lpctools.compat.derived.SimpleTestableShape;
-import lpctools.compat.interfaces.ITestableShape;
-import net.fabricmc.loader.api.FabricLoader;
+import lpctools.compact.derived.SimpleTestableShape;
+import lpctools.compact.interfaces.ITestableShape;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
 
 public class MiniHUDMethods{
-    public static MiniHUDMethods getInstance(){
-        if(isLoaded) return instance;
-        isLoaded = true;
-        return instance = createInstance();
-    }
     public void addShapes(Collection<ITestableShape> list, String namePrefix) {
         for(ShapeBase shape : ShapeManager.INSTANCE.getAllShapes()){
             String name = shape.getDisplayName();
@@ -34,7 +27,7 @@ public class MiniHUDMethods{
     private boolean shapeBoxTest(ShapeBox box, BlockPos pos){
         return box.getBox().contains(pos.toCenterPos());
     }
-    private boolean shapeSphereTest(ShapeCircleBase sphere, BlockPos pos){
+    private boolean shapeSphereTest(ShapeSphereBlocky sphere, BlockPos pos){
         return sphere.getEffectiveCenter().subtract(pos.toCenterPos()).lengthSquared() <= sphere.getSquaredRadius();
     }
     private boolean shapeCircleTest(ShapeCircle circle, BlockPos pos){
@@ -43,11 +36,5 @@ public class MiniHUDMethods{
         if(center.getY() > blockCenter.getY()) return false;
         if(center.getY() + circle.getHeight() < blockCenter.getY()) return false;
         return center.squaredDistanceTo(blockCenter.getX(), center.getY(), blockCenter.getZ()) <= circle.getSquaredRadius();
-    }
-    private static boolean isLoaded = false;
-    @Nullable private static MiniHUDMethods instance;
-    @Nullable private static MiniHUDMethods createInstance(){
-        if(FabricLoader.getInstance().isModLoaded("minihud")) return new MiniHUDMethods();
-        else return null;
     }
 }

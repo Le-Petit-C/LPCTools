@@ -1,6 +1,9 @@
-package lpctools.lpcfymasaapi.configbutton;
+package lpctools.lpcfymasaapi.configbutton.transferredConfigs;
 
 import fi.dy.masa.malilib.config.options.ConfigInteger;
+import lpctools.lpcfymasaapi.configbutton.ILPCConfigList;
+import lpctools.lpcfymasaapi.configbutton.IValueRefreshCallback;
+import lpctools.lpcfymasaapi.configbutton.LPCConfig;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.function.IntConsumer;

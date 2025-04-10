@@ -41,6 +41,8 @@ public abstract class LPCConfig<T extends IConfigBase> implements ILPCConfig{
         return instance;
     }
     protected record LPCConfigCallback<T extends IConfigBase>(@NotNull ILPCConfig parent) implements IValueChangeCallback<T> {
+        /**此注释仅用于suppress warning*/
+        public LPCConfigCallback {}
         @Override public void onValueChanged(T config) {parent.callRefresh();}
     }
 

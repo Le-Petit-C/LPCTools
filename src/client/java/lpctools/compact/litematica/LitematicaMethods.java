@@ -1,11 +1,10 @@
-package lpctools.compat.litematica;
+package lpctools.compact.litematica;
 
 import fi.dy.masa.litematica.data.DataManager;
 import fi.dy.masa.litematica.schematic.placement.SchematicPlacement;
 import fi.dy.masa.malilib.util.LayerRange;
-import lpctools.compat.derived.SimpleTestableShape;
-import lpctools.compat.interfaces.ITestableShape;
-import net.fabricmc.loader.api.FabricLoader;
+import lpctools.compact.derived.SimpleTestableShape;
+import lpctools.compact.interfaces.ITestableShape;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Box;
 import org.jetbrains.annotations.Nullable;
@@ -13,17 +12,6 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Collection;
 
 public class LitematicaMethods {
-    @Nullable public static LitematicaMethods getInstance(){
-        if(isLoaded) return instance;
-        isLoaded = true;
-        return instance = createInstance();
-    }
-    private static boolean isLoaded = false;
-    @Nullable private static LitematicaMethods instance;
-    @Nullable private static LitematicaMethods createInstance(){
-        if(FabricLoader.getInstance().isModLoaded("litematica")) return new LitematicaMethods();
-        else return null;
-    }
     public void addSchematicShapes(Collection<ITestableShape> list, String namePrefix){
         for(SchematicPlacement placement : DataManager.getSchematicPlacementManager().getAllSchematicsPlacements()){
             SimpleTestableShape.TestType testType = SimpleTestableShape.testTestType(placement.getName(), namePrefix);

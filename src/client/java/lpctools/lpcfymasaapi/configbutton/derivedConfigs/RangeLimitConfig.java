@@ -1,8 +1,10 @@
 package lpctools.lpcfymasaapi.configbutton.derivedConfigs;
 
-import lpctools.compat.derived.ShapeList;
-import lpctools.compat.derived.SimpleTestableShape;
+import lpctools.compact.derived.ShapeList;
+import lpctools.compact.derived.SimpleTestableShape;
 import lpctools.lpcfymasaapi.configbutton.*;
+import lpctools.lpcfymasaapi.configbutton.transferredConfigs.OptionListConfig;
+import lpctools.lpcfymasaapi.configbutton.transferredConfigs.StringConfig;
 import lpctools.util.LanguageExtra;
 import org.jetbrains.annotations.NotNull;
 

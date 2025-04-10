@@ -1,6 +1,6 @@
 package lpctools.tools.fillingassistant;
 
-import lpctools.compat.derived.ShapeList;
+import lpctools.compact.derived.ShapeList;
 import lpctools.lpcfymasaapi.Registry;
 import lpctools.util.GuiUtils;
 import lpctools.util.HandRestock;

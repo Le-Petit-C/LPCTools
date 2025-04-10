@@ -1,6 +1,6 @@
 package lpctools.tools.liquidcleaner;
 
-import lpctools.compat.derived.ShapeList;
+import lpctools.compact.derived.ShapeList;
 import lpctools.util.GuiUtils;
 import lpctools.util.HandRestock;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;

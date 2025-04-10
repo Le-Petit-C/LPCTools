@@ -1,13 +1,16 @@
-package lpctools.lpcfymasaapi.configbutton;
+package lpctools.lpcfymasaapi.configbutton.transferredConfigs;
 
 import com.google.common.collect.ImmutableList;
 import fi.dy.masa.malilib.config.options.ConfigStringList;
+import lpctools.lpcfymasaapi.configbutton.ILPCConfigList;
+import lpctools.lpcfymasaapi.configbutton.IValueRefreshCallback;
+import lpctools.lpcfymasaapi.configbutton.LPCConfig;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
-public class StringListConfig extends LPCConfig<ConfigStringList>{
+public class StringListConfig extends LPCConfig<ConfigStringList> {
     public StringListConfig(@NotNull ILPCConfigList defaultParent, String nameKey, @Nullable ImmutableList<String> defaultValue){
         super(defaultParent, nameKey, false);
         this.defaultValue = defaultValue;

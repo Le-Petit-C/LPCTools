@@ -1,4 +1,4 @@
-package lpctools.lpcfymasaapi.configbutton;
+package lpctools.lpcfymasaapi.configbutton.transferredConfigs;
 
 import fi.dy.masa.malilib.config.options.ConfigHotkey;
 import fi.dy.masa.malilib.hotkeys.IHotkey;
@@ -6,6 +6,10 @@ import fi.dy.masa.malilib.hotkeys.IHotkeyCallback;
 import fi.dy.masa.malilib.hotkeys.IKeybind;
 import fi.dy.masa.malilib.hotkeys.KeyAction;
 import fi.dy.masa.malilib.util.StringUtils;
+import lpctools.lpcfymasaapi.configbutton.IButtonDisplay;
+import lpctools.lpcfymasaapi.configbutton.ILPCConfigList;
+import lpctools.lpcfymasaapi.configbutton.ILPCHotkey;
+import lpctools.lpcfymasaapi.configbutton.LPCConfig;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.text.Text;
@@ -16,7 +20,7 @@ import java.util.function.BooleanSupplier;
 import java.util.function.IntConsumer;
 import java.util.function.IntSupplier;
 
-public class HotkeyConfig extends LPCConfig<ConfigHotkey> implements ILPCHotkey{
+public class HotkeyConfig extends LPCConfig<ConfigHotkey> implements ILPCHotkey {
     @Nullable public final String defaultStorageString;
     @NotNull public final IHotkeyCallback hotkeyCallback;
     public HotkeyConfig(@NotNull ILPCConfigList defaultParent, @NotNull String nameKey, @Nullable String defaultStorageString, @NotNull IHotkeyCallback hotkeyCallback){
