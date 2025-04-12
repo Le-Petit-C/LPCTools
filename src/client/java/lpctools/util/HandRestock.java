@@ -26,7 +26,7 @@ public class HandRestock {
         if (player == null) return -1;
         PlayerInventory inventory = player.getInventory();
         if(offhandPriority == -1 && restockTest.isStackOk(ItemUtils.getOffhandStack(inventory))) return 40;
-        if(restockTest.isStackOk(ItemUtils.getOffhandStack(inventory))) return inventory.getSelectedSlot();
+        if(restockTest.isStackOk(ItemUtils.getOffhandStack(inventory))) return inventory.selectedSlot;
         if(offhandPriority == 0 && restockTest.isStackOk(ItemUtils.getOffhandStack(inventory))) return 40;
         for (int i = 0; i < inventory.size(); i++) {
             ItemStack stack = inventory.getStack(i);
