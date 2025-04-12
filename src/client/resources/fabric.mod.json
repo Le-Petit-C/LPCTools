@@ -18,6 +18,9 @@
 		"client": [
 			"lpctools.lpcfymasaapi.LPCAPIInit",
 			"lpctools.LPCTools"
+		],
+		"modmenu": [
+			"lpctools.compact.ModMenu.ModMenu"
 		]
 	},
 	"mixins": [
@@ -29,19 +32,10 @@
 	"depends": {
 		"fabricloader": ">=0.16.2",
 		"minecraft": [
-			"1.21.4",
-			"1.21.3",
-			"1.21.2"
+			"1.21.5"
 		],
 		"java": ">=21",
-		"malilib": [
-			"0.23.2",
-			"0.23.2-sakura.6",
-			"0.23.2-sakura.5",
-			"0.22.5",
-			"0.22.5-sakura.6",
-			"0.22.5-sakura.5"
-		],
+		"malilib": "*",
 		"fabric-api": "*"
 	},
 	"suggests": {

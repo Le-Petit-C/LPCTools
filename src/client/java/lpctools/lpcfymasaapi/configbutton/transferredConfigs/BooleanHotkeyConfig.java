@@ -1,23 +1,27 @@
-package lpctools.lpcfymasaapi.configbutton;
+package lpctools.lpcfymasaapi.configbutton.transferredConfigs;
 
 import fi.dy.masa.malilib.config.options.ConfigBooleanHotkeyed;
 import fi.dy.masa.malilib.hotkeys.IHotkey;
 import it.unimi.dsi.fastutil.booleans.BooleanConsumer;
-import lpctools.lpcfymasaapi.LPCConfigList;
+import lpctools.lpcfymasaapi.configbutton.ILPCConfigList;
+import lpctools.lpcfymasaapi.configbutton.ILPCHotkey;
+import lpctools.lpcfymasaapi.configbutton.IValueRefreshCallback;
+import lpctools.lpcfymasaapi.configbutton.LPCConfig;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.function.BooleanSupplier;
 
 public class BooleanHotkeyConfig extends LPCConfig<ConfigBooleanHotkeyed> implements ILPCHotkey, BooleanSupplier, BooleanConsumer {
     public final boolean defaultBoolean;
     public final String defaultStorageString;
-    public BooleanHotkeyConfig(LPCConfigList list, String nameKey, boolean defaultBoolean, String defaultStorageString){
+    public BooleanHotkeyConfig(@NotNull ILPCConfigList list, @NotNull String nameKey, boolean defaultBoolean, @Nullable String defaultStorageString){
         super(list, nameKey, true);
         this.defaultBoolean = defaultBoolean;
         this.defaultStorageString = defaultStorageString;
         list.getPage().getInputHandler().addHotkey(this);
     }
-    public BooleanHotkeyConfig(LPCConfigList list, String nameKey, boolean defaultBoolean, String defaultStorageString, IValueRefreshCallback callback){
+    public BooleanHotkeyConfig(@NotNull ILPCConfigList list, @NotNull String nameKey, boolean defaultBoolean, @Nullable String defaultStorageString, @Nullable IValueRefreshCallback callback){
         this(list, nameKey, defaultBoolean, defaultStorageString);
         setCallback(callback);
     }
@@ -33,7 +37,6 @@ public class BooleanHotkeyConfig extends LPCConfig<ConfigBooleanHotkeyed> implem
 
     @Override @NotNull protected ConfigBooleanHotkeyed createInstance() {
         ConfigBooleanHotkeyed config = new ConfigBooleanHotkeyed(getNameKey(), defaultBoolean, defaultStorageString);
-        config.apply(getList().getFullTranslationKey());
         config.setValueChangeCallback(new LPCConfigCallback<>(this));
         return config;
     }

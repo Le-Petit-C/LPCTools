@@ -1,12 +1,12 @@
 package lpctools.lpcfymasaapi;
 
-import com.google.common.collect.ImmutableList;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import fi.dy.masa.malilib.config.ConfigManager;
 import fi.dy.masa.malilib.config.IConfigHandler;
 import fi.dy.masa.malilib.event.InputEventHandler;
 import fi.dy.masa.malilib.gui.GuiBase;
+import fi.dy.masa.malilib.gui.widgets.WidgetListConfigOptions;
 import fi.dy.masa.malilib.registry.Registry;
 import fi.dy.masa.malilib.util.FileUtils;
 import fi.dy.masa.malilib.util.JsonUtils;
@@ -15,14 +15,12 @@ import fi.dy.masa.malilib.gui.GuiConfigsBase;
 import fi.dy.masa.malilib.gui.button.IButtonActionListener;
 import fi.dy.masa.malilib.gui.button.ButtonBase;
 import fi.dy.masa.malilib.gui.button.ButtonGeneric;
-import lpctools.lpcfymasaapi.configbutton.ILPCConfig;
 import org.jetbrains.annotations.NotNull;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 import java.util.function.Supplier;
 
 //单个总设置页面，就是在设置右上角分列出的不同页面
@@ -39,8 +37,8 @@ public class LPCConfigPage implements IConfigHandler, Supplier<GuiBase>{
     public Reference getModReference(){return modReference;}
     //给当前页面新添一列
     public LPCConfigList addList(String translationKey){
-        if(lists == null) lists = new ArrayList<>();
         lists.add(new LPCConfigList(this, translationKey));
+        widgetPosition.add(0);
         return lists.getLast();
     }
     @NotNull public InputHandler getInputHandler(){
@@ -64,7 +62,7 @@ public class LPCConfigPage implements IConfigHandler, Supplier<GuiBase>{
             if (element != null && element.isJsonObject()){
                 JsonObject pageJson = element.getAsJsonObject();
                 for(LPCConfigList list : lists)
-                    list.loadFromConfigPageJson(pageJson);
+                    list.loadConfigListFromJson(pageJson);
             }
             else LPCAPIInit.LOGGER.error(
                     "load(): Failed to parse config file '{}' as a JSON element.",
@@ -72,13 +70,20 @@ public class LPCConfigPage implements IConfigHandler, Supplier<GuiBase>{
         }
     }
     @Override public void save() {
-        JsonObject pageJson = new JsonObject();
+        Path configFile = FileUtils.getConfigDirectoryAsPath().resolve(configFileName);
+        JsonObject pageJson = null;
+        if (Files.exists(configFile) && Files.isReadable(configFile)){
+            JsonElement element = JsonUtils.parseJsonFileAsPath(configFile);
+            if(element != null && element.isJsonObject())
+                pageJson = element.getAsJsonObject();
+        }
+        if(pageJson == null) pageJson = new JsonObject();
         Path dir = FileUtils.getConfigDirectoryAsPath();
         if (!Files.exists(dir))
             FileUtils.createDirectoriesIfMissing(dir);
         if (Files.isDirectory(dir)) {
             for(LPCConfigList list : lists)
-                list.addIntoConfigPageJson(pageJson);
+                list.addConfigListIntoJson(pageJson);
             Path file = dir.resolve(configFileName);
             JsonUtils.writeJsonToFileAsPath(pageJson, file);
         }
@@ -90,30 +95,25 @@ public class LPCConfigPage implements IConfigHandler, Supplier<GuiBase>{
             page.afterInit();
         uninitializedConfigPages = null;
     }
-    void callRefresh(){
-        for(LPCConfigList list : lists)
-            list.callRefresh();
-    }
 
     private static ArrayList<LPCConfigPage> uninitializedConfigPages = new ArrayList<>();
     private InputHandler inputHandler;
     private final Reference modReference;
     private final String configFileName;
-    private ArrayList<LPCConfigList> lists = null;
+    private final @NotNull ArrayList<LPCConfigList> lists = new ArrayList<>();
+    private final @NotNull ArrayList<Integer> widgetPosition = new ArrayList<>();
     private int selectedIndex = 0;
     private ConfigPageInstance pageInstance;
     private void afterInit(){
         ConfigManager.getInstance().registerConfigHandler(modReference.modId, this);
         Registry.CONFIG_SCREEN.registerConfigScreenFactory(new ModInfo(modReference.modId, modReference.modName, this));
         if(inputHandler == null) inputHandler = new InputHandler(modReference);
-        //load();
     }
 
     private static class ConfigPageInstance extends GuiConfigsBase{
         @Override public void initGui() {
             super.initGui();
             this.clearOptions();
-            if(parent.lists == null) return;
 
             int x = 10;
             int y = 26;
@@ -127,12 +127,7 @@ public class LPCConfigPage implements IConfigHandler, Supplier<GuiBase>{
             }
         }
         @Override public List<ConfigOptionWrapper> getConfigs() {
-            ImmutableList.Builder<ConfigOptionWrapper> builder = ImmutableList.builder();
-            for (ILPCConfig config : parent.lists.get(parent.selectedIndex).configs) {
-                if(config.isEnabled())
-                    builder.add(new ConfigOptionWrapper(config.IGetConfig()));
-            }
-            return builder.build();
+            return parent.lists.get(parent.selectedIndex).buildConfigWrappers(new ArrayList<>());
         }
         @Override public void removed(){
             super.removed();
@@ -151,10 +146,13 @@ public class LPCConfigPage implements IConfigHandler, Supplier<GuiBase>{
         void select(int index){
             if(index == parent.selectedIndex) return;
             parent.lists.get(parent.selectedIndex).callRefresh();
-            parent.selectedIndex = index;
-            reCreateListWidget(); // apply the new config width
-            Objects.requireNonNull(getListWidget()).getScrollbar().setValue(0);
-            //TODO:保存滚动条位置
+            WidgetListConfigOptions widget = getListWidget();
+            if(widget != null){
+                parent.widgetPosition.set(parent.selectedIndex, widget.getScrollbar().getValue());
+                parent.selectedIndex = index;
+                reCreateListWidget(); // apply the new config width
+                widget.getScrollbar().setValue(parent.widgetPosition.get(index));
+            }
             initGui();
         }
 

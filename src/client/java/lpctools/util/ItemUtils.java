@@ -3,8 +3,11 @@ package lpctools.util;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.client.network.ClientPlayerInteractionManager;
+import net.minecraft.entity.player.PlayerInventory;
+import net.minecraft.item.ItemStack;
 import net.minecraft.screen.slot.SlotActionType;
 
+@SuppressWarnings("unused")
 public class ItemUtils {
     public static void swapHands(){clickSlot(-1, 40, SlotActionType.SWAP);}
     public static void swapSlotWithOffhand(int slot){clickSlot(slot, 40, SlotActionType.SWAP);}
@@ -30,9 +33,12 @@ public class ItemUtils {
         if(itm == null) return;
         ClientPlayerEntity player = MinecraftClient.getInstance().player;
         if(player == null) return;
-        if(slot == -1) slot = player.getInventory().selectedSlot;
-        if(button == -1) button = player.getInventory().selectedSlot;
+        if(slot == -1) slot = player.getInventory().getSelectedSlot();
+        if(button == -1) button = player.getInventory().getSelectedSlot();
         if(slot < 9) slot += 36;
         itm.clickSlot(player.currentScreenHandler.syncId, slot, button, type, player);
+    }
+    public static ItemStack getOffhandStack(PlayerInventory inventory){
+        return inventory.getStack(PlayerInventory.OFF_HAND_SLOT);
     }
 }

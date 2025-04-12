@@ -6,8 +6,12 @@ import fi.dy.masa.malilib.hotkeys.KeyAction;
 import fi.dy.masa.malilib.util.StringUtils;
 import lpctools.lpcfymasaapi.Registry;
 import lpctools.lpcfymasaapi.configbutton.*;
+import lpctools.lpcfymasaapi.configbutton.derivedConfigs.RangeLimitConfig;
+import lpctools.lpcfymasaapi.configbutton.derivedConfigs.ThirdListConfig;
+import lpctools.lpcfymasaapi.configbutton.transferredConfigs.*;
 import lpctools.tools.ToolConfigs;
 import net.minecraft.block.Block;
+import net.minecraft.block.Blocks;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.client.world.ClientWorld;
@@ -32,14 +36,14 @@ public class FillingAssistant {
         runner = new PlaceBlockTick();
         Registry.registerEndClientTickCallback(runner);
         Registry.registerInGameEndMouseCallback(runner);
-        player.sendMessage(Text.literal(StringUtils.translate("lpctools.tools.FA_enableNotification")), true);
+        player.sendMessage(Text.literal(StringUtils.translate("lpctools.tools.FA.enableNotification")), true);
     }
     public static void disableTool(@Nullable String reasonKey){
         if(!enabled()) return;
         Registry.unregisterEndClientTickCallback(runner);
         Registry.unregisterInGameEndMouseCallback(runner);
         runner = null;
-        ToolConfigs.displayDisableReason("FA_disableNotification", reasonKey);
+        ToolConfigs.displayDisableReason("FA.disableNotification", reasonKey);
     }
     public static boolean enabled(){return runner != null;}
     public static @NotNull HashSet<Item> getPlaceableItems(){return placeableItems;}
@@ -53,14 +57,6 @@ public class FillingAssistant {
         ClientWorld world = MinecraftClient.getInstance().world;
         if (world != null){
             Block block = world.getBlockState(pos).getBlock();
-            if(limitFillingRange.getAsBoolean()){
-                if(pos.getX() < minXConfig.getAsInt()) return outerRangeBlockMethod.getCurrentUserdata().isBlockUnpassable(block);
-                if(pos.getX() > maxXConfig.getAsInt()) return outerRangeBlockMethod.getCurrentUserdata().isBlockUnpassable(block);
-                if(pos.getY() < minYConfig.getAsInt()) return outerRangeBlockMethod.getCurrentUserdata().isBlockUnpassable(block);
-                if(pos.getY() > maxYConfig.getAsInt()) return outerRangeBlockMethod.getCurrentUserdata().isBlockUnpassable(block);
-                if(pos.getZ() < minZConfig.getAsInt()) return outerRangeBlockMethod.getCurrentUserdata().isBlockUnpassable(block);
-                if(pos.getZ() > maxZConfig.getAsInt()) return outerRangeBlockMethod.getCurrentUserdata().isBlockUnpassable(block);
-            }
             return isBlockUnpassable(block);
         }
         else return true;
@@ -85,56 +81,43 @@ public class FillingAssistant {
         else requiredBlocks = new HashSet<>(defaultRequiredBlockWhiteList);
     }
     public static void init(ThirdListConfig FAConfig){
-        hotkeyConfig = FAConfig.addHotkeyConfig("FA_Hotkey", "", new HotkeyCallback());
-        limitPlaceSpeedConfig = FAConfig.addThirdListConfig("FA_limitPlaceSpeed", false);
-        maxBlockPerTickConfig = limitPlaceSpeedConfig.addDoubleConfig("FA_maxBlockPerTick", 1.0, 0, 64);
-        reachDistanceConfig = FAConfig.addDoubleConfig("FA_reachDistance", 4.5, 0, 5);
-        testDistanceConfig = FAConfig.addIntegerConfig("FA_testDistance", 6, 6, 64, new TestDistanceRefreshCallback());
-        disableOnLeftDownConfig = FAConfig.addBooleanConfig("FA_disableOnLeftDown", true);
-        disableOnGUIOpened = FAConfig.addBooleanConfig("FA_disableOnGUIOpened", false);
-        placeableItemsConfig = FAConfig.addStringListConfig("FA_placeableItems", defaultPlaceableItemIdList, new PlaceableItemsRefreshCallback());
-        passableBlocksConfig = FAConfig.addStringListConfig("FA_passableBlocks", defaultPassableBlockIdList, new PassableBlocksRefreshCallback());
-        transparentAsPassableConfig = FAConfig.addBooleanConfig("FA_transparentAsPassable", true);
-        notOpaqueAsPassableConfig = FAConfig.addBooleanConfig("FA_notOpaqueAsPassable", true);
-        requiredBlocksConfig = FAConfig.addStringListConfig("FA_requiredBlocks", defaultRequiredBlockIdList, new RequiredBlocksRefreshCallback());
-        offhandFillingConfig = FAConfig.addBooleanConfig("FA_OffhandFilling", false);
-        limitFillingRange = FAConfig.addThirdListConfig("FA_LimitFillingRange", false);
-        outerRangeBlockMethod = limitFillingRange.addOptionListConfig("FA_OuterRangeBlockMethod");
-        outerRangeBlockMethod.addOption(outerRangeBlockMethods.AS_UNPASSABLE.getKey(), outerRangeBlockMethods.AS_UNPASSABLE);
-        outerRangeBlockMethod.addOption(outerRangeBlockMethods.AS_PASSABLE.getKey(), outerRangeBlockMethods.AS_PASSABLE);
-        outerRangeBlockMethod.addOption(outerRangeBlockMethods.AS_ORIGIN.getKey(), outerRangeBlockMethods.AS_ORIGIN);
-        minXConfig = limitFillingRange.addIntegerConfig("FA_minX", Integer.MIN_VALUE);
-        maxXConfig = limitFillingRange.addIntegerConfig("FA_maxX", Integer.MAX_VALUE);
-        minYConfig = limitFillingRange.addIntegerConfig("FA_minY", Integer.MIN_VALUE);
-        maxYConfig = limitFillingRange.addIntegerConfig("FA_maxY", Integer.MAX_VALUE);
-        minZConfig = limitFillingRange.addIntegerConfig("FA_minZ", Integer.MIN_VALUE);
-        maxZConfig = limitFillingRange.addIntegerConfig("FA_maxZ", Integer.MAX_VALUE);
-        valueChangeConfig = limitFillingRange.addIntegerListConfig("FA_ValueChange");
-        valueChangeConfig.addOption("minX", minXConfig);
-        valueChangeConfig.addOption("maxX", maxXConfig);
-        valueChangeConfig.addOption("minY", minYConfig);
-        valueChangeConfig.addOption("maxY", maxYConfig);
-        valueChangeConfig.addOption("minZ", minZConfig);
-        valueChangeConfig.addOption("maxZ", maxZConfig);
-        valueAddHotkeyConfig = limitFillingRange.addHotkeyConfig("FA_AddValueKey", "",
-                new HotkeyConfig.IntegerChanger<>(1, valueChangeConfig, limitFillingRange));
-        valueSubtractHotkeyConfig = limitFillingRange.addHotkeyConfig("FA_SubtractValueKey", "",
-                new HotkeyConfig.IntegerChanger<>(-1, valueChangeConfig, limitFillingRange));
+        hotkeyConfig = FAConfig.addHotkeyConfig("hotkey", "", new HotkeyCallback());
+        limitPlaceSpeedConfig = FAConfig.addThirdListConfig("limitPlaceSpeed", false);
+        maxBlockPerTickConfig = limitPlaceSpeedConfig.addDoubleConfig("maxBlockPerTick", 1.0, 0, 64);
+        reachDistanceConfig = FAConfig.addDoubleConfig("reachDistance", 4.5, 0, 5);
+        testDistanceConfig = FAConfig.addIntegerConfig("testDistance", 6, 6, 64, new TestDistanceRefreshCallback());
+        disableOnLeftDownConfig = FAConfig.addBooleanConfig("disableOnLeftDown", true);
+        disableOnGUIOpened = FAConfig.addBooleanConfig("disableOnGUIOpened", false);
+        placeableItemsConfig = FAConfig.addStringListConfig("placeableItems", defaultPlaceableItemIdList, new PlaceableItemsRefreshCallback());
+        passableBlocksConfig = FAConfig.addStringListConfig("passableBlocks", defaultPassableBlockIdList, new PassableBlocksRefreshCallback());
+        transparentAsPassableConfig = FAConfig.addBooleanConfig("transparentAsPassable", true);
+        notOpaqueAsPassableConfig = FAConfig.addBooleanConfig("notOpaqueAsPassable", true);
+        requiredBlocksConfig = FAConfig.addStringListConfig("requiredBlocks", defaultRequiredBlockIdList, new RequiredBlocksRefreshCallback());
+        offhandFillingConfig = FAConfig.addBooleanConfig("offhandFilling", false);
+        limitFillingRange = FAConfig.addRangeLimitConfig(false, "FA");
+        outerRangeBlockMethod = limitFillingRange.addOptionListConfig("outerRangeBlockMethod");
+        for(OuterRangeBlockMethods method : OuterRangeBlockMethods.values())
+            outerRangeBlockMethod.addOption(method.getKey(), method);
     }
 
-    enum outerRangeBlockMethods{
-        AS_UNPASSABLE("lpctools.configs.tools.outerRangeBlockMethods.asUnpassable", (Block block) -> true),
-        AS_PASSABLE("lpctools.configs.tools.outerRangeBlockMethods.asPassable", (Block block) -> false),
+    enum OuterRangeBlockMethods {
+        AS_UNPASSABLE("lpctools.configs.tools.outerRangeBlockMethods.asUnpassable", block -> true),
+        AS_PASSABLE("lpctools.configs.tools.outerRangeBlockMethods.asPassable", block -> false),
         AS_ORIGIN("lpctools.configs.tools.outerRangeBlockMethods.asOrigin", FillingAssistant::isBlockUnpassable);
         public final String translationKey;
         public final Method method;
         public interface Method{ boolean isBlockUnpassable(Block block);}
-        outerRangeBlockMethods(String translationKey, Method method){
+        OuterRangeBlockMethods(String translationKey, Method method){
             this.translationKey = translationKey;
             this.method = method;
         }
         String getKey(){return translationKey;}
         boolean isBlockUnpassable(Block block){return method.isBlockUnpassable(block);}
+        boolean isUnpassable(BlockPos pos){
+            ClientWorld world = MinecraftClient.getInstance().world;
+            if(world != null) return isBlockUnpassable(world.getBlockState(pos).getBlock());
+            else return isBlockUnpassable(Blocks.VOID_AIR);
+        }
     }
 
     /*
@@ -160,17 +143,8 @@ public class FillingAssistant {
     static BooleanConfig notOpaqueAsPassableConfig;
     static StringListConfig requiredBlocksConfig;
     static BooleanConfig offhandFillingConfig;
-    static ThirdListConfig limitFillingRange;
-    static OptionListConfig<outerRangeBlockMethods> outerRangeBlockMethod;
-    static IntegerConfig minXConfig;
-    static IntegerConfig maxXConfig;
-    static IntegerConfig minYConfig;
-    static IntegerConfig maxYConfig;
-    static IntegerConfig minZConfig;
-    static IntegerConfig maxZConfig;
-    static IntegerListConfig<IntegerConfig> valueChangeConfig;
-    static HotkeyConfig valueAddHotkeyConfig;
-    static HotkeyConfig valueSubtractHotkeyConfig;
+    static RangeLimitConfig limitFillingRange;
+    static OptionListConfig<OuterRangeBlockMethods> outerRangeBlockMethod;
     @NotNull private static HashSet<Item> itemSetFromIdList(@Nullable List<String> list){
         HashSet<Item> ret = new HashSet<>();
         if(list == null) return ret;
