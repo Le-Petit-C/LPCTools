@@ -1,5 +1,6 @@
 package lpctools.tools.fillingassistant;
 
+import lpctools.compact.derived.ShapeList;
 import lpctools.lpcfymasaapi.Registry;
 import lpctools.util.GuiUtils;
 import lpctools.util.HandRestock;
@@ -70,44 +71,33 @@ public class PlaceBlockTick implements ClientTickEvents.EndTick, Registry.InGame
             canSetBlockCount += maxBlockPerTickConfig.getAsDouble();
         }
         else canSetBlockCount = Double.MAX_VALUE;
-        initializeMap(eyeBlockPos);
+        ShapeList shapeList = limitFillingRange.buildShapeList();
+        int r = (int) Math.ceil(reachDistanceConfig.getAsDouble());
+        initializeMap(shapeList, eyeBlockPos);
+        int startX = eyeBlockPos.getX() - r;
+        int startY = eyeBlockPos.getY() - r;
+        int startZ = eyeBlockPos.getZ() - r;
+        int endX = eyeBlockPos.getX() + r;
+        int endY = eyeBlockPos.getY() + r;
+        int endZ = eyeBlockPos.getZ() + r;
+        DimensionType dimensionType = client.world.getDimension();
+        if(startY < dimensionType.minY()) startY = dimensionType.minY();
+        if(endY > dimensionType.minY() + dimensionType.height() - 1) endY = dimensionType.minY() + dimensionType.height() - 1;
         do {
             blockSetted = false;
-            int r = (int) Math.ceil(reachDistanceConfig.getAsDouble());
-            int minX = eyeBlockPos.getX() - r;
-            int maxX = eyeBlockPos.getX() + r;
-            int minY = eyeBlockPos.getY() - r;
-            int maxY = eyeBlockPos.getY() + r;
-            int minZ = eyeBlockPos.getZ() - r;
-            int maxZ = eyeBlockPos.getZ() + r;
-            if(limitFillingRange.getAsBoolean()){
-                if(minX < minXConfig.getAsInt()) minX = minXConfig.getAsInt();
-                if(maxX > maxXConfig.getAsInt()) maxX = maxXConfig.getAsInt();
-                if(minY < minYConfig.getAsInt()) minY = minYConfig.getAsInt();
-                if(maxY > maxYConfig.getAsInt()) maxY = maxYConfig.getAsInt();
-                if(minZ < minZConfig.getAsInt()) minZ = minZConfig.getAsInt();
-                if(maxZ > maxZConfig.getAsInt()) maxZ = maxZConfig.getAsInt();
-            }
-            DimensionType dimensionType = client.world.getDimension();
-            if(minY < dimensionType.minY()) minY = dimensionType.minY();
-            if(maxY > dimensionType.minY() + dimensionType.height() - 1) maxY = dimensionType.minY() + dimensionType.height() - 1;
-            for (int y = minY; y <= maxY; ++y) {
-                for (int x = minX; x <= maxX; ++x) {
-                    for (int z = minZ; z <= maxZ; ++z) {
-                        BlockPos pos = new BlockPos(x, y, z);
-                        Vec3d posD = pos.toCenterPos();
-                        if (posD.distanceTo(eyePos) >= reachDistanceConfig.getAsDouble()) continue;
-                        if(tryPut(pos, restockTest)){
-                            if(isUnpassable(pos)){
-                                setMapVec3i(pos.subtract(currentPosition), true);
-                                blockSetted = true;
-                                --canSetBlockCount;
-                            }
-                        }
-                        if(canSetBlockCount < 1) return;
-                        if(!enabled()) return;
+            for(BlockPos pos : BlockPos.iterate(startX, startY, startZ, endX, endY, endZ)){
+                if(!shapeList.testPos(pos)) continue;
+                Vec3d posD = pos.toCenterPos();
+                if (posD.distanceTo(eyePos) >= reachDistanceConfig.getAsDouble()) continue;
+                if(tryPut(pos, restockTest)){
+                    if(isUnpassable(pos)){
+                        setMapVec3i(pos.subtract(currentPosition), true);
+                        blockSetted = true;
+                        --canSetBlockCount;
                     }
                 }
+                if(canSetBlockCount < 1) return;
+                if(!enabled()) return;
             }
         }while(blockSetted);
     }
@@ -116,15 +106,14 @@ public class PlaceBlockTick implements ClientTickEvents.EndTick, Registry.InGame
             disableTool("mouseLeftDown");
     }
 
-    private boolean put(BlockPos blockpos, HandRestock.IRestockTest restockTest){
+    private boolean put(BlockPos blockPos, HandRestock.IRestockTest restockTest){
         MinecraftClient client = MinecraftClient.getInstance();
         if(client.interactionManager == null) return false;
         if(!HandRestock.restock(restockTest, offhandFillingConfig.getAsBoolean() ? -1 : 0)){
             disableTool("placeableItemRanOut");
             return false;
         }
-        Vec3d pos = new Vec3d(blockpos.getX() + 0.5, blockpos.getY() + 0.5, blockpos.getZ() + 0.5);
-        BlockHitResult hit = new BlockHitResult(pos, Direction.UP, blockpos, false);
+        BlockHitResult hit = new BlockHitResult(blockPos.toCenterPos(), Direction.UP, blockPos.mutableCopy(), false);
         return client.interactionManager.interactBlock(
                 client.player,
                 offhandFillingConfig.getAsBoolean() ? Hand.OFF_HAND : Hand.MAIN_HAND,
@@ -162,13 +151,14 @@ public class PlaceBlockTick implements ClientTickEvents.EndTick, Registry.InGame
         if(pos.getZ() < 0 || pos.getZ() >= testSize) return true;
         return testBuffer[pos.getX()][pos.getY()][pos.getZ()];
     }
+    @SuppressWarnings("SameParameterValue")
     private void setTestBufferVec3i(@NotNull Vec3i pos, boolean value){
         if(pos.getX() < 0 || pos.getX() >= testSize) return;
         if(pos.getY() < 0 || pos.getY() >= testSize) return;
         if(pos.getZ() < 0 || pos.getZ() >= testSize) return;
         testBuffer[pos.getX()][pos.getY()][pos.getZ()] = value;
     }
-    private void initializeMap(@NotNull BlockPos eyeBlockPos){
+    private void initializeMap(@NotNull ShapeList shapeList, @NotNull BlockPos eyeBlockPos){
         currentPosition = eyeBlockPos.add(-testDistance, -testDistance, -testDistance);
         BlockPos pos1 = new BlockPos(currentPosition);
         for (boolean[][] mapX : map) {
@@ -176,7 +166,9 @@ public class PlaceBlockTick implements ClientTickEvents.EndTick, Registry.InGame
             for (boolean[] mapXY : mapX) {
                 BlockPos pos3 = pos2;
                 for (int z = 0; z < mapXY.length; ++z) {
-                    mapXY[z] = isUnpassable(pos3);
+                    if(shapeList.testPos(pos3))
+                        mapXY[z] = isUnpassable(pos3);
+                    else mapXY[z] = outerRangeBlockMethod.getCurrentUserdata().isUnpassable(pos3);
                     pos3 = pos3.south();
                 }
                 pos2 = pos2.up();

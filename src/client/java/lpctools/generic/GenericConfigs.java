@@ -2,7 +2,7 @@ package lpctools.generic;
 
 import lpctools.lpcfymasaapi.LPCConfigList;
 import lpctools.lpcfymasaapi.LPCConfigPage;
-import lpctools.lpcfymasaapi.configbutton.ConfigOpenGuiConfig;
+import lpctools.lpcfymasaapi.configbutton.derivedConfigs.ConfigOpenGuiConfig;
 import org.jetbrains.annotations.NotNull;
 
 public class GenericConfigs {

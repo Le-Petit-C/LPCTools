@@ -11,11 +11,13 @@ import org.apache.logging.log4j.Logger;
 public class LPCTools implements ClientModInitializer {
 	public static final Logger LOGGER = LogManager.getLogger("LPCTools");
 	public static LPCConfigPage config;
-	@Override public void onInitializeClient() {
-		LOGGER.info("Initializing");
+
+    @Override public void onInitializeClient() {
 		if(config != null) return;
+		LOGGER.info("Initializing");
 		config = new LPCConfigPage(new Reference("LPCTools"));
 		GenericConfigs.init(config);
 		ToolConfigs.init(config);
+		LOGGER.info("Initialized");
 	}
 }

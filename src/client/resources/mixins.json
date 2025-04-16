@@ -1,11 +1,14 @@
 {
 	"required": true,
-	"package": "lpctools.lpcfymasaapi.mixins",
+	"package": "lpctools.mixin.client",
 	"compatibilityLevel": "JAVA_21",
 	"client": [
-      	"OnMouseButtonReturnMixin"
+		"OnMouseButtonReturnMixin"
 	],
 	"injectors": {
 		"defaultRequire": 1
-	}
+	},
+	"mixins": [
+		"LanguageMixin"
+	]
 }
