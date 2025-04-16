@@ -61,7 +61,9 @@ public class OnEndTick implements ClientTickEvents.EndTick {
             canInteractBlockCount += maxBlockPerTickConfig.getAsDouble();
         }
         else canInteractBlockCount = Double.MAX_VALUE;
-        Iterable<BlockPos> iterateRegion = BlockPos.iterate(getIterateBox(client, d));
+        Box iterateBox = getIterateBox(client, d);
+        Iterable<BlockPos> iterateRegion = BlockPos.iterate(
+                BlockPos.ofFloored(iterateBox.getMinPos()), BlockPos.ofFloored(iterateBox.getMaxPos()));
         ShapeList list = limitCleaningRange.buildShapeList();
         for(BlockPos pos1 : iterateRegion){
             BlockPos pos = new BlockPos(pos1);//固定当前BlockPos

@@ -53,7 +53,7 @@ public class HandRestock {
                 ItemUtils.swapSlotWithOffhand(i);
         }
         else{
-            if(i < 9) inventory.setSelectedSlot(i);
+            if(i < 9) inventory.selectedSlot = i;
             else ItemUtils.swapSlotWithMainhand(i);
         }
         return true;
