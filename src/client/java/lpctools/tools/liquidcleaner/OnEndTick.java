@@ -65,7 +65,6 @@ public class OnEndTick implements ClientTickEvents.EndTick {
         ShapeList list = limitCleaningRange.buildShapeList();
         for(BlockPos pos1 : iterateRegion){
             BlockPos pos = new BlockPos(pos1);//固定当前BlockPos
-            if(!list.testPos(pos)) continue;
             Vec3d midPos = pos.toCenterPos();
             if (midPos.subtract(player.getEyePos()).length() >= d) continue;
             if (shouldAttackBlock(list, world, pos)){
