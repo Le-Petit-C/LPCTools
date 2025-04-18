@@ -4,6 +4,7 @@ import fi.dy.masa.malilib.util.StringUtils;
 import lpctools.lpcfymasaapi.LPCConfigList;
 import lpctools.lpcfymasaapi.LPCConfigPage;
 import lpctools.lpcfymasaapi.configbutton.derivedConfigs.ThirdListConfig;
+import lpctools.tools.SlightXRay.SlightXRay;
 import lpctools.tools.fillingassistant.FillingAssistant;
 import lpctools.tools.liquidcleaner.LiquidCleaner;
 import net.minecraft.client.MinecraftClient;
@@ -16,10 +17,12 @@ public class ToolConfigs {
     public static LPCConfigList tools;
     static ThirdListConfig FAConfig;
     static ThirdListConfig LCConfig;
+    static ThirdListConfig SXConfig;
     public static void init(@NotNull LPCConfigPage page){
         tools = page.addList("tools");
         FillingAssistant.init(FAConfig = tools.addThirdListConfig("FA", false));
         LiquidCleaner.init(LCConfig = tools.addThirdListConfig("LC", false));
+        SlightXRay.init(SXConfig = tools.addThirdListConfig("SX", false));
     }
     public static void displayDisableReason(@NotNull String toolDisableKey, @Nullable String reasonKey){
         ClientPlayerEntity player = MinecraftClient.getInstance().player;

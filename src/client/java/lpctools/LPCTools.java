@@ -1,5 +1,6 @@
 package lpctools;
 
+import lpctools.debugs.DebugConfigs;
 import lpctools.generic.GenericConfigs;
 import lpctools.lpcfymasaapi.LPCConfigPage;
 import lpctools.lpcfymasaapi.Reference;
@@ -18,6 +19,7 @@ public class LPCTools implements ClientModInitializer {
 		config = new LPCConfigPage(new Reference("LPCTools"));
 		GenericConfigs.init(config);
 		ToolConfigs.init(config);
+		DebugConfigs.init(config);
 		LOGGER.info("Initialized");
 	}
 }
