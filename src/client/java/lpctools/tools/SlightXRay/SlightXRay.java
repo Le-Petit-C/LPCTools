@@ -15,7 +15,6 @@ import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
 import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.gl.ShaderProgram;
 import net.minecraft.client.gl.ShaderProgramKeys;
 import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.client.render.*;
@@ -107,19 +106,19 @@ public class SlightXRay implements IValueRefreshCallback, WorldRenderEvents.End,
 
     @Override public void onEnd(WorldRenderContext context) {
         Tessellator tessellator = Tessellator.getInstance();
-        BufferBuilder buffer = tessellator.begin(VertexFormat.DrawMode.TRIANGLES, VertexFormats.POSITION_COLOR);
+        BufferBuilder buffer = tessellator.begin(VertexFormat.DrawMode.QUADS, VertexFormats.POSITION_COLOR);
         Matrix4f matrix = worldToCameraMatrix(context.camera());
         int color = displayColor.getAsInt();
         synchronized (markedBlocks){
+            if(markedBlocks.isEmpty()) return;
             for(BlockPos pos : markedBlocks)
                 vertexBlock(matrix, buffer, pos, color);
         }
-        try(ShaderProgram ignored = RenderSystem.setShader(ShaderProgramKeys.POSITION_COLOR)){
-            RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
-            RenderSystem.disableDepthTest();
-            BufferRenderer.drawWithGlobalProgram(buffer.end());
-        }
-        catch (Throwable ignored){}
+        RenderSystem.disableDepthTest();
+        RenderSystem.enableBlend();
+        RenderSystem.setShader(ShaderProgramKeys.POSITION_COLOR);
+        RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
+        BufferRenderer.drawWithGlobalProgram(buffer.end());
     }
     @Override public void onChunkLoad(ClientWorld clientWorld, WorldChunk worldChunk) {
         updateChunkInAnotherThread(clientWorld, worldChunk, false);
