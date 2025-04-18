@@ -1,10 +1,7 @@
 package lpctools.tools.SlightXRay;
 
 import com.google.common.collect.ImmutableList;
-import fi.dy.masa.malilib.render.MaLiLibPipelines;
-import fi.dy.masa.malilib.render.RenderContext;
-import fi.dy.masa.malilib.util.data.Color4f;
-import lpctools.LPCTools;
+import com.mojang.blaze3d.systems.RenderSystem;
 import lpctools.lpcfymasaapi.Registry;
 import lpctools.lpcfymasaapi.configbutton.IValueRefreshCallback;
 import lpctools.lpcfymasaapi.configbutton.derivedConfigs.ThirdListConfig;
@@ -18,9 +15,10 @@ import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
 import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.gl.ShaderProgram;
+import net.minecraft.client.gl.ShaderProgramKeys;
 import net.minecraft.client.network.ClientPlayerEntity;
-import net.minecraft.client.render.BufferBuilder;
-import net.minecraft.client.render.BuiltBuffer;
+import net.minecraft.client.render.*;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.registry.Registries;
 import net.minecraft.util.Identifier;
@@ -51,7 +49,7 @@ public class SlightXRay implements IValueRefreshCallback, WorldRenderEvents.End,
 
     public static void init(ThirdListConfig STConfig){
         slightXRay = STConfig.addBooleanHotkeyConfig("slightXRay", false, null, new SlightXRay());
-        displayColor = STConfig.addColorConfig("displayColor", Color4f.fromColor(0x7F3F7FFF));
+        displayColor = STConfig.addColorConfig("displayColor", 0x7F3F7FFF);
         XRayBlocksConfig = STConfig.addStringListConfig("XRayBlocks", defaultXRayBlockIds, SlightXRay::refreshXRayBlocks);
     }
 
@@ -108,24 +106,20 @@ public class SlightXRay implements IValueRefreshCallback, WorldRenderEvents.End,
     }
 
     @Override public void onEnd(WorldRenderContext context) {
-        RenderContext ctx = new RenderContext(MaLiLibPipelines.POSITION_COLOR_MASA_NO_DEPTH);
-        BufferBuilder buffer = ctx.getBuilder();
+        Tessellator tessellator = Tessellator.getInstance();
+        BufferBuilder buffer = tessellator.begin(VertexFormat.DrawMode.TRIANGLES, VertexFormats.POSITION_COLOR);
         Matrix4f matrix = worldToCameraMatrix(context.camera());
-        int color = displayColor.get().getIntValue();
+        int color = displayColor.getAsInt();
         synchronized (markedBlocks){
             for(BlockPos pos : markedBlocks)
                 vertexBlock(matrix, buffer, pos, color);
         }
-        try {
-            BuiltBuffer meshData = buffer.endNullable();
-            if (meshData != null) {
-                ctx.draw(meshData, false, true);
-                meshData.close();
-            }
-            ctx.close();
-        } catch (Exception err) {
-            LPCTools.LOGGER.error("lpctools.tools.SlightXRay.SlightXRay.onLast(): Draw Exception; {}", err.getMessage());
+        try(ShaderProgram ignored = RenderSystem.setShader(ShaderProgramKeys.POSITION_COLOR)){
+            RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
+            RenderSystem.disableDepthTest();
+            BufferRenderer.drawWithGlobalProgram(buffer.end());
         }
+        catch (Throwable ignored){}
     }
     @Override public void onChunkLoad(ClientWorld clientWorld, WorldChunk worldChunk) {
         updateChunkInAnotherThread(clientWorld, worldChunk, false);

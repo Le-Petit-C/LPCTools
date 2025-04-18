@@ -14,7 +14,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 @Mixin(WorldChunk.class)
 public class WorldChunkMixin {
     @Inject(method = "setBlockState", at = @At("RETURN"))
-    void SlightXRayTest(BlockPos pos, BlockState state, int flags, CallbackInfoReturnable<BlockState> cir){
+    void SlightXRayTest(BlockPos pos, BlockState state, boolean moved, CallbackInfoReturnable<BlockState> cir){
         if(SlightXRay.slightXRay.getAsBoolean()){
             WorldChunk castedThis = (WorldChunk)(Object)this;
             World world = castedThis.getWorld();
