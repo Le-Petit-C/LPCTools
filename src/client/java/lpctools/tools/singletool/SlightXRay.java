@@ -1,6 +1,6 @@
 package lpctools.tools.singletool;
 
-import com.mojang.blaze3d.buffers.BufferUsage;
+import fi.dy.masa.malilib.render.MaLiLibPipelines;
 import fi.dy.masa.malilib.render.RenderContext;
 import lpctools.LPCTools;
 import lpctools.lpcfymasaapi.Registry;
@@ -11,7 +11,6 @@ import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
 import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.gl.RenderPipelines;
 import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.client.render.BufferBuilder;
 import net.minecraft.client.render.BuiltBuffer;
@@ -25,9 +24,9 @@ import org.joml.Vector3f;
 
 import java.util.HashSet;
 
-import static lpctools.util.MathUtils.inverseOffsetMatrix4f;
+import static lpctools.util.MathUtils.*;
 
-public class SlightXRay implements IValueRefreshCallback, WorldRenderEvents.Last {
+public class SlightXRay implements IValueRefreshCallback, WorldRenderEvents.End {
     @NotNull final HashSet<BlockPos> markedBlocks = new HashSet<>();
     @NotNull final HashSet<Block> XRayBlocks = initHashset();
     private static HashSet<Block> initHashset(){
@@ -39,7 +38,7 @@ public class SlightXRay implements IValueRefreshCallback, WorldRenderEvents.Last
 
     @Override public void valueRefreshCallback() {
         if(SingleTool.slightXRay.getAsBoolean()){
-            if(Registry.registerWorldRenderLastCallback(this)){
+            if(Registry.registerWorldRenderEndCallback(this)){
                 ClientWorld world = MinecraftClient.getInstance().world;
                 ClientPlayerEntity player = MinecraftClient.getInstance().player;
                 if(world == null || player == null) return;
@@ -54,16 +53,17 @@ public class SlightXRay implements IValueRefreshCallback, WorldRenderEvents.Last
             }
         }
         else {
-            Registry.unregisterWorldRenderLastCallback(this);
+            Registry.unregisterWorldRenderEndCallback(this);
             markedBlocks.clear();
         }
     }
 
-    @Override public void onLast(WorldRenderContext context) {
-        RenderContext ctx = new RenderContext(RenderPipelines.DEBUG_QUADS, BufferUsage.STATIC_WRITE);
+    @Override public void onEnd(WorldRenderContext context) {
+        RenderContext ctx = new RenderContext(MaLiLibPipelines.POSITION_COLOR_MASA_NO_DEPTH);
         BufferBuilder buffer = ctx.getBuilder();
-        Vector3f cam = context.camera().getPos().toVector3f();
-        Matrix4f matrix = inverseOffsetMatrix4f(cam);
+        Matrix4f matrix = worldToCameraMatrix(context.camera());
+        //Matrix4f matrix = inverseOffsetMatrix4f(context.camera().getPos().toVector3f());
+        //Matrix4f matrix = new Matrix4f();
         for(BlockPos pos : markedBlocks)
             vertexBlock(matrix, buffer, pos, 0x3F3F7FFF);
         try {
@@ -98,18 +98,42 @@ public class SlightXRay implements IValueRefreshCallback, WorldRenderEvents.Last
     @SuppressWarnings("SameParameterValue")
     private void vertexBlock(Matrix4f matrix, BufferBuilder buffer, BlockPos pos, int color){
         //TODO:高精度处理
-        Vector3f posf = pos.toCenterPos().toVector3f();
+        Vector3f f_pos = pos.toCenterPos().toVector3f();
+        if(!markedBlocks.contains(pos.west())){
+            buffer.vertex(matrix, f_pos.x - 0.5f, f_pos.y - 0.5f, f_pos.z - 0.5f).color(color);
+            buffer.vertex(matrix, f_pos.x - 0.5f, f_pos.y - 0.5f, f_pos.z + 0.5f).color(color);
+            buffer.vertex(matrix, f_pos.x - 0.5f, f_pos.y + 0.5f, f_pos.z + 0.5f).color(color);
+            buffer.vertex(matrix, f_pos.x - 0.5f, f_pos.y + 0.5f, f_pos.z - 0.5f).color(color);
+        }
+        if(!markedBlocks.contains(pos.east())){
+            buffer.vertex(matrix, f_pos.x + 0.5f, f_pos.y - 0.5f, f_pos.z - 0.5f).color(color);
+            buffer.vertex(matrix, f_pos.x + 0.5f, f_pos.y + 0.5f, f_pos.z - 0.5f).color(color);
+            buffer.vertex(matrix, f_pos.x + 0.5f, f_pos.y + 0.5f, f_pos.z + 0.5f).color(color);
+            buffer.vertex(matrix, f_pos.x + 0.5f, f_pos.y - 0.5f, f_pos.z + 0.5f).color(color);
+        }
         if(!markedBlocks.contains(pos.down())){
-            buffer.vertex(matrix, posf.x - 0.5f, posf.y - 0.5f, posf.z - 0.5f).color(color);
-            buffer.vertex(matrix, posf.x + 0.5f, posf.y - 0.5f, posf.z - 0.5f).color(color);
-            buffer.vertex(matrix, posf.x + 0.5f, posf.y - 0.5f, posf.z + 0.5f).color(color);
-            buffer.vertex(matrix, posf.x - 0.5f, posf.y - 0.5f, posf.z + 0.5f).color(color);
+            buffer.vertex(matrix, f_pos.x - 0.5f, f_pos.y - 0.5f, f_pos.z - 0.5f).color(color);
+            buffer.vertex(matrix, f_pos.x + 0.5f, f_pos.y - 0.5f, f_pos.z - 0.5f).color(color);
+            buffer.vertex(matrix, f_pos.x + 0.5f, f_pos.y - 0.5f, f_pos.z + 0.5f).color(color);
+            buffer.vertex(matrix, f_pos.x - 0.5f, f_pos.y - 0.5f, f_pos.z + 0.5f).color(color);
         }
         if(!markedBlocks.contains(pos.up())){
-            buffer.vertex(matrix, posf.x - 0.5f, posf.y + 0.5f, posf.z - 0.5f).color(color);
-            buffer.vertex(matrix, posf.x + 0.5f, posf.y + 0.5f, posf.z - 0.5f).color(color);
-            buffer.vertex(matrix, posf.x + 0.5f, posf.y + 0.5f, posf.z + 0.5f).color(color);
-            buffer.vertex(matrix, posf.x - 0.5f, posf.y + 0.5f, posf.z + 0.5f).color(color);
+            buffer.vertex(matrix, f_pos.x - 0.5f, f_pos.y + 0.5f, f_pos.z - 0.5f).color(color);
+            buffer.vertex(matrix, f_pos.x - 0.5f, f_pos.y + 0.5f, f_pos.z + 0.5f).color(color);
+            buffer.vertex(matrix, f_pos.x + 0.5f, f_pos.y + 0.5f, f_pos.z + 0.5f).color(color);
+            buffer.vertex(matrix, f_pos.x + 0.5f, f_pos.y + 0.5f, f_pos.z - 0.5f).color(color);
+        }
+        if(!markedBlocks.contains(pos.north())){
+            buffer.vertex(matrix, f_pos.x - 0.5f, f_pos.y - 0.5f, f_pos.z - 0.5f).color(color);
+            buffer.vertex(matrix, f_pos.x - 0.5f, f_pos.y + 0.5f, f_pos.z - 0.5f).color(color);
+            buffer.vertex(matrix, f_pos.x + 0.5f, f_pos.y + 0.5f, f_pos.z - 0.5f).color(color);
+            buffer.vertex(matrix, f_pos.x + 0.5f, f_pos.y - 0.5f, f_pos.z - 0.5f).color(color);
+        }
+        if(!markedBlocks.contains(pos.south())){
+            buffer.vertex(matrix, f_pos.x - 0.5f, f_pos.y - 0.5f, f_pos.z + 0.5f).color(color);
+            buffer.vertex(matrix, f_pos.x + 0.5f, f_pos.y - 0.5f, f_pos.z + 0.5f).color(color);
+            buffer.vertex(matrix, f_pos.x + 0.5f, f_pos.y + 0.5f, f_pos.z + 0.5f).color(color);
+            buffer.vertex(matrix, f_pos.x - 0.5f, f_pos.y + 0.5f, f_pos.z + 0.5f).color(color);
         }
     }
 }
