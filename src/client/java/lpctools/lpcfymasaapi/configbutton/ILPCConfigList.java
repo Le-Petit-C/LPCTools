@@ -6,6 +6,7 @@ import fi.dy.masa.malilib.gui.GuiConfigsBase;
 import fi.dy.masa.malilib.hotkeys.IHotkeyCallback;
 import fi.dy.masa.malilib.util.JsonUtils;
 import fi.dy.masa.malilib.util.StringUtils;
+import fi.dy.masa.malilib.util.data.Color4f;
 import lpctools.lpcfymasaapi.LPCConfigPage;
 import lpctools.lpcfymasaapi.configbutton.derivedConfigs.ConfigOpenGuiConfig;
 import lpctools.lpcfymasaapi.configbutton.derivedConfigs.RangeLimitConfig;
@@ -109,6 +110,12 @@ public interface ILPCConfigList {
     }
     default RangeLimitConfig addRangeLimitConfig(boolean defaultBoolean, String defaultPrefix){
         return addConfig(new RangeLimitConfig(this, defaultBoolean, defaultPrefix));
+    }
+    default ColorConfig addColorConfig(@NotNull String nameKey, @NotNull Color4f defaultColor){
+        return addConfig(new ColorConfig(this, nameKey, defaultColor));
+    }
+    default ColorConfig addColorConfig(@NotNull String nameKey, @NotNull Color4f defaultColor, @Nullable IValueRefreshCallback callback){
+        return addConfig(new ColorConfig(this, nameKey, defaultColor, callback));
     }
     //列表中配置项的配置值可能发生了更新，调用此方法让配置做出反应
     default void callRefresh(){

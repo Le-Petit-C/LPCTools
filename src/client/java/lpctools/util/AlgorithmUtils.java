@@ -23,10 +23,10 @@ public class AlgorithmUtils {
                             int lastX = currentPos.getX();
                             int lastY = currentPos.getY();
                             currentPos.setY(lastY + 1);
-                            currentPos.setZ(lastY + 1 + lastX - distance);
+                            currentPos.setZ(Math.abs(lastY + 1) + Math.abs(lastX) - distance);
                             if(currentPos.getZ() > 0){
                                 currentPos.setX(lastX + 1);
-                                currentPos.setY(lastX + 1 - distance);
+                                currentPos.setY(Math.abs(lastX + 1) - distance);
                                 currentPos.setZ(0);
                             }
                         }

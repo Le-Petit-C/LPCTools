@@ -1,10 +1,16 @@
-package lpctools.tools.singletool;
+package lpctools.tools.SlightXRay;
 
+import com.google.common.collect.ImmutableList;
 import fi.dy.masa.malilib.render.MaLiLibPipelines;
 import fi.dy.masa.malilib.render.RenderContext;
+import fi.dy.masa.malilib.util.data.Color4f;
 import lpctools.LPCTools;
 import lpctools.lpcfymasaapi.Registry;
 import lpctools.lpcfymasaapi.configbutton.IValueRefreshCallback;
+import lpctools.lpcfymasaapi.configbutton.derivedConfigs.ThirdListConfig;
+import lpctools.lpcfymasaapi.configbutton.transferredConfigs.BooleanHotkeyConfig;
+import lpctools.lpcfymasaapi.configbutton.transferredConfigs.ColorConfig;
+import lpctools.lpcfymasaapi.configbutton.transferredConfigs.StringListConfig;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientChunkEvents;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents;
@@ -16,9 +22,12 @@ import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.client.render.BufferBuilder;
 import net.minecraft.client.render.BuiltBuffer;
 import net.minecraft.client.world.ClientWorld;
+import net.minecraft.registry.Registries;
+import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.ChunkPos;
-import net.minecraft.util.math.Vec3d;
+import net.minecraft.util.math.Vec3i;
+import net.minecraft.world.World;
 import net.minecraft.world.chunk.WorldChunk;
 import org.jetbrains.annotations.NotNull;
 import org.joml.Matrix4f;
@@ -27,12 +36,49 @@ import org.joml.Vector3f;
 import java.util.*;
 
 import static lpctools.util.AlgorithmUtils.*;
+import static lpctools.util.DataUtils.*;
 import static lpctools.util.MathUtils.*;
 
 public class SlightXRay implements IValueRefreshCallback, WorldRenderEvents.End, ClientChunkEvents.Load, ClientChunkEvents.Unload {
     //markedBlocks放在多线程里用，记得要同步
-    @NotNull final HashSet<BlockPos> markedBlocks = new HashSet<>();
-    @NotNull static final HashSet<Block> XRayBlocks = initHashset();
+    static final @NotNull HashSet<BlockPos> markedBlocks = new HashSet<>();
+    static final @NotNull HashSet<Block> XRayBlocks = initHashset();
+    static final @NotNull ImmutableList<Block> defaultXRayBlocks = ImmutableList.of(Blocks.DIAMOND_ORE, Blocks.DEEPSLATE_DIAMOND_ORE);
+    static final @NotNull ImmutableList<String> defaultXRayBlockIds = idListFromBlockList(defaultXRayBlocks);
+    public static BooleanHotkeyConfig slightXRay;
+    public static ColorConfig displayColor;
+    public static StringListConfig XRayBlocksConfig;
+
+    public static void init(ThirdListConfig STConfig){
+        slightXRay = STConfig.addBooleanHotkeyConfig("slightXRay", false, null, new SlightXRay());
+        displayColor = STConfig.addColorConfig("displayColor", Color4f.fromColor(0x7F3F7FFF));
+        XRayBlocksConfig = STConfig.addStringListConfig("XRayBlocks", defaultXRayBlockIds, SlightXRay::refreshXRayBlocks);
+    }
+
+    private static void addAllRenderRegionsIntoWork(){
+        ClientWorld world = MinecraftClient.getInstance().world;
+        ClientPlayerEntity player = MinecraftClient.getInstance().player;
+        if(world == null || player == null) return;
+        int distance = MinecraftClient.getInstance().options.getViewDistance().getValue();
+        ChunkPos chunkPos = player.getChunkPos();
+        for(int x = chunkPos.x - distance; x <= chunkPos.x + distance; ++x){
+            for(int z = chunkPos.z - distance; z <= chunkPos.z + distance; ++z){
+                if(world.isChunkLoaded(x, z))
+                    updateChunkInAnotherThread(world, world.getChunk(x, z), false);
+            }
+        }
+    }
+
+    private static void refreshXRayBlocks(){
+        XRayBlocks.clear();
+        for(String str : XRayBlocksConfig.getStrings()){
+            if(str.isEmpty() || str.isBlank()) continue;
+            XRayBlocks.add(Registries.BLOCK.get(Identifier.of(str)));
+        }
+        if(slightXRay.getAsBoolean())
+            addAllRenderRegionsIntoWork();
+    }
+
     private static HashSet<Block> initHashset(){
         HashSet<Block> blocks = new HashSet<>();
         blocks.add(Blocks.DIAMOND_ORE);
@@ -41,20 +87,9 @@ public class SlightXRay implements IValueRefreshCallback, WorldRenderEvents.End,
     }
 
     @Override public void valueRefreshCallback() {
-        if(SingleTool.slightXRay.getAsBoolean()){
-            if(Registry.registerWorldRenderEndCallback(this)){
-                ClientWorld world = MinecraftClient.getInstance().world;
-                ClientPlayerEntity player = MinecraftClient.getInstance().player;
-                if(world == null || player == null) return;
-                int distance = MinecraftClient.getInstance().options.getViewDistance().getValue();
-                ChunkPos chunkPos = player.getChunkPos();
-                for(int x = chunkPos.x - distance; x <= chunkPos.x + distance; ++x){
-                    for(int z = chunkPos.z - distance; z <= chunkPos.z + distance; ++z){
-                        if(world.isChunkLoaded(x, z))
-                            updateChunkInAnotherThread(world, world.getChunk(x, z), player.getPos(), false);
-                    }
-                }
-            }
+        if(slightXRay.getAsBoolean()){
+            if(Registry.registerWorldRenderEndCallback(this))
+                addAllRenderRegionsIntoWork();
             Registry.registerClientChunkLoadCallbacks(this);
             Registry.registerClientChunkUnloadCallbacks(this);
         }
@@ -76,9 +111,10 @@ public class SlightXRay implements IValueRefreshCallback, WorldRenderEvents.End,
         RenderContext ctx = new RenderContext(MaLiLibPipelines.POSITION_COLOR_MASA_NO_DEPTH);
         BufferBuilder buffer = ctx.getBuilder();
         Matrix4f matrix = worldToCameraMatrix(context.camera());
+        int color = displayColor.get().getIntValue();
         synchronized (markedBlocks){
             for(BlockPos pos : markedBlocks)
-                vertexBlock(matrix, buffer, pos, 0x7F3F7FFF);
+                vertexBlock(matrix, buffer, pos, color);
         }
         try {
             BuiltBuffer meshData = buffer.endNullable();
@@ -88,22 +124,14 @@ public class SlightXRay implements IValueRefreshCallback, WorldRenderEvents.End,
             }
             ctx.close();
         } catch (Exception err) {
-            LPCTools.LOGGER.error("lpctools.tools.singletool.SlightXRay.onLast(): Draw Exception; {}", err.getMessage());
+            LPCTools.LOGGER.error("lpctools.tools.SlightXRay.SlightXRay.onLast(): Draw Exception; {}", err.getMessage());
         }
     }
     @Override public void onChunkLoad(ClientWorld clientWorld, WorldChunk worldChunk) {
-        onChunkUpdate(clientWorld, worldChunk, false);
+        updateChunkInAnotherThread(clientWorld, worldChunk, false);
     }
     @Override public void onChunkUnload(ClientWorld clientWorld, WorldChunk worldChunk) {
-        onChunkUpdate(clientWorld, worldChunk, true);
-    }
-
-    void onChunkUpdate(ClientWorld clientWorld, WorldChunk worldChunk, boolean unload){
-        ClientPlayerEntity player = MinecraftClient.getInstance().player;
-        Vec3d testPos;
-        if(player != null) testPos = player.getPos();
-        else testPos = Vec3d.ZERO;
-        updateChunkInAnotherThread(clientWorld, worldChunk, testPos, unload);
+        updateChunkInAnotherThread(clientWorld, worldChunk, true);
     }
 
     private enum XRayNecessaryState{
@@ -122,17 +150,31 @@ public class SlightXRay implements IValueRefreshCallback, WorldRenderEvents.End,
         }
     }
 
-    private void markNears(ClientWorld world, BlockPos center){
-        for(BlockPos pos : iterateInManhattanDistance(center, 2)){
-            if(XRayNecessaryState.of(world.getBlockState(pos)).isXRayTarget)
+    public static void setBlockStateTest(World world, BlockPos pos, BlockState lastState, BlockState currentState){
+        if(lastState == null || currentState == null) return;
+        if(lastState.isAir()) testPos(pos, currentState);
+        else SlightXRay.markNears(world, pos);
+    }
+
+    private static void testPos(BlockPos pos, BlockState state){
+        synchronized (markedBlocks){
+            if(XRayNecessaryState.of(state).isXRayTarget)
                 markedBlocks.add(pos.mutableCopy());
+            else markedBlocks.remove(pos);
         }
     }
 
-    private void updateChunk(ClientWorld world, WorldChunk chunk, boolean unload){
+    private static void markNears(World world, BlockPos center){
+        for(BlockPos pos : iterateInManhattanDistance(center, 2))
+            testPos(pos, world.getBlockState(pos));
+    }
+
+    //TODO:跨纬度处理之类的
+    private static void updateChunk(ClientWorld world, WorldChunk chunk, boolean unload){
         ChunkPos chunkPos = chunk.getPos();
         int cx = chunkPos.x, cz = chunkPos.z;
-        if(unload){
+        if(unload || !world.isChunkLoaded(chunk.getPos().x, chunk.getPos().z)
+        || MinecraftClient.getInstance().world == null){
             synchronized (markedBlocks){
                 Iterator<BlockPos> posIterator = markedBlocks.iterator();
                 while(posIterator.hasNext()){
@@ -221,56 +263,68 @@ public class SlightXRay implements IValueRefreshCallback, WorldRenderEvents.End,
             for(int y = 1; y <= numY; ++y){
                 for(int z = 1; z <= 16; ++z){
                     if(!states[x][y][z].doShowAround) continue;
-                    if(states[x - 1][y][z].isXRayTarget) markPos(x - 2, y + minY - 1, z - 1, chunkPos);
-                    if(states[x + 1][y][z].isXRayTarget) markPos(x, y + minY - 1, z - 1, chunkPos);
-                    if(states[x][y - 1][z].isXRayTarget) markPos(x - 1, y + minY - 2, z - 1, chunkPos);
-                    if(states[x][y + 1][z].isXRayTarget) markPos(x - 1, y + minY, z - 1, chunkPos);
-                    if(states[x][y][z - 1].isXRayTarget) markPos(x - 1, y + minY - 1, z - 2, chunkPos);
-                    if(states[x][y][z + 1].isXRayTarget) markPos(x - 1, y + minY - 1, z, chunkPos);
+                    markPos(x - 2, y + minY - 1, z - 1, chunkPos, states[x - 1][y][z].isXRayTarget);
+                    markPos(x, y + minY - 1, z - 1, chunkPos, states[x + 1][y][z].isXRayTarget);
+                    markPos(x - 1, y + minY - 2, z - 1, chunkPos, states[x][y - 1][z].isXRayTarget);
+                    markPos(x - 1, y + minY, z - 1, chunkPos, states[x][y + 1][z].isXRayTarget);
+                    markPos(x - 1, y + minY - 1, z - 2, chunkPos, states[x][y][z - 1].isXRayTarget);
+                    markPos(x - 1, y + minY - 1, z, chunkPos, states[x][y][z + 1].isXRayTarget);
                 }
             }
         }
     }
 
-    private static final PriorityQueue<ThreadTask> threadTasks = new PriorityQueue<>(new ThreadTask.Comparator());
+    private static final HashSet<ThreadTask> threadTasks = new HashSet<>();
     private static Thread thread;
-    private record ThreadTask(double distance, ClientWorld world, WorldChunk chunk, boolean unload){
-        public static class Comparator implements java.util.Comparator<ThreadTask>{
-            @Override public int compare(ThreadTask o1, ThreadTask o2) {
-                return (int)(o1.distance - o2.distance);
-            }
+    private record ThreadTask(ClientWorld world, WorldChunk chunk, boolean unload){
+        @Override public int hashCode(){
+            return chunk.getPos().hashCode();
         }
-        ThreadTask(ClientWorld world, WorldChunk chunk, Vec3d playerPos, boolean unload){
-            this(chunk.getPos().getCenterAtY((int)playerPos.getY()).getSquaredDistance(playerPos), world, chunk, unload);
+        @Override public boolean equals(Object o){
+            if(o instanceof ThreadTask task)
+                return task.world == world && task.chunk == chunk && task.unload == unload;
+            return false;
         }
     }
 
-    private void updateChunkInAnotherThread(ClientWorld world, WorldChunk chunk, Vec3d playerPos, boolean unload){
+    private static void updateChunkInAnotherThread(ClientWorld world, WorldChunk chunk, boolean unload){
         synchronized (threadTasks){
-            threadTasks.add(new ThreadTask(world, chunk, playerPos, unload));
+            threadTasks.add(new ThreadTask(world, chunk, unload));
             if(thread == null){
-                thread = new Thread(this::ThreadFunc);
+                thread = new Thread(SlightXRay::ThreadFunc);
                 thread.start();
             }
         }
     }
-    private void ThreadFunc(){
+    private static void ThreadFunc(){
         while(true){
-            ThreadTask task;
+            ThreadTask task = null;
+            double minDistance = Double.MAX_VALUE;
+            ClientPlayerEntity player = MinecraftClient.getInstance().player;
+            Vec3i playerPos = player == null ? Vec3i.ZERO : player.getBlockPos();
             synchronized (threadTasks){
-                if(threadTasks.isEmpty()){
+                for(ThreadTask task1 : threadTasks){
+                    double distance = task1.chunk.getPos().getCenterAtY(playerPos.getY()).getSquaredDistance(playerPos);
+                    if(distance < minDistance){
+                        minDistance = distance;
+                        task = task1;
+                    }
+                }
+                if(task == null){
                     thread = null;
                     break;
                 }
-                task = threadTasks.remove();
+                threadTasks.remove(task);
             }
             updateChunk(task.world, task.chunk, task.unload);
         }
     }
 
-    private void markPos(int x, int y, int z, ChunkPos chunkPos){
+    private static void markPos(int x, int y, int z, ChunkPos chunkPos, boolean status){
+        BlockPos pos = chunkPos.getStartPos().add(x, y, z);
         synchronized (markedBlocks){
-            markedBlocks.add(chunkPos.getStartPos().add(x, y, z));
+            if(status) markedBlocks.add(pos);
+            else markedBlocks.remove(pos);
         }
     }
 
