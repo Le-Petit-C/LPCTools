@@ -3,6 +3,7 @@ package lpctools.lpcfymasaapi;
 import fi.dy.masa.malilib.event.RenderEventHandler;
 import fi.dy.masa.malilib.interfaces.IRenderDispatcher;
 import fi.dy.masa.malilib.interfaces.IRenderer;
+import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientChunkEvents;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents;
@@ -11,11 +12,13 @@ import net.minecraft.client.gl.Framebuffer;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.render.*;
 import net.minecraft.client.util.math.MatrixStack;
+import net.minecraft.client.world.ClientWorld;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.text.Text;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.util.profiler.Profiler;
+import net.minecraft.world.chunk.WorldChunk;
 import org.jetbrains.annotations.NotNull;
 import org.joml.Matrix4f;
 
@@ -54,6 +57,18 @@ public class Registry {
     public static boolean unregisterMalilibRenderCallback(IRenderer callback){
         return malilibRenderCallbacks.remove(callback);
     }
+    public static boolean registerClientChunkLoadCallbacks(ClientChunkEvents.Load callback){
+        return clientChunkLoadCallbacks.add(callback);
+    }
+    public static boolean unregisterClientChunkLoadCallbacks(ClientChunkEvents.Load callback){
+        return clientChunkLoadCallbacks.remove(callback);
+    }
+    public static boolean registerClientChunkUnloadCallbacks(ClientChunkEvents.Unload callback){
+        return clientChunkUnloadCallbacks.add(callback);
+    }
+    public static boolean unregisterClientChunkUnloadCallbacks(ClientChunkEvents.Unload callback){
+        return clientChunkUnloadCallbacks.remove(callback);
+    }
     public static void runEndClientTickCallbacks(MinecraftClient client){
         for(ClientTickEvents.EndTick callback : endClientTickCallbacks)
             callback.onEndTick(client);
@@ -70,6 +85,14 @@ public class Registry {
         for(WorldRenderEvents.End callback : worldRenderEndCallbacks)
             callback.onEnd(context);
     }
+    public static void runClientChunkLoadCallbacks(ClientWorld world, WorldChunk chunk){
+        for(ClientChunkEvents.Load callback : clientChunkLoadCallbacks)
+            callback.onChunkLoad(world, chunk);
+    }
+    public static void runClientChunkUnloadCallbacks(ClientWorld world, WorldChunk chunk){
+        for(ClientChunkEvents.Unload callback : clientChunkUnloadCallbacks)
+            callback.onChunkUnload(world, chunk);
+    }
     static void init(){
         ClientTickEvents.END_CLIENT_TICK.register(Registry::runEndClientTickCallbacks);
         WorldRenderEvents.LAST.register(Registry::runWorldRenderLastCallbacks);
@@ -81,52 +104,43 @@ public class Registry {
         handler.registerTooltipLastRenderer(renderer);
         handler.registerWorldPostDebugRenderer(renderer);
         handler.registerWorldPreWeatherRenderer(renderer);
+        ClientChunkEvents.CHUNK_LOAD.register(Registry::runClientChunkLoadCallbacks);
+        ClientChunkEvents.CHUNK_UNLOAD.register(Registry::runClientChunkUnloadCallbacks);
     }
     private static class MalilibRenderer implements IRenderer{
         private static final MalilibRenderer renderer = new MalilibRenderer();
         private MalilibRenderer(){}
         public static MalilibRenderer getInstance() {return renderer;}
-
         @Override public void onRenderGameOverlayLastDrawer(DrawContext drawContext, float partialTicks, Profiler profiler, MinecraftClient mc) {
             for(IRenderer renderer : malilibRenderCallbacks) renderer.onRenderGameOverlayLastDrawer(drawContext, partialTicks, profiler, mc);
         }
-
         @Override public void onRenderGameOverlayPostAdvanced(DrawContext drawContext, float partialTicks, Profiler profiler, MinecraftClient mc) {
             for(IRenderer renderer : malilibRenderCallbacks) renderer.onRenderGameOverlayPostAdvanced(drawContext, partialTicks, profiler, mc);
         }
-
         @Override public void onRenderGameOverlayPost(DrawContext drawContext) {
             for(IRenderer renderer : malilibRenderCallbacks) renderer.onRenderGameOverlayPost(drawContext);
         }
-
         @Override public void onRenderWorldPostDebugRender(MatrixStack matrices, Frustum frustum, VertexConsumerProvider.Immediate immediate, Vec3d camera, Profiler profiler) {
             for(IRenderer renderer : malilibRenderCallbacks) renderer.onRenderWorldPostDebugRender(matrices, frustum, immediate, camera, profiler);
         }
-
         @Override public void onRenderWorldPreWeather(Framebuffer fb, Matrix4f posMatrix, Matrix4f projMatrix, Frustum frustum, Camera camera, Fog fog, BufferBuilderStorage buffers, Profiler profiler) {
             for(IRenderer renderer : malilibRenderCallbacks) renderer.onRenderWorldPreWeather(fb, posMatrix, projMatrix, frustum, camera, fog, buffers, profiler);
         }
-
         @Override public void onRenderWorldLastAdvanced(Framebuffer fb, Matrix4f posMatrix, Matrix4f projMatrix, Frustum frustum, Camera camera, Fog fog, BufferBuilderStorage buffers, Profiler profiler) {
             for(IRenderer renderer : malilibRenderCallbacks) renderer.onRenderWorldLastAdvanced(fb, posMatrix, projMatrix, frustum, camera, fog, buffers, profiler);
         }
-
         @Override public void onRenderWorldLast(Matrix4f posMatrix, Matrix4f projMatrix) {
             for(IRenderer renderer : malilibRenderCallbacks) renderer.onRenderWorldLast(posMatrix, projMatrix);
         }
-
         @Override public void onRenderTooltipComponentInsertFirst(Item.TooltipContext context, ItemStack stack, Consumer<Text> list) {
             for(IRenderer renderer : malilibRenderCallbacks) renderer.onRenderTooltipComponentInsertFirst(context, stack, list);
         }
-
         @Override public void onRenderTooltipComponentInsertMiddle(Item.TooltipContext context, ItemStack stack, Consumer<Text> list) {
             for(IRenderer renderer : malilibRenderCallbacks) renderer.onRenderTooltipComponentInsertMiddle(context, stack, list);
         }
-
         @Override public void onRenderTooltipComponentInsertLast(Item.TooltipContext context, ItemStack stack, Consumer<Text> list) {
             for(IRenderer renderer : malilibRenderCallbacks) renderer.onRenderTooltipComponentInsertLast(context, stack, list);
         }
-
         @Override public void onRenderTooltipLast(DrawContext drawContext, ItemStack stack, int x, int y) {
             for(IRenderer renderer : malilibRenderCallbacks) renderer.onRenderTooltipLast(drawContext, stack, x, y);
         }
@@ -136,6 +150,8 @@ public class Registry {
     @NotNull private static final LinkedHashSet<WorldRenderEvents.Last> worldRenderLastCallbacks = new LinkedHashSet<>();
     @NotNull private static final LinkedHashSet<WorldRenderEvents.End> worldRenderEndCallbacks = new LinkedHashSet<>();
     @NotNull private static final LinkedHashSet<IRenderer> malilibRenderCallbacks = new LinkedHashSet<>();
+    @NotNull private static final LinkedHashSet<ClientChunkEvents.Load> clientChunkLoadCallbacks = new LinkedHashSet<>();
+    @NotNull private static final LinkedHashSet<ClientChunkEvents.Unload> clientChunkUnloadCallbacks = new LinkedHashSet<>();
 
     public interface InGameEndMouse {
         void onInGameEndMouse(int button, int action, int mods);

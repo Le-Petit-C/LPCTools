@@ -2,6 +2,7 @@ package lpctools.util;
 
 import net.minecraft.client.render.Camera;
 import net.minecraft.util.math.MathHelper;
+import net.minecraft.util.math.Vec3i;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
 import org.joml.Vector4f;
@@ -17,5 +18,8 @@ public class MathUtils {
                 .rotate(camera.getPitch() / 180 * MathHelper.PI, new Vector3f(1, 0, 0))
                 .rotate((camera.getYaw() + 180) / 180 * MathHelper.PI, new Vector3f(0, 1, 0));
         return matrix.setColumn(3, matrix.transform(new Vector4f(vec, 1)));
+    }
+    public static <T extends Vec3i> int getManhattanDistanceToZero(T pos){
+        return Math.abs(pos.getX()) + Math.abs(pos.getY()) + Math.abs(pos.getZ());
     }
 }

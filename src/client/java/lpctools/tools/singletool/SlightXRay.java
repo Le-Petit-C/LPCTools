@@ -5,6 +5,7 @@ import fi.dy.masa.malilib.render.RenderContext;
 import lpctools.LPCTools;
 import lpctools.lpcfymasaapi.Registry;
 import lpctools.lpcfymasaapi.configbutton.IValueRefreshCallback;
+import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientChunkEvents;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents;
 import net.minecraft.block.Block;
@@ -17,6 +18,7 @@ import net.minecraft.client.render.BuiltBuffer;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.ChunkPos;
+import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.chunk.WorldChunk;
 import org.jetbrains.annotations.NotNull;
 import org.joml.Matrix4f;
@@ -24,9 +26,10 @@ import org.joml.Vector3f;
 
 import java.util.*;
 
+import static lpctools.util.AlgorithmUtils.*;
 import static lpctools.util.MathUtils.*;
 
-public class SlightXRay implements IValueRefreshCallback, WorldRenderEvents.End {
+public class SlightXRay implements IValueRefreshCallback, WorldRenderEvents.End, ClientChunkEvents.Load, ClientChunkEvents.Unload {
     //markedBlocks放在多线程里用，记得要同步
     @NotNull final HashSet<BlockPos> markedBlocks = new HashSet<>();
     @NotNull static final HashSet<Block> XRayBlocks = initHashset();
@@ -48,19 +51,24 @@ public class SlightXRay implements IValueRefreshCallback, WorldRenderEvents.End 
                 for(int x = chunkPos.x - distance; x <= chunkPos.x + distance; ++x){
                     for(int z = chunkPos.z - distance; z <= chunkPos.z + distance; ++z){
                         if(world.isChunkLoaded(x, z))
-                            newAThreadToLoadChunk(world, new ChunkPos(x, z), player);
+                            updateChunkInAnotherThread(world, world.getChunk(x, z), player.getPos(), false);
                     }
                 }
             }
+            Registry.registerClientChunkLoadCallbacks(this);
+            Registry.registerClientChunkUnloadCallbacks(this);
         }
         else {
-            Registry.unregisterWorldRenderEndCallback(this);
-            synchronized (markedBlocks){
-                markedBlocks.clear();
+            if(Registry.unregisterWorldRenderEndCallback(this)){
+                synchronized (markedBlocks){
+                    markedBlocks.clear();
+                }
+                synchronized (threadTasks){
+                    threadTasks.clear();
+                }
             }
-            synchronized (threadTasks){
-                threadTasks.clear();
-            }
+            Registry.unregisterClientChunkLoadCallbacks(this);
+            Registry.unregisterClientChunkUnloadCallbacks(this);
         }
     }
 
@@ -83,6 +91,20 @@ public class SlightXRay implements IValueRefreshCallback, WorldRenderEvents.End 
             LPCTools.LOGGER.error("lpctools.tools.singletool.SlightXRay.onLast(): Draw Exception; {}", err.getMessage());
         }
     }
+    @Override public void onChunkLoad(ClientWorld clientWorld, WorldChunk worldChunk) {
+        onChunkUpdate(clientWorld, worldChunk, false);
+    }
+    @Override public void onChunkUnload(ClientWorld clientWorld, WorldChunk worldChunk) {
+        onChunkUpdate(clientWorld, worldChunk, true);
+    }
+
+    void onChunkUpdate(ClientWorld clientWorld, WorldChunk worldChunk, boolean unload){
+        ClientPlayerEntity player = MinecraftClient.getInstance().player;
+        Vec3d testPos;
+        if(player != null) testPos = player.getPos();
+        else testPos = Vec3d.ZERO;
+        updateChunkInAnotherThread(clientWorld, worldChunk, testPos, unload);
+    }
 
     private enum XRayNecessaryState{
         F_F(false, false),
@@ -100,11 +122,29 @@ public class SlightXRay implements IValueRefreshCallback, WorldRenderEvents.End 
         }
     }
 
-    private void loadChunk(ClientWorld world, ChunkPos chunkPos){
-        //TODO:优化算法
+    private void markNears(ClientWorld world, BlockPos center){
+        for(BlockPos pos : iterateInManhattanDistance(center, 2)){
+            if(XRayNecessaryState.of(world.getBlockState(pos)).isXRayTarget)
+                markedBlocks.add(pos.mutableCopy());
+        }
+    }
+
+    private void updateChunk(ClientWorld world, WorldChunk chunk, boolean unload){
+        ChunkPos chunkPos = chunk.getPos();
         int cx = chunkPos.x, cz = chunkPos.z;
-        if(!world.isChunkLoaded(cx, cz)) return;
-        WorldChunk chunk = world.getChunk(cx, cz);
+        if(unload){
+            synchronized (markedBlocks){
+                Iterator<BlockPos> posIterator = markedBlocks.iterator();
+                while(posIterator.hasNext()){
+                    BlockPos pos = posIterator.next();
+                    int sx = pos.getX() - (cx << 4);
+                    int sz = pos.getZ() - (cz << 4);
+                    if(sx >= 0 && sz >= 0 && sx < 16 && sz < 16)
+                        posIterator.remove();
+                }
+            }
+            return;
+        }
         int minY = world.getBottomY();
         int numY = world.getHeight();
         int topY = minY + numY;
@@ -194,21 +234,20 @@ public class SlightXRay implements IValueRefreshCallback, WorldRenderEvents.End 
 
     private static final PriorityQueue<ThreadTask> threadTasks = new PriorityQueue<>(new ThreadTask.Comparator());
     private static Thread thread;
-    private record ThreadTask(double distance, ClientWorld world, ChunkPos chunkPos){
+    private record ThreadTask(double distance, ClientWorld world, WorldChunk chunk, boolean unload){
         public static class Comparator implements java.util.Comparator<ThreadTask>{
             @Override public int compare(ThreadTask o1, ThreadTask o2) {
                 return (int)(o1.distance - o2.distance);
             }
         }
-        ThreadTask(ClientWorld world, ChunkPos pos, ClientPlayerEntity player){
-            this(pos.getCenterAtY((int)player.getPos().getY()).getSquaredDistance(player.getPos()),
-                    world, pos);
+        ThreadTask(ClientWorld world, WorldChunk chunk, Vec3d playerPos, boolean unload){
+            this(chunk.getPos().getCenterAtY((int)playerPos.getY()).getSquaredDistance(playerPos), world, chunk, unload);
         }
     }
 
-    private void newAThreadToLoadChunk(ClientWorld world, ChunkPos chunkPos, ClientPlayerEntity player){
+    private void updateChunkInAnotherThread(ClientWorld world, WorldChunk chunk, Vec3d playerPos, boolean unload){
         synchronized (threadTasks){
-            threadTasks.add(new ThreadTask(world, chunkPos, player));
+            threadTasks.add(new ThreadTask(world, chunk, playerPos, unload));
             if(thread == null){
                 thread = new Thread(this::ThreadFunc);
                 thread.start();
@@ -225,7 +264,7 @@ public class SlightXRay implements IValueRefreshCallback, WorldRenderEvents.End 
                 }
                 task = threadTasks.remove();
             }
-            loadChunk(task.world, task.chunkPos);
+            updateChunk(task.world, task.chunk, task.unload);
         }
     }
 
