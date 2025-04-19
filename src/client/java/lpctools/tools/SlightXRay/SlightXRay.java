@@ -157,6 +157,8 @@ public class SlightXRay implements IValueRefreshCallback, WorldRenderEvents.End,
 
     public static void setBlockStateTest(World world, BlockPos pos, BlockState lastState, BlockState currentState){
         if(lastState == null || currentState == null) return;
+        if(XRayNecessaryState.of(lastState).doShowAround == XRayNecessaryState.of(currentState).doShowAround)
+            return;
         boolean hasNear = false;
         for(Direction direction : Direction.values()){
             if(XRayNecessaryState.of(world.getBlockState(pos.offset(direction))).doShowAround){
