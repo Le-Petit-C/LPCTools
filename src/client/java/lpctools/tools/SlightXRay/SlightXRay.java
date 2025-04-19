@@ -2,10 +2,6 @@ package lpctools.tools.SlightXRay;
 
 import com.google.common.collect.ImmutableList;
 import com.mojang.blaze3d.systems.RenderSystem;
-import fi.dy.masa.malilib.render.MaLiLibPipelines;
-import fi.dy.masa.malilib.render.RenderContext;
-import fi.dy.masa.malilib.util.data.Color4f;
-import lpctools.LPCTools;
 import lpctools.compact.derived.ShapeList;
 import lpctools.lpcfymasaapi.Registry;
 import lpctools.lpcfymasaapi.configbutton.IValueRefreshCallback;
