@@ -199,25 +199,28 @@ public class SlightXRay implements IValueRefreshCallback, WorldRenderEvents.End,
         int numY = world.getHeight();
         int topY = minY + numY;
 
-        //states用于存放预处理后的数据，并向外拓展了两格防止越界
-        XRayNecessaryState[][][] states = new XRayNecessaryState[18][numY + 2][18];
+        //states用于存放预处理后的数据，向外拓展了一格处理相邻区块的内容，再向外拓展了一格防止越界
+        XRayNecessaryState[][][] states = new XRayNecessaryState[20][numY + 4][20];
         //初始化states数据
         for(XRayNecessaryState[][] states1 : states){
-            for(XRayNecessaryState[] states2 : states1){
-                Arrays.fill(states2, XRayNecessaryState.F_F);
+            for(int y = 0; y < states1.length; ++y){
+                XRayNecessaryState[] states2 = states1[y];
+                if(world.isOutOfHeightLimit(y))
+                    Arrays.fill(states2, XRayNecessaryState.of(Blocks.AIR.getDefaultState()));
+                else Arrays.fill(states2, XRayNecessaryState.F_F);
             }
         }
         //加载本区块中数据
         BlockPos.Mutable mutableBlockPos = new BlockPos.Mutable();
         for(int x = 0; x < 16; ++x){
             mutableBlockPos.setX(x);
-            XRayNecessaryState[][] states1 = states[x + 1];
+            XRayNecessaryState[][] states1 = states[x + 2];
             for(int y = minY; y < topY; ++y){
                 mutableBlockPos.setY(y);
-                XRayNecessaryState[] states2 = states1[y - minY + 1];
+                XRayNecessaryState[] states2 = states1[y - minY + 2];
                 for(int z = 0; z < 16; ++z){
                     mutableBlockPos.setZ(z);
-                    states2[z + 1] = XRayNecessaryState.of(chunk.getBlockState(mutableBlockPos));
+                    states2[z + 2] = XRayNecessaryState.of(chunk.getBlockState(mutableBlockPos));
                 }
             }
         }
@@ -232,7 +235,7 @@ public class SlightXRay implements IValueRefreshCallback, WorldRenderEvents.End,
                 mutableBlockPos.setY(y);
                 for(int z = 0; z < 16; ++z){
                     mutableBlockPos.setZ(z);
-                    states[0][y - minY + 1][z + 1] = XRayNecessaryState.of(nxChunk.getBlockState(mutableBlockPos));
+                    states[1][y - minY + 2][z + 2] = XRayNecessaryState.of(nxChunk.getBlockState(mutableBlockPos));
                 }
             }
         }
@@ -242,7 +245,7 @@ public class SlightXRay implements IValueRefreshCallback, WorldRenderEvents.End,
                 mutableBlockPos.setY(y);
                 for(int z = 0; z < 16; ++z){
                     mutableBlockPos.setZ(z);
-                    states[17][y - minY + 1][z + 1] = XRayNecessaryState.of(pxChunk.getBlockState(mutableBlockPos));
+                    states[18][y - minY + 2][z + 2] = XRayNecessaryState.of(pxChunk.getBlockState(mutableBlockPos));
                 }
             }
         }
@@ -252,7 +255,7 @@ public class SlightXRay implements IValueRefreshCallback, WorldRenderEvents.End,
                 mutableBlockPos.setY(y);
                 for(int x = 0; x < 16; ++x){
                     mutableBlockPos.setX(x);
-                    states[x + 1][y - minY + 1][0] = XRayNecessaryState.of(nzChunk.getBlockState(mutableBlockPos));
+                    states[x + 2][y - minY + 2][1] = XRayNecessaryState.of(nzChunk.getBlockState(mutableBlockPos));
                 }
             }
         }
@@ -262,21 +265,21 @@ public class SlightXRay implements IValueRefreshCallback, WorldRenderEvents.End,
                 mutableBlockPos.setY(y);
                 for(int x = 0; x < 16; ++x){
                     mutableBlockPos.setX(x);
-                    states[x + 1][y - minY + 1][17] = XRayNecessaryState.of(pzChunk.getBlockState(mutableBlockPos));
+                    states[x + 2][y - minY + 2][18] = XRayNecessaryState.of(pzChunk.getBlockState(mutableBlockPos));
                 }
             }
         }
         //检测并加入过关数据
-        for(int x = 1; x <= 16; ++x){
-            for(int y = 1; y <= numY; ++y){
-                for(int z = 1; z <= 16; ++z){
+        for(int x = 1; x <= 18; ++x){
+            for(int y = 1; y <= numY + 2; ++y){
+                for(int z = 1; z <= 18; ++z){
                     if(!states[x][y][z].doShowAround) continue;
-                    markPos(x - 2, y + minY - 1, z - 1, chunkPos, states[x - 1][y][z].isXRayTarget);
-                    markPos(x, y + minY - 1, z - 1, chunkPos, states[x + 1][y][z].isXRayTarget);
-                    markPos(x - 1, y + minY - 2, z - 1, chunkPos, states[x][y - 1][z].isXRayTarget);
-                    markPos(x - 1, y + minY, z - 1, chunkPos, states[x][y + 1][z].isXRayTarget);
-                    markPos(x - 1, y + minY - 1, z - 2, chunkPos, states[x][y][z - 1].isXRayTarget);
-                    markPos(x - 1, y + minY - 1, z, chunkPos, states[x][y][z + 1].isXRayTarget);
+                    markPos(x - 3, y + minY - 2, z - 2, chunkPos, states[x - 1][y][z].isXRayTarget);
+                    markPos(x - 1, y + minY - 2, z - 2, chunkPos, states[x + 1][y][z].isXRayTarget);
+                    markPos(x - 2, y + minY - 3, z - 2, chunkPos, states[x][y - 1][z].isXRayTarget);
+                    markPos(x - 2, y + minY - 1, z - 2, chunkPos, states[x][y + 1][z].isXRayTarget);
+                    markPos(x - 2, y + minY - 2, z - 3, chunkPos, states[x][y][z - 1].isXRayTarget);
+                    markPos(x - 2, y + minY - 2, z - 1, chunkPos, states[x][y][z + 1].isXRayTarget);
                 }
             }
         }
