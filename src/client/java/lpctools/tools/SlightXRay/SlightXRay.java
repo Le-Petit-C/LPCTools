@@ -194,12 +194,9 @@ public class SlightXRay implements IValueRefreshCallback, WorldRenderEvents.End,
     }
 
     public static void setBlockStateTest(World world, BlockPos pos, BlockState lastState, BlockState currentState){
-        if(lastState == null || currentState == null) return;
-        if(doShowAround(lastState) == doShowAround(currentState)){
-            if(lastState.getBlock() != currentState.getBlock())
-                testPos(world, pos, currentState);
-            return;
-        }
+        if(lastState == null) lastState = Blocks.AIR.getDefaultState();
+        if(currentState == null) currentState = Blocks.AIR.getDefaultState();
+        if(doShowAround(lastState) && doShowAround(currentState)) return;
         if(doShowAround(currentState)){
             for(BlockPos pos1 : iterateInManhattanDistance(pos, 2))
                 testPos(world, pos1, world.getBlockState(pos1));
@@ -217,7 +214,7 @@ public class SlightXRay implements IValueRefreshCallback, WorldRenderEvents.End,
         for(BlockPos pos1 : iterateInManhattanDistance(pos, 2)) {
             if(doShowAround(world.getBlockState(pos1))){
                 synchronized (markedBlocks){
-                    markedBlocks.add(pos);
+                    markedBlocks.add(pos.mutableCopy());
                 }
                 return;
             }
@@ -339,7 +336,7 @@ public class SlightXRay implements IValueRefreshCallback, WorldRenderEvents.End,
         BlockPos pos = chunkPos.getStartPos().add(x, y, z);
         if(status){
             synchronized (markedBlocks){
-                markedBlocks.add(pos);
+                markedBlocks.add(pos.mutableCopy());
             }
         }
     }
