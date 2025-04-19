@@ -2,6 +2,7 @@ package lpctools.tools.SlightXRay;
 
 import com.google.common.collect.ImmutableList;
 import com.mojang.blaze3d.systems.RenderSystem;
+import lpctools.LPCTools;
 import lpctools.lpcfymasaapi.Registry;
 import lpctools.lpcfymasaapi.configbutton.IValueRefreshCallback;
 import lpctools.lpcfymasaapi.configbutton.derivedConfigs.ThirdListConfig;
@@ -20,6 +21,7 @@ import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.client.render.*;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.registry.Registries;
+import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.ChunkPos;
@@ -60,8 +62,12 @@ public class SlightXRay implements IValueRefreshCallback, WorldRenderEvents.End,
         ChunkPos chunkPos = player.getChunkPos();
         for(int x = chunkPos.x - distance; x <= chunkPos.x + distance; ++x){
             for(int z = chunkPos.z - distance; z <= chunkPos.z + distance; ++z){
-                if(world.isChunkLoaded(x, z))
-                    updateChunkInAnotherThread(world, world.getChunk(x, z), false);
+                if(world.isChunkLoaded(x, z)){
+                    WorldChunk chunk = world.getChunk(x, z);
+                    ChunkPos compPos = chunk.getPos();
+                    if(compPos.x != x || compPos.z != z) continue;
+                    updateChunkInAnotherThread(world, chunk, false);
+                }
             }
         }
     }
