@@ -202,7 +202,7 @@ public class SlightXRay implements IValueRefreshCallback, WorldRenderEvents.End,
         }
         if(doShowAround(currentState)){
             for(BlockPos pos1 : iterateInManhattanDistance(pos, 2))
-                testPos(world, pos1, world.getBlockState(pos));
+                testPos(world, pos1, world.getBlockState(pos1));
         }
         else testPos(world, pos, currentState);
     }
