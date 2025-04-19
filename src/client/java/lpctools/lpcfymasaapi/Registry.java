@@ -5,6 +5,7 @@ import fi.dy.masa.malilib.interfaces.IRenderDispatcher;
 import fi.dy.masa.malilib.interfaces.IRenderer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientChunkEvents;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
+import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientWorldEvents;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents;
 import net.minecraft.client.MinecraftClient;
@@ -69,6 +70,12 @@ public class Registry {
     public static boolean unregisterClientChunkUnloadCallbacks(ClientChunkEvents.Unload callback){
         return clientChunkUnloadCallbacks.remove(callback);
     }
+    public static boolean registerClientWorldChangeCallbacks(ClientWorldEvents.AfterClientWorldChange callback){
+        return clientWorldChangeCallbacks.add(callback);
+    }
+    public static boolean unregisterClientWorldChangeCallbacks(ClientWorldEvents.AfterClientWorldChange callback){
+        return clientWorldChangeCallbacks.add(callback);
+    }
     public static void runEndClientTickCallbacks(MinecraftClient client){
         for(ClientTickEvents.EndTick callback : endClientTickCallbacks)
             callback.onEndTick(client);
@@ -93,6 +100,10 @@ public class Registry {
         for(ClientChunkEvents.Unload callback : clientChunkUnloadCallbacks)
             callback.onChunkUnload(world, chunk);
     }
+    public static void runAfterClientWorldChange(MinecraftClient mc, ClientWorld world){
+        for(ClientWorldEvents.AfterClientWorldChange callback : clientWorldChangeCallbacks)
+            callback.afterWorldChange(mc, world);
+    }
     static void init(){
         ClientTickEvents.END_CLIENT_TICK.register(Registry::runEndClientTickCallbacks);
         WorldRenderEvents.LAST.register(Registry::runWorldRenderLastCallbacks);
@@ -106,6 +117,7 @@ public class Registry {
         handler.registerWorldPreWeatherRenderer(renderer);
         ClientChunkEvents.CHUNK_LOAD.register(Registry::runClientChunkLoadCallbacks);
         ClientChunkEvents.CHUNK_UNLOAD.register(Registry::runClientChunkUnloadCallbacks);
+        ClientWorldEvents.AFTER_CLIENT_WORLD_CHANGE.register(Registry::runAfterClientWorldChange);
     }
     private static class MalilibRenderer implements IRenderer{
         private static final MalilibRenderer renderer = new MalilibRenderer();
@@ -152,6 +164,7 @@ public class Registry {
     @NotNull private static final LinkedHashSet<IRenderer> malilibRenderCallbacks = new LinkedHashSet<>();
     @NotNull private static final LinkedHashSet<ClientChunkEvents.Load> clientChunkLoadCallbacks = new LinkedHashSet<>();
     @NotNull private static final LinkedHashSet<ClientChunkEvents.Unload> clientChunkUnloadCallbacks = new LinkedHashSet<>();
+    @NotNull private static final LinkedHashSet<ClientWorldEvents.AfterClientWorldChange> clientWorldChangeCallbacks = new LinkedHashSet<>();
 
     public interface InGameEndMouse {
         void onInGameEndMouse(int button, int action, int mods);

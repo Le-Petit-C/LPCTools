@@ -12,6 +12,7 @@ import lpctools.lpcfymasaapi.configbutton.transferredConfigs.BooleanHotkeyConfig
 import lpctools.lpcfymasaapi.configbutton.transferredConfigs.ColorConfig;
 import lpctools.lpcfymasaapi.configbutton.transferredConfigs.StringListConfig;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientChunkEvents;
+import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientWorldEvents;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents;
 import net.minecraft.block.Block;
@@ -24,15 +25,11 @@ import net.minecraft.client.render.BuiltBuffer;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.registry.Registries;
 import net.minecraft.util.Identifier;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.ChunkPos;
-import net.minecraft.util.math.Direction;
-import net.minecraft.util.math.Vec3i;
+import net.minecraft.util.math.*;
 import net.minecraft.world.World;
 import net.minecraft.world.chunk.WorldChunk;
 import org.jetbrains.annotations.NotNull;
-import org.joml.Matrix4f;
-import org.joml.Vector3f;
+import org.joml.*;
 
 import java.util.*;
 
@@ -40,7 +37,7 @@ import static lpctools.util.AlgorithmUtils.*;
 import static lpctools.util.DataUtils.*;
 import static lpctools.util.MathUtils.*;
 
-public class SlightXRay implements IValueRefreshCallback, WorldRenderEvents.End, ClientChunkEvents.Load, ClientChunkEvents.Unload {
+public class SlightXRay implements IValueRefreshCallback, WorldRenderEvents.End, ClientChunkEvents.Load, ClientChunkEvents.Unload, ClientWorldEvents.AfterClientWorldChange {
     //markedBlocks放在多线程里用，记得要同步
     static final @NotNull HashSet<BlockPos> markedBlocks = new HashSet<>();
     static final @NotNull HashSet<Block> XRayBlocks = initHashset();
@@ -78,13 +75,20 @@ public class SlightXRay implements IValueRefreshCallback, WorldRenderEvents.End,
     }
 
     private static void refreshXRayBlocks(){
-        XRayBlocks.clear();
+        HashSet<Block> newBlocks = new HashSet<>();
         for(String str : XRayBlocksConfig.getStrings()){
             if(str.isEmpty() || str.isBlank()) continue;
-            XRayBlocks.add(Registries.BLOCK.get(Identifier.of(str)));
+            Block block = Registries.BLOCK.get(Identifier.of(str));
+            if(block == Blocks.AIR && !str.equals("air") && !str.equals("minecraft:air")) continue;
+            newBlocks.add(block);
         }
-        if(slightXRay.getAsBoolean())
+        if(XRayBlocks.equals(newBlocks)) return;
+        XRayBlocks.clear();
+        XRayBlocks.addAll(newBlocks);
+        if(slightXRay.getAsBoolean()){
+            clearAll();
             addAllRenderRegionsIntoWork();
+        }
     }
 
     private static HashSet<Block> initHashset(){
@@ -100,6 +104,7 @@ public class SlightXRay implements IValueRefreshCallback, WorldRenderEvents.End,
                 addAllRenderRegionsIntoWork();
             Registry.registerClientChunkLoadCallbacks(this);
             Registry.registerClientChunkUnloadCallbacks(this);
+            Registry.registerClientWorldChangeCallbacks(this);
         }
         else {
             if(Registry.unregisterWorldRenderEndCallback(this)){
@@ -112,13 +117,15 @@ public class SlightXRay implements IValueRefreshCallback, WorldRenderEvents.End,
             }
             Registry.unregisterClientChunkLoadCallbacks(this);
             Registry.unregisterClientChunkUnloadCallbacks(this);
+            Registry.unregisterClientWorldChangeCallbacks(this);
         }
     }
 
     @Override public void onEnd(WorldRenderContext context) {
         RenderContext ctx = new RenderContext(MaLiLibPipelines.POSITION_COLOR_MASA_NO_DEPTH);
         BufferBuilder buffer = ctx.getBuilder();
-        Matrix4f matrix = worldToCameraMatrix(context.camera());
+        Matrix4d matrix = worldToCameraMatrix4d(context.camera());
+        //Matrix4d matrix = new Matrix4d();
         int color = displayColor.get().getIntValue();
         synchronized (markedBlocks){
             for(BlockPos pos : markedBlocks)
@@ -148,6 +155,22 @@ public class SlightXRay implements IValueRefreshCallback, WorldRenderEvents.End,
 
     private static boolean isXRayTarget(BlockState state){
         return XRayBlocks.contains(state.getBlock());
+    }
+
+    @Override public void afterWorldChange(MinecraftClient client, ClientWorld world) {
+        clearAll();
+    }
+
+    private static void clearAll(){
+        synchronized (threadTasks){
+            threadTasks.clear();
+            if(loadingThreadCount != 0) {
+                try {threadTasks.wait();} catch (InterruptedException ignored) {}
+            }
+        }
+        synchronized (markedBlocks){
+            markedBlocks.clear();
+        }
     }
 
     private enum XRayNecessaryState{
@@ -196,7 +219,6 @@ public class SlightXRay implements IValueRefreshCallback, WorldRenderEvents.End,
             testPos(pos, world.getBlockState(pos));
     }
 
-    //TODO:跨纬度处理之类的
     //states用于存放预处理后的数据，向外拓展了一格处理相邻区块的内容，再向外拓展了一格防止越界
     private static XRayNecessaryState[][][] allocateStateBuffer(XRayNecessaryState[][][] lastBuffer, World world){
         if(lastBuffer != null && lastBuffer[0].length == world.getHeight()) return lastBuffer;
@@ -205,8 +227,7 @@ public class SlightXRay implements IValueRefreshCallback, WorldRenderEvents.End,
     private static void updateChunk(XRayNecessaryState[][][] states, ClientWorld world, WorldChunk chunk, boolean unload){
         ChunkPos chunkPos = chunk.getPos();
         int cx = chunkPos.x, cz = chunkPos.z;
-        if(unload || !world.isChunkLoaded(chunk.getPos().x, chunk.getPos().z)
-        || MinecraftClient.getInstance().world == null){
+        if(unload){
             synchronized (markedBlocks){
                 Iterator<BlockPos> posIterator = markedBlocks.iterator();
                 while(posIterator.hasNext()){
@@ -364,47 +385,75 @@ public class SlightXRay implements IValueRefreshCallback, WorldRenderEvents.End,
             stateBuffer = allocateStateBuffer(stateBuffer, task.world);
             updateChunk(stateBuffer, task.world, task.chunk, task.unload);
         }
+        synchronized (threadTasks){
+            if(loadingThreadCount == 0)
+                threadTasks.notifyAll();
+        }
     }
 
+    private static class VertexVectorBuffer{
+        public final Vector4d center = new Vector4d();
+        public final Vector4d buf = new Vector4d();
+        public final Vector3f nnn = new Vector3f();
+        public final Vector3f nnp = new Vector3f();
+        public final Vector3f npn = new Vector3f();
+        public final Vector3f npp = new Vector3f();
+        public final Vector3f pnn = new Vector3f();
+        public final Vector3f pnp = new Vector3f();
+        public final Vector3f ppn = new Vector3f();
+        public final Vector3f ppp = new Vector3f();
+    }
+
+    private final VertexVectorBuffer vertexVectorBuffer = new VertexVectorBuffer();
+
     @SuppressWarnings("SameParameterValue")
-    private void vertexBlock(Matrix4f matrix, BufferBuilder buffer, BlockPos pos, int color){
-        //TODO:高精度处理
-        Vector3f f_pos = pos.toCenterPos().toVector3f();
+    private void vertexBlock(Matrix4d matrix, BufferBuilder buffer, BlockPos pos, int color){
+        VertexVectorBuffer vBuf = vertexVectorBuffer;
+        Vector4d center = vBuf.center.set(pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5, 1);
+        Vector4d buf = vBuf.buf;
+        Vector3f nnn = center.add(-0.5, -0.5, -0.5, 0, buf).mul(matrix).xyz(vBuf.nnn);
+        Vector3f nnp = center.add(-0.5, -0.5, 0.5, 0, buf).mul(matrix).xyz(vBuf.nnp);
+        Vector3f npn = center.add(-0.5, 0.5, -0.5, 0, buf).mul(matrix).xyz(vBuf.npn);
+        Vector3f npp = center.add(-0.5, 0.5, 0.5, 0, buf).mul(matrix).xyz(vBuf.npp);
+        Vector3f pnn = center.add(0.5, -0.5, -0.5, 0, buf).mul(matrix).xyz(vBuf.pnn);
+        Vector3f pnp = center.add(0.5, -0.5, 0.5, 0, buf).mul(matrix).xyz(vBuf.pnp);
+        Vector3f ppn = center.add(0.5, 0.5, -0.5, 0, buf).mul(matrix).xyz(vBuf.ppn);
+        Vector3f ppp = center.add(0.5, 0.5, 0.5, 0, buf).mul(matrix).xyz(vBuf.ppp);
         if(!markedBlocks.contains(pos.west())){
-            buffer.vertex(matrix, f_pos.x - 0.5f, f_pos.y - 0.5f, f_pos.z - 0.5f).color(color);
-            buffer.vertex(matrix, f_pos.x - 0.5f, f_pos.y - 0.5f, f_pos.z + 0.5f).color(color);
-            buffer.vertex(matrix, f_pos.x - 0.5f, f_pos.y + 0.5f, f_pos.z + 0.5f).color(color);
-            buffer.vertex(matrix, f_pos.x - 0.5f, f_pos.y + 0.5f, f_pos.z - 0.5f).color(color);
+            buffer.vertex(nnn).color(color);
+            buffer.vertex(nnp).color(color);
+            buffer.vertex(npp).color(color);
+            buffer.vertex(npn).color(color);
         }
         if(!markedBlocks.contains(pos.east())){
-            buffer.vertex(matrix, f_pos.x + 0.5f, f_pos.y - 0.5f, f_pos.z - 0.5f).color(color);
-            buffer.vertex(matrix, f_pos.x + 0.5f, f_pos.y + 0.5f, f_pos.z - 0.5f).color(color);
-            buffer.vertex(matrix, f_pos.x + 0.5f, f_pos.y + 0.5f, f_pos.z + 0.5f).color(color);
-            buffer.vertex(matrix, f_pos.x + 0.5f, f_pos.y - 0.5f, f_pos.z + 0.5f).color(color);
+            buffer.vertex(pnn).color(color);
+            buffer.vertex(ppn).color(color);
+            buffer.vertex(ppp).color(color);
+            buffer.vertex(pnp).color(color);
         }
         if(!markedBlocks.contains(pos.down())){
-            buffer.vertex(matrix, f_pos.x - 0.5f, f_pos.y - 0.5f, f_pos.z - 0.5f).color(color);
-            buffer.vertex(matrix, f_pos.x + 0.5f, f_pos.y - 0.5f, f_pos.z - 0.5f).color(color);
-            buffer.vertex(matrix, f_pos.x + 0.5f, f_pos.y - 0.5f, f_pos.z + 0.5f).color(color);
-            buffer.vertex(matrix, f_pos.x - 0.5f, f_pos.y - 0.5f, f_pos.z + 0.5f).color(color);
+            buffer.vertex(nnn).color(color);
+            buffer.vertex(pnn).color(color);
+            buffer.vertex(pnp).color(color);
+            buffer.vertex(nnp).color(color);
         }
         if(!markedBlocks.contains(pos.up())){
-            buffer.vertex(matrix, f_pos.x - 0.5f, f_pos.y + 0.5f, f_pos.z - 0.5f).color(color);
-            buffer.vertex(matrix, f_pos.x - 0.5f, f_pos.y + 0.5f, f_pos.z + 0.5f).color(color);
-            buffer.vertex(matrix, f_pos.x + 0.5f, f_pos.y + 0.5f, f_pos.z + 0.5f).color(color);
-            buffer.vertex(matrix, f_pos.x + 0.5f, f_pos.y + 0.5f, f_pos.z - 0.5f).color(color);
+            buffer.vertex(npn).color(color);
+            buffer.vertex(npp).color(color);
+            buffer.vertex(ppp).color(color);
+            buffer.vertex(ppn).color(color);
         }
         if(!markedBlocks.contains(pos.north())){
-            buffer.vertex(matrix, f_pos.x - 0.5f, f_pos.y - 0.5f, f_pos.z - 0.5f).color(color);
-            buffer.vertex(matrix, f_pos.x - 0.5f, f_pos.y + 0.5f, f_pos.z - 0.5f).color(color);
-            buffer.vertex(matrix, f_pos.x + 0.5f, f_pos.y + 0.5f, f_pos.z - 0.5f).color(color);
-            buffer.vertex(matrix, f_pos.x + 0.5f, f_pos.y - 0.5f, f_pos.z - 0.5f).color(color);
+            buffer.vertex(nnn).color(color);
+            buffer.vertex(npn).color(color);
+            buffer.vertex(ppn).color(color);
+            buffer.vertex(pnn).color(color);
         }
         if(!markedBlocks.contains(pos.south())){
-            buffer.vertex(matrix, f_pos.x - 0.5f, f_pos.y - 0.5f, f_pos.z + 0.5f).color(color);
-            buffer.vertex(matrix, f_pos.x + 0.5f, f_pos.y - 0.5f, f_pos.z + 0.5f).color(color);
-            buffer.vertex(matrix, f_pos.x + 0.5f, f_pos.y + 0.5f, f_pos.z + 0.5f).color(color);
-            buffer.vertex(matrix, f_pos.x - 0.5f, f_pos.y + 0.5f, f_pos.z + 0.5f).color(color);
+            buffer.vertex(nnp).color(color);
+            buffer.vertex(pnp).color(color);
+            buffer.vertex(ppp).color(color);
+            buffer.vertex(npp).color(color);
         }
     }
 }
