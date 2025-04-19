@@ -165,7 +165,7 @@ public class SlightXRay implements IValueRefreshCallback, WorldRenderEvents.End,
             }
         }
         if(!hasNear) return;
-        if(lastState.isAir()) testPos(pos, currentState);
+        if(XRayNecessaryState.of(lastState).doShowAround) testPos(pos, currentState);
         else SlightXRay.markNears(world, pos);
     }
 
