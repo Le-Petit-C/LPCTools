@@ -131,12 +131,16 @@ public class SlightXRay implements IValueRefreshCallback, WorldRenderEvents.End,
         Matrix4d matrix = worldToCameraMatrix4d(context.camera());
         int color = displayColor.get().getIntValue();
         ShapeList shapes = displayRange.buildShapeList();
+        boolean bufferUsed = false;
         synchronized (markedBlocks){
             for(BlockPos pos : markedBlocks){
-                if(shapes.testPos(pos))
+                if(shapes.testPos(pos)){
                     vertexBlock(matrix, buffer, pos, color, shapes);
+                    bufferUsed = true;
+                }
             }
         }
+        if(!bufferUsed) return;
         try {
             BuiltBuffer meshData = buffer.endNullable();
             if (meshData != null) {
@@ -198,31 +202,36 @@ public class SlightXRay implements IValueRefreshCallback, WorldRenderEvents.End,
 
     public static void setBlockStateTest(World world, BlockPos pos, BlockState lastState, BlockState currentState){
         if(lastState == null || currentState == null) return;
-        if(doShowAround(lastState) == doShowAround(currentState))
+        if(doShowAround(lastState) == doShowAround(currentState)){
+            if(lastState.getBlock() != currentState.getBlock())
+                testPos(world, pos, currentState);
             return;
-        boolean hasNear = false;
-        for(Direction direction : Direction.values()){
-            if(doShowAround(world.getBlockState(pos.offset(direction)))){
-                hasNear = true;
-                break;
+        }
+        if(doShowAround(currentState)){
+            for(BlockPos pos1 : iterateInManhattanDistance(pos, 2))
+                testPos(world, pos1, world.getBlockState(pos));
+        }
+        else testPos(world, pos, currentState);
+    }
+
+    private static void testPos(World world, BlockPos pos, BlockState state){
+        if(!isXRayTarget(state)){
+            synchronized (markedBlocks){
+                markedBlocks.remove(pos);
+            }
+            return;
+        }
+        for(BlockPos pos1 : iterateInManhattanDistance(pos, 2)) {
+            if(doShowAround(world.getBlockState(pos1))){
+                synchronized (markedBlocks){
+                    markedBlocks.add(pos);
+                }
+                return;
             }
         }
-        if(!hasNear) return;
-        if(doShowAround(lastState)) testPos(pos, currentState);
-        else SlightXRay.markNears(world, pos);
-    }
-
-    private static void testPos(BlockPos pos, BlockState state){
         synchronized (markedBlocks){
-            if(isXRayTarget(state))
-                markedBlocks.add(pos.mutableCopy());
-            else markedBlocks.remove(pos);
+            markedBlocks.remove(pos);
         }
-    }
-
-    private static void markNears(World world, BlockPos center){
-        for(BlockPos pos : iterateInManhattanDistance(center, 2))
-            testPos(pos, world.getBlockState(pos));
     }
 
     //states用于存放预处理后的数据，向外拓展了一格处理相邻区块的内容，再向外拓展了一格防止越界
