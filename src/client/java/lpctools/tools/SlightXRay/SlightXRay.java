@@ -63,8 +63,12 @@ public class SlightXRay implements IValueRefreshCallback, WorldRenderEvents.End,
         ChunkPos chunkPos = player.getChunkPos();
         for(int x = chunkPos.x - distance; x <= chunkPos.x + distance; ++x){
             for(int z = chunkPos.z - distance; z <= chunkPos.z + distance; ++z){
-                if(world.isChunkLoaded(x, z))
-                    updateChunkInAnotherThread(world, world.getChunk(x, z), false);
+                if(world.isChunkLoaded(x, z)){
+                    WorldChunk chunk = world.getChunk(x, z);
+                    ChunkPos compPos = chunk.getPos();
+                    if(compPos.x != x || compPos.z != z) continue;
+                    updateChunkInAnotherThread(world, chunk, false);
+                }
             }
         }
     }
