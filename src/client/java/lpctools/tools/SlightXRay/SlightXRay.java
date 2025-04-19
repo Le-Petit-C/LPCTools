@@ -147,7 +147,7 @@ public class SlightXRay implements IValueRefreshCallback, WorldRenderEvents.End,
         public final boolean doShowAround, isXRayTarget;
         public static XRayNecessaryState of(BlockState state){
             return values()[(XRayBlocks.contains(state.getBlock()) ? 1 : 0)
-                    + (!state.isOpaque() || state.isTransparent() ? 2 : 0)];
+                    + ((!state.isOpaque() || state.isTransparent()) && !(state.getBlock() == Blocks.VOID_AIR) ? 2 : 0)];
         }
         XRayNecessaryState(boolean doShowAround, boolean isXRayTarget){
             this.doShowAround = doShowAround;
@@ -157,17 +157,16 @@ public class SlightXRay implements IValueRefreshCallback, WorldRenderEvents.End,
 
     public static void setBlockStateTest(World world, BlockPos pos, BlockState lastState, BlockState currentState){
         if(lastState == null || currentState == null) return;
-        if(lastState.isAir()) testPos(pos, currentState);
-        else {
-            boolean hasNear = false;
-            for(Direction direction : Direction.values()){
-                if(XRayNecessaryState.of(world.getBlockState(pos.offset(direction))).doShowAround){
-                    hasNear = true;
-                    break;
-                }
+        boolean hasNear = false;
+        for(Direction direction : Direction.values()){
+            if(XRayNecessaryState.of(world.getBlockState(pos.offset(direction))).doShowAround){
+                hasNear = true;
+                break;
             }
-            if(hasNear) SlightXRay.markNears(world, pos);
         }
+        if(!hasNear) return;
+        if(lastState.isAir()) testPos(pos, currentState);
+        else SlightXRay.markNears(world, pos);
     }
 
     private static void testPos(BlockPos pos, BlockState state){
