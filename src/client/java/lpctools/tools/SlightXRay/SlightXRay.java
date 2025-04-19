@@ -44,7 +44,10 @@ public class SlightXRay implements IValueRefreshCallback, WorldRenderEvents.End,
     //markedBlocks放在多线程里用，记得要同步
     static final @NotNull HashSet<BlockPos> markedBlocks = new HashSet<>();
     static final @NotNull HashSet<Block> XRayBlocks = initHashset();
-    static final @NotNull ImmutableList<Block> defaultXRayBlocks = ImmutableList.of(Blocks.DIAMOND_ORE, Blocks.DEEPSLATE_DIAMOND_ORE);
+    static final @NotNull ImmutableList<Block> defaultXRayBlocks = ImmutableList.of(
+            Blocks.DIAMOND_ORE, Blocks.DEEPSLATE_DIAMOND_ORE,
+            Blocks.DEEPSLATE_COAL_ORE, Blocks.EMERALD_ORE, Blocks.DEEPSLATE_EMERALD_ORE
+    );
     static final @NotNull ImmutableList<String> defaultXRayBlockIds = idListFromBlockList(defaultXRayBlocks);
     public static BooleanHotkeyConfig slightXRay;
     public static ColorConfig displayColor;
@@ -139,6 +142,14 @@ public class SlightXRay implements IValueRefreshCallback, WorldRenderEvents.End,
         updateChunkInAnotherThread(clientWorld, worldChunk, true);
     }
 
+    private static boolean doShowAround(BlockState state){
+        return !state.isOpaque() || state.isTransparent();
+    }
+
+    private static boolean isXRayTarget(BlockState state){
+        return XRayBlocks.contains(state.getBlock());
+    }
+
     private enum XRayNecessaryState{
         F_F(false, false),
         F_T(false, true),
@@ -146,8 +157,9 @@ public class SlightXRay implements IValueRefreshCallback, WorldRenderEvents.End,
         T_T(true, true);
         public final boolean doShowAround, isXRayTarget;
         public static XRayNecessaryState of(BlockState state){
-            return values()[(XRayBlocks.contains(state.getBlock()) ? 1 : 0)
-                    + ((!state.isOpaque() || state.isTransparent()) && !(state.getBlock() == Blocks.VOID_AIR) ? 2 : 0)];
+            if(state.getBlock() != Blocks.VOID_AIR)
+                return values()[(isXRayTarget(state) ? 1 : 0) + (doShowAround(state) ? 2 : 0)];
+            else return null;
         }
         XRayNecessaryState(boolean doShowAround, boolean isXRayTarget){
             this.doShowAround = doShowAround;
@@ -157,23 +169,23 @@ public class SlightXRay implements IValueRefreshCallback, WorldRenderEvents.End,
 
     public static void setBlockStateTest(World world, BlockPos pos, BlockState lastState, BlockState currentState){
         if(lastState == null || currentState == null) return;
-        if(XRayNecessaryState.of(lastState).doShowAround == XRayNecessaryState.of(currentState).doShowAround)
+        if(doShowAround(lastState) == doShowAround(currentState))
             return;
         boolean hasNear = false;
         for(Direction direction : Direction.values()){
-            if(XRayNecessaryState.of(world.getBlockState(pos.offset(direction))).doShowAround){
+            if(doShowAround(world.getBlockState(pos.offset(direction)))){
                 hasNear = true;
                 break;
             }
         }
         if(!hasNear) return;
-        if(XRayNecessaryState.of(lastState).doShowAround) testPos(pos, currentState);
+        if(doShowAround(lastState)) testPos(pos, currentState);
         else SlightXRay.markNears(world, pos);
     }
 
     private static void testPos(BlockPos pos, BlockState state){
         synchronized (markedBlocks){
-            if(XRayNecessaryState.of(state).isXRayTarget)
+            if(isXRayTarget(state))
                 markedBlocks.add(pos.mutableCopy());
             else markedBlocks.remove(pos);
         }
@@ -185,7 +197,12 @@ public class SlightXRay implements IValueRefreshCallback, WorldRenderEvents.End,
     }
 
     //TODO:跨纬度处理之类的
-    private static void updateChunk(ClientWorld world, WorldChunk chunk, boolean unload){
+    //states用于存放预处理后的数据，向外拓展了一格处理相邻区块的内容，再向外拓展了一格防止越界
+    private static XRayNecessaryState[][][] allocateStateBuffer(XRayNecessaryState[][][] lastBuffer, World world){
+        if(lastBuffer != null && lastBuffer[0].length == world.getHeight()) return lastBuffer;
+        return new XRayNecessaryState[20][world.getHeight() + 4][20];
+    }
+    private static void updateChunk(XRayNecessaryState[][][] states, ClientWorld world, WorldChunk chunk, boolean unload){
         ChunkPos chunkPos = chunk.getPos();
         int cx = chunkPos.x, cz = chunkPos.z;
         if(unload || !world.isChunkLoaded(chunk.getPos().x, chunk.getPos().z)
@@ -206,15 +223,13 @@ public class SlightXRay implements IValueRefreshCallback, WorldRenderEvents.End,
         int numY = world.getHeight();
         int topY = minY + numY;
 
-        //states用于存放预处理后的数据，向外拓展了一格处理相邻区块的内容，再向外拓展了一格防止越界
-        XRayNecessaryState[][][] states = new XRayNecessaryState[20][numY + 4][20];
         //初始化states数据
         for(XRayNecessaryState[][] states1 : states){
             for(int y = 0; y < states1.length; ++y){
                 XRayNecessaryState[] states2 = states1[y];
                 if(world.isOutOfHeightLimit(y))
                     Arrays.fill(states2, XRayNecessaryState.of(Blocks.AIR.getDefaultState()));
-                else Arrays.fill(states2, XRayNecessaryState.F_F);
+                else Arrays.fill(states2, null);
             }
         }
         //加载本区块中数据
@@ -280,20 +295,30 @@ public class SlightXRay implements IValueRefreshCallback, WorldRenderEvents.End,
         for(int x = 1; x <= 18; ++x){
             for(int y = 1; y <= numY + 2; ++y){
                 for(int z = 1; z <= 18; ++z){
-                    if(!states[x][y][z].doShowAround) continue;
-                    markPos(x - 3, y + minY - 2, z - 2, chunkPos, states[x - 1][y][z].isXRayTarget);
-                    markPos(x - 1, y + minY - 2, z - 2, chunkPos, states[x + 1][y][z].isXRayTarget);
-                    markPos(x - 2, y + minY - 3, z - 2, chunkPos, states[x][y - 1][z].isXRayTarget);
-                    markPos(x - 2, y + minY - 1, z - 2, chunkPos, states[x][y + 1][z].isXRayTarget);
-                    markPos(x - 2, y + minY - 2, z - 3, chunkPos, states[x][y][z - 1].isXRayTarget);
-                    markPos(x - 2, y + minY - 2, z - 1, chunkPos, states[x][y][z + 1].isXRayTarget);
+                    if(states[x][y][z] == null || !states[x][y][z].doShowAround) continue;
+                    if(states[x - 1][y][z] != null) markPos(x - 3, y + minY - 2, z - 2, chunkPos, states[x - 1][y][z].isXRayTarget);
+                    if(states[x + 1][y][z] != null) markPos(x - 1, y + minY - 2, z - 2, chunkPos, states[x + 1][y][z].isXRayTarget);
+                    if(states[x][y - 1][z] != null) markPos(x - 2, y + minY - 3, z - 2, chunkPos, states[x][y - 1][z].isXRayTarget);
+                    if(states[x][y + 1][z] != null) markPos(x - 2, y + minY - 1, z - 2, chunkPos, states[x][y + 1][z].isXRayTarget);
+                    if(states[x][y][z - 1] != null) markPos(x - 2, y + minY - 2, z - 3, chunkPos, states[x][y][z - 1].isXRayTarget);
+                    if(states[x][y][z + 1] != null) markPos(x - 2, y + minY - 2, z - 1, chunkPos, states[x][y][z + 1].isXRayTarget);
                 }
+            }
+        }
+    }
+    private static void markPos(int x, int y, int z, ChunkPos chunkPos, boolean status){
+        BlockPos pos = chunkPos.getStartPos().add(x, y, z);
+        if(status){
+            synchronized (markedBlocks){
+                markedBlocks.add(pos);
             }
         }
     }
 
     private static final HashSet<ThreadTask> threadTasks = new HashSet<>();
-    private static Thread thread;
+    private static final int maxLoadingThreadCount = 4;
+    private static final int threadTaskCountLimit = 4;
+    private static int loadingThreadCount = 0;
     private record ThreadTask(ClientWorld world, WorldChunk chunk, boolean unload){
         @Override public int hashCode(){
             return chunk.getPos().hashCode();
@@ -308,13 +333,15 @@ public class SlightXRay implements IValueRefreshCallback, WorldRenderEvents.End,
     private static void updateChunkInAnotherThread(ClientWorld world, WorldChunk chunk, boolean unload){
         synchronized (threadTasks){
             threadTasks.add(new ThreadTask(world, chunk, unload));
-            if(thread == null){
-                thread = new Thread(SlightXRay::ThreadFunc);
-                thread.start();
+            if(loadingThreadCount < maxLoadingThreadCount &&
+                    loadingThreadCount * threadTaskCountLimit < threadTasks.size()){
+                new Thread(SlightXRay::ThreadFunc).start();
+                ++loadingThreadCount;
             }
         }
     }
     private static void ThreadFunc(){
+        XRayNecessaryState[][][] stateBuffer = null;
         while(true){
             ThreadTask task = null;
             double minDistance = Double.MAX_VALUE;
@@ -329,20 +356,13 @@ public class SlightXRay implements IValueRefreshCallback, WorldRenderEvents.End,
                     }
                 }
                 if(task == null){
-                    thread = null;
+                    --loadingThreadCount;
                     break;
                 }
                 threadTasks.remove(task);
             }
-            updateChunk(task.world, task.chunk, task.unload);
-        }
-    }
-
-    private static void markPos(int x, int y, int z, ChunkPos chunkPos, boolean status){
-        BlockPos pos = chunkPos.getStartPos().add(x, y, z);
-        synchronized (markedBlocks){
-            if(status) markedBlocks.add(pos);
-            else markedBlocks.remove(pos);
+            stateBuffer = allocateStateBuffer(stateBuffer, task.world);
+            updateChunk(stateBuffer, task.world, task.chunk, task.unload);
         }
     }
 
