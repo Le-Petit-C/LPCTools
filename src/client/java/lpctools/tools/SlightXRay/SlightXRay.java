@@ -5,8 +5,10 @@ import fi.dy.masa.malilib.render.MaLiLibPipelines;
 import fi.dy.masa.malilib.render.RenderContext;
 import fi.dy.masa.malilib.util.data.Color4f;
 import lpctools.LPCTools;
+import lpctools.compact.derived.ShapeList;
 import lpctools.lpcfymasaapi.Registry;
 import lpctools.lpcfymasaapi.configbutton.IValueRefreshCallback;
+import lpctools.lpcfymasaapi.configbutton.derivedConfigs.RangeLimitConfig;
 import lpctools.lpcfymasaapi.configbutton.derivedConfigs.ThirdListConfig;
 import lpctools.lpcfymasaapi.configbutton.transferredConfigs.BooleanHotkeyConfig;
 import lpctools.lpcfymasaapi.configbutton.transferredConfigs.ColorConfig;
@@ -49,11 +51,13 @@ public class SlightXRay implements IValueRefreshCallback, WorldRenderEvents.End,
     public static BooleanHotkeyConfig slightXRay;
     public static ColorConfig displayColor;
     public static StringListConfig XRayBlocksConfig;
+    public static RangeLimitConfig displayRange;
 
-    public static void init(ThirdListConfig STConfig){
-        slightXRay = STConfig.addBooleanHotkeyConfig("slightXRay", false, null, new SlightXRay());
-        displayColor = STConfig.addColorConfig("displayColor", Color4f.fromColor(0x7F3F7FFF));
-        XRayBlocksConfig = STConfig.addStringListConfig("XRayBlocks", defaultXRayBlockIds, SlightXRay::refreshXRayBlocks);
+    public static void init(ThirdListConfig SXConfig){
+        slightXRay = SXConfig.addBooleanHotkeyConfig("slightXRay", false, null, new SlightXRay());
+        displayColor = SXConfig.addColorConfig("displayColor", Color4f.fromColor(0x7F3F7FFF));
+        XRayBlocksConfig = SXConfig.addStringListConfig("XRayBlocks", defaultXRayBlockIds, SlightXRay::refreshXRayBlocks);
+        displayRange = SXConfig.addRangeLimitConfig(false, "SX");
     }
 
     private static void addAllRenderRegionsIntoWork(){
@@ -125,11 +129,13 @@ public class SlightXRay implements IValueRefreshCallback, WorldRenderEvents.End,
         RenderContext ctx = new RenderContext(MaLiLibPipelines.POSITION_COLOR_MASA_NO_DEPTH);
         BufferBuilder buffer = ctx.getBuilder();
         Matrix4d matrix = worldToCameraMatrix4d(context.camera());
-        //Matrix4d matrix = new Matrix4d();
         int color = displayColor.get().getIntValue();
+        ShapeList shapes = displayRange.buildShapeList();
         synchronized (markedBlocks){
-            for(BlockPos pos : markedBlocks)
-                vertexBlock(matrix, buffer, pos, color);
+            for(BlockPos pos : markedBlocks){
+                if(shapes.testPos(pos))
+                    vertexBlock(matrix, buffer, pos, color, shapes);
+            }
         }
         try {
             BuiltBuffer meshData = buffer.endNullable();
@@ -402,12 +408,13 @@ public class SlightXRay implements IValueRefreshCallback, WorldRenderEvents.End,
         public final Vector3f pnp = new Vector3f();
         public final Vector3f ppn = new Vector3f();
         public final Vector3f ppp = new Vector3f();
+        public final BlockPos.Mutable mutablePos = new BlockPos.Mutable();
     }
 
     private final VertexVectorBuffer vertexVectorBuffer = new VertexVectorBuffer();
 
     @SuppressWarnings("SameParameterValue")
-    private void vertexBlock(Matrix4d matrix, BufferBuilder buffer, BlockPos pos, int color){
+    private void vertexBlock(Matrix4d matrix, BufferBuilder buffer, BlockPos pos, int color, ShapeList shapes){
         VertexVectorBuffer vBuf = vertexVectorBuffer;
         Vector4d center = vBuf.center.set(pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5, 1);
         Vector4d buf = vBuf.buf;
@@ -419,37 +426,46 @@ public class SlightXRay implements IValueRefreshCallback, WorldRenderEvents.End,
         Vector3f pnp = center.add(0.5, -0.5, 0.5, 0, buf).mul(matrix).xyz(vBuf.pnp);
         Vector3f ppn = center.add(0.5, 0.5, -0.5, 0, buf).mul(matrix).xyz(vBuf.ppn);
         Vector3f ppp = center.add(0.5, 0.5, 0.5, 0, buf).mul(matrix).xyz(vBuf.ppp);
-        if(!markedBlocks.contains(pos.west())){
+        BlockPos.Mutable mutablePos = vBuf.mutablePos.set(pos);
+        mutablePos.setX(pos.getX() - 1);
+        if(!shapes.testPos(mutablePos) || !markedBlocks.contains(mutablePos)){
             buffer.vertex(nnn).color(color);
             buffer.vertex(nnp).color(color);
             buffer.vertex(npp).color(color);
             buffer.vertex(npn).color(color);
         }
-        if(!markedBlocks.contains(pos.east())){
+        mutablePos.setX(pos.getX() + 1);
+        if(!shapes.testPos(mutablePos) || !markedBlocks.contains(mutablePos)){
             buffer.vertex(pnn).color(color);
             buffer.vertex(ppn).color(color);
             buffer.vertex(ppp).color(color);
             buffer.vertex(pnp).color(color);
         }
-        if(!markedBlocks.contains(pos.down())){
+        mutablePos.setX(pos.getX());
+        mutablePos.setY(pos.getY() - 1);
+        if(!shapes.testPos(mutablePos) || !markedBlocks.contains(mutablePos)){
             buffer.vertex(nnn).color(color);
             buffer.vertex(pnn).color(color);
             buffer.vertex(pnp).color(color);
             buffer.vertex(nnp).color(color);
         }
-        if(!markedBlocks.contains(pos.up())){
+        mutablePos.setY(pos.getY() + 1);
+        if(!shapes.testPos(mutablePos) || !markedBlocks.contains(mutablePos)){
             buffer.vertex(npn).color(color);
             buffer.vertex(npp).color(color);
             buffer.vertex(ppp).color(color);
             buffer.vertex(ppn).color(color);
         }
-        if(!markedBlocks.contains(pos.north())){
+        mutablePos.setY(pos.getY());
+        mutablePos.setZ(pos.getZ() - 1);
+        if(!shapes.testPos(mutablePos) || !markedBlocks.contains(mutablePos)){
             buffer.vertex(nnn).color(color);
             buffer.vertex(npn).color(color);
             buffer.vertex(ppn).color(color);
             buffer.vertex(pnn).color(color);
         }
-        if(!markedBlocks.contains(pos.south())){
+        mutablePos.setZ(pos.getZ() + 1);
+        if(!shapes.testPos(mutablePos) || !markedBlocks.contains(mutablePos)){
             buffer.vertex(nnp).color(color);
             buffer.vertex(pnp).color(color);
             buffer.vertex(ppp).color(color);
