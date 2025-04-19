@@ -26,6 +26,7 @@ import net.minecraft.registry.Registries;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.ChunkPos;
+import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.Vec3i;
 import net.minecraft.world.World;
 import net.minecraft.world.chunk.WorldChunk;
@@ -157,7 +158,16 @@ public class SlightXRay implements IValueRefreshCallback, WorldRenderEvents.End,
     public static void setBlockStateTest(World world, BlockPos pos, BlockState lastState, BlockState currentState){
         if(lastState == null || currentState == null) return;
         if(lastState.isAir()) testPos(pos, currentState);
-        else SlightXRay.markNears(world, pos);
+        else {
+            boolean hasNear = false;
+            for(Direction direction : Direction.values()){
+                if(XRayNecessaryState.of(world.getBlockState(pos.offset(direction))).doShowAround){
+                    hasNear = true;
+                    break;
+                }
+            }
+            if(hasNear) SlightXRay.markNears(world, pos);
+        }
     }
 
     private static void testPos(BlockPos pos, BlockState state){
