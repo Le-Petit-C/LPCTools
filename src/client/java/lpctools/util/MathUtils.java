@@ -19,7 +19,7 @@ public class MathUtils {
                 .rotate((camera.getYaw() + 180) / 180 * MathHelper.PI, new Vector3f(0, 1, 0));
         return matrix.setColumn(3, matrix.transform(new Vector4f(vec, 1)));
     }
-    public static <T extends Vec3i> int getManhattanDistanceToZero(T pos){
+    public static int getManhattanDistanceToZero(Vec3i pos){
         return Math.abs(pos.getX()) + Math.abs(pos.getY()) + Math.abs(pos.getZ());
     }
 }
