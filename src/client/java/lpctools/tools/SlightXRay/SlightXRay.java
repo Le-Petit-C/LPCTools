@@ -42,7 +42,9 @@ public class SlightXRay implements IValueRefreshCallback, WorldRenderEvents.End,
     static final @NotNull HashSet<Block> XRayBlocks = initHashset();
     static final @NotNull ImmutableList<Block> defaultXRayBlocks = ImmutableList.of(
             Blocks.DIAMOND_ORE, Blocks.DEEPSLATE_DIAMOND_ORE,
-            Blocks.DEEPSLATE_COAL_ORE, Blocks.EMERALD_ORE, Blocks.DEEPSLATE_EMERALD_ORE
+            Blocks.DEEPSLATE_COAL_ORE, Blocks.EMERALD_ORE, Blocks.DEEPSLATE_EMERALD_ORE,
+            Blocks.OBSIDIAN, Blocks.CRYING_OBSIDIAN, Blocks.ENDER_CHEST, Blocks.REINFORCED_DEEPSLATE,
+            Blocks.BUDDING_AMETHYST, Blocks.CALCITE
     );
     static final @NotNull ImmutableList<String> defaultXRayBlockIds = idListFromBlockList(defaultXRayBlocks);
     public static BooleanHotkeyConfig slightXRay;
