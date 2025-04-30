@@ -50,7 +50,7 @@ public class AutoGrindstone {
             }
             else enchantmentIds.addTo(splits[0].trim(), Integer.MAX_VALUE);
         }
-        List<ItemStack> mainStacks = inventory.getMainStacks();
+        List<ItemStack> mainStacks = inventory.main;
         for(int n = 0; n < mainStacks.size(); ++n){
             ItemStack stack = mainStacks.get(n);
             ItemEnchantmentsComponent enchantments = EnchantmentHelper.getEnchantments(stack);

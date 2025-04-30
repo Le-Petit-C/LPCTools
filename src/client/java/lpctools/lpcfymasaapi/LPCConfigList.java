@@ -17,7 +17,7 @@ public class LPCConfigList implements ILPCConfigList{
     @Override public @NotNull Iterable<ILPCConfig> getConfigs(){
         return configs;
     }
-    @Override public <T extends ILPC_MASAConfigWrapper<?>> T addConfig(T config){
+    @Override public <T extends ILPCConfig> T addConfig(T config){
         configs.add(config);
         if(config.hasHotkey())
             hasHotkeyConfig = true;
