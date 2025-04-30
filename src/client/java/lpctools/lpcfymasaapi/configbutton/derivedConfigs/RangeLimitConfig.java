@@ -31,7 +31,7 @@ public class RangeLimitConfig extends ThirdListConfig {
         else return ShapeList.emptyList();
     }
 
-    private static void addRedirect(@NotNull ILPC_MASAConfigWrapper<?> config, @NotNull String key){
+    private static void addRedirect(@NotNull ILPCConfig config, @NotNull String key){
         LanguageExtra.redirectPut(config.getFullNameTranslationKey(),
                 "lpctools.configs.utils.limitRange" + key + ".name");
         LanguageExtra.redirectPut(config.getFullCommentTranslationKey(),

@@ -35,7 +35,7 @@ public interface ILPCConfig extends IConfigBase, IConfigResettable, ILPCConfigNo
     @NotNull default String getAlignedNameTranslation(){
         StringBuilder result = new StringBuilder();
         ILPCConfigList parent = getParent();
-        while(parent instanceof ILPC_MASAConfigWrapper<?> config){
+        while(parent instanceof ILPCConfig config){
             result.append("    ");
             parent = config.getParent();
         }
