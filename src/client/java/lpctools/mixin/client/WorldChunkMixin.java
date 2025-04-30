@@ -1,6 +1,6 @@
 package lpctools.mixin.client;
 
-import lpctools.tools.SlightXRay.SlightXRay;
+import lpctools.tools.slightXRay.SlightXRay;
 import net.minecraft.block.BlockState;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.ChunkPos;

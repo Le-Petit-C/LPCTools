@@ -3,8 +3,9 @@ package lpctools.lpcfymasaapi.configbutton.derivedConfigs;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import lpctools.lpcfymasaapi.LPCConfigPage;
-import lpctools.lpcfymasaapi.configbutton.transferredConfigs.BooleanConfig;
 import lpctools.lpcfymasaapi.configbutton.ILPCConfig;
+import lpctools.lpcfymasaapi.configbutton.ILPC_MASAConfigWrapper;
+import lpctools.lpcfymasaapi.configbutton.transferredConfigs.BooleanConfig;
 import lpctools.lpcfymasaapi.configbutton.ILPCConfigList;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -18,7 +19,7 @@ public class ThirdListConfig extends BooleanConfig implements ILPCConfigList {
         super(defaultParent, nameKey, defaultBoolean);
         lastValue = defaultBoolean;
         if(parent != null) parent.addConfig(this);
-        setCallback(()->{
+        setValueChangeCallback(()->{
             if (lastValue != getAsBoolean()){
                 //if(GuiUtils.isInTextOrGui())
                 getPage().showPage();
@@ -26,40 +27,36 @@ public class ThirdListConfig extends BooleanConfig implements ILPCConfigList {
             }
         });
     }
-    @Override public <T extends ILPCConfig> T addConfig(T config){
+    @Override public <T extends ILPC_MASAConfigWrapper<?>> T addConfig(T config){
         thirdList.add(config);
         if(config instanceof ThirdListConfig thirdListConfig)
             thirdListConfig.parent = this;
         return config;
     }
     @Override public String getFullTranslationKey() {
-        return getDefaultParent().getFullTranslationKey() + "." + getNameKey();
+        return getParent().getFullTranslationKey() + "." + this.getName();
     }
     @Override public @NotNull LPCConfigPage getPage() {
-        return getDefaultParent().getPage();
+        return getParent().getPage();
     }
     @Override public @NotNull Iterable<ILPCConfig> getConfigs() {
         return thirdList;
-    }
-    @Override public void callRefresh(){
-        super.callRefresh();
-        ILPCConfigList.super.callRefresh();
     }
     @Override public void addIntoConfigListJson(@NotNull JsonObject configListJson){
         JsonObject object = new JsonObject();
         object.add("value", getAsJsonElement());
         addConfigListIntoJson(object, "properties");
-        configListJson.add(getNameKey(), object);
+        configListJson.add(this.getName(), object);
     }
     @Override public void loadFromConfigListJson(@NotNull JsonObject configListJson){
-        if (!configListJson.has(getNameKey())) return;
-        JsonElement jsonElement = configListJson.get(getNameKey());
+        if (!configListJson.has(this.getName())) return;
+        JsonElement jsonElement = configListJson.get(this.getName());
         if(jsonElement.isJsonObject()){
             JsonObject jsonObject = jsonElement.getAsJsonObject();
             if(jsonObject.has("value"))
-                IGetConfig().setValueFromJsonElement(jsonObject.get("value"));
+                setValueFromJsonElement(jsonObject.get("value"));
             loadConfigListFromJson(jsonObject, "properties");
-            callRefresh();
+            onValueChanged();
         }
     }
     private boolean lastValue;

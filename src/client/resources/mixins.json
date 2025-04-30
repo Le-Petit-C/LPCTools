@@ -3,13 +3,15 @@
   "package": "lpctools.mixin.client",
   "compatibilityLevel": "JAVA_21",
   "client": [
+    "AutoGrindstone",
+    "displayClickSlotArguments",
     "OnMouseButtonReturnMixin"
   ],
   "injectors": {
     "defaultRequire": 1
   },
   "mixins": [
-    "WorldChunkMixin",
-    "LanguageMixin"
+    "LanguageMixin",
+    "WorldChunkMixin"
   ]
 }
