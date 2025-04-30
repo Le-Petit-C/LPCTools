@@ -34,7 +34,7 @@ public class AutoGrindstone {
         if(player == null || itm == null) return;
         PlayerInventory inventory = player.getInventory();
         Object2IntOpenHashMap<String> enchantmentIds = new Object2IntOpenHashMap<>();
-        for(String key : lpctools.tools.autoGrindstone.AutoGrindstone.defaultStrings){
+        for(String key : lpctools.tools.autoGrindstone.AutoGrindstone.limitEnchantmentsConfig){
             String[] splits = key.split(";");
             if(splits.length >= 3){
                 warnInvalidEnchantment(key, player);
