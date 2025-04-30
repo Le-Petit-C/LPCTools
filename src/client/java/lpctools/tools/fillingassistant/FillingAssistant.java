@@ -16,17 +16,15 @@ import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.item.Item;
-import net.minecraft.registry.Registries;
 import net.minecraft.text.Text;
-import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.HashSet;
-import java.util.List;
 
 import static lpctools.tools.fillingassistant.Data.*;
+import static lpctools.util.DataUtils.*;
 
 public class FillingAssistant {
     public static void enableTool(){
@@ -69,15 +67,15 @@ public class FillingAssistant {
         else return false;
     }
     public static void refreshPlaceableItems(){
-        if(placeableItemsConfig != null) placeableItems = itemSetFromIdList(placeableItemsConfig.getStrings());
+        if(placeableItemsConfig != null) placeableItems = itemSetFromIds(placeableItemsConfig.getStrings());
         else placeableItems = new HashSet<>(defaultPlaceableItemList);
     }
     public static void refreshPassableBlocks(){
-        if(passableBlocksConfig != null) passableBlocks = blockSetFromIdList(passableBlocksConfig.getStrings());
+        if(passableBlocksConfig != null) passableBlocks = blockSetFromIds(passableBlocksConfig.getStrings());
         else passableBlocks = new HashSet<>(defaultPassableBlockList);
     }
     public static void refreshRequiredBlocks(){
-        if(requiredBlocksConfig != null) requiredBlocks = blockSetFromIdList(requiredBlocksConfig.getStrings());
+        if(requiredBlocksConfig != null) requiredBlocks = blockSetFromIds(requiredBlocksConfig.getStrings());
         else requiredBlocks = new HashSet<>(defaultRequiredBlockWhiteList);
     }
     public static void init(ThirdListConfig FAConfig){
@@ -121,16 +119,6 @@ public class FillingAssistant {
         }
     }
 
-    /*
-    //这是个为了测试onValueChanged的callback
-    private static class testCallback implements IValueChangeCallback<ConfigStringList>{
-        @Override
-        public void onValueChanged(ConfigStringList config) {
-            LPCAPIInit.LOGGER.info("Change detected!");
-        }
-    }
-    */
-
     static HotkeyConfig hotkeyConfig;
     static ThirdListConfig limitPlaceSpeedConfig;
     static DoubleConfig maxBlockPerTickConfig;
@@ -146,20 +134,6 @@ public class FillingAssistant {
     static BooleanConfig offhandFillingConfig;
     static RangeLimitConfig limitFillingRange;
     static OptionListConfig<OuterRangeBlockMethod> outerRangeBlockMethod;
-    @NotNull private static HashSet<Item> itemSetFromIdList(@Nullable List<String> list){
-        HashSet<Item> ret = new HashSet<>();
-        if(list == null) return ret;
-        for(String s : list)
-            ret.add(Registries.ITEM.get(Identifier.of(s)));
-        return ret;
-    }
-    @NotNull private static HashSet<Block> blockSetFromIdList(@Nullable List<String> list){
-        HashSet<Block> ret = new HashSet<>();
-        if(list == null) return ret;
-        for(String s : list)
-            ret.add(Registries.BLOCK.get(Identifier.of(s)));
-        return ret;
-    }
     @Nullable private static PlaceBlockTick runner = null;
     @NotNull private static HashSet<Item> placeableItems = new HashSet<>();
     @NotNull private static HashSet<Block> passableBlocks = new HashSet<>();

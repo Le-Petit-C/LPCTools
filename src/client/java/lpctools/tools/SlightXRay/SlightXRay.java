@@ -25,8 +25,6 @@ import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.client.render.BufferBuilder;
 import net.minecraft.client.render.BuiltBuffer;
 import net.minecraft.client.world.ClientWorld;
-import net.minecraft.registry.Registries;
-import net.minecraft.util.Identifier;
 import net.minecraft.util.math.*;
 import net.minecraft.world.World;
 import net.minecraft.world.chunk.WorldChunk;
@@ -81,13 +79,7 @@ public class SlightXRay implements ILPCValueChangeCallback, WorldRenderEvents.En
     }
 
     private static void refreshXRayBlocks(){
-        HashSet<Block> newBlocks = new HashSet<>();
-        for(String str : XRayBlocksConfig.getStrings()){
-            if(str.isEmpty() || str.isBlank()) continue;
-            Block block = Registries.BLOCK.get(Identifier.of(str));
-            if(block == Blocks.AIR && !str.equals("air") && !str.equals("minecraft:air")) continue;
-            newBlocks.add(block);
-        }
+        HashSet<Block> newBlocks = blockSetFromIds(XRayBlocksConfig.getStrings());
         if(XRayBlocks.equals(newBlocks)) return;
         XRayBlocks.clear();
         XRayBlocks.addAll(newBlocks);
