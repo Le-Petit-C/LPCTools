@@ -23,7 +23,7 @@ import java.util.function.IntSupplier;
 
 @SuppressWarnings("unused")
 public interface ILPCConfigList {
-    <T extends ILPC_MASAConfigWrapper<?>> T addConfig(T config);
+    <T extends ILPCConfig> T addConfig(T config);
     String getName();
     @NotNull LPCConfigPage getPage();
     @NotNull Iterable<ILPCConfig> getConfigs();

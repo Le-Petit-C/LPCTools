@@ -4,7 +4,6 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import lpctools.lpcfymasaapi.LPCConfigPage;
 import lpctools.lpcfymasaapi.configbutton.ILPCConfig;
-import lpctools.lpcfymasaapi.configbutton.ILPC_MASAConfigWrapper;
 import lpctools.lpcfymasaapi.configbutton.transferredConfigs.BooleanConfig;
 import lpctools.lpcfymasaapi.configbutton.ILPCConfigList;
 import org.jetbrains.annotations.NotNull;
@@ -27,7 +26,7 @@ public class ThirdListConfig extends BooleanConfig implements ILPCConfigList {
             }
         });
     }
-    @Override public <T extends ILPC_MASAConfigWrapper<?>> T addConfig(T config){
+    @Override public <T extends ILPCConfig> T addConfig(T config){
         thirdList.add(config);
         if(config instanceof ThirdListConfig thirdListConfig)
             thirdListConfig.parent = this;
