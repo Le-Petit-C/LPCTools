@@ -1,4 +1,4 @@
-package lpctools.tools.liquidcleaner;
+package lpctools.tools.liquidCleaner;
 
 import com.google.common.collect.ImmutableList;
 import fi.dy.masa.malilib.hotkeys.IKeybind;
@@ -6,9 +6,8 @@ import fi.dy.masa.malilib.hotkeys.KeyAction;
 import fi.dy.masa.malilib.util.StringUtils;
 import lpctools.lpcfymasaapi.Registry;
 import lpctools.lpcfymasaapi.configbutton.derivedConfigs.ThirdListConfig;
+import lpctools.lpcfymasaapi.configbutton.transferredConfigs.*;
 import lpctools.lpcfymasaapi.configbutton.transferredConfigs.BooleanConfig;
-import lpctools.lpcfymasaapi.configbutton.transferredConfigs.DoubleConfig;
-import lpctools.lpcfymasaapi.configbutton.transferredConfigs.HotkeyConfig;
 import lpctools.lpcfymasaapi.configbutton.transferredConfigs.StringListConfig;
 import lpctools.tools.ToolConfigs;
 import lpctools.lpcfymasaapi.configbutton.derivedConfigs.RangeLimitConfig;

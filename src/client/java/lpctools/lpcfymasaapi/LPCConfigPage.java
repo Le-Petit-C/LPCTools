@@ -131,7 +131,6 @@ public class LPCConfigPage implements IConfigHandler, Supplier<GuiBase>{
         }
         @Override public void removed(){
             super.removed();
-            parent.lists.get(parent.selectedIndex).callRefresh();
             parent.pageInstance = null;
             //malilib中并不总会更新热键，比如如果退出配置界面时有配置被ThirdListConfig收起了就不会更新，这样子能强制它更新一下
             InputEventHandler.getKeybindManager().updateUsedKeys();
@@ -145,7 +144,6 @@ public class LPCConfigPage implements IConfigHandler, Supplier<GuiBase>{
         }
         void select(int index){
             if(index == parent.selectedIndex) return;
-            parent.lists.get(parent.selectedIndex).callRefresh();
             WidgetListConfigOptions widget = getListWidget();
             if(widget != null){
                 parent.widgetPosition.set(parent.selectedIndex, widget.getScrollbar().getValue());

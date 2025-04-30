@@ -1,4 +1,4 @@
-package lpctools.tools.SlightXRay;
+package lpctools.tools.slightXRay;
 
 import com.google.common.collect.ImmutableList;
 import fi.dy.masa.malilib.render.MaLiLibPipelines;
@@ -7,7 +7,7 @@ import fi.dy.masa.malilib.util.data.Color4f;
 import lpctools.LPCTools;
 import lpctools.compact.derived.ShapeList;
 import lpctools.lpcfymasaapi.Registry;
-import lpctools.lpcfymasaapi.configbutton.IValueRefreshCallback;
+import lpctools.lpcfymasaapi.configbutton.ILPCValueChangeCallback;
 import lpctools.lpcfymasaapi.configbutton.derivedConfigs.RangeLimitConfig;
 import lpctools.lpcfymasaapi.configbutton.derivedConfigs.ThirdListConfig;
 import lpctools.lpcfymasaapi.configbutton.transferredConfigs.BooleanHotkeyConfig;
@@ -25,8 +25,6 @@ import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.client.render.BufferBuilder;
 import net.minecraft.client.render.BuiltBuffer;
 import net.minecraft.client.world.ClientWorld;
-import net.minecraft.registry.Registries;
-import net.minecraft.util.Identifier;
 import net.minecraft.util.math.*;
 import net.minecraft.world.World;
 import net.minecraft.world.chunk.WorldChunk;
@@ -39,7 +37,7 @@ import static lpctools.util.AlgorithmUtils.*;
 import static lpctools.util.DataUtils.*;
 import static lpctools.util.MathUtils.*;
 
-public class SlightXRay implements IValueRefreshCallback, WorldRenderEvents.End, ClientChunkEvents.Load, ClientChunkEvents.Unload, ClientWorldEvents.AfterClientWorldChange {
+public class SlightXRay implements ILPCValueChangeCallback, WorldRenderEvents.End, ClientChunkEvents.Load, ClientChunkEvents.Unload, ClientWorldEvents.AfterClientWorldChange {
     //markedBlocks放在多线程里用，记得要同步
     static final @NotNull HashSet<BlockPos> markedBlocks = new HashSet<>();
     static final @NotNull HashSet<Block> XRayBlocks = initHashset();
@@ -81,13 +79,7 @@ public class SlightXRay implements IValueRefreshCallback, WorldRenderEvents.End,
     }
 
     private static void refreshXRayBlocks(){
-        HashSet<Block> newBlocks = new HashSet<>();
-        for(String str : XRayBlocksConfig.getStrings()){
-            if(str.isEmpty() || str.isBlank()) continue;
-            Block block = Registries.BLOCK.get(Identifier.of(str));
-            if(block == Blocks.AIR && !str.equals("air") && !str.equals("minecraft:air")) continue;
-            newBlocks.add(block);
-        }
+        HashSet<Block> newBlocks = blockSetFromIds(XRayBlocksConfig.getStrings());
         if(XRayBlocks.equals(newBlocks)) return;
         XRayBlocks.clear();
         XRayBlocks.addAll(newBlocks);
@@ -104,7 +96,7 @@ public class SlightXRay implements IValueRefreshCallback, WorldRenderEvents.End,
         return blocks;
     }
 
-    @Override public void valueRefreshCallback() {
+    @Override public void onValueChanged() {
         if(slightXRay.getAsBoolean()){
             if(Registry.registerWorldRenderEndCallback(this))
                 addAllRenderRegionsIntoWork();
@@ -151,7 +143,7 @@ public class SlightXRay implements IValueRefreshCallback, WorldRenderEvents.End,
             }
             ctx.close();
         } catch (Exception err) {
-            LPCTools.LOGGER.error("lpctools.tools.SlightXRay.SlightXRay.onLast(): Draw Exception; {}", err.getMessage());
+            LPCTools.LOGGER.error("lpctools.tools.slightXRay.slightXRay.onLast(): Draw Exception; {}", err.getMessage());
         }
     }
     @Override public void onChunkLoad(ClientWorld clientWorld, WorldChunk worldChunk) {

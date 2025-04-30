@@ -6,7 +6,7 @@ import lpctools.LPCTools;
 import lpctools.lpcfymasaapi.LPCConfigList;
 import lpctools.lpcfymasaapi.LPCConfigPage;
 import lpctools.lpcfymasaapi.Registry;
-import lpctools.lpcfymasaapi.configbutton.transferredConfigs.BooleanHotkeyConfig;
+import lpctools.lpcfymasaapi.configbutton.transferredConfigs.BooleanConfig;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents;
 import net.minecraft.client.gl.RenderPipelines;
@@ -21,11 +21,13 @@ import java.time.Clock;
 
 public class DebugConfigs {
     public static LPCConfigList debugs;
-    public static BooleanHotkeyConfig renderDebugShapes;
+    public static BooleanConfig renderDebugShapes;
+    public static BooleanConfig displayClickSlotArguments;
     public static void init(@NotNull LPCConfigPage page){
         debugs = page.addList("debugs");
-        renderDebugShapes = debugs.addBooleanHotkeyConfig(
-                "renderDebugShapes", false, null, DebugConfigs::renderDebugShapesValueRefreshCallback);
+        renderDebugShapes = debugs.addBooleanConfig(
+                "renderDebugShapes", false, DebugConfigs::renderDebugShapesValueRefreshCallback);
+        displayClickSlotArguments = debugs.addBooleanConfig("displayClickSlotArguments", false);
     }
     private static void rendDebugShapes(WorldRenderContext context) {
         RenderContext ctx = new RenderContext(RenderPipelines.DEBUG_TRIANGLE_FAN, BufferUsage.STATIC_WRITE);

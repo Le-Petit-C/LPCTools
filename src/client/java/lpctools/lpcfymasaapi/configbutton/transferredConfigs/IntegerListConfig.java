@@ -1,7 +1,7 @@
 package lpctools.lpcfymasaapi.configbutton.transferredConfigs;
 
 import lpctools.lpcfymasaapi.configbutton.ILPCConfigList;
-import lpctools.lpcfymasaapi.configbutton.IValueRefreshCallback;
+import lpctools.lpcfymasaapi.configbutton.ILPCValueChangeCallback;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -12,12 +12,17 @@ import java.util.function.IntSupplier;
 //其实是给HotkeyConfig.IntegerChanger用的
 public class IntegerListConfig<T extends IntSupplier & IntConsumer>
         extends OptionListConfig<T> implements IntSupplier, IntConsumer{
-    public IntegerListConfig(@NotNull ILPCConfigList defaultParent, @NotNull String nameKey) {
-        super(defaultParent, nameKey);
+    public IntegerListConfig(@NotNull ILPCConfigList defaultParent, @NotNull String nameKey, @NotNull Iterable<T> values) {
+        this(defaultParent, nameKey, values, null);
     }
-    public IntegerListConfig(@NotNull ILPCConfigList defaultParent, @NotNull String nameKey, @Nullable IValueRefreshCallback callback) {
-        super(defaultParent, nameKey, callback);
+    public IntegerListConfig(@NotNull ILPCConfigList defaultParent, @NotNull String nameKey, @NotNull Iterable<T> values, @Nullable ILPCValueChangeCallback callback) {
+        super(defaultParent, nameKey, buildOptionList(values).getFirst(), callback);
     }
     @Override public int getAsInt() {return getCurrentUserdata().getAsInt();}
     @Override public void accept(int value) {getCurrentUserdata().accept(value);}
+    private static <T extends IntSupplier & IntConsumer> OptionList<T> buildOptionList(@NotNull Iterable<T> values){
+        OptionList<T> list = new OptionList<>();
+        for(T value : values) list.addOption(String.valueOf(value.getAsInt()), value);
+        return list;
+    }
 }

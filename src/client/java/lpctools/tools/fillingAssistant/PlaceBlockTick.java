@@ -1,4 +1,4 @@
-package lpctools.tools.fillingassistant;
+package lpctools.tools.fillingAssistant;
 
 import lpctools.compact.derived.ShapeList;
 import lpctools.lpcfymasaapi.Registry;
@@ -22,7 +22,7 @@ import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.Queue;
 
-import static lpctools.tools.fillingassistant.FillingAssistant.*;
+import static lpctools.tools.fillingAssistant.FillingAssistant.*;
 import static lpctools.util.BlockUtils.*;
 
 public class PlaceBlockTick implements ClientTickEvents.EndTick, Registry.InGameEndMouse {

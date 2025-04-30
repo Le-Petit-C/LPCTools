@@ -1,4 +1,4 @@
-package lpctools.tools.liquidcleaner;
+package lpctools.tools.liquidCleaner;
 
 import lpctools.compact.derived.ShapeList;
 import lpctools.util.GuiUtils;
@@ -27,7 +27,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Collection;
 
-import static lpctools.tools.liquidcleaner.LiquidCleaner.*;
+import static lpctools.tools.liquidCleaner.LiquidCleaner.*;
 import static lpctools.util.BlockUtils.*;
 
 public class OnEndTick implements ClientTickEvents.EndTick {
