@@ -7,7 +7,7 @@ import fi.dy.masa.malilib.util.data.Color4f;
 import lpctools.LPCTools;
 import lpctools.compact.derived.ShapeList;
 import lpctools.lpcfymasaapi.Registry;
-import lpctools.lpcfymasaapi.configbutton.IValueRefreshCallback;
+import lpctools.lpcfymasaapi.configbutton.ILPCValueChangeCallback;
 import lpctools.lpcfymasaapi.configbutton.derivedConfigs.RangeLimitConfig;
 import lpctools.lpcfymasaapi.configbutton.derivedConfigs.ThirdListConfig;
 import lpctools.lpcfymasaapi.configbutton.transferredConfigs.BooleanHotkeyConfig;
@@ -39,7 +39,7 @@ import static lpctools.util.AlgorithmUtils.*;
 import static lpctools.util.DataUtils.*;
 import static lpctools.util.MathUtils.*;
 
-public class SlightXRay implements IValueRefreshCallback, WorldRenderEvents.End, ClientChunkEvents.Load, ClientChunkEvents.Unload, ClientWorldEvents.AfterClientWorldChange {
+public class SlightXRay implements ILPCValueChangeCallback, WorldRenderEvents.End, ClientChunkEvents.Load, ClientChunkEvents.Unload, ClientWorldEvents.AfterClientWorldChange {
     //markedBlocks放在多线程里用，记得要同步
     static final @NotNull HashSet<BlockPos> markedBlocks = new HashSet<>();
     static final @NotNull HashSet<Block> XRayBlocks = initHashset();
@@ -104,7 +104,7 @@ public class SlightXRay implements IValueRefreshCallback, WorldRenderEvents.End,
         return blocks;
     }
 
-    @Override public void valueRefreshCallback() {
+    @Override public void onValueChanged() {
         if(slightXRay.getAsBoolean()){
             if(Registry.registerWorldRenderEndCallback(this))
                 addAllRenderRegionsIntoWork();

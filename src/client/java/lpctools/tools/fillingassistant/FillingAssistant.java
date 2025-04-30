@@ -85,29 +85,30 @@ public class FillingAssistant {
         limitPlaceSpeedConfig = FAConfig.addThirdListConfig("limitPlaceSpeed", false);
         maxBlockPerTickConfig = limitPlaceSpeedConfig.addDoubleConfig("maxBlockPerTick", 1.0, 0, 64);
         reachDistanceConfig = FAConfig.addDoubleConfig("reachDistance", 4.5, 0, 5);
-        testDistanceConfig = FAConfig.addIntegerConfig("testDistance", 6, 6, 64, new TestDistanceRefreshCallback());
+        testDistanceConfig = FAConfig.addIntegerConfig("testDistance", 6, 6, 64, new TestDistanceChangeCallback());
         disableOnLeftDownConfig = FAConfig.addBooleanConfig("disableOnLeftDown", true);
         disableOnGUIOpened = FAConfig.addBooleanConfig("disableOnGUIOpened", false);
-        placeableItemsConfig = FAConfig.addStringListConfig("placeableItems", defaultPlaceableItemIdList, new PlaceableItemsRefreshCallback());
-        passableBlocksConfig = FAConfig.addStringListConfig("passableBlocks", defaultPassableBlockIdList, new PassableBlocksRefreshCallback());
+        placeableItemsConfig = FAConfig.addStringListConfig("placeableItems", defaultPlaceableItemIdList, new PlaceableItemsChangeCallback());
+        passableBlocksConfig = FAConfig.addStringListConfig("passableBlocks", defaultPassableBlockIdList, new PassableBlocksChangeCallback());
         transparentAsPassableConfig = FAConfig.addBooleanConfig("transparentAsPassable", true);
         notOpaqueAsPassableConfig = FAConfig.addBooleanConfig("notOpaqueAsPassable", true);
-        requiredBlocksConfig = FAConfig.addStringListConfig("requiredBlocks", defaultRequiredBlockIdList, new RequiredBlocksRefreshCallback());
+        requiredBlocksConfig = FAConfig.addStringListConfig("requiredBlocks", defaultRequiredBlockIdList, new RequiredBlocksChangeCallback());
         offhandFillingConfig = FAConfig.addBooleanConfig("offhandFilling", false);
         limitFillingRange = FAConfig.addRangeLimitConfig(false, "FA");
-        outerRangeBlockMethod = limitFillingRange.addOptionListConfig("outerRangeBlockMethod");
-        for(OuterRangeBlockMethods method : OuterRangeBlockMethods.values())
-            outerRangeBlockMethod.addOption(method.getKey(), method);
+        OptionListConfig.OptionList<OuterRangeBlockMethod> optionList = new OptionListConfig.OptionList<>();
+        for(OuterRangeBlockMethod method : OuterRangeBlockMethod.values())
+            optionList.addOption(method.getKey(), method);
+        outerRangeBlockMethod = limitFillingRange.addOptionListConfig("outerRangeBlockMethod", optionList.getFirst());
     }
 
-    enum OuterRangeBlockMethods {
+    enum OuterRangeBlockMethod {
         AS_UNPASSABLE("lpctools.configs.tools.outerRangeBlockMethods.asUnpassable", block -> true),
         AS_PASSABLE("lpctools.configs.tools.outerRangeBlockMethods.asPassable", block -> false),
         AS_ORIGIN("lpctools.configs.tools.outerRangeBlockMethods.asOrigin", FillingAssistant::isBlockUnpassable);
         public final String translationKey;
         public final Method method;
         public interface Method{ boolean isBlockUnpassable(Block block);}
-        OuterRangeBlockMethods(String translationKey, Method method){
+        OuterRangeBlockMethod(String translationKey, Method method){
             this.translationKey = translationKey;
             this.method = method;
         }
@@ -144,7 +145,7 @@ public class FillingAssistant {
     static StringListConfig requiredBlocksConfig;
     static BooleanConfig offhandFillingConfig;
     static RangeLimitConfig limitFillingRange;
-    static OptionListConfig<OuterRangeBlockMethods> outerRangeBlockMethod;
+    static OptionListConfig<OuterRangeBlockMethod> outerRangeBlockMethod;
     @NotNull private static HashSet<Item> itemSetFromIdList(@Nullable List<String> list){
         HashSet<Item> ret = new HashSet<>();
         if(list == null) return ret;
@@ -172,24 +173,24 @@ public class FillingAssistant {
             return true;
         }
     }
-    private static class TestDistanceRefreshCallback implements IValueRefreshCallback{
-        @Override public void valueRefreshCallback() {
+    private static class TestDistanceChangeCallback implements ILPCValueChangeCallback {
+        @Override public void onValueChanged() {
             if(runner != null)
                 runner.setTestDistance(testDistanceConfig.getAsInt());
         }
     }
-    private static class PlaceableItemsRefreshCallback implements IValueRefreshCallback{
-        @Override public void valueRefreshCallback() {
+    private static class PlaceableItemsChangeCallback implements ILPCValueChangeCallback {
+        @Override public void onValueChanged() {
             refreshPlaceableItems();
         }
     }
-    private static class PassableBlocksRefreshCallback implements IValueRefreshCallback{
-        @Override public void valueRefreshCallback() {
+    private static class PassableBlocksChangeCallback implements ILPCValueChangeCallback {
+        @Override public void onValueChanged() {
             refreshPassableBlocks();
         }
     }
-    private static class RequiredBlocksRefreshCallback implements IValueRefreshCallback{
-        @Override public void valueRefreshCallback() {
+    private static class RequiredBlocksChangeCallback implements ILPCValueChangeCallback {
+        @Override public void onValueChanged() {
             refreshRequiredBlocks();
         }
     }

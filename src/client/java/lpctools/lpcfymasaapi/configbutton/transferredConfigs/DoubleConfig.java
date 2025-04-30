@@ -2,42 +2,30 @@ package lpctools.lpcfymasaapi.configbutton.transferredConfigs;
 
 import fi.dy.masa.malilib.config.options.ConfigDouble;
 import lpctools.lpcfymasaapi.configbutton.ILPCConfigList;
-import lpctools.lpcfymasaapi.configbutton.IValueRefreshCallback;
-import lpctools.lpcfymasaapi.configbutton.LPCConfig;
+import lpctools.lpcfymasaapi.configbutton.ILPCValueChangeCallback;
+import lpctools.lpcfymasaapi.configbutton.ILPC_MASAConfigWrapper;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.function.DoubleConsumer;
 import java.util.function.DoubleSupplier;
 
-public class DoubleConfig extends LPCConfig<ConfigDouble> implements DoubleSupplier, DoubleConsumer {
-    public final double defaultDouble;
-    public final double minValue, maxValue;
+public class DoubleConfig extends ConfigDouble implements ILPC_MASAConfigWrapper<ConfigDouble>, DoubleSupplier, DoubleConsumer {
     public DoubleConfig(ILPCConfigList defaultParent, String nameKey, double defaultDouble){
         this(defaultParent, nameKey, defaultDouble, Double.MIN_VALUE, Double.MAX_VALUE, null);
     }
-    public DoubleConfig(ILPCConfigList defaultParent, String nameKey, double defaultDouble, IValueRefreshCallback callback){
+    public DoubleConfig(ILPCConfigList defaultParent, String nameKey, double defaultDouble, ILPCValueChangeCallback callback){
         this(defaultParent, nameKey, defaultDouble, Double.MIN_VALUE, Double.MAX_VALUE, callback);
     }
     public DoubleConfig(ILPCConfigList defaultParent, String nameKey, double defaultDouble, double minValue, double maxValue){
         this(defaultParent, nameKey, defaultDouble, minValue, maxValue, null);
     }
-    public DoubleConfig(ILPCConfigList defaultParent, String nameKey, double defaultDouble, double minValue, double maxValue, IValueRefreshCallback callback){
-        super(defaultParent, nameKey, false);
-        this.defaultDouble = defaultDouble;
-        this.minValue = minValue;
-        this.maxValue = maxValue;
-        setCallback(callback);
+    public DoubleConfig(ILPCConfigList defaultParent, String nameKey, double defaultDouble, double minValue, double maxValue, ILPCValueChangeCallback callback){
+        super(nameKey, defaultDouble, minValue, maxValue);
+        data = new Data(defaultParent, false);
+        ILPC_MASAConfigWrapperDefaultInit(callback);
     }
-    @Override @NotNull protected ConfigDouble createInstance(){
-        ConfigDouble config = new ConfigDouble(getNameKey(), defaultDouble, minValue, maxValue);
-        config.apply(getDefaultParent().getFullTranslationKey());
-        config.setValueChangeCallback(new LPCConfigCallback<>(this));
-        return config;
-    }
-    @Override public void accept(double value) {
-        getConfig().setDoubleValue(value);
-    }
-    @Override public double getAsDouble() {
-        return getInstance() != null ? getInstance().getDoubleValue() : defaultDouble;
-    }
+    @Override public void accept(double value) {setDoubleValue(value);}
+    @Override public double getAsDouble() {return getDoubleValue();}
+    @Override public @NotNull Data getLPCConfigData() {return data;}
+    private final @NotNull Data data;
 }
