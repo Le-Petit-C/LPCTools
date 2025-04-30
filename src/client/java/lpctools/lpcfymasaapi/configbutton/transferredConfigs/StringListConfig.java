@@ -8,7 +8,9 @@ import lpctools.lpcfymasaapi.configbutton.ILPC_MASAConfigWrapper;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class StringListConfig extends ConfigStringList implements ILPC_MASAConfigWrapper<ConfigStringList> {
+import java.util.Iterator;
+
+public class StringListConfig extends ConfigStringList implements ILPC_MASAConfigWrapper<ConfigStringList>, Iterable<String> {
     public StringListConfig(@NotNull ILPCConfigList defaultParent, String nameKey, @Nullable ImmutableList<String> defaultValue){
         this(defaultParent, nameKey, defaultValue, null);
     }
@@ -17,6 +19,7 @@ public class StringListConfig extends ConfigStringList implements ILPC_MASAConfi
         data = new Data(defaultParent, false);
         ILPC_MASAConfigWrapperDefaultInit(callback);
     }
+    @Override public @NotNull Iterator<String> iterator() {return getStrings().iterator();}
     @Override public @NotNull Data getLPCConfigData() {return data;}
     private final @NotNull Data data;
 }

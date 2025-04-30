@@ -1,4 +1,4 @@
-package lpctools.tools.liquidcleaner;
+package lpctools.tools.liquidCleaner;
 
 import com.google.common.collect.ImmutableList;
 import fi.dy.masa.malilib.hotkeys.IKeybind;

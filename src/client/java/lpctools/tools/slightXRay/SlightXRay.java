@@ -1,4 +1,4 @@
-package lpctools.tools.SlightXRay;
+package lpctools.tools.slightXRay;
 
 import com.google.common.collect.ImmutableList;
 import fi.dy.masa.malilib.render.MaLiLibPipelines;
@@ -143,7 +143,7 @@ public class SlightXRay implements ILPCValueChangeCallback, WorldRenderEvents.En
             }
             ctx.close();
         } catch (Exception err) {
-            LPCTools.LOGGER.error("lpctools.tools.SlightXRay.SlightXRay.onLast(): Draw Exception; {}", err.getMessage());
+            LPCTools.LOGGER.error("lpctools.tools.slightXRay.slightXRay.onLast(): Draw Exception; {}", err.getMessage());
         }
     }
     @Override public void onChunkLoad(ClientWorld clientWorld, WorldChunk worldChunk) {
