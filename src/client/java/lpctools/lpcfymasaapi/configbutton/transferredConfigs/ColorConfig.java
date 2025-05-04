@@ -3,6 +3,7 @@ package lpctools.lpcfymasaapi.configbutton.transferredConfigs;
 import com.google.gson.JsonElement;
 import fi.dy.masa.malilib.config.options.ConfigColor;
 import fi.dy.masa.malilib.config.options.ConfigInteger;
+import fi.dy.masa.malilib.util.Color4f;
 import lpctools.lpcfymasaapi.configbutton.ILPCConfigList;
 import lpctools.lpcfymasaapi.configbutton.ILPCValueChangeCallback;
 import lpctools.lpcfymasaapi.configbutton.ILPC_MASAConfigWrapper;
@@ -23,7 +24,7 @@ public class ColorConfig extends ConfigColor implements ILPC_MASAConfigWrapper<C
     }
 
     @Override public void setValueFromJsonElement(JsonElement element) {
-        Color4f lastValue = getColor();
+        @SuppressWarnings("deprecation") Color4f lastValue = getColor();
         super.setValueFromJsonElement(element);
         if(!lastValue.equals(getColor())) onValueChanged();
     }
