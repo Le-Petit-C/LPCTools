@@ -55,7 +55,6 @@ public class ThirdListConfig extends BooleanConfig implements ILPCConfigList {
             if(jsonObject.has("value"))
                 setValueFromJsonElement(jsonObject.get("value"));
             loadConfigListFromJson(jsonObject, "properties");
-            onValueChanged();
         }
     }
     private boolean lastValue;

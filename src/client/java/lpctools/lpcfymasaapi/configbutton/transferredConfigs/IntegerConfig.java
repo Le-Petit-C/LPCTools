@@ -1,5 +1,6 @@
 package lpctools.lpcfymasaapi.configbutton.transferredConfigs;
 
+import com.google.gson.JsonElement;
 import fi.dy.masa.malilib.config.options.ConfigInteger;
 import lpctools.lpcfymasaapi.configbutton.ILPCConfigList;
 import lpctools.lpcfymasaapi.configbutton.ILPCValueChangeCallback;
@@ -24,6 +25,13 @@ public class IntegerConfig extends ConfigInteger implements ILPC_MASAConfigWrapp
         data = new Data(parent, false);
         ILPC_MASAConfigWrapperDefaultInit(callback);
     }
+
+    @Override public void setValueFromJsonElement(JsonElement element) {
+        int lastInt = getAsInt();
+        super.setValueFromJsonElement(element);
+        if(lastInt != getAsInt()) onValueChanged();
+    }
+
     @Override public int getAsInt() {return getIntegerValue();}
     @Override public void accept(int value) {setIntegerValue(value);}
     @Override public @NotNull Data getLPCConfigData() {return data;}

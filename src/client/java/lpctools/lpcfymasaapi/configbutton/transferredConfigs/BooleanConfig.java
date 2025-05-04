@@ -1,5 +1,6 @@
 package lpctools.lpcfymasaapi.configbutton.transferredConfigs;
 
+import com.google.gson.JsonElement;
 import fi.dy.masa.malilib.config.options.ConfigBoolean;
 import it.unimi.dsi.fastutil.booleans.BooleanConsumer;
 import lpctools.lpcfymasaapi.configbutton.ILPC_MASAConfigWrapper;
@@ -23,4 +24,9 @@ public class BooleanConfig extends ConfigBoolean implements ILPC_MASAConfigWrapp
     @Override public void accept(boolean b) {setBooleanValue(b);}
     @Override public @NotNull Data getLPCConfigData() {return data;}
     private final @NotNull Data data;
+    @Override public void setValueFromJsonElement(JsonElement element){
+        boolean lastValue = getBooleanValue();
+        super.setValueFromJsonElement(element);
+        if(lastValue != getBooleanValue()) onValueChanged();
+    }
 }

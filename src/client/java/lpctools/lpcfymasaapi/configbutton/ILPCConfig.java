@@ -53,6 +53,5 @@ public interface ILPCConfig extends IConfigBase, IConfigResettable, ILPCConfigNo
     default void loadFromConfigListJson(@NotNull JsonObject configListJson){
         if (!configListJson.has(getName())) return;
         setValueFromJsonElement(configListJson.get(getName()));
-        onValueChanged();
     }
 }
