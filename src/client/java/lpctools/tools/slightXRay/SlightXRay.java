@@ -10,6 +10,7 @@ import lpctools.lpcfymasaapi.configbutton.derivedConfigs.ThirdListConfig;
 import lpctools.lpcfymasaapi.configbutton.transferredConfigs.BooleanHotkeyConfig;
 import lpctools.lpcfymasaapi.configbutton.transferredConfigs.ColorConfig;
 import lpctools.lpcfymasaapi.configbutton.transferredConfigs.StringListConfig;
+import lpctools.tools.ToolConfigs;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientChunkEvents;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientWorldEvents;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext;
@@ -52,6 +53,11 @@ public class SlightXRay implements ILPCValueChangeCallback, WorldRenderEvents.En
 
     public static void init(ThirdListConfig SXConfig){
         slightXRay = SXConfig.addBooleanHotkeyConfig("slightXRay", false, null, new SlightXRay());
+        slightXRay.getKeybind().setCallback((action, key) -> {
+            slightXRay.toggleBooleanValue();
+            ToolConfigs.displayToggleMessage(slightXRay);
+            return true;
+        });
         displayColor = SXConfig.addColorConfig("displayColor", 0x7F3F7FFF);
         XRayBlocksConfig = SXConfig.addStringListConfig("XRayBlocks", defaultXRayBlockIds, SlightXRay::refreshXRayBlocks);
         displayRange = SXConfig.addRangeLimitConfig(false, "SX");
@@ -100,6 +106,7 @@ public class SlightXRay implements ILPCValueChangeCallback, WorldRenderEvents.En
             Registry.registerClientChunkLoadCallbacks(this);
             Registry.registerClientChunkUnloadCallbacks(this);
             Registry.registerClientWorldChangeCallbacks(this);
+            ToolConfigs.displayEnableMessage(slightXRay);
         }
         else {
             if(Registry.unregisterWorldRenderEndCallback(this)){
@@ -113,6 +120,7 @@ public class SlightXRay implements ILPCValueChangeCallback, WorldRenderEvents.En
             Registry.unregisterClientChunkLoadCallbacks(this);
             Registry.unregisterClientChunkUnloadCallbacks(this);
             Registry.unregisterClientWorldChangeCallbacks(this);
+            ToolConfigs.displayDisableMessage(slightXRay);
         }
     }
 
