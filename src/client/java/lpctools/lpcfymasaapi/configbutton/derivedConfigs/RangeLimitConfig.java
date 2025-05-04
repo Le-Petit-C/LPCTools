@@ -27,7 +27,7 @@ public class RangeLimitConfig extends ThirdListConfig {
     }
     public ShapeList buildShapeList(){
         if(getAsBoolean())
-            return new ShapeList(litematica.getAsBoolean() ? testType.getCurrentUserdata() : null, prefix.get());
+            return new ShapeList(litematica.getAsBoolean() ? testType.get() : null, prefix.get());
         else return ShapeList.emptyList();
     }
 

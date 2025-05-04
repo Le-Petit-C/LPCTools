@@ -1,5 +1,6 @@
 package lpctools.lpcfymasaapi.configbutton.transferredConfigs;
 
+import com.google.gson.JsonElement;
 import fi.dy.masa.malilib.config.options.ConfigString;
 import lpctools.lpcfymasaapi.configbutton.ILPCConfigList;
 import lpctools.lpcfymasaapi.configbutton.ILPCValueChangeCallback;
@@ -26,6 +27,11 @@ public class StringConfig extends ConfigString implements ILPC_MASAConfigWrapper
         this(defaultParent, nameKey, null, null);
     }
 
+    @Override public void setValueFromJsonElement(JsonElement element) {
+        String lastString = get();
+        super.setValueFromJsonElement(element);
+        if(!lastString.equals(get())) onValueChanged();
+    }
     @Override public void accept(String s) {setValueFromString(s);}
     @Override @NotNull public String get() {return getStringValue();}
     @Override public @NotNull Data getLPCConfigData() {return data;}

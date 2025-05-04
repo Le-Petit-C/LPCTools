@@ -1,5 +1,6 @@
 package lpctools.lpcfymasaapi.configbutton.transferredConfigs;
 
+import com.google.gson.JsonElement;
 import fi.dy.masa.malilib.config.options.ConfigDouble;
 import lpctools.lpcfymasaapi.configbutton.ILPCConfigList;
 import lpctools.lpcfymasaapi.configbutton.ILPCValueChangeCallback;
@@ -23,6 +24,12 @@ public class DoubleConfig extends ConfigDouble implements ILPC_MASAConfigWrapper
         super(nameKey, defaultDouble, minValue, maxValue);
         data = new Data(defaultParent, false);
         ILPC_MASAConfigWrapperDefaultInit(callback);
+    }
+
+    @Override public void setValueFromJsonElement(JsonElement element) {
+        double lastValue = getAsDouble();
+        super.setValueFromJsonElement(element);
+        if(lastValue != getAsDouble()) onValueChanged();
     }
     @Override public void accept(double value) {setDoubleValue(value);}
     @Override public double getAsDouble() {return getDoubleValue();}
