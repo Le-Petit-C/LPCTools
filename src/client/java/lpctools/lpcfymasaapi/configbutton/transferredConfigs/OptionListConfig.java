@@ -1,5 +1,6 @@
 package lpctools.lpcfymasaapi.configbutton.transferredConfigs;
 
+import com.google.gson.JsonElement;
 import fi.dy.masa.malilib.config.IConfigOptionListEntry;
 import fi.dy.masa.malilib.config.options.ConfigOptionList;
 import fi.dy.masa.malilib.util.StringUtils;
@@ -8,8 +9,9 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
+import java.util.function.Supplier;
 
-public class OptionListConfig<T> extends ConfigOptionList implements ILPC_MASAConfigWrapper<ConfigOptionList>, IButtonDisplay {
+public class OptionListConfig<T> extends ConfigOptionList implements ILPC_MASAConfigWrapper<ConfigOptionList>, IButtonDisplay, Supplier<T> {
     public record OptionData<T>(@NotNull ArrayList<OptionData<T>> options, @NotNull String translationKey, @Nullable T userData, int index) implements IConfigOptionListEntry{
         @Override public String getStringValue() {
             return translationKey;
@@ -45,11 +47,16 @@ public class OptionListConfig<T> extends ConfigOptionList implements ILPC_MASACo
         ILPC_MASAConfigWrapperDefaultInit(callback);
     }
     public T getCurrentUserdata(){return getCurrentOptionData().userData;}
-    @Override @NotNull public String getDisplayName(){return getCurrentOptionData().getDisplayName();}
-
     @SuppressWarnings("unchecked")
     @NotNull OptionData<T> getCurrentOptionData(){return ((OptionData<T>)getOptionListValue());}
 
+    @Override public void setValueFromJsonElement(JsonElement element) {
+        String lastString = getStringValue();
+        super.setValueFromJsonElement(element);
+        if(!lastString.equals(getStringValue())) onValueChanged();
+    }
+    @Override @NotNull public String getDisplayName(){return getCurrentOptionData().getDisplayName();}
+    @Override public T get(){return getCurrentUserdata();}
     @Override public @NotNull Data getLPCConfigData() {return data;}
     private final @NotNull Data data;
 }

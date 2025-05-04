@@ -1,5 +1,6 @@
 package lpctools.lpcfymasaapi.configbutton.transferredConfigs;
 
+import com.google.gson.JsonElement;
 import fi.dy.masa.malilib.config.options.ConfigHotkey;
 import fi.dy.masa.malilib.hotkeys.IHotkeyCallback;
 import fi.dy.masa.malilib.hotkeys.IKeybind;
@@ -12,6 +13,7 @@ import net.minecraft.text.Text;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.List;
 import java.util.function.BooleanSupplier;
 import java.util.function.IntConsumer;
 import java.util.function.IntSupplier;
@@ -49,6 +51,11 @@ public class HotkeyConfig extends ConfigHotkey implements ILPC_MASAConfigWrapper
         @Nullable private final BooleanSupplier enabled;
     }
 
+    @Override public void setValueFromJsonElement(JsonElement element) {
+        List<Integer> lastKeys = List.copyOf(getKeybind().getKeys());
+        super.setValueFromJsonElement(element);
+        if(!lastKeys.equals(getKeybind().getKeys())) onValueChanged();
+    }
     @Override public @NotNull Data getLPCConfigData() {return data;}
     private final @NotNull Data data;
 }

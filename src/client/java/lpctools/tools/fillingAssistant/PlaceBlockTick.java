@@ -168,7 +168,7 @@ public class PlaceBlockTick implements ClientTickEvents.EndTick, Registry.InGame
                 for (int z = 0; z < mapXY.length; ++z) {
                     if(shapeList.testPos(pos3))
                         mapXY[z] = isUnpassable(pos3);
-                    else mapXY[z] = outerRangeBlockMethod.getCurrentUserdata().isUnpassable(pos3);
+                    else mapXY[z] = outerRangeBlockMethod.get().isUnpassable(pos3);
                     pos3 = pos3.south();
                 }
                 pos2 = pos2.up();
