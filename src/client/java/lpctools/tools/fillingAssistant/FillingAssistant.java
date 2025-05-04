@@ -1,9 +1,6 @@
 package lpctools.tools.fillingAssistant;
 
-import fi.dy.masa.malilib.hotkeys.IHotkeyCallback;
-import fi.dy.masa.malilib.hotkeys.IKeybind;
-import fi.dy.masa.malilib.hotkeys.KeyAction;
-import fi.dy.masa.malilib.util.StringUtils;
+import fi.dy.masa.malilib.hotkeys.KeyCallbackToggleBoolean;
 import lpctools.lpcfymasaapi.Registry;
 import lpctools.lpcfymasaapi.configbutton.*;
 import lpctools.lpcfymasaapi.configbutton.derivedConfigs.RangeLimitConfig;
@@ -13,10 +10,8 @@ import lpctools.tools.ToolConfigs;
 import net.minecraft.block.Block;
 import net.minecraft.block.Blocks;
 import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.item.Item;
-import net.minecraft.text.Text;
 import net.minecraft.util.math.BlockPos;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -27,23 +22,23 @@ import static lpctools.tools.fillingAssistant.Data.*;
 import static lpctools.util.DataUtils.*;
 
 public class FillingAssistant {
+    static boolean enabled = false;
     public static void enableTool(){
-        if(enabled()) return;
-        ClientPlayerEntity player = MinecraftClient.getInstance().player;
-        if(player == null) return;
+        if(enabled) return;
         runner = new PlaceBlockTick();
         Registry.registerEndClientTickCallback(runner);
         Registry.registerInGameEndMouseCallback(runner);
-        player.sendMessage(Text.literal(StringUtils.translate("lpctools.tools.FA.enableNotification")), true);
+        ToolConfigs.displayEnableMessage(fillingAssistant);
+        enabled = true;
     }
     public static void disableTool(@Nullable String reasonKey){
-        if(!enabled()) return;
+        if(!enabled) return;
         Registry.unregisterEndClientTickCallback(runner);
         Registry.unregisterInGameEndMouseCallback(runner);
         runner = null;
-        ToolConfigs.displayDisableReason("FA.disableNotification", reasonKey);
+        ToolConfigs.displayDisableReason(fillingAssistant, reasonKey);
+        enabled = false;
     }
-    public static boolean enabled(){return runner != null;}
     public static @NotNull HashSet<Item> getPlaceableItems(){return placeableItems;}
     public static @NotNull HashSet<Block> getPassableBlocks(){return passableBlocks;}
     public static boolean isBlockUnpassable(Block block){
@@ -79,7 +74,8 @@ public class FillingAssistant {
         else requiredBlocks = new HashSet<>(defaultRequiredBlockWhiteList);
     }
     public static void init(ThirdListConfig FAConfig){
-        hotkeyConfig = FAConfig.addHotkeyConfig("hotkey", "", new HotkeyCallback());
+        fillingAssistant = FAConfig.addBooleanHotkeyConfig("fillingAssistant", false, "", ()->onMainValueChanged(fillingAssistant.getBooleanValue()));
+        fillingAssistant.getKeybind().setCallback(new KeyCallbackToggleBoolean(fillingAssistant));
         limitPlaceSpeedConfig = FAConfig.addThirdListConfig("limitPlaceSpeed", false);
         maxBlockPerTickConfig = limitPlaceSpeedConfig.addDoubleConfig("maxBlockPerTick", 1.0, 0, 64);
         reachDistanceConfig = FAConfig.addDoubleConfig("reachDistance", 4.5, 0, 5);
@@ -119,7 +115,7 @@ public class FillingAssistant {
         }
     }
 
-    static HotkeyConfig hotkeyConfig;
+    static BooleanHotkeyConfig fillingAssistant;
     static ThirdListConfig limitPlaceSpeedConfig;
     static DoubleConfig maxBlockPerTickConfig;
     static DoubleConfig reachDistanceConfig;
@@ -139,13 +135,10 @@ public class FillingAssistant {
     @NotNull private static HashSet<Block> passableBlocks = new HashSet<>();
     @NotNull private static HashSet<Block> requiredBlocks = new HashSet<>();
 
-    private static class HotkeyCallback implements IHotkeyCallback{
-        @Override
-        public boolean onKeyAction(KeyAction action, IKeybind key) {
-            if(enabled()) disableTool(null);
-            else enableTool();
-            return true;
-        }
+    public static void onMainValueChanged(boolean currentValue) {
+        if(enabled == currentValue) return;
+        if(currentValue) enableTool();
+        else disableTool(null);
     }
     private static class TestDistanceChangeCallback implements ILPCValueChangeCallback {
         @Override public void onValueChanged() {
