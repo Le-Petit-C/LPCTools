@@ -31,7 +31,10 @@ public class AutoGrindstone {
         MinecraftClient client = MinecraftClient.getInstance();
         ClientPlayerEntity player = client.player;
         ClientPlayerInteractionManager itm = client.interactionManager;
-        if(player == null || itm == null) return;
+        if(player == null || itm == null) {
+            lpctools.tools.autoGrindstone.AutoGrindstone.autoGrindstoneConfig.setBooleanValue(false);
+            return;
+        }
         PlayerInventory inventory = player.getInventory();
         Object2IntOpenHashMap<String> enchantmentIds = new Object2IntOpenHashMap<>();
         for(String key : lpctools.tools.autoGrindstone.AutoGrindstone.limitEnchantmentsConfig){
