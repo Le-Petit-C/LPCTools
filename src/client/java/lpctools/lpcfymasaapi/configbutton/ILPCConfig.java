@@ -1,79 +1,57 @@
 package lpctools.lpcfymasaapi.configbutton;
 
-import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import fi.dy.masa.malilib.config.IConfigBase;
-import fi.dy.masa.malilib.util.StringUtils;
+import fi.dy.masa.malilib.config.IConfigResettable;
+import net.minecraft.text.Text;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Collection;
-
-@SuppressWarnings("unused")
-public interface ILPCConfig {
-    //获取当前配置本地化键名后缀
-    @NotNull String getNameKey();
+public interface ILPCConfig extends IConfigBase, IConfigResettable, ILPCConfigNotifiable {
+    record Data(@NotNull ILPCConfigList parent, boolean hasHotkey) {}
+    //获取data
+    @NotNull Data getLPCConfigData();
+    //默认初始化，应在getLPCConfigData有效化后调用
+    default void ILPC_MASAConfigWrapperDefaultInit(@Nullable ILPCValueChangeCallback callback){
+        setComment(getFullCommentTranslationKey());
+        setValueChangeCallback(callback);
+    }
     //当前配置是否有关热键，决定是否启用热键查找
-    boolean hasHotkey();
-    //设置回调函数
-    void setCallback(IValueRefreshCallback callBack);
-    //获取回调函数
-    @Nullable IValueRefreshCallback getCallback();
-    //获取IConfigBase，应当在第一次调用时才真正调用malilib中的内容作初始化
-    @NotNull IConfigBase IGetConfig();
-    //添加parent
-    void addParent(ILPCConfigList parent);
-    //获取默认parent，所有config都应该有至少一个parent用于生成translation key
-    @NotNull ILPCConfigList getDefaultParent();
-    //获取所有parents
-    @NotNull Collection<ILPCConfigList> getParents();
-    //获取刷新方法对象
-    @Nullable IValueRefreshCallback getRefresh();
+    default boolean hasHotkey(){return getLPCConfigData().hasHotkey;}
+    //获取parent
+    default @NotNull ILPCConfigList getParent(){return getLPCConfigData().parent;}
 
-    default void refreshName(boolean align){
-        IConfigBase config = IGetConfig();
-        config.setTranslatedName(align ? getAlignedName() : getName());
-    }
-    //调用刷新方法刷新数据
-    default void callRefresh(){
-        IValueRefreshCallback callback = getRefresh();
-        if(callback != null) callback.valueRefreshCallback();
-    }
+    default void refreshName(boolean align){setTranslatedName(align ? getAlignedNameTranslation() : getNameTranslation());}
+
     //获取当前配置名称的完整本地化键名
     @NotNull default String getFullNameTranslationKey(){
-        return getDefaultParent().getFullTranslationKey() + "." + getNameKey()+ ".name";
+        return getParent().getFullTranslationKey() + "." + getName()+ ".name";
     }
     //获取当前配置注解的完整本地化键名
     @NotNull default String getFullCommentTranslationKey(){
-        return getDefaultParent().getFullTranslationKey() + "." + getNameKey() + ".comment";
-    }
-    //获取当前配置的本地化键值
-    @NotNull default String getName(){
-        return StringUtils.translate(getFullNameTranslationKey());
+        return getParent().getFullTranslationKey() + "." + getName() + ".comment";
     }
     //获取当前配置基于默认parent对齐后的本地化键值
-    @NotNull default String getAlignedName(){
+    @NotNull default String getAlignedNameTranslation(){
         StringBuilder result = new StringBuilder();
-        ILPCConfigList parent = getDefaultParent();
+        ILPCConfigList parent = getParent();
         while(parent instanceof ILPCConfig config){
             result.append("    ");
-            parent = config.getDefaultParent();
+            parent = config.getParent();
         }
-        result.append(getName());
+        result.append(getNameTranslation());
         return result.toString();
     }
-    //从JSON中加载配置
-    @NotNull default JsonElement getAsJsonElement() {
-        return IGetConfig().getAsJsonElement();
+    @NotNull default String getNameTranslation(){
+        return Text.translatable(getFullNameTranslationKey()).getString();
     }
     //转化为JSON加入到配置列表JSON中
     default void addIntoConfigListJson(@NotNull JsonObject configListJson){
-        configListJson.add(getNameKey(), getAsJsonElement());
+        configListJson.add(getName(), getAsJsonElement());
     }
     //从配置列表JSON中加载配置
     default void loadFromConfigListJson(@NotNull JsonObject configListJson){
-        if (!configListJson.has(getNameKey())) return;
-        IGetConfig().setValueFromJsonElement(configListJson.get(getNameKey()));
-        callRefresh();
+        if (!configListJson.has(getName())) return;
+        setValueFromJsonElement(configListJson.get(getName()));
     }
 }

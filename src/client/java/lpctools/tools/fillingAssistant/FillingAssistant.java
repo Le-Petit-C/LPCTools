@@ -1,9 +1,6 @@
-package lpctools.tools.fillingassistant;
+package lpctools.tools.fillingAssistant;
 
-import fi.dy.masa.malilib.hotkeys.IHotkeyCallback;
-import fi.dy.masa.malilib.hotkeys.IKeybind;
-import fi.dy.masa.malilib.hotkeys.KeyAction;
-import fi.dy.masa.malilib.util.StringUtils;
+import fi.dy.masa.malilib.hotkeys.KeyCallbackToggleBoolean;
 import lpctools.lpcfymasaapi.Registry;
 import lpctools.lpcfymasaapi.configbutton.*;
 import lpctools.lpcfymasaapi.configbutton.derivedConfigs.RangeLimitConfig;
@@ -13,39 +10,34 @@ import lpctools.tools.ToolConfigs;
 import net.minecraft.block.Block;
 import net.minecraft.block.Blocks;
 import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.item.Item;
-import net.minecraft.registry.Registries;
-import net.minecraft.text.Text;
-import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.HashSet;
-import java.util.List;
 
-import static lpctools.tools.fillingassistant.Data.*;
+import static lpctools.tools.fillingAssistant.Data.*;
+import static lpctools.util.DataUtils.*;
 
 public class FillingAssistant {
     public static void enableTool(){
-        if(enabled()) return;
-        ClientPlayerEntity player = MinecraftClient.getInstance().player;
-        if(player == null) return;
+        if(runner != null) return;
         runner = new PlaceBlockTick();
+        fillingAssistant.setBooleanValue(true);
         Registry.registerEndClientTickCallback(runner);
         Registry.registerInGameEndMouseCallback(runner);
-        player.sendMessage(Text.literal(StringUtils.translate("lpctools.tools.FA.enableNotification")), true);
+        ToolConfigs.displayEnableMessage(fillingAssistant);
     }
     public static void disableTool(@Nullable String reasonKey){
-        if(!enabled()) return;
+        if(runner == null) return;
         Registry.unregisterEndClientTickCallback(runner);
         Registry.unregisterInGameEndMouseCallback(runner);
         runner = null;
-        ToolConfigs.displayDisableReason("FA.disableNotification", reasonKey);
+        fillingAssistant.setBooleanValue(false);
+        ToolConfigs.displayDisableReason(fillingAssistant, reasonKey);
     }
-    public static boolean enabled(){return runner != null;}
     public static @NotNull HashSet<Item> getPlaceableItems(){return placeableItems;}
     public static @NotNull HashSet<Block> getPassableBlocks(){return passableBlocks;}
     public static boolean isBlockUnpassable(Block block){
@@ -70,46 +62,36 @@ public class FillingAssistant {
         if (world != null) return required(world.getBlockState(pos).getBlock());
         else return false;
     }
-    public static void refreshPlaceableItems(){
-        if(placeableItemsConfig != null) placeableItems = itemSetFromIdList(placeableItemsConfig.getStrings());
-        else placeableItems = new HashSet<>(defaultPlaceableItemList);
-    }
-    public static void refreshPassableBlocks(){
-        if(passableBlocksConfig != null) passableBlocks = blockSetFromIdList(passableBlocksConfig.getStrings());
-        else passableBlocks = new HashSet<>(defaultPassableBlockList);
-    }
-    public static void refreshRequiredBlocks(){
-        if(requiredBlocksConfig != null) requiredBlocks = blockSetFromIdList(requiredBlocksConfig.getStrings());
-        else requiredBlocks = new HashSet<>(defaultRequiredBlockWhiteList);
-    }
     public static void init(ThirdListConfig FAConfig){
-        hotkeyConfig = FAConfig.addHotkeyConfig("hotkey", "", new HotkeyCallback());
+        fillingAssistant = FAConfig.addBooleanHotkeyConfig("fillingAssistant", false, "", ()->onMainValueChanged(fillingAssistant.getBooleanValue()));
+        fillingAssistant.getKeybind().setCallback(new KeyCallbackToggleBoolean(fillingAssistant));
         limitPlaceSpeedConfig = FAConfig.addThirdListConfig("limitPlaceSpeed", false);
         maxBlockPerTickConfig = limitPlaceSpeedConfig.addDoubleConfig("maxBlockPerTick", 1.0, 0, 64);
         reachDistanceConfig = FAConfig.addDoubleConfig("reachDistance", 4.5, 0, 5);
-        testDistanceConfig = FAConfig.addIntegerConfig("testDistance", 6, 6, 64, new TestDistanceRefreshCallback());
+        testDistanceConfig = FAConfig.addIntegerConfig("testDistance", 6, 6, 64, new TestDistanceChangeCallback());
         disableOnLeftDownConfig = FAConfig.addBooleanConfig("disableOnLeftDown", true);
         disableOnGUIOpened = FAConfig.addBooleanConfig("disableOnGUIOpened", false);
-        placeableItemsConfig = FAConfig.addStringListConfig("placeableItems", defaultPlaceableItemIdList, new PlaceableItemsRefreshCallback());
-        passableBlocksConfig = FAConfig.addStringListConfig("passableBlocks", defaultPassableBlockIdList, new PassableBlocksRefreshCallback());
+        placeableItemsConfig = FAConfig.addStringListConfig("placeableItems", defaultPlaceableItemIdList, () -> placeableItems = itemSetFromIds(placeableItemsConfig.getStrings()));
+        passableBlocksConfig = FAConfig.addStringListConfig("passableBlocks", defaultPassableBlockIdList, () -> passableBlocks = blockSetFromIds(passableBlocksConfig.getStrings()));
         transparentAsPassableConfig = FAConfig.addBooleanConfig("transparentAsPassable", true);
         notOpaqueAsPassableConfig = FAConfig.addBooleanConfig("notOpaqueAsPassable", true);
-        requiredBlocksConfig = FAConfig.addStringListConfig("requiredBlocks", defaultRequiredBlockIdList, new RequiredBlocksRefreshCallback());
+        requiredBlocksConfig = FAConfig.addStringListConfig("requiredBlocks", defaultRequiredBlockIdList, () -> requiredBlocks = blockSetFromIds(requiredBlocksConfig.getStrings()));
         offhandFillingConfig = FAConfig.addBooleanConfig("offhandFilling", false);
         limitFillingRange = FAConfig.addRangeLimitConfig(false, "FA");
-        outerRangeBlockMethod = limitFillingRange.addOptionListConfig("outerRangeBlockMethod");
-        for(OuterRangeBlockMethods method : OuterRangeBlockMethods.values())
-            outerRangeBlockMethod.addOption(method.getKey(), method);
+        OptionListConfig.OptionList<OuterRangeBlockMethod> optionList = new OptionListConfig.OptionList<>();
+        for(OuterRangeBlockMethod method : OuterRangeBlockMethod.values())
+            optionList.addOption(method.getKey(), method);
+        outerRangeBlockMethod = limitFillingRange.addOptionListConfig("outerRangeBlockMethod", optionList.getFirst());
     }
 
-    enum OuterRangeBlockMethods {
+    enum OuterRangeBlockMethod {
         AS_UNPASSABLE("lpctools.configs.tools.outerRangeBlockMethods.asUnpassable", block -> true),
         AS_PASSABLE("lpctools.configs.tools.outerRangeBlockMethods.asPassable", block -> false),
         AS_ORIGIN("lpctools.configs.tools.outerRangeBlockMethods.asOrigin", FillingAssistant::isBlockUnpassable);
         public final String translationKey;
         public final Method method;
         public interface Method{ boolean isBlockUnpassable(Block block);}
-        OuterRangeBlockMethods(String translationKey, Method method){
+        OuterRangeBlockMethod(String translationKey, Method method){
             this.translationKey = translationKey;
             this.method = method;
         }
@@ -122,17 +104,7 @@ public class FillingAssistant {
         }
     }
 
-    /*
-    //这是个为了测试onValueChanged的callback
-    private static class testCallback implements IValueChangeCallback<ConfigStringList>{
-        @Override
-        public void onValueChanged(ConfigStringList config) {
-            LPCAPIInit.LOGGER.info("Change detected!");
-        }
-    }
-    */
-
-    static HotkeyConfig hotkeyConfig;
+    static BooleanHotkeyConfig fillingAssistant;
     static ThirdListConfig limitPlaceSpeedConfig;
     static DoubleConfig maxBlockPerTickConfig;
     static DoubleConfig reachDistanceConfig;
@@ -146,53 +118,20 @@ public class FillingAssistant {
     static StringListConfig requiredBlocksConfig;
     static BooleanConfig offhandFillingConfig;
     static RangeLimitConfig limitFillingRange;
-    static OptionListConfig<OuterRangeBlockMethods> outerRangeBlockMethod;
-    @NotNull private static HashSet<Item> itemSetFromIdList(@Nullable List<String> list){
-        HashSet<Item> ret = new HashSet<>();
-        if(list == null) return ret;
-        for(String s : list)
-            ret.add(Registries.ITEM.get(Identifier.of(s)));
-        return ret;
-    }
-    @NotNull private static HashSet<Block> blockSetFromIdList(@Nullable List<String> list){
-        HashSet<Block> ret = new HashSet<>();
-        if(list == null) return ret;
-        for(String s : list)
-            ret.add(Registries.BLOCK.get(Identifier.of(s)));
-        return ret;
-    }
+    static OptionListConfig<OuterRangeBlockMethod> outerRangeBlockMethod;
     @Nullable private static PlaceBlockTick runner = null;
-    @NotNull private static HashSet<Item> placeableItems = new HashSet<>();
-    @NotNull private static HashSet<Block> passableBlocks = new HashSet<>();
-    @NotNull private static HashSet<Block> requiredBlocks = new HashSet<>();
+    @NotNull private static HashSet<Item> placeableItems = new HashSet<>(defaultPlaceableItemList);
+    @NotNull private static HashSet<Block> passableBlocks = new HashSet<>(defaultPassableBlockList);
+    @NotNull private static HashSet<Block> requiredBlocks = new HashSet<>(defaultRequiredBlockWhiteList);
 
-    private static class HotkeyCallback implements IHotkeyCallback{
-        @Override
-        public boolean onKeyAction(KeyAction action, IKeybind key) {
-            if(enabled()) disableTool(null);
-            else enableTool();
-            return true;
-        }
+    public static void onMainValueChanged(boolean currentValue) {
+        if(currentValue) enableTool();
+        else disableTool(null);
     }
-    private static class TestDistanceRefreshCallback implements IValueRefreshCallback{
-        @Override public void valueRefreshCallback() {
+    private static class TestDistanceChangeCallback implements ILPCValueChangeCallback {
+        @Override public void onValueChanged() {
             if(runner != null)
                 runner.setTestDistance(testDistanceConfig.getAsInt());
-        }
-    }
-    private static class PlaceableItemsRefreshCallback implements IValueRefreshCallback{
-        @Override public void valueRefreshCallback() {
-            refreshPlaceableItems();
-        }
-    }
-    private static class PassableBlocksRefreshCallback implements IValueRefreshCallback{
-        @Override public void valueRefreshCallback() {
-            refreshPassableBlocks();
-        }
-    }
-    private static class RequiredBlocksRefreshCallback implements IValueRefreshCallback{
-        @Override public void valueRefreshCallback() {
-            refreshRequiredBlocks();
         }
     }
 }

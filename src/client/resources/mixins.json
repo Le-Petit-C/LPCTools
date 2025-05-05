@@ -1,14 +1,19 @@
 {
-	"required": true,
-	"package": "lpctools.mixin.client",
-	"compatibilityLevel": "JAVA_21",
-	"client": [
-		"OnMouseButtonReturnMixin"
-	],
-	"injectors": {
-		"defaultRequire": 1
-	},
-	"mixins": [
-		"LanguageMixin"
-	]
+  "required": true,
+  "package": "lpctools.mixin.client",
+  "compatibilityLevel": "JAVA_21",
+  "client": [
+    "AutoGrindstone",
+    "displayClickSlotArguments",
+    "OnMouseButtonReturnMixin",
+    "RegistryMixins$afterClientWorldChangeEvent",
+    "SplashTextResourceSupplierMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  },
+  "mixins": [
+    "LanguageMixin",
+    "WorldChunkMixin"
+  ]
 }

@@ -19,18 +19,19 @@ public class RangeLimitConfig extends ThirdListConfig {
         addRedirect(prefix, ".rangeNamePrefix");
         litematica = addThirdListConfig("rangeLitematica", false);
         addRedirect(litematica, ".rangeLitematica");
-        testType = litematica.addOptionListConfig("renderRangeTestType");
+        OptionListConfig.OptionList<SimpleTestableShape.TestType> optionList = new OptionListConfig.OptionList<>();
         for(SimpleTestableShape.TestType testType : SimpleTestableShape.TestType.values())
-            this.testType.addOption(testType.getPrefix(), testType);
+            optionList.addOption(testType.getPrefix(), testType);
+        testType = litematica.addOptionListConfig("renderRangeTestType", optionList.getFirst());
         addRedirect(testType, ".renderRangeTestType");
     }
     public ShapeList buildShapeList(){
         if(getAsBoolean())
-            return new ShapeList(litematica.getAsBoolean() ? testType.getCurrentUserdata() : null, prefix.get());
+            return new ShapeList(litematica.getAsBoolean() ? testType.get() : null, prefix.get());
         else return ShapeList.emptyList();
     }
 
-    private static void addRedirect(@NotNull LPCConfig<?> config, @NotNull String key){
+    private static void addRedirect(@NotNull ILPCConfig config, @NotNull String key){
         LanguageExtra.redirectPut(config.getFullNameTranslationKey(),
                 "lpctools.configs.utils.limitRange" + key + ".name");
         LanguageExtra.redirectPut(config.getFullCommentTranslationKey(),

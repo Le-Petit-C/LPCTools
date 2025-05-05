@@ -1,43 +1,35 @@
 package lpctools.lpcfymasaapi.configbutton.transferredConfigs;
 
+import com.google.gson.JsonElement;
+import fi.dy.masa.malilib.config.options.ConfigBoolean;
 import fi.dy.masa.malilib.config.options.ConfigBooleanHotkeyed;
-import fi.dy.masa.malilib.hotkeys.IHotkey;
 import it.unimi.dsi.fastutil.booleans.BooleanConsumer;
-import lpctools.lpcfymasaapi.configbutton.ILPCConfigList;
-import lpctools.lpcfymasaapi.configbutton.ILPCHotkey;
-import lpctools.lpcfymasaapi.configbutton.IValueRefreshCallback;
-import lpctools.lpcfymasaapi.configbutton.LPCConfig;
+import lpctools.lpcfymasaapi.configbutton.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.List;
 import java.util.function.BooleanSupplier;
 
-public class BooleanHotkeyConfig extends LPCConfig<ConfigBooleanHotkeyed> implements ILPCHotkey, BooleanSupplier, BooleanConsumer {
-    public final boolean defaultBoolean;
-    public final String defaultStorageString;
+public class BooleanHotkeyConfig extends ConfigBooleanHotkeyed implements ILPC_MASAConfigWrapper<ConfigBoolean>, BooleanSupplier, BooleanConsumer {
     public BooleanHotkeyConfig(@NotNull ILPCConfigList list, @NotNull String nameKey, boolean defaultBoolean, @Nullable String defaultStorageString){
-        super(list, nameKey, true);
-        this.defaultBoolean = defaultBoolean;
-        this.defaultStorageString = defaultStorageString;
+        this(list, nameKey, defaultBoolean, defaultStorageString, null);
+    }
+    public BooleanHotkeyConfig(@NotNull ILPCConfigList list, @NotNull String nameKey, boolean defaultBoolean, @Nullable String defaultStorageString, @Nullable ILPCValueChangeCallback callback){
+        super(nameKey, defaultBoolean, defaultStorageString == null ? "" : defaultStorageString);
+        data = new Data(list, true);
+        ILPC_MASAConfigWrapperDefaultInit(callback);
         list.getPage().getInputHandler().addHotkey(this);
     }
-    public BooleanHotkeyConfig(@NotNull ILPCConfigList list, @NotNull String nameKey, boolean defaultBoolean, @Nullable String defaultStorageString, @Nullable IValueRefreshCallback callback){
-        this(list, nameKey, defaultBoolean, defaultStorageString);
-        setCallback(callback);
+    @Override public void setValueFromJsonElement(JsonElement element) {
+        boolean lastBoolean = getAsBoolean();
+        List<Integer> lastKeys = List.copyOf(getKeybind().getKeys());
+        super.setValueFromJsonElement(element);
+        if(lastBoolean != getAsBoolean() || !lastKeys.equals(getKeybind().getKeys()))
+            onValueChanged();
     }
-    @Override public IHotkey LPCGetHotkey() {return getConfig();}
-    @Override public boolean getAsBoolean() {
-        ConfigBooleanHotkeyed config = getInstance();
-        if(config != null) return config.getBooleanValue();
-        else return defaultBoolean;
-    }
-    @Override public void accept(boolean b) {
-        getConfig().setBooleanValue(b);
-    }
-
-    @Override @NotNull protected ConfigBooleanHotkeyed createInstance() {
-        ConfigBooleanHotkeyed config = new ConfigBooleanHotkeyed(getNameKey(), defaultBoolean, defaultStorageString);
-        config.setValueChangeCallback(new LPCConfigCallback<>(this));
-        return config;
-    }
+    @Override public boolean getAsBoolean() {return getBooleanValue();}
+    @Override public void accept(boolean b) {setBooleanValue(b);}
+    @Override public @NotNull Data getLPCConfigData() {return data;}
+    private final @NotNull Data data;
 }

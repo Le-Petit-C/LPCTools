@@ -1,41 +1,30 @@
 package lpctools.lpcfymasaapi.configbutton.transferredConfigs;
 
+import com.google.gson.JsonElement;
 import fi.dy.masa.malilib.config.options.ConfigHotkey;
-import fi.dy.masa.malilib.hotkeys.IHotkey;
 import fi.dy.masa.malilib.hotkeys.IHotkeyCallback;
 import fi.dy.masa.malilib.hotkeys.IKeybind;
 import fi.dy.masa.malilib.hotkeys.KeyAction;
 import fi.dy.masa.malilib.util.StringUtils;
-import lpctools.lpcfymasaapi.configbutton.IButtonDisplay;
-import lpctools.lpcfymasaapi.configbutton.ILPCConfigList;
-import lpctools.lpcfymasaapi.configbutton.ILPCHotkey;
-import lpctools.lpcfymasaapi.configbutton.LPCConfig;
+import lpctools.lpcfymasaapi.configbutton.*;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.text.Text;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.List;
 import java.util.function.BooleanSupplier;
 import java.util.function.IntConsumer;
 import java.util.function.IntSupplier;
 
-public class HotkeyConfig extends LPCConfig<ConfigHotkey> implements ILPCHotkey {
-    @Nullable public final String defaultStorageString;
-    @NotNull public final IHotkeyCallback hotkeyCallback;
-    public HotkeyConfig(@NotNull ILPCConfigList defaultParent, @NotNull String nameKey, @Nullable String defaultStorageString, @NotNull IHotkeyCallback hotkeyCallback){
-        super(defaultParent, nameKey, true);
-        this.defaultStorageString = defaultStorageString;
-        this.hotkeyCallback = hotkeyCallback;
-        defaultParent.getPage().getInputHandler().addHotkey(this);
-    }
-    @Override public IHotkey LPCGetHotkey() {return getConfig();}
-
-    @Override @NotNull protected ConfigHotkey createInstance(){
-        ConfigHotkey config = new ConfigHotkey(getNameKey(), defaultStorageString);
-        config.apply(getDefaultParent().getFullTranslationKey());
-        config.getKeybind().setCallback(hotkeyCallback);
-        return config;
+public class HotkeyConfig extends ConfigHotkey implements ILPC_MASAConfigWrapper<ConfigHotkey> {
+    public HotkeyConfig(@NotNull ILPCConfigList parent, @NotNull String nameKey, @Nullable String defaultStorageString, @NotNull IHotkeyCallback hotkeyCallback){
+        super(nameKey, defaultStorageString);
+        data = new Data(parent, true);
+        ILPC_MASAConfigWrapperDefaultInit(null);
+        parent.getPage().getInputHandler().addHotkey(this);
+        getKeybind().setCallback(hotkeyCallback);
     }
 
     @SuppressWarnings("unused")
@@ -61,4 +50,12 @@ public class HotkeyConfig extends LPCConfig<ConfigHotkey> implements ILPCHotkey 
         @NotNull private final T valueToChange;
         @Nullable private final BooleanSupplier enabled;
     }
+
+    @Override public void setValueFromJsonElement(JsonElement element) {
+        List<Integer> lastKeys = List.copyOf(getKeybind().getKeys());
+        super.setValueFromJsonElement(element);
+        if(!lastKeys.equals(getKeybind().getKeys())) onValueChanged();
+    }
+    @Override public @NotNull Data getLPCConfigData() {return data;}
+    private final @NotNull Data data;
 }

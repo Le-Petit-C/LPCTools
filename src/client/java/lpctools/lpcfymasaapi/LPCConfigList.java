@@ -12,7 +12,7 @@ public class LPCConfigList implements ILPCConfigList{
         this.page = page;
         this.translationKey = translationKey;
     }
-    @Override public String getNameKey(){return translationKey;}
+    @Override public String getName(){return translationKey;}
     public boolean hasHotkeyConfig() {return hasHotkeyConfig;}
     @Override public @NotNull Iterable<ILPCConfig> getConfigs(){
         return configs;

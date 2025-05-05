@@ -1,4 +1,4 @@
-package lpctools.tools.fillingassistant;
+package lpctools.tools.fillingAssistant;
 
 import lpctools.compact.derived.ShapeList;
 import lpctools.lpcfymasaapi.Registry;
@@ -22,7 +22,7 @@ import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.Queue;
 
-import static lpctools.tools.fillingassistant.FillingAssistant.*;
+import static lpctools.tools.fillingAssistant.FillingAssistant.*;
 import static lpctools.util.BlockUtils.*;
 
 public class PlaceBlockTick implements ClientTickEvents.EndTick, Registry.InGameEndMouse {
@@ -97,7 +97,7 @@ public class PlaceBlockTick implements ClientTickEvents.EndTick, Registry.InGame
                     }
                 }
                 if(canSetBlockCount < 1) return;
-                if(!enabled()) return;
+                if(!fillingAssistant.getAsBoolean()) return;
             }
         }while(blockSetted);
     }
@@ -168,7 +168,7 @@ public class PlaceBlockTick implements ClientTickEvents.EndTick, Registry.InGame
                 for (int z = 0; z < mapXY.length; ++z) {
                     if(shapeList.testPos(pos3))
                         mapXY[z] = isUnpassable(pos3);
-                    else mapXY[z] = outerRangeBlockMethod.getCurrentUserdata().isUnpassable(pos3);
+                    else mapXY[z] = outerRangeBlockMethod.get().isUnpassable(pos3);
                     pos3 = pos3.south();
                 }
                 pos2 = pos2.up();

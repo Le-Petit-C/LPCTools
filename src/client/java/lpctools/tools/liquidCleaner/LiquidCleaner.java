@@ -1,23 +1,17 @@
-package lpctools.tools.liquidcleaner;
+package lpctools.tools.liquidCleaner;
 
 import com.google.common.collect.ImmutableList;
-import fi.dy.masa.malilib.hotkeys.IKeybind;
-import fi.dy.masa.malilib.hotkeys.KeyAction;
-import fi.dy.masa.malilib.util.StringUtils;
+import fi.dy.masa.malilib.hotkeys.KeyCallbackToggleBoolean;
 import lpctools.lpcfymasaapi.Registry;
 import lpctools.lpcfymasaapi.configbutton.derivedConfigs.ThirdListConfig;
+import lpctools.lpcfymasaapi.configbutton.transferredConfigs.*;
 import lpctools.lpcfymasaapi.configbutton.transferredConfigs.BooleanConfig;
-import lpctools.lpcfymasaapi.configbutton.transferredConfigs.DoubleConfig;
-import lpctools.lpcfymasaapi.configbutton.transferredConfigs.HotkeyConfig;
 import lpctools.lpcfymasaapi.configbutton.transferredConfigs.StringListConfig;
 import lpctools.tools.ToolConfigs;
 import lpctools.lpcfymasaapi.configbutton.derivedConfigs.RangeLimitConfig;
 import net.minecraft.block.Block;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.item.Item;
 import net.minecraft.registry.Registries;
-import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -27,7 +21,8 @@ import java.util.List;
 
 public class LiquidCleaner {
     public static void init(ThirdListConfig LCConfig){
-        hotkeyConfig = LCConfig.addHotkeyConfig("hotkey", "", LiquidCleaner::hotkeyCallback);
+        liquidCleaner = LCConfig.addBooleanHotkeyConfig("liquidCleaner", false, null, ()->valueChangeCallback(liquidCleaner.getAsBoolean()));
+        liquidCleaner.getKeybind().setCallback(new KeyCallbackToggleBoolean(liquidCleaner));
         limitInteractSpeedConfig = LCConfig.addThirdListConfig("limitInteractSpeed", false);
         maxBlockPerTickConfig = limitInteractSpeedConfig.addDoubleConfig("maxBlockPerTick", 1.0, 0, 64);
         reachDistanceConfig = LCConfig.addDoubleConfig("reachDistance", 4.5, 0, 5);
@@ -41,9 +36,7 @@ public class LiquidCleaner {
     public static boolean isEnabled(){return onEndTick != null;}
     public static void enableTool(){
         if(isEnabled()) return;
-        ClientPlayerEntity player = MinecraftClient.getInstance().player;
-        if(player == null) return;
-        player.sendMessage(Text.literal(StringUtils.translate("lpctools.tools.LC.enableNotification")), true);
+        ToolConfigs.displayEnableMessage(liquidCleaner);
         onEndTick = new OnEndTick();
         Registry.registerEndClientTickCallback(onEndTick);
     }
@@ -51,10 +44,10 @@ public class LiquidCleaner {
         if(!isEnabled()) return;
         Registry.unregisterEndClientTickCallback(onEndTick);
         onEndTick = null;
-        ToolConfigs.displayDisableReason("LC.disableNotification", reasonKey);
+        ToolConfigs.displayDisableReason(liquidCleaner, reasonKey);
     }
 
-    public static HotkeyConfig hotkeyConfig;
+    public static BooleanHotkeyConfig liquidCleaner;
     public static ThirdListConfig limitInteractSpeedConfig;
     public static DoubleConfig maxBlockPerTickConfig;
     public static DoubleConfig reachDistanceConfig;
@@ -68,10 +61,9 @@ public class LiquidCleaner {
     @NotNull static HashSet<Block> blacklistBlocks = new HashSet<>();
     @NotNull static HashSet<Item> blacklistItems = new HashSet<>();
 
-    private static boolean hotkeyCallback(KeyAction action, IKeybind key) {
-        if(isEnabled()) disableTool(null);
-        else enableTool();
-        return true;
+    private static void valueChangeCallback(boolean newValue) {
+        if(newValue) enableTool();
+        else disableTool(null);
     }
     private static void onBlacklistRefresh(){
         blacklistBlocks.clear();

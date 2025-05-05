@@ -1,44 +1,39 @@
 package lpctools.lpcfymasaapi.configbutton.transferredConfigs;
 
+import com.google.gson.JsonElement;
 import fi.dy.masa.malilib.config.options.ConfigString;
 import lpctools.lpcfymasaapi.configbutton.ILPCConfigList;
-import lpctools.lpcfymasaapi.configbutton.IValueRefreshCallback;
-import lpctools.lpcfymasaapi.configbutton.LPCConfig;
+import lpctools.lpcfymasaapi.configbutton.ILPCValueChangeCallback;
+import lpctools.lpcfymasaapi.configbutton.ILPC_MASAConfigWrapper;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
-public class StringConfig extends LPCConfig<ConfigString> implements Supplier<String>, Consumer<String> {
-    private final @NotNull String defaultString;
-    public StringConfig(@NotNull ILPCConfigList defaultParent, @NotNull String nameKey, @Nullable String defaultString, @Nullable IValueRefreshCallback callback) {
-        super(defaultParent, nameKey, false, callback);
-        this.defaultString = defaultString == null ? "" : defaultString;
+public class StringConfig extends ConfigString implements ILPC_MASAConfigWrapper<ConfigString>, Supplier<String>, Consumer<String> {
+    public StringConfig(@NotNull ILPCConfigList parent, @NotNull String nameKey, @Nullable String defaultString, @Nullable ILPCValueChangeCallback callback) {
+        super(nameKey, defaultString);
+        data = new Data(parent, false);
+        ILPC_MASAConfigWrapperDefaultInit(callback);
     }
     public StringConfig(@NotNull ILPCConfigList defaultParent, @NotNull String nameKey, @Nullable String defaultString) {
         this(defaultParent, nameKey, defaultString, null);
     }
-    public StringConfig(@NotNull ILPCConfigList defaultParent, @NotNull String nameKey, @Nullable IValueRefreshCallback callback) {
+    public StringConfig(@NotNull ILPCConfigList defaultParent, @NotNull String nameKey, @Nullable ILPCValueChangeCallback callback) {
         this(defaultParent, nameKey, null, callback);
     }
     public StringConfig(@NotNull ILPCConfigList defaultParent, @NotNull String nameKey) {
         this(defaultParent, nameKey, null, null);
     }
 
-    @Override public void accept(String s) {
-        getConfig().setValueFromString(s);
+    @Override public void setValueFromJsonElement(JsonElement element) {
+        String lastString = get();
+        super.setValueFromJsonElement(element);
+        if(!lastString.equals(get())) onValueChanged();
     }
-
-    @Override @NotNull public String get() {
-        ConfigString instance = getInstance();
-        if(instance == null) return defaultString;
-        else return instance.getStringValue();
-    }
-
-    @Override protected @NotNull ConfigString createInstance() {
-        ConfigString config = new ConfigString(getNameKey(), defaultString);
-        config.setValueChangeCallback(new LPCConfigCallback<>(this));
-        return config;
-    }
+    @Override public void accept(String s) {setValueFromString(s);}
+    @Override @NotNull public String get() {return getStringValue();}
+    @Override public @NotNull Data getLPCConfigData() {return data;}
+    private final @NotNull Data data;
 }
