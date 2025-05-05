@@ -97,7 +97,7 @@ public class PlaceBlockTick implements ClientTickEvents.EndTick, Registry.InGame
                     }
                 }
                 if(canSetBlockCount < 1) return;
-                if(!enabled) return;
+                if(!fillingAssistant.getAsBoolean()) return;
             }
         }while(blockSetted);
     }
