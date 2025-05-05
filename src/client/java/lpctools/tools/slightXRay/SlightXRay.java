@@ -18,7 +18,6 @@ import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
 import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.gl.ShaderProgramKeys;
 import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.client.render.*;
 import net.minecraft.client.world.ClientWorld;
@@ -135,7 +134,7 @@ public class SlightXRay implements ILPCValueChangeCallback, WorldRenderEvents.En
         if(!bufferUsed) return;
         RenderSystem.disableDepthTest();
         RenderSystem.enableBlend();
-        RenderSystem.setShader(ShaderProgramKeys.POSITION_COLOR);
+        RenderSystem.setShader(GameRenderer::getPositionColorProgram);
         RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
         BufferRenderer.drawWithGlobalProgram(buffer.end());
     }
@@ -147,7 +146,7 @@ public class SlightXRay implements ILPCValueChangeCallback, WorldRenderEvents.En
     }
 
     private static boolean doShowAround(BlockState state){
-        return !state.isOpaque() || state.isTransparent();
+        return !state.isOpaque() || state.isTransparent(MinecraftClient.getInstance().world, BlockPos.ORIGIN);
     }
 
     private static boolean isXRayTarget(BlockState state){

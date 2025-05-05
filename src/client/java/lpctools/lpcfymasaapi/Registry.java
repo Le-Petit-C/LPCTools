@@ -105,7 +105,6 @@ public class Registry {
         handler.registerWorldLastRenderer(renderer);
         handler.registerGameOverlayRenderer(renderer);
         handler.registerTooltipLastRenderer(renderer);
-        handler.registerWorldPreWeatherRenderer(renderer);
         ClientChunkEvents.CHUNK_LOAD.register(Registry::runClientChunkLoadCallbacks);
         ClientChunkEvents.CHUNK_UNLOAD.register(Registry::runClientChunkUnloadCallbacks);
     }
@@ -115,9 +114,6 @@ public class Registry {
         public static MalilibRenderer getInstance() {return renderer;}
         @Override public void onRenderGameOverlayLastDrawer(DrawContext drawContext, float partialTicks, Profiler profiler, MinecraftClient mc) {
             for(IRenderer renderer : malilibRenderCallbacks) renderer.onRenderGameOverlayLastDrawer(drawContext, partialTicks, profiler, mc);
-        }
-        @Override public void onRenderGameOverlayPostAdvanced(DrawContext drawContext, float partialTicks, Profiler profiler, MinecraftClient mc) {
-            for(IRenderer renderer : malilibRenderCallbacks) renderer.onRenderGameOverlayPostAdvanced(drawContext, partialTicks, profiler, mc);
         }
         @Override public void onRenderGameOverlayPost(DrawContext drawContext) {
             for(IRenderer renderer : malilibRenderCallbacks) renderer.onRenderGameOverlayPost(drawContext);
