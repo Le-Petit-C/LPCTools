@@ -74,7 +74,10 @@ public class OnEndTick implements ClientTickEvents.EndTick {
         }
         int offhandPriority = offhandFillingConfig.getAsBoolean() ? -1 : 0;
         Hand hand = offhandFillingConfig.getAsBoolean() ? Hand.OFF_HAND : Hand.MAIN_HAND;
-        if (HandRestock.search(this::isStackOk, offhandPriority) == -1) return;
+        int searchedSlot = HandRestock.search(this::isStackOk, offhandPriority);
+        if (searchedSlot == -1) return;
+        int slotItemCount = player.getInventory().getStack(searchedSlot).getCount();
+        if(slotItemCount < canInteractBlockCount && !player.isCreative()) canInteractBlockCount = slotItemCount;
         for(BlockPos pos : iterateRegion){
             if(!list.testPos(pos)){
                 if(!expandRange.getAsBoolean()) continue;
