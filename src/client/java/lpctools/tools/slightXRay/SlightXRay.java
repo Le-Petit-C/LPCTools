@@ -41,13 +41,13 @@ import static lpctools.util.MathUtils.*;
 public class SlightXRay implements ILPCValueChangeCallback, WorldRenderEvents.End, ClientChunkEvents.Load, ClientChunkEvents.Unload, ClientWorldEvents.AfterClientWorldChange {
     //markedBlocks放在多线程里用，记得要同步
     static final @NotNull HashSet<BlockPos> markedBlocks = new HashSet<>();
-    static final @NotNull HashSet<Block> XRayBlocks = initHashset();
     static final @NotNull ImmutableList<Block> defaultXRayBlocks = ImmutableList.of(
             Blocks.DIAMOND_ORE, Blocks.DEEPSLATE_DIAMOND_ORE,
             Blocks.DEEPSLATE_COAL_ORE, Blocks.EMERALD_ORE, Blocks.DEEPSLATE_EMERALD_ORE,
             Blocks.OBSIDIAN, Blocks.CRYING_OBSIDIAN, Blocks.ENDER_CHEST, Blocks.REINFORCED_DEEPSLATE,
             Blocks.BUDDING_AMETHYST, Blocks.CALCITE
     );
+    static final @NotNull HashSet<Block> XRayBlocks = new HashSet<>(defaultXRayBlocks);
     static final @NotNull ImmutableList<String> defaultXRayBlockIds = idListFromBlockList(defaultXRayBlocks);
     public static BooleanHotkeyConfig slightXRay;
     public static ColorConfig displayColor;
@@ -93,13 +93,6 @@ public class SlightXRay implements ILPCValueChangeCallback, WorldRenderEvents.En
             clearAll();
             addAllRenderRegionsIntoWork();
         }
-    }
-
-    private static HashSet<Block> initHashset(){
-        HashSet<Block> blocks = new HashSet<>();
-        blocks.add(Blocks.DIAMOND_ORE);
-        blocks.add(Blocks.DEEPSLATE_DIAMOND_ORE);
-        return blocks;
     }
 
     @Override public void onValueChanged() {
