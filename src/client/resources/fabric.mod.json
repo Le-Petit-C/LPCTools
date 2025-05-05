@@ -31,7 +31,7 @@
 	],
 	"depends": {
 		"fabricloader": ">=0.16.2",
-		"minecraft": "1.21.3",
+		"minecraft": "1.21.2",
 		"java": ">=21",
 		"malilib": "*",
 		"fabric-api": "*"

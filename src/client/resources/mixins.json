@@ -6,6 +6,7 @@
     "AutoGrindstone",
     "displayClickSlotArguments",
     "OnMouseButtonReturnMixin",
+    "RegistryMixins$afterClientWorldChangeEvent",
     "SplashTextResourceSupplierMixin"
   ],
   "injectors": {

@@ -12,7 +12,6 @@ import lpctools.lpcfymasaapi.configbutton.transferredConfigs.ColorConfig;
 import lpctools.lpcfymasaapi.configbutton.transferredConfigs.StringListConfig;
 import lpctools.tools.ToolConfigs;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientChunkEvents;
-import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientWorldEvents;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents;
 import net.minecraft.block.Block;
@@ -35,7 +34,7 @@ import static lpctools.util.AlgorithmUtils.*;
 import static lpctools.util.DataUtils.*;
 import static lpctools.util.MathUtils.*;
 
-public class SlightXRay implements ILPCValueChangeCallback, WorldRenderEvents.End, ClientChunkEvents.Load, ClientChunkEvents.Unload, ClientWorldEvents.AfterClientWorldChange {
+public class SlightXRay implements ILPCValueChangeCallback, WorldRenderEvents.End, ClientChunkEvents.Load, ClientChunkEvents.Unload, Registry.AfterClientWorldChange {
     //markedBlocks放在多线程里用，记得要同步
     static final @NotNull HashSet<BlockPos> markedBlocks = new HashSet<>();
     static final @NotNull ImmutableList<Block> defaultXRayBlocks = ImmutableList.of(
