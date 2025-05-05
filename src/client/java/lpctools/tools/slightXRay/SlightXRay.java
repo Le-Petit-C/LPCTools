@@ -419,14 +419,14 @@ public class SlightXRay implements ILPCValueChangeCallback, WorldRenderEvents.En
         VertexVectorBuffer vBuf = vertexVectorBuffer;
         Vector4d center = vBuf.center.set(pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5, 1);
         Vector4d buf = vBuf.buf;
-        Vector3f nnn = center.add(-0.5, -0.5, -0.5, 0, buf).mul(matrix).xyz(vBuf.nnn);
-        Vector3f nnp = center.add(-0.5, -0.5, 0.5, 0, buf).mul(matrix).xyz(vBuf.nnp);
-        Vector3f npn = center.add(-0.5, 0.5, -0.5, 0, buf).mul(matrix).xyz(vBuf.npn);
-        Vector3f npp = center.add(-0.5, 0.5, 0.5, 0, buf).mul(matrix).xyz(vBuf.npp);
-        Vector3f pnn = center.add(0.5, -0.5, -0.5, 0, buf).mul(matrix).xyz(vBuf.pnn);
-        Vector3f pnp = center.add(0.5, -0.5, 0.5, 0, buf).mul(matrix).xyz(vBuf.pnp);
-        Vector3f ppn = center.add(0.5, 0.5, -0.5, 0, buf).mul(matrix).xyz(vBuf.ppn);
-        Vector3f ppp = center.add(0.5, 0.5, 0.5, 0, buf).mul(matrix).xyz(vBuf.ppp);
+        Vector3f nnn = vecTrans(center.add(-0.5, -0.5, -0.5, 0, buf).mul(matrix), vBuf.nnn);
+        Vector3f nnp = vecTrans(center.add(-0.5, -0.5, 0.5, 0, buf).mul(matrix), vBuf.nnp);
+        Vector3f npn = vecTrans(center.add(-0.5, 0.5, -0.5, 0, buf).mul(matrix), vBuf.npn);
+        Vector3f npp = vecTrans(center.add(-0.5, 0.5, 0.5, 0, buf).mul(matrix), vBuf.npp);
+        Vector3f pnn = vecTrans(center.add(0.5, -0.5, -0.5, 0, buf).mul(matrix), vBuf.pnn);
+        Vector3f pnp = vecTrans(center.add(0.5, -0.5, 0.5, 0, buf).mul(matrix), vBuf.pnp);
+        Vector3f ppn = vecTrans(center.add(0.5, 0.5, -0.5, 0, buf).mul(matrix), vBuf.ppn);
+        Vector3f ppp = vecTrans(center.add(0.5, 0.5, 0.5, 0, buf).mul(matrix), vBuf.ppp);
         BlockPos.Mutable mutablePos = vBuf.mutablePos.set(pos);
         mutablePos.setX(pos.getX() - 1);
         if(!shapes.testPos(mutablePos) || !markedBlocks.contains(mutablePos)){

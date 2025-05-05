@@ -10,6 +10,12 @@ import java.lang.Math;
 
 @SuppressWarnings("unused")
 public class MathUtils {
+    public static Vector3f vecTrans(Vector4d res, Vector3f buf){
+        buf.x = (float) res.x;
+        buf.y = (float) res.y;
+        buf.z = (float) res.z;
+        return buf;
+    }
     public static Matrix4f inverseOffsetMatrix4f(Vector3f offset){
         return new Matrix4f().setColumn(3, new Vector4f(offset.mul(-1), 1));
     }
