@@ -5,7 +5,7 @@ import lpctools.generic.GenericConfigs;
 import lpctools.lpcfymasaapi.LPCConfigPage;
 import lpctools.lpcfymasaapi.Reference;
 import lpctools.tools.ToolConfigs;
-//import lpctools.tweaks.TweakConfigs;
+import lpctools.tweaks.TweakConfigs;
 import net.fabricmc.api.ClientModInitializer;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -20,7 +20,7 @@ public class LPCTools implements ClientModInitializer {
 		config = new LPCConfigPage(new Reference("LPCTools"));
 		GenericConfigs.init(config);
 		ToolConfigs.init(config);
-		//TweakConfigs.init(config);
+		TweakConfigs.init(config);
 		DebugConfigs.init(config);
 		LOGGER.info("Initialized");
 	}

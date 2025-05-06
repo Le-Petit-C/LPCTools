@@ -4,6 +4,7 @@
   "compatibilityLevel": "JAVA_21",
   "client": [
     "AutoGrindstone",
+    "BlockReplaceAction",
     "displayClickSlotArguments",
     "OnMouseButtonReturnMixin",
     "SplashTextResourceSupplierMixin"
