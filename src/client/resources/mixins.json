@@ -5,7 +5,7 @@
   "client": [
     "AutoGrindstone",
     "BlockReplaceAction",
-    "displayClickSlotArguments",
+    "DisplayClickSlotArguments",
     "OnMouseButtonReturnMixin",
     "SplashTextResourceSupplierMixin"
   ],

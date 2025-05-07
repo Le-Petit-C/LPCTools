@@ -1,4 +1,4 @@
-package lpctools.tweaks;
+package lpctools.slightTools;
 
 import fi.dy.masa.malilib.hotkeys.IKeybind;
 import fi.dy.masa.malilib.hotkeys.KeyAction;
@@ -9,12 +9,12 @@ import lpctools.mixin.client.BlockReplaceAction;
 import net.minecraft.client.MinecraftClient;
 import org.jetbrains.annotations.NotNull;
 
-public class TweakConfigs {
+public class SlightToolConfigs {
     public static LPCConfigList tweaks;
     public static HotkeyConfig blockReplaceHotkey;
     public static void init(@NotNull LPCConfigPage page){
-        tweaks = page.addList("tweaks");
-        blockReplaceHotkey = tweaks.addHotkeyConfig("blockReplaceHotkey", null, TweakConfigs::blockReplaceHotkeyCallback);
+        tweaks = page.addList("slightTools");
+        blockReplaceHotkey = tweaks.addHotkeyConfig("blockReplaceHotkey", null, SlightToolConfigs::blockReplaceHotkeyCallback);
     }
     private static boolean blockReplaceHotkeyCallback(KeyAction keyAction, IKeybind iKeybind) {
         ((BlockReplaceAction)MinecraftClient.getInstance()).invokeDoAttack();
