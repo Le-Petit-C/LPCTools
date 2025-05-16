@@ -10,7 +10,7 @@ public class ModMenu implements ModMenuApi
     @Override public ConfigScreenFactory<?> getModConfigScreenFactory()
     {
         return (screen) -> {
-            GuiBase gui = LPCTools.config.get();
+            GuiBase gui = LPCTools.page.get();
             gui.setParent(screen);
             return gui;
         };

@@ -3,31 +3,39 @@ package lpctools.debugs;
 import com.mojang.blaze3d.buffers.BufferUsage;
 import fi.dy.masa.malilib.render.RenderContext;
 import lpctools.LPCTools;
-import lpctools.lpcfymasaapi.LPCConfigList;
-import lpctools.lpcfymasaapi.LPCConfigPage;
 import lpctools.lpcfymasaapi.Registry;
 import lpctools.lpcfymasaapi.configbutton.transferredConfigs.BooleanConfig;
+import lpctools.lpcfymasaapi.configbutton.transferredConfigs.HotkeyConfig;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents;
+import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gl.RenderPipelines;
+import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.client.render.BufferBuilder;
 import net.minecraft.client.render.BuiltBuffer;
 import net.minecraft.util.math.MathHelper;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Vector3f;
 
 import java.time.Clock;
 
+import static lpctools.lpcfymasaapi.LPCConfigStatics.*;
+
 public class DebugConfigs {
-    public static LPCConfigList debugs;
     public static BooleanConfig renderDebugShapes;
     public static BooleanConfig displayClickSlotArguments;
-    public static void init(@NotNull LPCConfigPage page){
-        debugs = page.addList("debugs");
-        renderDebugShapes = debugs.addBooleanConfig(
+    public static HotkeyConfig keyActDebug;
+    public static void init(){
+        renderDebugShapes = addBooleanConfig(
                 "renderDebugShapes", false, DebugConfigs::renderDebugShapesValueRefreshCallback);
-        displayClickSlotArguments = debugs.addBooleanConfig("displayClickSlotArguments", false);
+        displayClickSlotArguments = addBooleanConfig("displayClickSlotArguments", false);
+        keyActDebug = addHotkeyConfig("keyActDebug", "", (action, bind)->{
+            ClientPlayerEntity player = MinecraftClient.getInstance().player;
+            if(player == null) return false;
+            player.setPitch(0);
+            player.setYaw(0);
+            return true;
+        });
     }
     private static void rendDebugShapes(WorldRenderContext context) {
         RenderContext ctx = new RenderContext(RenderPipelines.DEBUG_TRIANGLE_FAN, BufferUsage.STATIC_WRITE);

@@ -19,19 +19,21 @@ import org.jetbrains.annotations.Nullable;
 import java.util.HashSet;
 import java.util.List;
 
+import static lpctools.lpcfymasaapi.LPCConfigStatics.*;
+
 public class LiquidCleaner {
-    public static void init(ThirdListConfig LCConfig){
-        liquidCleaner = LCConfig.addBooleanHotkeyConfig("liquidCleaner", false, null, ()->valueChangeCallback(liquidCleaner.getAsBoolean()));
+    public static void init(){
+        liquidCleaner = addBooleanHotkeyConfig("liquidCleaner", false, null, ()->valueChangeCallback(liquidCleaner.getAsBoolean()));
         liquidCleaner.getKeybind().setCallback(new KeyCallbackToggleBoolean(liquidCleaner));
-        limitInteractSpeedConfig = LCConfig.addThirdListConfig("limitInteractSpeed", false);
-        maxBlockPerTickConfig = limitInteractSpeedConfig.addDoubleConfig("maxBlockPerTick", 1.0, 0, 64);
-        reachDistanceConfig = LCConfig.addDoubleConfig("reachDistance", 4.5, 0, 5);
-        disableOnGUIOpened = LCConfig.addBooleanConfig("disableOnGUIOpened", false);
-        offhandFillingConfig = LCConfig.addBooleanConfig("offhandFilling", false);
-        blockBlackListConfig = LCConfig.addStringListConfig("blockBlackList", ImmutableList.of(), LiquidCleaner::onBlacklistRefresh);
-        ignoreDownwardTest = LCConfig.addBooleanConfig("ignoreDownwardTest", false);
-        limitCleaningRange = LCConfig.addRangeLimitConfig(false, "LC");
-        expandRange = limitCleaningRange.addBooleanConfig("expandRange", false);
+        limitInteractSpeedConfig = addThirdListConfig("limitInteractSpeed", false);
+        maxBlockPerTickConfig = addDoubleConfig(limitInteractSpeedConfig, "maxBlockPerTick", 1.0, 0, 64);
+        reachDistanceConfig = addDoubleConfig("reachDistance", 4.5, 0, 5);
+        disableOnGUIOpened = addBooleanConfig("disableOnGUIOpened", false);
+        offhandFillingConfig = addBooleanConfig("offhandFilling", false);
+        blockBlackListConfig = addStringListConfig("blockBlackList", ImmutableList.of(), LiquidCleaner::onBlacklistRefresh);
+        ignoreDownwardTest = addBooleanConfig("ignoreDownwardTest", false);
+        limitCleaningRange = addRangeLimitConfig(false, "LC");
+        expandRange = addBooleanConfig(limitCleaningRange, "expandRange", false);
     }
     public static boolean isEnabled(){return onEndTick != null;}
     public static void enableTool(){

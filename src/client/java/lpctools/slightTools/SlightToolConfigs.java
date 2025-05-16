@@ -2,19 +2,16 @@ package lpctools.slightTools;
 
 import fi.dy.masa.malilib.hotkeys.IKeybind;
 import fi.dy.masa.malilib.hotkeys.KeyAction;
-import lpctools.lpcfymasaapi.LPCConfigList;
-import lpctools.lpcfymasaapi.LPCConfigPage;
 import lpctools.lpcfymasaapi.configbutton.transferredConfigs.HotkeyConfig;
 import lpctools.mixin.client.BlockReplaceAction;
 import net.minecraft.client.MinecraftClient;
-import org.jetbrains.annotations.NotNull;
+
+import static lpctools.lpcfymasaapi.LPCConfigStatics.*;
 
 public class SlightToolConfigs {
-    public static LPCConfigList tweaks;
     public static HotkeyConfig blockReplaceHotkey;
-    public static void init(@NotNull LPCConfigPage page){
-        tweaks = page.addList("slightTools");
-        blockReplaceHotkey = tweaks.addHotkeyConfig("blockReplaceHotkey", null, SlightToolConfigs::blockReplaceHotkeyCallback);
+    public static void init(){
+        blockReplaceHotkey = addHotkeyConfig("blockReplaceHotkey", null, SlightToolConfigs::blockReplaceHotkeyCallback);
     }
     private static boolean blockReplaceHotkeyCallback(KeyAction keyAction, IKeybind iKeybind) {
         ((BlockReplaceAction)MinecraftClient.getInstance()).invokeDoAttack();

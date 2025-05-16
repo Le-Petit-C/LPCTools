@@ -2,10 +2,11 @@ package lpctools.tools.fillingAssistant;
 
 import fi.dy.masa.malilib.hotkeys.KeyCallbackToggleBoolean;
 import lpctools.lpcfymasaapi.Registry;
-import lpctools.lpcfymasaapi.configbutton.*;
+import lpctools.lpcfymasaapi.configbutton.derivedConfigs.ArrayOptionListConfig;
 import lpctools.lpcfymasaapi.configbutton.derivedConfigs.RangeLimitConfig;
 import lpctools.lpcfymasaapi.configbutton.derivedConfigs.ThirdListConfig;
 import lpctools.lpcfymasaapi.configbutton.transferredConfigs.*;
+import lpctools.lpcfymasaapi.implementations.ILPCValueChangeCallback;
 import lpctools.tools.ToolConfigs;
 import net.minecraft.block.Block;
 import net.minecraft.block.Blocks;
@@ -18,6 +19,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.HashSet;
 
+import static lpctools.lpcfymasaapi.LPCConfigStatics.*;
 import static lpctools.tools.fillingAssistant.Data.*;
 import static lpctools.util.DataUtils.*;
 
@@ -60,26 +62,25 @@ public class FillingAssistant {
         if (world != null) return required(world.getBlockState(pos).getBlock());
         else return false;
     }
-    public static void init(ThirdListConfig FAConfig){
-        fillingAssistant = FAConfig.addBooleanHotkeyConfig("fillingAssistant", false, "", ()->onMainValueChanged(fillingAssistant.getBooleanValue()));
+    public static void init(){
+        fillingAssistant = addBooleanHotkeyConfig("fillingAssistant", false, "", ()->onMainValueChanged(fillingAssistant.getBooleanValue()));
         fillingAssistant.getKeybind().setCallback(new KeyCallbackToggleBoolean(fillingAssistant));
-        limitPlaceSpeedConfig = FAConfig.addThirdListConfig("limitPlaceSpeed", false);
-        maxBlockPerTickConfig = limitPlaceSpeedConfig.addDoubleConfig("maxBlockPerTick", 1.0, 0, 64);
-        reachDistanceConfig = FAConfig.addDoubleConfig("reachDistance", 4.5, 0, 5);
-        testDistanceConfig = FAConfig.addIntegerConfig("testDistance", 6, 6, 64, new TestDistanceChangeCallback());
-        disableOnLeftDownConfig = FAConfig.addBooleanConfig("disableOnLeftDown", true);
-        disableOnGUIOpened = FAConfig.addBooleanConfig("disableOnGUIOpened", false);
-        placeableItemsConfig = FAConfig.addStringListConfig("placeableItems", defaultPlaceableItemIdList, () -> placeableItems = itemSetFromIds(placeableItemsConfig.getStrings()));
-        passableBlocksConfig = FAConfig.addStringListConfig("passableBlocks", defaultPassableBlockIdList, () -> passableBlocks = blockSetFromIds(passableBlocksConfig.getStrings()));
-        transparentAsPassableConfig = FAConfig.addBooleanConfig("transparentAsPassable", true);
-        notOpaqueAsPassableConfig = FAConfig.addBooleanConfig("notOpaqueAsPassable", true);
-        requiredBlocksConfig = FAConfig.addStringListConfig("requiredBlocks", defaultRequiredBlockIdList, () -> requiredBlocks = blockSetFromIds(requiredBlocksConfig.getStrings()));
-        offhandFillingConfig = FAConfig.addBooleanConfig("offhandFilling", false);
-        limitFillingRange = FAConfig.addRangeLimitConfig(false, "FA");
-        OptionListConfig.OptionList<OuterRangeBlockMethod> optionList = new OptionListConfig.OptionList<>();
+        limitPlaceSpeedConfig = addThirdListConfig("limitPlaceSpeed", false);
+        maxBlockPerTickConfig = addDoubleConfig(limitPlaceSpeedConfig, "maxBlockPerTick", 1.0, 0, 64);
+        reachDistanceConfig = addDoubleConfig("reachDistance", 4.5, 0, 5);
+        testDistanceConfig = addIntegerConfig("testDistance", 6, 6, 64, new TestDistanceChangeCallback());
+        disableOnLeftDownConfig = addBooleanConfig("disableOnLeftDown", true);
+        disableOnGUIOpened = addBooleanConfig("disableOnGUIOpened", false);
+        placeableItemsConfig = addStringListConfig("placeableItems", defaultPlaceableItemIdList, () -> placeableItems = itemSetFromIds(placeableItemsConfig.getStrings()));
+        passableBlocksConfig = addStringListConfig("passableBlocks", defaultPassableBlockIdList, () -> passableBlocks = blockSetFromIds(passableBlocksConfig.getStrings()));
+        transparentAsPassableConfig = addBooleanConfig("transparentAsPassable", true);
+        notOpaqueAsPassableConfig = addBooleanConfig("notOpaqueAsPassable", true);
+        requiredBlocksConfig = addStringListConfig("requiredBlocks", defaultRequiredBlockIdList, () -> requiredBlocks = blockSetFromIds(requiredBlocksConfig.getStrings()));
+        offhandFillingConfig = addBooleanConfig("offhandFilling", false);
+        limitFillingRange = addRangeLimitConfig(false, "FA");
+        outerRangeBlockMethod = addArrayOptionListConfig(limitFillingRange, "outerRangeBlockMethod");
         for(OuterRangeBlockMethod method : OuterRangeBlockMethod.values())
-            optionList.addOption(method.getKey(), method);
-        outerRangeBlockMethod = limitFillingRange.addOptionListConfig("outerRangeBlockMethod", optionList.getFirst());
+            outerRangeBlockMethod.addOption(method.getKey(), method);
     }
 
     enum OuterRangeBlockMethod {
@@ -116,7 +117,7 @@ public class FillingAssistant {
     static StringListConfig requiredBlocksConfig;
     static BooleanConfig offhandFillingConfig;
     static RangeLimitConfig limitFillingRange;
-    static OptionListConfig<OuterRangeBlockMethod> outerRangeBlockMethod;
+    static ArrayOptionListConfig<OuterRangeBlockMethod> outerRangeBlockMethod;
     @Nullable private static PlaceBlockTick runner = null;
     @NotNull private static HashSet<Item> placeableItems = new HashSet<>(defaultPlaceableItemList);
     @NotNull private static HashSet<Block> passableBlocks = new HashSet<>(defaultPassableBlockList);

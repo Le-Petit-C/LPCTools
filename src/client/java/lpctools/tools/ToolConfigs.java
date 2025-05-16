@@ -2,11 +2,11 @@ package lpctools.tools;
 
 import fi.dy.masa.malilib.util.InfoUtils;
 import fi.dy.masa.malilib.util.StringUtils;
-import lpctools.lpcfymasaapi.LPCConfigList;
-import lpctools.lpcfymasaapi.LPCConfigPage;
-import lpctools.lpcfymasaapi.configbutton.ILPCConfig;
+import lpctools.lpcfymasaapi.implementations.ILPCConfig;
 import lpctools.lpcfymasaapi.configbutton.derivedConfigs.ThirdListConfig;
+import lpctools.lpcfymasaapi.implementations.ILPCConfigList;
 import lpctools.tools.autoGrindstone.AutoGrindstone;
+import lpctools.tools.ruledBlockAutoPlacing.RuledBlockAutoPlacing;
 import lpctools.tools.slightXRay.SlightXRay;
 import lpctools.tools.fillingAssistant.FillingAssistant;
 import lpctools.tools.liquidCleaner.LiquidCleaner;
@@ -16,18 +16,28 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.function.BooleanSupplier;
 
+import static lpctools.lpcfymasaapi.LPCConfigStatics.*;
+
 public class ToolConfigs {
-    public static LPCConfigList tools;
     static ThirdListConfig FAConfig;
     static ThirdListConfig LCConfig;
     static ThirdListConfig SXConfig;
     static ThirdListConfig AGConfig;
-    public static void init(@NotNull LPCConfigPage page){
-        tools = page.addList("tools");
-        FillingAssistant.init(FAConfig = tools.addThirdListConfig("FA", false));
-        LiquidCleaner.init(LCConfig = tools.addThirdListConfig("LC", false));
-        SlightXRay.init(SXConfig = tools.addThirdListConfig("SX", false));
-        AutoGrindstone.init(AGConfig = tools.addThirdListConfig("AG", false));
+    static ThirdListConfig BPConfig;
+    public static void init(){
+        ILPCConfigList lastList = peekConfigList();
+        try(ConfigListLayer layer = new ConfigListLayer()){
+            layer.set(FAConfig = addThirdListConfig(lastList, "FA", false));
+            FillingAssistant.init();
+            layer.set(LCConfig = addThirdListConfig(lastList, "LC", false));
+            LiquidCleaner.init();
+            layer.set(SXConfig = addThirdListConfig(lastList, "SX", false));
+            SlightXRay.init();
+            layer.set(AGConfig = addThirdListConfig(lastList, "AG", false));
+            AutoGrindstone.init();
+            layer.set(BPConfig = addThirdListConfig(lastList, "BP", false));
+            RuledBlockAutoPlacing.init();
+        }
     }
     public static void displayDisableReason(@NotNull ILPCConfig tool, @Nullable String reasonKey){
         String reason = StringUtils.translate("lpctools.tools.disableNotification", tool.getNameTranslation());

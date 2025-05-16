@@ -1,14 +1,12 @@
 package lpctools.generic;
 
-import lpctools.lpcfymasaapi.LPCConfigList;
-import lpctools.lpcfymasaapi.LPCConfigPage;
 import lpctools.lpcfymasaapi.configbutton.derivedConfigs.ConfigOpenGuiConfig;
-import org.jetbrains.annotations.NotNull;
+
+import static lpctools.lpcfymasaapi.LPCConfigStatics.*;
 
 public class GenericConfigs {
-    public static void init(@NotNull LPCConfigPage page){
-        LPCConfigList generic = page.addList("generic");
-        configOpenGuiConfig = generic.addConfigOpenGuiConfig("Z,C");
+    public static void init(){
+        configOpenGuiConfig = addConfigOpenGuiConfig("Z,C");
     }
 
     static ConfigOpenGuiConfig configOpenGuiConfig;

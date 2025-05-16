@@ -7,9 +7,8 @@ import fi.dy.masa.malilib.util.data.Color4f;
 import lpctools.LPCTools;
 import lpctools.compact.derived.ShapeList;
 import lpctools.lpcfymasaapi.Registry;
-import lpctools.lpcfymasaapi.configbutton.ILPCValueChangeCallback;
+import lpctools.lpcfymasaapi.implementations.ILPCValueChangeCallback;
 import lpctools.lpcfymasaapi.configbutton.derivedConfigs.RangeLimitConfig;
-import lpctools.lpcfymasaapi.configbutton.derivedConfigs.ThirdListConfig;
 import lpctools.lpcfymasaapi.configbutton.transferredConfigs.BooleanHotkeyConfig;
 import lpctools.lpcfymasaapi.configbutton.transferredConfigs.ColorConfig;
 import lpctools.lpcfymasaapi.configbutton.transferredConfigs.StringListConfig;
@@ -34,6 +33,7 @@ import org.joml.*;
 
 import java.util.*;
 
+import static lpctools.lpcfymasaapi.LPCConfigStatics.*;
 import static lpctools.util.AlgorithmUtils.*;
 import static lpctools.util.DataUtils.*;
 import static lpctools.util.MathUtils.*;
@@ -54,16 +54,16 @@ public class SlightXRay implements ILPCValueChangeCallback, WorldRenderEvents.En
     public static StringListConfig XRayBlocksConfig;
     public static RangeLimitConfig displayRange;
 
-    public static void init(ThirdListConfig SXConfig){
-        slightXRay = SXConfig.addBooleanHotkeyConfig("slightXRay", false, null, new SlightXRay());
+    public static void init(){
+        slightXRay = addBooleanHotkeyConfig("slightXRay", false, null, new SlightXRay());
         slightXRay.getKeybind().setCallback((action, key) -> {
             slightXRay.toggleBooleanValue();
             ToolConfigs.displayToggleMessage(slightXRay);
             return true;
         });
-        displayColor = SXConfig.addColorConfig("displayColor", Color4f.fromColor(0x7F3F7FFF));
-        XRayBlocksConfig = SXConfig.addStringListConfig("XRayBlocks", defaultXRayBlockIds, SlightXRay::refreshXRayBlocks);
-        displayRange = SXConfig.addRangeLimitConfig(false, "SX");
+        displayColor = addColorConfig("displayColor", Color4f.fromColor(0x7F3F7FFF));
+        XRayBlocksConfig = addStringListConfig("XRayBlocks", defaultXRayBlockIds, SlightXRay::refreshXRayBlocks);
+        displayRange = addRangeLimitConfig(false, "SX");
     }
 
     private static void addAllRenderRegionsIntoWork(){

@@ -2,22 +2,20 @@ package lpctools.lpcfymasaapi.configbutton.derivedConfigs;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import lpctools.lpcfymasaapi.LPCConfigPage;
-import lpctools.lpcfymasaapi.configbutton.ILPCConfig;
 import lpctools.lpcfymasaapi.configbutton.transferredConfigs.BooleanConfig;
-import lpctools.lpcfymasaapi.configbutton.ILPCConfigList;
+import lpctools.lpcfymasaapi.implementations.ILPCConfig;
+import lpctools.lpcfymasaapi.implementations.ILPCConfigList;
+import lpctools.lpcfymasaapi.implementations.IThirdListBase;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
+import java.util.Collection;
 
 //第三级列表，配置中切换true或false可以展开或收起内含的配置项
-public class ThirdListConfig extends BooleanConfig implements ILPCConfigList {
-    @NotNull public final ArrayList<ILPCConfig> thirdList = new ArrayList<>();
-    public ThirdListConfig(ILPCConfigList defaultParent, String nameKey, boolean defaultBoolean) {
-        super(defaultParent, nameKey, defaultBoolean);
+public class ThirdListConfig extends BooleanConfig implements IThirdListBase {
+    public ThirdListConfig(ILPCConfigList parent, String nameKey, boolean defaultBoolean) {
+        super(parent, nameKey, defaultBoolean);
         lastValue = defaultBoolean;
-        if(parent != null) parent.addConfig(this);
         setValueChangeCallback(()->{
             if (lastValue != getAsBoolean()){
                 //if(GuiUtils.isInTextOrGui())
@@ -26,21 +24,8 @@ public class ThirdListConfig extends BooleanConfig implements ILPCConfigList {
             }
         });
     }
-    @Override public <T extends ILPCConfig> T addConfig(T config){
-        thirdList.add(config);
-        if(config instanceof ThirdListConfig thirdListConfig)
-            thirdListConfig.parent = this;
-        return config;
-    }
-    @Override public String getFullTranslationKey() {
-        return getParent().getFullTranslationKey() + "." + this.getName();
-    }
-    @Override public @NotNull LPCConfigPage getPage() {
-        return getParent().getPage();
-    }
-    @Override public @NotNull Iterable<ILPCConfig> getConfigs() {
-        return thirdList;
-    }
+
+    @Override public @NotNull Collection<ILPCConfig> getConfigs() {return subConfigs;}
     @Override public void addIntoConfigListJson(@NotNull JsonObject configListJson){
         JsonObject object = new JsonObject();
         object.add("value", getAsJsonElement());
@@ -58,5 +43,5 @@ public class ThirdListConfig extends BooleanConfig implements ILPCConfigList {
         }
     }
     private boolean lastValue;
-    @Nullable private ThirdListConfig parent = null;
+    private final ArrayList<ILPCConfig> subConfigs = new ArrayList<>();
 }

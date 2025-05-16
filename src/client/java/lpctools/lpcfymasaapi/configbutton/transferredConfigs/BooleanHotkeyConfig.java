@@ -4,7 +4,10 @@ import com.google.gson.JsonElement;
 import fi.dy.masa.malilib.config.options.ConfigBoolean;
 import fi.dy.masa.malilib.config.options.ConfigBooleanHotkeyed;
 import it.unimi.dsi.fastutil.booleans.BooleanConsumer;
-import lpctools.lpcfymasaapi.configbutton.*;
+import lpctools.lpcfymasaapi.implementations.ILPCConfigList;
+import lpctools.lpcfymasaapi.implementations.ILPCValueChangeCallback;
+import lpctools.lpcfymasaapi.implementations.ILPC_MASAConfigWrapper;
+import lpctools.lpcfymasaapi.implementations.data.LPCConfigData;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -12,14 +15,14 @@ import java.util.List;
 import java.util.function.BooleanSupplier;
 
 public class BooleanHotkeyConfig extends ConfigBooleanHotkeyed implements ILPC_MASAConfigWrapper<ConfigBoolean>, BooleanSupplier, BooleanConsumer {
-    public BooleanHotkeyConfig(@NotNull ILPCConfigList list, @NotNull String nameKey, boolean defaultBoolean, @Nullable String defaultStorageString){
-        this(list, nameKey, defaultBoolean, defaultStorageString, null);
+    public BooleanHotkeyConfig(@NotNull ILPCConfigList parent, @NotNull String nameKey, boolean defaultBoolean, @Nullable String defaultStorageString){
+        this(parent, nameKey, defaultBoolean, defaultStorageString, null);
     }
-    public BooleanHotkeyConfig(@NotNull ILPCConfigList list, @NotNull String nameKey, boolean defaultBoolean, @Nullable String defaultStorageString, @Nullable ILPCValueChangeCallback callback){
+    public BooleanHotkeyConfig(@NotNull ILPCConfigList parent, @NotNull String nameKey, boolean defaultBoolean, @Nullable String defaultStorageString, @Nullable ILPCValueChangeCallback callback){
         super(nameKey, defaultBoolean, defaultStorageString == null ? "" : defaultStorageString);
-        data = new Data(list, true);
+        data = new LPCConfigData(parent, true);
         ILPC_MASAConfigWrapperDefaultInit(callback);
-        list.getPage().getInputHandler().addHotkey(this);
+        parent.getPage().getInputHandler().addHotkey(this);
     }
     @Override public void setValueFromJsonElement(JsonElement element) {
         boolean lastBoolean = getAsBoolean();
@@ -30,6 +33,6 @@ public class BooleanHotkeyConfig extends ConfigBooleanHotkeyed implements ILPC_M
     }
     @Override public boolean getAsBoolean() {return getBooleanValue();}
     @Override public void accept(boolean b) {setBooleanValue(b);}
-    @Override public @NotNull Data getLPCConfigData() {return data;}
-    private final @NotNull Data data;
+    @Override public @NotNull LPCConfigData getLPCConfigData() {return data;}
+    private final @NotNull LPCConfigData data;
 }
