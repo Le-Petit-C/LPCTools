@@ -33,8 +33,8 @@ public class AntiSpawner implements ClientTickEvents.EndTick {
             if(antiSpawner.getBooleanValue()) start();
             else stop();
         });
-        placeableItemIds = addStringListConfig("placeableItems", idListFromItemList(defaultPlaceableItems));
         reachDistanceConfig = addDoubleConfig("reachDistance", 4.5, 0, 5);
+        placeableItemIds = addStringListConfig("placeableItems", idListFromItemList(defaultPlaceableItems));
     }
     private static final AntiSpawner instance = new AntiSpawner();
     public static void start(){Registry.registerEndClientTickCallback(instance);}

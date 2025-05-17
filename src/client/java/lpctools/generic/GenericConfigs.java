@@ -22,7 +22,7 @@ public class GenericConfigs {
             extraSpawnBlocks.clear();
             extraSpawnBlocks.addAll(blockSetFromIds(extraSpawnBlockIds));
         });
-        extraNoSpawnBlockIds = addStringListConfig("extraNoSpawnBlockIds",
+        extraNoSpawnBlockIds = addStringListConfig("extraNoSpawnBlocks",
                 idListFromBlockList(defaultExtraNoSpawnBlocks),
                 ()->{
                     extraNoSpawnBlocks.clear();
