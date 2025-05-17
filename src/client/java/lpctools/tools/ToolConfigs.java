@@ -6,7 +6,7 @@ import lpctools.lpcfymasaapi.implementations.ILPCConfig;
 import lpctools.lpcfymasaapi.configbutton.derivedConfigs.ThirdListConfig;
 import lpctools.lpcfymasaapi.implementations.ILPCConfigList;
 import lpctools.tools.autoGrindstone.AutoGrindstone;
-import lpctools.tools.ruledBlockAutoPlacing.RuledBlockAutoPlacing;
+import lpctools.tools.antiSpawner.AntiSpawner;
 import lpctools.tools.slightXRay.SlightXRay;
 import lpctools.tools.fillingAssistant.FillingAssistant;
 import lpctools.tools.liquidCleaner.LiquidCleaner;
@@ -23,7 +23,7 @@ public class ToolConfigs {
     static ThirdListConfig LCConfig;
     static ThirdListConfig SXConfig;
     static ThirdListConfig AGConfig;
-    static ThirdListConfig BPConfig;
+    static ThirdListConfig ASConfig;
     public static void init(){
         ILPCConfigList lastList = peekConfigList();
         try(ConfigListLayer layer = new ConfigListLayer()){
@@ -35,8 +35,8 @@ public class ToolConfigs {
             SlightXRay.init();
             layer.set(AGConfig = addThirdListConfig(lastList, "AG", false));
             AutoGrindstone.init();
-            layer.set(BPConfig = addThirdListConfig(lastList, "BP", false));
-            RuledBlockAutoPlacing.init();
+            layer.set(ASConfig = addThirdListConfig(lastList, "AS", false));
+            AntiSpawner.init();
         }
     }
     public static void displayDisableReason(@NotNull ILPCConfig tool, @Nullable String reasonKey){
