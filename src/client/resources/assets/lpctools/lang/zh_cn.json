@@ -102,6 +102,8 @@
   "lpctools.configs.debugs.renderDebugShapes.comment": "开启以渲染一些调试形状",
   "lpctools.configs.debugs.displayClickSlotArguments.name": "显示clickSlot()参数",
   "lpctools.configs.debugs.displayClickSlotArguments.comment": "让net.minecraft.client.network.ClientPlayerInteractionManager.clickSlot()\n在被调用时显示其参数",
+  "lpctools.configs.debugs.keyActDebug.name": "调试热键",
+  "lpctools.configs.debugs.keyActDebug.comment": "在按键被按下后执行一些调试方法",
   "lpctools.configs.utils.limitRange.name": "限制工作范围",
   "lpctools.configs.utils.limitRange.comment": "基于miniHUD中的形状或litematica中的投影和渲染范围限制工作范围\n你应该先安装这些mod，否则该配置不会生效",
   "lpctools.configs.utils.limitRange.rangeNamePrefix.name": "有效区域命名前缀",

@@ -1,8 +1,8 @@
 package lpctools.tools.antiSpawner;
 
 import com.google.common.collect.ImmutableList;
-import fi.dy.masa.malilib.config.options.ConfigBooleanHotkeyed;
 import lpctools.lpcfymasaapi.Registry;
+import lpctools.lpcfymasaapi.configbutton.transferredConfigs.BooleanHotkeyConfig;
 import lpctools.lpcfymasaapi.configbutton.transferredConfigs.DoubleConfig;
 import lpctools.lpcfymasaapi.configbutton.transferredConfigs.StringListConfig;
 import lpctools.util.AlgorithmUtils;
@@ -21,18 +21,20 @@ import java.util.ArrayList;
 
 import static lpctools.generic.GenericUtils.*;
 import static lpctools.lpcfymasaapi.LPCConfigStatics.*;
+import static lpctools.tools.ToolUtils.setLPCToolsToggleText;
 import static lpctools.util.BlockUtils.*;
 import static lpctools.util.DataUtils.*;
 
 public class AntiSpawner implements ClientTickEvents.EndTick {
-    public static ConfigBooleanHotkeyed antiSpawner;
+    public static BooleanHotkeyConfig antiSpawnerConfig;
     public static StringListConfig placeableItemIds;
     public static DoubleConfig reachDistanceConfig;
     public static void init() {
-        antiSpawner = addBooleanHotkeyConfig("antiSpawner", false, null, ()->{
-            if(antiSpawner.getBooleanValue()) start();
+        antiSpawnerConfig = addBooleanHotkeyConfig("antiSpawner", false, null, ()->{
+            if(antiSpawnerConfig.getBooleanValue()) start();
             else stop();
         });
+        setLPCToolsToggleText(antiSpawnerConfig);
         reachDistanceConfig = addDoubleConfig("reachDistance", 4.5, 0, 5);
         placeableItemIds = addStringListConfig("placeableItems", idListFromItemList(defaultPlaceableItems));
     }
@@ -57,7 +59,7 @@ public class AntiSpawner implements ClientTickEvents.EndTick {
     }
     @Override public void onEndTick(MinecraftClient mc) {
         if(mc.player == null || mc.world == null || mc.interactionManager == null){
-            antiSpawner.setBooleanValue(false);
+            antiSpawnerConfig.setBooleanValue(false);
             return;
         }
         if(mc.currentScreen != null) return;

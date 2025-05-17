@@ -102,6 +102,8 @@
   "lpctools.configs.debugs.renderDebugShapes.comment": "Enable to render some debug shapes",
   "lpctools.configs.debugs.displayClickSlotArguments.name": "Display clickSlot() arguments",
   "lpctools.configs.debugs.displayClickSlotArguments.comment": "Display the arguments when\nnet.minecraft.client.network.ClientPlayerInteractionManager.clickSlot()\nis called",
+  "lpctools.configs.debugs.keyActDebug.name": "Key Act Debug",
+  "lpctools.configs.debugs.keyActDebug.comment": "Call some debug methods after key pressed",
   "lpctools.configs.utils.limitRange.name": "limitWorkingRange",
   "lpctools.configs.utils.limitRange.comment": "Limits working range based on MiniHUD shapes and Litematica schematics or render range\nso that you should install any of those mods to enable this config",
   "lpctools.configs.utils.limitRange.rangeNamePrefix.name": "rangeNamePrefix",

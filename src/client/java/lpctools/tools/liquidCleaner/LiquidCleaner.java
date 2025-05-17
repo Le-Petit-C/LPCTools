@@ -7,7 +7,6 @@ import lpctools.lpcfymasaapi.configbutton.derivedConfigs.ThirdListConfig;
 import lpctools.lpcfymasaapi.configbutton.transferredConfigs.*;
 import lpctools.lpcfymasaapi.configbutton.transferredConfigs.BooleanConfig;
 import lpctools.lpcfymasaapi.configbutton.transferredConfigs.StringListConfig;
-import lpctools.tools.ToolConfigs;
 import lpctools.lpcfymasaapi.configbutton.derivedConfigs.RangeLimitConfig;
 import net.minecraft.block.Block;
 import net.minecraft.item.Item;
@@ -20,6 +19,7 @@ import java.util.HashSet;
 import java.util.List;
 
 import static lpctools.lpcfymasaapi.LPCConfigStatics.*;
+import static lpctools.tools.ToolUtils.*;
 
 public class LiquidCleaner {
     public static void init(){
@@ -38,7 +38,7 @@ public class LiquidCleaner {
     public static boolean isEnabled(){return onEndTick != null;}
     public static void enableTool(){
         if(isEnabled()) return;
-        ToolConfigs.displayEnableMessage(liquidCleaner);
+        displayEnableMessage(liquidCleaner);
         onEndTick = new OnEndTick();
         Registry.registerEndClientTickCallback(onEndTick);
     }
@@ -46,7 +46,7 @@ public class LiquidCleaner {
         if(!isEnabled()) return;
         Registry.unregisterEndClientTickCallback(onEndTick);
         onEndTick = null;
-        ToolConfigs.displayDisableReason(liquidCleaner, reasonKey);
+        displayDisableReason(liquidCleaner, reasonKey);
     }
 
     public static BooleanHotkeyConfig liquidCleaner;

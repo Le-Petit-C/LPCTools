@@ -12,7 +12,6 @@ import lpctools.lpcfymasaapi.configbutton.derivedConfigs.RangeLimitConfig;
 import lpctools.lpcfymasaapi.configbutton.transferredConfigs.BooleanHotkeyConfig;
 import lpctools.lpcfymasaapi.configbutton.transferredConfigs.ColorConfig;
 import lpctools.lpcfymasaapi.configbutton.transferredConfigs.StringListConfig;
-import lpctools.tools.ToolConfigs;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientChunkEvents;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientWorldEvents;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext;
@@ -34,6 +33,7 @@ import org.joml.*;
 import java.util.*;
 
 import static lpctools.lpcfymasaapi.LPCConfigStatics.*;
+import static lpctools.tools.ToolUtils.*;
 import static lpctools.util.AlgorithmUtils.*;
 import static lpctools.util.DataUtils.*;
 import static lpctools.util.MathUtils.*;
@@ -56,11 +56,7 @@ public class SlightXRay implements ILPCValueChangeCallback, WorldRenderEvents.En
 
     public static void init(){
         slightXRay = addBooleanHotkeyConfig("slightXRay", false, null, new SlightXRay());
-        slightXRay.getKeybind().setCallback((action, key) -> {
-            slightXRay.toggleBooleanValue();
-            ToolConfigs.displayToggleMessage(slightXRay);
-            return true;
-        });
+        setLPCToolsToggleText(slightXRay);
         displayColor = addColorConfig("displayColor", Color4f.fromColor(0x7F3F7FFF));
         XRayBlocksConfig = addStringListConfig("XRayBlocks", defaultXRayBlockIds, SlightXRay::refreshXRayBlocks);
         displayRange = addRangeLimitConfig(false, "SX");
@@ -102,7 +98,7 @@ public class SlightXRay implements ILPCValueChangeCallback, WorldRenderEvents.En
             Registry.registerClientChunkLoadCallbacks(this);
             Registry.registerClientChunkUnloadCallbacks(this);
             Registry.registerClientWorldChangeCallbacks(this);
-            ToolConfigs.displayEnableMessage(slightXRay);
+            displayEnableMessage(slightXRay);
         }
         else {
             if(Registry.unregisterWorldRenderEndCallback(this)){
@@ -116,7 +112,7 @@ public class SlightXRay implements ILPCValueChangeCallback, WorldRenderEvents.En
             Registry.unregisterClientChunkLoadCallbacks(this);
             Registry.unregisterClientChunkUnloadCallbacks(this);
             Registry.unregisterClientWorldChangeCallbacks(this);
-            ToolConfigs.displayDisableMessage(slightXRay);
+            displayDisableMessage(slightXRay);
         }
     }
 

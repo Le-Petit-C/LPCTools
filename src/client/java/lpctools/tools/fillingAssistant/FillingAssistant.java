@@ -7,7 +7,6 @@ import lpctools.lpcfymasaapi.configbutton.derivedConfigs.RangeLimitConfig;
 import lpctools.lpcfymasaapi.configbutton.derivedConfigs.ThirdListConfig;
 import lpctools.lpcfymasaapi.configbutton.transferredConfigs.*;
 import lpctools.lpcfymasaapi.implementations.ILPCValueChangeCallback;
-import lpctools.tools.ToolConfigs;
 import net.minecraft.block.Block;
 import net.minecraft.block.Blocks;
 import net.minecraft.client.MinecraftClient;
@@ -20,6 +19,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.HashSet;
 
 import static lpctools.lpcfymasaapi.LPCConfigStatics.*;
+import static lpctools.tools.ToolUtils.*;
 import static lpctools.tools.fillingAssistant.Data.*;
 import static lpctools.util.DataUtils.*;
 
@@ -30,7 +30,7 @@ public class FillingAssistant {
         fillingAssistant.setBooleanValue(true);
         Registry.registerEndClientTickCallback(runner);
         Registry.registerInGameEndMouseCallback(runner);
-        ToolConfigs.displayEnableMessage(fillingAssistant);
+        displayEnableMessage(fillingAssistant);
     }
     public static void disableTool(@Nullable String reasonKey){
         if(runner == null) return;
@@ -38,7 +38,7 @@ public class FillingAssistant {
         Registry.unregisterInGameEndMouseCallback(runner);
         runner = null;
         fillingAssistant.setBooleanValue(false);
-        ToolConfigs.displayDisableReason(fillingAssistant, reasonKey);
+        displayDisableReason(fillingAssistant, reasonKey);
     }
     public static @NotNull HashSet<Item> getPlaceableItems(){return placeableItems;}
     public static @NotNull HashSet<Block> getPassableBlocks(){return passableBlocks;}
