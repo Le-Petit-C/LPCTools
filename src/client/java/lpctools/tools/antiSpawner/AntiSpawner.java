@@ -25,6 +25,7 @@ import static lpctools.tools.ToolUtils.setLPCToolsToggleText;
 import static lpctools.util.BlockUtils.*;
 import static lpctools.util.DataUtils.*;
 
+//TODO: 未抑制方块显示
 public class AntiSpawner implements ClientTickEvents.EndTick {
     public static BooleanHotkeyConfig antiSpawnerConfig;
     public static StringListConfig placeableItemIds;
@@ -64,7 +65,9 @@ public class AntiSpawner implements ClientTickEvents.EndTick {
         }
         if(mc.currentScreen != null) return;
         for(BlockPos pos : AlgorithmUtils.iterateInNears(mc.player.getEyePos(), reachDistanceConfig.getAsDouble())){
-            if(!mayMobSpawnAt(mc.world, pos.offset(Direction.UP))) continue;
+            BlockPos offsetPos = pos.offset(Direction.UP);
+            if(!mayMobSpawnAt(mc.world, offsetPos)) continue;
+            if(!mc.world.getBlockState(offsetPos).isReplaceable()) continue;
             if(!HandRestock.restock(item -> placeableItems.contains(item.getItem()), 0)) break;
             mc.interactionManager.interactBlock(mc.player, Hand.MAIN_HAND, new BlockHitResult(
                     pos.toCenterPos(), Direction.UP, pos.mutableCopy(), false
