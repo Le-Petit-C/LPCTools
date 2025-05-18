@@ -3,16 +3,19 @@ package lpctools.lpcfymasaapi.configbutton.derivedConfigs;
 import lpctools.generic.GenericConfigs;
 import lpctools.lpcfymasaapi.configbutton.transferredConfigs.DoubleConfig;
 import lpctools.lpcfymasaapi.implementations.ILPCConfigList;
+import lpctools.lpcfymasaapi.implementations.ILPCValueChangeCallback;
 import lpctools.util.AlgorithmUtils;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class ReachDistanceConfig extends DoubleConfig {
-    public ReachDistanceConfig(ILPCConfigList parent) {
-        super(parent, "reachDistance", 4.5, 0, 5);
+    public ReachDistanceConfig(ILPCConfigList parent) {this(parent, null);}
+    public ReachDistanceConfig(ILPCConfigList parent, @Nullable ILPCValueChangeCallback callback) {
+        super(parent, "reachDistance", 4.5, 0, 5, callback);
     }
     public Iterable<BlockPos> iterateFromClosest(Vec3d center){
         return AlgorithmUtils.iterateFromClosestInDistance(center, getAsDouble());
@@ -22,8 +25,8 @@ public class ReachDistanceConfig extends DoubleConfig {
     }
     @Override public void refreshName(boolean align) {
         ClientPlayerEntity player = MinecraftClient.getInstance().player;
-        if(player == null || GenericConfigs.reachDistanceAlwaysUnlimited.getAsBoolean())
-            setMax(Integer.MAX_VALUE);
+        if(GenericConfigs.reachDistanceAlwaysUnlimited.getAsBoolean() || player == null)
+            setMax(Double.MAX_VALUE);
         else setMax(player.getBlockInteractionRange());
         super.refreshName(align);
     }

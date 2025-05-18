@@ -68,7 +68,9 @@ public class FillingAssistant {
         fillingAssistant.getKeybind().setCallback(new KeyCallbackToggleBoolean(fillingAssistant));
         limitPlaceSpeedConfig = addThirdListConfig("limitPlaceSpeed", false);
         maxBlockPerTickConfig = addDoubleConfig(limitPlaceSpeedConfig, "maxBlockPerTick", 1.0, 0, 64);
-        reachDistanceConfig = addReachDistanceConfig();
+        reachDistanceConfig = addReachDistanceConfig(
+                ()->testDistanceConfig.setMin((int)reachDistanceConfig.getAsDouble() + 1)
+        );
         testDistanceConfig = addIntegerConfig("testDistance", 6, 6, 64, new TestDistanceChangeCallback());
         disableOnLeftDownConfig = addBooleanConfig("disableOnLeftDown", true);
         disableOnGUIOpened = addBooleanConfig("disableOnGUIOpened", false);

@@ -2,6 +2,8 @@ package lpctools.lpcfymasaapi.configbutton.derivedConfigs;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import fi.dy.masa.malilib.gui.GuiConfigsBase;
+import lpctools.lpcfymasaapi.LPCConfigList;
 import lpctools.lpcfymasaapi.configbutton.transferredConfigs.BooleanConfig;
 import lpctools.lpcfymasaapi.implementations.ILPCConfig;
 import lpctools.lpcfymasaapi.implementations.ILPCConfigList;
@@ -23,9 +25,15 @@ public class ThirdListConfig extends BooleanConfig implements IThirdListBase {
                 lastValue = getAsBoolean();
             }
         });
+        subConfigs = new LPCConfigList(parent, nameKey);
     }
 
-    @Override public @NotNull Collection<ILPCConfig> getConfigs() {return subConfigs;}
+    @Override public @NotNull Collection<ILPCConfig> getConfigs() {return subConfigs.getConfigs();}
+    @Override public ArrayList<GuiConfigsBase.ConfigOptionWrapper> buildConfigWrappers(ArrayList<GuiConfigsBase.ConfigOptionWrapper> wrapperList) {
+        if(getAsBoolean()) return subConfigs.buildConfigWrappers(wrapperList);
+        else return wrapperList;
+    }
+
     @Override public void addIntoConfigListJson(@NotNull JsonObject configListJson){
         JsonObject object = new JsonObject();
         object.add("value", getAsJsonElement());
@@ -43,5 +51,5 @@ public class ThirdListConfig extends BooleanConfig implements IThirdListBase {
         }
     }
     private boolean lastValue;
-    private final ArrayList<ILPCConfig> subConfigs = new ArrayList<>();
+    private final LPCConfigList subConfigs;
 }

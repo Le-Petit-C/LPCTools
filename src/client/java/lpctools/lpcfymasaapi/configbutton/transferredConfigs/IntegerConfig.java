@@ -2,6 +2,7 @@ package lpctools.lpcfymasaapi.configbutton.transferredConfigs;
 
 import com.google.gson.JsonElement;
 import fi.dy.masa.malilib.config.options.ConfigInteger;
+import lpctools.lpcfymasaapi.LPCConfigUtils;
 import lpctools.lpcfymasaapi.implementations.ILPCConfigList;
 import lpctools.lpcfymasaapi.implementations.ILPCValueChangeCallback;
 import lpctools.lpcfymasaapi.implementations.ILPC_MASAConfigWrapper;
@@ -11,6 +12,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.function.IntConsumer;
 import java.util.function.IntSupplier;
 
+@SuppressWarnings({"unused", "UnusedReturnValue"})
 public class IntegerConfig extends ConfigInteger implements ILPC_MASAConfigWrapper<ConfigInteger>,IntSupplier, IntConsumer {
     public IntegerConfig(ILPCConfigList parent, String nameKey, int defaultInteger){
         this(parent, nameKey, defaultInteger, Integer.MIN_VALUE, Integer.MAX_VALUE, null);
@@ -26,6 +28,8 @@ public class IntegerConfig extends ConfigInteger implements ILPC_MASAConfigWrapp
         data = new LPCConfigData(parent, false);
         ILPC_MASAConfigWrapperDefaultInit(callback);
     }
+    public int setMax(int value){return LPCConfigUtils.muteMaxValue(this, value);}
+    public int setMin(int value){return LPCConfigUtils.muteMinValue(this, value);}
 
     @Override public void setValueFromJsonElement(JsonElement element) {
         int lastInt = getAsInt();

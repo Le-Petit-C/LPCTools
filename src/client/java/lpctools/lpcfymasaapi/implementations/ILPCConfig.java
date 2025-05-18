@@ -10,13 +10,10 @@ import org.jetbrains.annotations.NotNull;
 public interface ILPCConfig extends ILPCConfigBase, IConfigBase, IConfigResettable, ILPCConfigNotifiable {
     //当前配置是否有关热键，决定是否启用热键查找
     boolean hasHotkey();
-    //获取parent
-    @NotNull ILPCConfigList getParent();
+    @Override @NotNull ILPCConfigList getParent();
 
     @Override default @NotNull String getNameKey(){return getName();}
-    @Override default @NotNull String getFullTranslationKey(){return getParent().getFullTranslationKey() + '.' + getNameKey();}
     @Override default @NotNull LPCConfigPage getPage(){return getParent().getPage();}
-
     //根据是否对齐刷新当前配置名
     default void refreshName(boolean align){
         setTranslatedName(align ? getAlignedNameTranslation() : getNameTranslation());

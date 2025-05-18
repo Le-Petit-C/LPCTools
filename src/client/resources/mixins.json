@@ -6,11 +6,12 @@
     "AutoGrindstone",
     "BlockReplaceAction",
     "DisplayClickSlotArguments",
+    "LanguageMixin",
     "OnMouseButtonReturnMixin",
     "SplashTextResourceSupplierMixin",
-    "LanguageMixin",
     "WorldChunkMixin",
-    "MASAMixins.MuteMASAConfigMinMaxMixin.ConfigDoubleMixin"
+    "MASAMixins.MuteMASAConfigMinMaxMixin.ConfigDoubleMixin",
+    "MASAMixins.MuteMASAConfigMinMaxMixin.ConfigIntegerMixin"
   ],
   "injectors": {
     "defaultRequire": 1

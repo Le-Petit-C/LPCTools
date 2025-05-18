@@ -1,6 +1,6 @@
 package lpctools.mixin.client.MASAMixins.MuteMASAConfigMinMaxMixin;
 
-import fi.dy.masa.malilib.config.options.ConfigDouble;
+import fi.dy.masa.malilib.config.options.ConfigInteger;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Mutable;
@@ -8,20 +8,20 @@ import org.spongepowered.asm.mixin.Shadow;
 
 import static lpctools.mixinInterfaces.MASAMixins.MuteMASAConfigMinMaxMixin.*;
 
-@Mixin(ConfigDouble.class)
-class ConfigDoubleMixin implements MuteMASAConfigMinMaxDouble {
-    @Mutable @Final @Shadow(remap = false) private double minValue;
-    @Mutable @Final @Shadow(remap = false) private double maxValue;
-    @Shadow(remap = false) private double value;
-    @Override public double lPCTools$setMin(double value) {
+@Mixin(ConfigInteger.class)
+public class ConfigIntegerMixin implements MuteMASAConfigMinMaxInteger {
+    @Mutable @Final @Shadow(remap = false) protected int minValue;
+    @Mutable @Final @Shadow(remap = false) protected int maxValue;
+    @Shadow(remap = false) protected int value;
+    @Override public int lPCTools$setMin(int value) {
         if(this.value < value) this.value = value;
-        double lastValue = minValue;
+        int lastValue = minValue;
         minValue = value;
         return lastValue;
     }
-    @Override public double lPCTools$setMax(double value) {
+    @Override public int lPCTools$setMax(int value) {
         if(this.value > value) this.value = value;
-        double lastValue = maxValue;
+        int lastValue = maxValue;
         maxValue = value;
         return lastValue;
     }

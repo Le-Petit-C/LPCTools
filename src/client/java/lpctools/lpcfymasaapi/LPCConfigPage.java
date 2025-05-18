@@ -15,6 +15,7 @@ import fi.dy.masa.malilib.gui.GuiConfigsBase;
 import fi.dy.masa.malilib.gui.button.IButtonActionListener;
 import fi.dy.masa.malilib.gui.button.ButtonBase;
 import fi.dy.masa.malilib.gui.button.ButtonGeneric;
+import lpctools.lpcfymasaapi.implementations.ILPCConfigBase;
 import org.jetbrains.annotations.NotNull;
 
 import java.nio.file.Files;
@@ -24,7 +25,7 @@ import java.util.List;
 import java.util.function.Supplier;
 
 //单个总设置页面，就是在设置右上角分列出的不同页面
-public class LPCConfigPage implements IConfigHandler, Supplier<GuiBase>{
+public class LPCConfigPage implements IConfigHandler, Supplier<GuiBase>, ILPCConfigBase {
     //构造函数
     public LPCConfigPage(Reference modReference) {
         this.modReference = modReference;
@@ -36,8 +37,8 @@ public class LPCConfigPage implements IConfigHandler, Supplier<GuiBase>{
     }
     public Reference getModReference(){return modReference;}
     //给当前页面新添一列
-    public LPCConfigList addList(String translationKey){
-        lists.add(new LPCConfigList(this, translationKey));
+    public LPCConfigList addList(String nameKey){
+        lists.add(new LPCConfigList(this, nameKey));
         widgetPosition.add(0);
         return lists.getLast();
     }
@@ -52,7 +53,10 @@ public class LPCConfigPage implements IConfigHandler, Supplier<GuiBase>{
     }
     //获取当前列
     public LPCConfigList getList(){return lists.get(selectedIndex);}
-    @Override public GuiBase get() {return new ConfigPageInstance(this);}
+    @Override public GuiBase get() {
+        if(pageInstance == null) pageInstance = new ConfigPageInstance(this);
+        return pageInstance;
+    }
     //保存和加载已有的全部配置文件内容
     //如果文件中有目前未注册的配置项，不理它但是保留
     @Override public void load() {
@@ -110,6 +114,14 @@ public class LPCConfigPage implements IConfigHandler, Supplier<GuiBase>{
         if(inputHandler == null) inputHandler = new InputHandler(modReference);
     }
 
+    @Override public @NotNull ILPCConfigBase getParent() {return this;}
+    @Override public @NotNull String getNameKey() {return "configs";}
+    //只有LPCConfigPage重载此方法，结束递归
+    @Override public @NotNull StringBuilder getFullPath() {
+        return new StringBuilder(getModReference().modId).append('.').append(getNameKey());
+    }
+    @Override public @NotNull LPCConfigPage getPage() {return this;}
+
     private static class ConfigPageInstance extends GuiConfigsBase{
         @Override public void initGui() {
             super.initGui();
@@ -139,7 +151,7 @@ public class LPCConfigPage implements IConfigHandler, Supplier<GuiBase>{
         @Override protected boolean useKeybindSearch() {return parent.lists.get(parent.selectedIndex).hasHotkeyConfig();}
 
         ConfigPageInstance(LPCConfigPage parent) {
-            super(10, 50, parent.modReference.modId, null, parent.modReference.modId + ".configs.title", parent.modReference.getModVersion());
+            super(10, 50, parent.modReference.modId, null, parent.getFullTranslationKey() + ".title", parent.modReference.getModVersion());
             this.parent = parent;
         }
         void select(int index){
@@ -147,11 +159,11 @@ public class LPCConfigPage implements IConfigHandler, Supplier<GuiBase>{
             WidgetListConfigOptions widget = getListWidget();
             if(widget != null){
                 parent.widgetPosition.set(parent.selectedIndex, widget.getScrollbar().getValue());
-                parent.selectedIndex = index;
                 reCreateListWidget(); // apply the new config width
-                widget.getScrollbar().setValue(parent.widgetPosition.get(index));
             }
+            parent.selectedIndex = index;
             initGui();
+            if(widget != null) widget.getScrollbar().setValue(parent.widgetPosition.get(index));
         }
 
         private static int calculateDisplayLength(String str) {
@@ -169,10 +181,7 @@ public class LPCConfigPage implements IConfigHandler, Supplier<GuiBase>{
         private final LPCConfigPage parent;
 
         private record ButtonListener(int index, ConfigPageInstance parent) implements IButtonActionListener {
-            @Override
-                    public void actionPerformedWithButton(ButtonBase button, int mouseButton) {
-                        parent.select(index);
-                    }
-                }
+            @Override public void actionPerformedWithButton(ButtonBase button, int mouseButton) {parent.select(index);}
+        }
     }
 }

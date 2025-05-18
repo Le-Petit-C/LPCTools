@@ -122,6 +122,9 @@ public class LPCConfigStatics {
     public static ReachDistanceConfig addReachDistanceConfig(ILPCConfigList list){
         return list.addConfig(new ReachDistanceConfig(list));
     }
+    public static ReachDistanceConfig addReachDistanceConfig(ILPCConfigList list, @Nullable ILPCValueChangeCallback callback){
+        return list.addConfig(new ReachDistanceConfig(list, callback));
+    }
 
     //不带List版本的，使用栈存储当前list，方便操作
     public static final @NotNull Stack<ILPCConfigList> listStack = new Stack<>();
@@ -241,5 +244,8 @@ public class LPCConfigStatics {
     }
     public static ReachDistanceConfig addReachDistanceConfig(){
         return addReachDistanceConfig(peekConfigList());
+    }
+    public static ReachDistanceConfig addReachDistanceConfig(@Nullable ILPCValueChangeCallback callback){
+        return addReachDistanceConfig(peekConfigList(), callback);
     }
 }
