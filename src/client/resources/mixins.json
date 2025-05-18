@@ -7,13 +7,14 @@
     "BlockReplaceAction",
     "DisplayClickSlotArguments",
     "OnMouseButtonReturnMixin",
-    "SplashTextResourceSupplierMixin"
+    "SplashTextResourceSupplierMixin",
+    "LanguageMixin",
+    "WorldChunkMixin",
+    "MASAMixins.MuteMASAConfigMinMaxMixin.ConfigDoubleMixin"
   ],
   "injectors": {
     "defaultRequire": 1
   },
   "mixins": [
-    "LanguageMixin",
-    "WorldChunkMixin"
   ]
 }

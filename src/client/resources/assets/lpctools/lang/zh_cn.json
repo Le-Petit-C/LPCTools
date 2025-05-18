@@ -111,5 +111,7 @@
   "lpctools.configs.utils.limitRange.rangeLitematica.name": "启用投影渲染范围限制",
   "lpctools.configs.utils.limitRange.rangeLitematica.comment": "将Litematica的渲染范围视为特殊区域参与计算\n处理优先级:在Litematica所有原理图之后，但在其他MiniHUD形状之前",
   "lpctools.configs.utils.limitRange.renderRangeTestType.name": "区域操作模式",
-  "lpctools.configs.utils.limitRange.renderRangeTestType.comment": "Litematica渲染范围的操作模式，包含四种类型:\n“+”:将当前形状加入允许区域\n“-”:从当前允许区域中排除与形状重叠的部分\n“+~”:将形状外部区域加入允许范围\n“-~”:仅保留允许区域与形状的重叠部分"
+  "lpctools.configs.utils.limitRange.renderRangeTestType.comment": "Litematica渲染范围的操作模式，包含四种类型:\n“+”:将当前形状加入允许区域\n“-”:从当前允许区域中排除与形状重叠的部分\n“+~”:将形状外部区域加入允许范围\n“-~”:仅保留允许区域与形状的重叠部分",
+  "lpctools.configs.utils.reachDistance.name": "交互距离",
+  "lpctools.configs.utils.reachDistance.comment": "此工具的客户端方块交互距离限制\n如果经常出现有关幽灵方块或者幽灵物品的现象，可以尝试调低这个值"
 }

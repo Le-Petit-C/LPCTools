@@ -26,7 +26,6 @@ import org.jetbrains.annotations.NotNull;
 import java.util.Collection;
 
 import static lpctools.tools.liquidCleaner.LiquidCleaner.*;
-import static lpctools.util.AlgorithmUtils.*;
 import static lpctools.util.BlockUtils.*;
 
 public class OnEndTick implements ClientTickEvents.EndTick {
@@ -59,7 +58,7 @@ public class OnEndTick implements ClientTickEvents.EndTick {
             canInteractBlockCount += maxBlockPerTickConfig.getAsDouble();
         }
         else canInteractBlockCount = Double.MAX_VALUE;
-        Iterable<BlockPos> iterateRegion = iterateInNears(player.getEyePos(), reachDistanceConfig.getAsDouble());
+        Iterable<BlockPos> iterateRegion = reachDistanceConfig.iterateFromClosest(player.getEyePos());
         ShapeList list = limitCleaningRange.buildShapeList();
         for(BlockPos pos1 : iterateRegion){
             BlockPos pos = new BlockPos(pos1);//固定当前BlockPos

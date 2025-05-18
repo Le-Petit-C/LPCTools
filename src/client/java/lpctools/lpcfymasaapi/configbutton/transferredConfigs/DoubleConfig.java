@@ -2,6 +2,7 @@ package lpctools.lpcfymasaapi.configbutton.transferredConfigs;
 
 import com.google.gson.JsonElement;
 import fi.dy.masa.malilib.config.options.ConfigDouble;
+import lpctools.lpcfymasaapi.LPCConfigUtils;
 import lpctools.lpcfymasaapi.implementations.ILPCConfigList;
 import lpctools.lpcfymasaapi.implementations.ILPCValueChangeCallback;
 import lpctools.lpcfymasaapi.implementations.ILPC_MASAConfigWrapper;
@@ -11,6 +12,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.function.DoubleConsumer;
 import java.util.function.DoubleSupplier;
 
+@SuppressWarnings({"UnusedReturnValue", "unused"})
 public class DoubleConfig extends ConfigDouble implements ILPC_MASAConfigWrapper<ConfigDouble>, DoubleSupplier, DoubleConsumer {
     public DoubleConfig(ILPCConfigList parent, String nameKey, double defaultDouble){
         this(parent, nameKey, defaultDouble, Double.MIN_VALUE, Double.MAX_VALUE, null);
@@ -26,6 +28,8 @@ public class DoubleConfig extends ConfigDouble implements ILPC_MASAConfigWrapper
         data = new LPCConfigData(parent, false);
         ILPC_MASAConfigWrapperDefaultInit(callback);
     }
+    public double setMax(double value){return LPCConfigUtils.muteMaxValue(this, value);}
+    public double setMin(double value){return LPCConfigUtils.muteMinValue(this, value);}
 
     @Override public void setValueFromJsonElement(JsonElement element) {
         double lastValue = getAsDouble();

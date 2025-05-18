@@ -4,6 +4,7 @@ import fi.dy.masa.malilib.hotkeys.KeyCallbackToggleBoolean;
 import lpctools.lpcfymasaapi.Registry;
 import lpctools.lpcfymasaapi.configbutton.derivedConfigs.ArrayOptionListConfig;
 import lpctools.lpcfymasaapi.configbutton.derivedConfigs.RangeLimitConfig;
+import lpctools.lpcfymasaapi.configbutton.derivedConfigs.ReachDistanceConfig;
 import lpctools.lpcfymasaapi.configbutton.derivedConfigs.ThirdListConfig;
 import lpctools.lpcfymasaapi.configbutton.transferredConfigs.*;
 import lpctools.lpcfymasaapi.implementations.ILPCValueChangeCallback;
@@ -67,7 +68,7 @@ public class FillingAssistant {
         fillingAssistant.getKeybind().setCallback(new KeyCallbackToggleBoolean(fillingAssistant));
         limitPlaceSpeedConfig = addThirdListConfig("limitPlaceSpeed", false);
         maxBlockPerTickConfig = addDoubleConfig(limitPlaceSpeedConfig, "maxBlockPerTick", 1.0, 0, 64);
-        reachDistanceConfig = addDoubleConfig("reachDistance", 4.5, 0, 5);
+        reachDistanceConfig = addReachDistanceConfig();
         testDistanceConfig = addIntegerConfig("testDistance", 6, 6, 64, new TestDistanceChangeCallback());
         disableOnLeftDownConfig = addBooleanConfig("disableOnLeftDown", true);
         disableOnGUIOpened = addBooleanConfig("disableOnGUIOpened", false);
@@ -106,7 +107,7 @@ public class FillingAssistant {
     static BooleanHotkeyConfig fillingAssistant;
     static ThirdListConfig limitPlaceSpeedConfig;
     static DoubleConfig maxBlockPerTickConfig;
-    static DoubleConfig reachDistanceConfig;
+    static ReachDistanceConfig reachDistanceConfig;
     static IntegerConfig testDistanceConfig;
     static BooleanConfig disableOnLeftDownConfig;
     static BooleanConfig disableOnGUIOpened;

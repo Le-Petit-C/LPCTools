@@ -111,5 +111,7 @@
   "lpctools.configs.utils.limitRange.rangeLitematica.name": "rangeLitematica",
   "lpctools.configs.utils.limitRange.rangeLitematica.comment": "Treat Litematica's render range as a special region for calculation.\nProcessing priority: After all Litematica schematics, but before other MiniHUD regions.",
   "lpctools.configs.utils.limitRange.renderRangeTestType.name": "renderRangeTestType",
-  "lpctools.configs.utils.limitRange.renderRangeTestType.comment": "Four operation modes for schematic render ranges:\n\"+\": Add shape to allowed area (Union)\n\"-\": Subtract shape from allowed area (Difference)\n\"+\": Add area outside shape (Inverse Union)\n\"-\": Keep only overlapping area (Intersection)"
+  "lpctools.configs.utils.limitRange.renderRangeTestType.comment": "Four operation modes for schematic render ranges:\n\"+\": Add shape to allowed area (Union)\n\"-\": Subtract shape from allowed area (Difference)\n\"+\": Add area outside shape (Inverse Union)\n\"-\": Keep only overlapping area (Intersection)",
+  "lpctools.configs.utils.reachDistance.name": "Reach Distance",
+  "lpctools.configs.utils.reachDistance.comment": "Client Reach distance for this tool\nIf ghost blocks or ghost items often appears,\nyou can try to decrease this value"
 }

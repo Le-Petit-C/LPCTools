@@ -3,6 +3,7 @@ package lpctools.tools.liquidCleaner;
 import com.google.common.collect.ImmutableList;
 import fi.dy.masa.malilib.hotkeys.KeyCallbackToggleBoolean;
 import lpctools.lpcfymasaapi.Registry;
+import lpctools.lpcfymasaapi.configbutton.derivedConfigs.ReachDistanceConfig;
 import lpctools.lpcfymasaapi.configbutton.derivedConfigs.ThirdListConfig;
 import lpctools.lpcfymasaapi.configbutton.transferredConfigs.*;
 import lpctools.lpcfymasaapi.configbutton.transferredConfigs.BooleanConfig;
@@ -27,7 +28,7 @@ public class LiquidCleaner {
         liquidCleaner.getKeybind().setCallback(new KeyCallbackToggleBoolean(liquidCleaner));
         limitInteractSpeedConfig = addThirdListConfig("limitInteractSpeed", false);
         maxBlockPerTickConfig = addDoubleConfig(limitInteractSpeedConfig, "maxBlockPerTick", 1.0, 0, 64);
-        reachDistanceConfig = addDoubleConfig("reachDistance", 4.5, 0, 5);
+        reachDistanceConfig = addReachDistanceConfig();
         disableOnGUIOpened = addBooleanConfig("disableOnGUIOpened", false);
         offhandFillingConfig = addBooleanConfig("offhandFilling", false);
         blockBlackListConfig = addStringListConfig("blockBlackList", ImmutableList.of(), LiquidCleaner::onBlacklistRefresh);
@@ -52,7 +53,7 @@ public class LiquidCleaner {
     public static BooleanHotkeyConfig liquidCleaner;
     public static ThirdListConfig limitInteractSpeedConfig;
     public static DoubleConfig maxBlockPerTickConfig;
-    public static DoubleConfig reachDistanceConfig;
+    public static ReachDistanceConfig reachDistanceConfig;
     public static BooleanConfig disableOnGUIOpened;
     public static BooleanConfig offhandFillingConfig;
     public static StringListConfig blockBlackListConfig;

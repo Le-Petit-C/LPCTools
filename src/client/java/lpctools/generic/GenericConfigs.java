@@ -2,6 +2,7 @@ package lpctools.generic;
 
 import com.google.common.collect.ImmutableList;
 import lpctools.lpcfymasaapi.configbutton.derivedConfigs.ConfigOpenGuiConfig;
+import lpctools.lpcfymasaapi.configbutton.transferredConfigs.BooleanConfig;
 import lpctools.lpcfymasaapi.configbutton.transferredConfigs.StringListConfig;
 import net.minecraft.block.Block;
 import net.minecraft.block.Blocks;
@@ -28,11 +29,13 @@ public class GenericConfigs {
                     extraNoSpawnBlocks.clear();
                     extraNoSpawnBlocks.addAll(blockSetFromIds(extraNoSpawnBlockIds));
                 });
+        reachDistanceAlwaysUnlimited = addBooleanConfig("reachDistanceAlwaysUnlimited", false);
     }
 
     public static ConfigOpenGuiConfig configOpenGuiConfig;
     public static StringListConfig extraSpawnBlockIds;
     public static StringListConfig extraNoSpawnBlockIds;
+    public static BooleanConfig reachDistanceAlwaysUnlimited;
 
     public static final ImmutableList<Block> defaultExtraSpawnBlocks;
     public static final ImmutableList<Block> defaultExtraNoSpawnBlocks;

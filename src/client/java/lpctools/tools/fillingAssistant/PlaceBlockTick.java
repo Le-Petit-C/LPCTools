@@ -72,23 +72,16 @@ public class PlaceBlockTick implements ClientTickEvents.EndTick, Registry.InGame
         }
         else canSetBlockCount = Double.MAX_VALUE;
         ShapeList shapeList = limitFillingRange.buildShapeList();
-        int r = (int) Math.ceil(reachDistanceConfig.getAsDouble());
         initializeMap(shapeList, eyeBlockPos);
-        int startX = eyeBlockPos.getX() - r;
-        int startY = eyeBlockPos.getY() - r;
-        int startZ = eyeBlockPos.getZ() - r;
-        int endX = eyeBlockPos.getX() + r;
-        int endY = eyeBlockPos.getY() + r;
-        int endZ = eyeBlockPos.getZ() + r;
         DimensionType dimensionType = client.world.getDimension();
-        if(startY < dimensionType.minY()) startY = dimensionType.minY();
-        if(endY > dimensionType.minY() + dimensionType.height() - 1) endY = dimensionType.minY() + dimensionType.height() - 1;
+        int bottom = dimensionType.minY();
+        int ceiling = bottom + dimensionType.height();
         do {
             blockSetted = false;
-            for(BlockPos pos : BlockPos.iterate(startX, startY, startZ, endX, endY, endZ)){
+            for(BlockPos pos : reachDistanceConfig.iterateFromFurthest(eyePos)){
+                if(pos.getY() < bottom) continue;
+                if(pos.getY() >= ceiling) continue;
                 if(!shapeList.testPos(pos)) continue;
-                Vec3d posD = pos.toCenterPos();
-                if (posD.distanceTo(eyePos) >= reachDistanceConfig.getAsDouble()) continue;
                 if(tryPut(pos, restockTest)){
                     if(isUnpassable(pos)){
                         setMapVec3i(pos.subtract(currentPosition), true);

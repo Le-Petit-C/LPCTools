@@ -2,10 +2,9 @@ package lpctools.tools.antiSpawner;
 
 import com.google.common.collect.ImmutableList;
 import lpctools.lpcfymasaapi.Registry;
+import lpctools.lpcfymasaapi.configbutton.derivedConfigs.ReachDistanceConfig;
 import lpctools.lpcfymasaapi.configbutton.transferredConfigs.BooleanHotkeyConfig;
-import lpctools.lpcfymasaapi.configbutton.transferredConfigs.DoubleConfig;
 import lpctools.lpcfymasaapi.configbutton.transferredConfigs.StringListConfig;
-import lpctools.util.AlgorithmUtils;
 import lpctools.util.HandRestock;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.minecraft.block.Block;
@@ -25,18 +24,21 @@ import static lpctools.tools.ToolUtils.setLPCToolsToggleText;
 import static lpctools.util.BlockUtils.*;
 import static lpctools.util.DataUtils.*;
 
-//TODO: 未抑制方块显示
+//TODO:
+// 未抑制方块显示
+// 工作范围限制
+// 限制交互速度
 public class AntiSpawner implements ClientTickEvents.EndTick {
     public static BooleanHotkeyConfig antiSpawnerConfig;
     public static StringListConfig placeableItemIds;
-    public static DoubleConfig reachDistanceConfig;
+    public static ReachDistanceConfig reachDistanceConfig;
     public static void init() {
         antiSpawnerConfig = addBooleanHotkeyConfig("antiSpawner", false, null, ()->{
             if(antiSpawnerConfig.getBooleanValue()) start();
             else stop();
         });
         setLPCToolsToggleText(antiSpawnerConfig);
-        reachDistanceConfig = addDoubleConfig("reachDistance", 4.5, 0, 5);
+        reachDistanceConfig = addReachDistanceConfig();
         placeableItemIds = addStringListConfig("placeableItems", idListFromItemList(defaultPlaceableItems));
     }
     private static final AntiSpawner instance = new AntiSpawner();
@@ -64,13 +66,13 @@ public class AntiSpawner implements ClientTickEvents.EndTick {
             return;
         }
         if(mc.currentScreen != null) return;
-        for(BlockPos pos : AlgorithmUtils.iterateInNears(mc.player.getEyePos(), reachDistanceConfig.getAsDouble())){
-            BlockPos offsetPos = pos.offset(Direction.UP);
-            if(!mayMobSpawnAt(mc.world, offsetPos)) continue;
-            if(!mc.world.getBlockState(offsetPos).isReplaceable()) continue;
+        //默认遍历的距离判断是与方块中心的距离，但是这里选择interact底下方块的上表面中心，所以添加了一个y+0.5的偏移修正
+        for(BlockPos pos : reachDistanceConfig.iterateFromClosest(mc.player.getEyePos().add(0, 0.5, 0))){
+            if(!mayMobSpawnAt(mc.world, pos)) continue;
+            if(!mc.world.getBlockState(pos).isReplaceable()) continue;
             if(!HandRestock.restock(item -> placeableItems.contains(item.getItem()), 0)) break;
             mc.interactionManager.interactBlock(mc.player, Hand.MAIN_HAND, new BlockHitResult(
-                    pos.toCenterPos(), Direction.UP, pos.mutableCopy(), false
+                    pos.toBottomCenterPos(), Direction.UP, pos.offset(Direction.DOWN), false
             ));
         }
     }

@@ -5,9 +5,7 @@ import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.Vec3d;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.PriorityQueue;
+import java.util.*;
 
 import static lpctools.util.MathUtils.*;
 
@@ -87,7 +85,7 @@ public class AlgorithmUtils {
             return ret;
         }
     }
-    public static Iterable<BlockPos> iterateNears(Vec3d center){
+    public static Iterable<BlockPos> iterateFromClosest(Vec3d center){
         return () -> new NearstIterator(center);
     }
     public static class InNearstIterator extends NearstIterator{
@@ -98,7 +96,14 @@ public class AlgorithmUtils {
         }
         @Override public boolean hasNext() {return getNextDistance() <= maxSquaredDistance;}
     }
-    public static Iterable<BlockPos> iterateInNears(Vec3d center, double distance){
+    public static Iterable<BlockPos> iterateFromClosestInDistance(Vec3d center, double distance){
         return () -> new InNearstIterator(center, distance);
+    }
+    public static Iterable<BlockPos> iterateFromFurthestInDistance(Vec3d center, double distance){
+        ArrayList<BlockPos> list = new ArrayList<>();
+        for(BlockPos pos : iterateFromClosestInDistance(center, distance))
+            list.add(pos.mutableCopy());
+        Collections.reverse(list);
+        return list;
     }
 }
