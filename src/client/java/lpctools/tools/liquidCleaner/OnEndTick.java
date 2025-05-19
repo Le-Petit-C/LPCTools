@@ -25,6 +25,8 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Collection;
 
+import static lpctools.lpcfymasaapi.configbutton.derivedConfigs.LimitOperationSpeedConfig.OperationResult.NO_OPERATION;
+import static lpctools.lpcfymasaapi.configbutton.derivedConfigs.LimitOperationSpeedConfig.OperationResult.OPERATED;
 import static lpctools.tools.liquidCleaner.LiquidCleaner.*;
 import static lpctools.util.BlockUtils.*;
 
@@ -53,51 +55,44 @@ public class OnEndTick implements ClientTickEvents.EndTick {
             disableTool("GUIOpened");
             return;
         }
-        if(limitInteractSpeedConfig.getAsBoolean()){
-            if(canInteractBlockCount > 1) canInteractBlockCount = 0;
-            canInteractBlockCount += maxBlockPerTickConfig.getAsDouble();
-        }
-        else canInteractBlockCount = Double.MAX_VALUE;
         Iterable<BlockPos> iterateRegion = reachDistanceConfig.iterateFromClosest(player.getEyePos());
         ShapeList list = limitCleaningRange.buildShapeList();
-        for(BlockPos pos1 : iterateRegion){
-            BlockPos pos = new BlockPos(pos1);//固定当前BlockPos
-            if (shouldAttackBlock(list, world, pos)){
-                manager.attackBlock(pos, Direction.DOWN);
-                if(--canInteractBlockCount < 1) return;
+        limitOperationSpeedConfig.resetOperationTimes();
+        limitOperationSpeedConfig.iterableOperate(iterateRegion, pos -> {
+            if (shouldAttackBlock(list, world, pos)) {
+                manager.attackBlock(pos.toImmutable(), Direction.DOWN);
+                return OPERATED;
             }
-        }
+            return NO_OPERATION;
+        });
         int offhandPriority = offhandFillingConfig.getAsBoolean() ? -1 : 0;
         Hand hand = offhandFillingConfig.getAsBoolean() ? Hand.OFF_HAND : Hand.MAIN_HAND;
-        int searchedSlot = HandRestock.search(this::isStackOk, offhandPriority);
-        if (searchedSlot == -1) return;
-        int slotItemCount = player.getInventory().getStack(searchedSlot).getCount();
-        if(slotItemCount < canInteractBlockCount && !player.isCreative()) canInteractBlockCount = slotItemCount;
-        for(BlockPos pos : iterateRegion){
-            if(!list.testPos(pos)){
-                if(!expandRange.getAsBoolean()) continue;
+        if (HandRestock.search(this::isStackOk, offhandPriority) == -1) return;
+        limitOperationSpeedConfig.iterableOperate(iterateRegion, pos -> {
+            if (!list.testPos(pos)) {
+                if (!expandRange.getAsBoolean()) return NO_OPERATION;
                 boolean shouldContinue = true;
-                for(Direction direction : Direction.values()){
-                    if(ignoreDownwardTest.getAsBoolean() && direction == Direction.UP) continue;
-                    if(list.testPos(pos.offset(direction))){
+                for (Direction direction : Direction.values()) {
+                    if (ignoreDownwardTest.getAsBoolean() && direction == Direction.UP) continue;
+                    if (list.testPos(pos.offset(direction))) {
                         shouldContinue = false;
                         break;
                     }
                 }
-                if(shouldContinue) continue;
+                if (shouldContinue) return NO_OPERATION;
             }
             BlockState state = world.getBlockState(pos);
             if (isReplaceableLiquid(state)) {
-                if (!HandRestock.restock(this::isStackOk, offhandPriority)) return;
+                limitOperationSpeedConfig.limitWithRestock(this::isStackOk, offhandPriority);
                 Vec3d midPos = pos.toCenterPos();
                 BlockHitResult hitResult = new BlockHitResult(midPos, Direction.DOWN, pos.mutableCopy(), false);
                 manager.interactBlock(player, hand, hitResult);
-                if (--canInteractBlockCount < 1) return;
+                return OPERATED;
             }
-        }
+            return NO_OPERATION;
+        });
     }
 
-    private double canInteractBlockCount = 0;
     private static boolean shouldAttackBlock(@NotNull ShapeList shapeList ,@NotNull ClientWorld world, @NotNull BlockPos pos){
         BlockState state = world.getBlockState(pos);
         if(!shapeList.testPos(pos)){

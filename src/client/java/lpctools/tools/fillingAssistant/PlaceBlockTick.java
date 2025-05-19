@@ -22,6 +22,7 @@ import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.Queue;
 
+import static lpctools.lpcfymasaapi.configbutton.derivedConfigs.LimitOperationSpeedConfig.OperationResult.*;
 import static lpctools.tools.fillingAssistant.FillingAssistant.*;
 import static lpctools.util.BlockUtils.*;
 
@@ -65,34 +66,25 @@ public class PlaceBlockTick implements ClientTickEvents.EndTick, Registry.InGame
         }
         Vec3d eyePos = client.player.getEyePos();
         BlockPos eyeBlockPos = new BlockPos((int)Math.floor(eyePos.getX()), (int)Math.floor(eyePos.getY()), (int)Math.floor(eyePos.getZ()));
-        boolean blockSetted;
-        if(limitPlaceSpeedConfig.getAsBoolean()){
-            if(canSetBlockCount > 1) canSetBlockCount = 0;
-            canSetBlockCount += maxBlockPerTickConfig.getAsDouble();
-        }
-        else canSetBlockCount = Double.MAX_VALUE;
         ShapeList shapeList = limitFillingRange.buildShapeList();
         initializeMap(shapeList, eyeBlockPos);
         DimensionType dimensionType = client.world.getDimension();
         int bottom = dimensionType.minY();
         int ceiling = bottom + dimensionType.height();
-        do {
-            blockSetted = false;
-            for(BlockPos pos : reachDistanceConfig.iterateFromFurthest(eyePos)){
-                if(pos.getY() < bottom) continue;
-                if(pos.getY() >= ceiling) continue;
-                if(!shapeList.testPos(pos)) continue;
-                if(tryPut(pos, restockTest)){
-                    if(isUnpassable(pos)){
-                        setMapVec3i(pos.subtract(currentPosition), true);
-                        blockSetted = true;
-                        --canSetBlockCount;
-                    }
-                }
-                if(canSetBlockCount < 1) return;
-                if(!fillingAssistant.getAsBoolean()) return;
-            }
-        }while(blockSetted);
+        limitPlaceSpeedConfig.resetOperationTimes();
+        limitPlaceSpeedConfig.iterableOperate(reachDistanceConfig.iterateFromFurthest(eyePos), pos-> {
+             if(pos.getY() < bottom) return NO_OPERATION;
+             if(pos.getY() >= ceiling) return NO_OPERATION;
+             if(!shapeList.testPos(pos)) return NO_OPERATION;
+             if(tryPut(pos, restockTest)){
+                 if(isUnpassable(pos)){
+                     setMapVec3i(pos.subtract(currentPosition), true);
+                     return OPERATED;
+                 }
+             }
+             if(!fillingAssistant.getAsBoolean()) return SHOULD_BREAK;
+             return NO_OPERATION;
+        });
     }
     @Override public void onInGameEndMouse(int button, int action, int mods) {
         if(disableOnLeftDownConfig.getAsBoolean() && button == 0 && action == 1)
@@ -102,10 +94,7 @@ public class PlaceBlockTick implements ClientTickEvents.EndTick, Registry.InGame
     private boolean put(BlockPos blockPos, HandRestock.IRestockTest restockTest){
         MinecraftClient client = MinecraftClient.getInstance();
         if(client.interactionManager == null) return false;
-        if(!HandRestock.restock(restockTest, offhandFillingConfig.getAsBoolean() ? -1 : 0)){
-            disableTool("placeableItemRanOut");
-            return false;
-        }
+        limitPlaceSpeedConfig.limitWithRestock(restockTest, offhandFillingConfig.getAsBoolean() ? -1 : 0);
         BlockHitResult hit = new BlockHitResult(blockPos.toCenterPos(), Direction.UP, blockPos.mutableCopy(), false);
         return client.interactionManager.interactBlock(
                 client.player,
@@ -118,7 +107,6 @@ public class PlaceBlockTick implements ClientTickEvents.EndTick, Registry.InGame
     private int testSize;
     private boolean@NotNull [] @NotNull [] @NotNull [] map = new boolean[0][][];
     private boolean@NotNull [] @NotNull [] @NotNull [] testBuffer = new boolean[0][][];
-    private double canSetBlockCount = 0;
     private void resetTestBuffer(){
         for (boolean[][] bufferX : testBuffer) {
             for (boolean[] bufferXY : bufferX) {

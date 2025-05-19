@@ -3,8 +3,8 @@ package lpctools.tools.liquidCleaner;
 import com.google.common.collect.ImmutableList;
 import fi.dy.masa.malilib.hotkeys.KeyCallbackToggleBoolean;
 import lpctools.lpcfymasaapi.Registry;
+import lpctools.lpcfymasaapi.configbutton.derivedConfigs.LimitOperationSpeedConfig;
 import lpctools.lpcfymasaapi.configbutton.derivedConfigs.ReachDistanceConfig;
-import lpctools.lpcfymasaapi.configbutton.derivedConfigs.ThirdListConfig;
 import lpctools.lpcfymasaapi.configbutton.transferredConfigs.*;
 import lpctools.lpcfymasaapi.configbutton.transferredConfigs.BooleanConfig;
 import lpctools.lpcfymasaapi.configbutton.transferredConfigs.StringListConfig;
@@ -26,14 +26,13 @@ public class LiquidCleaner {
     public static void init(){
         liquidCleaner = addBooleanHotkeyConfig("liquidCleaner", false, null, ()->valueChangeCallback(liquidCleaner.getAsBoolean()));
         liquidCleaner.getKeybind().setCallback(new KeyCallbackToggleBoolean(liquidCleaner));
-        limitInteractSpeedConfig = addThirdListConfig("limitInteractSpeed", false);
-        maxBlockPerTickConfig = addDoubleConfig(limitInteractSpeedConfig, "maxBlockPerTick", 1.0, 0, 64);
+        limitOperationSpeedConfig = addLimitOperationSpeedConfig(false, 1);
         reachDistanceConfig = addReachDistanceConfig();
         disableOnGUIOpened = addBooleanConfig("disableOnGUIOpened", false);
         offhandFillingConfig = addBooleanConfig("offhandFilling", false);
         blockBlackListConfig = addStringListConfig("blockBlackList", ImmutableList.of(), LiquidCleaner::onBlacklistRefresh);
         ignoreDownwardTest = addBooleanConfig("ignoreDownwardTest", false);
-        limitCleaningRange = addRangeLimitConfig(false, "LC");
+        limitCleaningRange = addRangeLimitConfig(false);
         expandRange = addBooleanConfig(limitCleaningRange, "expandRange", false);
     }
     public static boolean isEnabled(){return onEndTick != null;}
@@ -51,8 +50,7 @@ public class LiquidCleaner {
     }
 
     public static BooleanHotkeyConfig liquidCleaner;
-    public static ThirdListConfig limitInteractSpeedConfig;
-    public static DoubleConfig maxBlockPerTickConfig;
+    public static LimitOperationSpeedConfig limitOperationSpeedConfig;
     public static ReachDistanceConfig reachDistanceConfig;
     public static BooleanConfig disableOnGUIOpened;
     public static BooleanConfig offhandFillingConfig;

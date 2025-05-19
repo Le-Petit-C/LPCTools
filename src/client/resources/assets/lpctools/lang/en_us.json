@@ -24,10 +24,6 @@
   "lpctools.configs.tools.FA.comment": "Enable to list the configs for Filling Assistant\nThis tool helps you set blocks to fill holes automatically",
   "lpctools.configs.tools.FA.fillingAssistant.name": "Filling Assistant",
   "lpctools.configs.tools.FA.fillingAssistant.comment": "Filling Assistant switch and hotkey",
-  "lpctools.configs.tools.FA.limitPlaceSpeed.name": "limitPlaceSpeed",
-  "lpctools.configs.tools.FA.limitPlaceSpeed.comment": "Limit the filling speed of the filling assistant\nPrevent being kicked out of some servers due to excessive packet sending",
-  "lpctools.configs.tools.FA.limitPlaceSpeed.maxBlockPerTick.name": "maxBlockPerTick",
-  "lpctools.configs.tools.FA.limitPlaceSpeed.maxBlockPerTick.comment": "Set the maximum number of blocks\nthe filling assistant can fill per tick on average",
   "lpctools.configs.tools.FA.reachDistance.name": "fillingAssistantReachDistance",
   "lpctools.configs.tools.FA.reachDistance.comment": "If ghost blocks or ghost items often appears,\nyou can try to decrease this value",
   "lpctools.configs.tools.FA.testDistance.name": "fillingAssistantPathfindingDistance",
@@ -57,10 +53,6 @@
   "lpctools.configs.tools.LC.comment": "Enable to list the configs for LiquidCleaner\nThis tool helps you set blocks to clean liquid automatically\nNeeds a lot of water-undestroyable water-unloggable\nnon plant zero hardness blocks",
   "lpctools.configs.tools.LC.liquidCleaner.name": "Liquid Cleaner",
   "lpctools.configs.tools.LC.liquidCleaner.comment": "Liquid Cleaner switch and hotkey",
-  "lpctools.configs.tools.LC.limitInteractSpeed.name": "limitInteractSpeed",
-  "lpctools.configs.tools.LC.limitInteractSpeed.comment": "Limit the interact speed of the liquid cleaner\nPrevent being kicked out of some servers due to excessive packet sending",
-  "lpctools.configs.tools.LC.limitInteractSpeed.maxBlockPerTick.name": "maxBlockPerTick",
-  "lpctools.configs.tools.LC.limitInteractSpeed.maxBlockPerTick.comment": "Set the maximum number of blocks\nthe liquid cleaner can fill or set (sum up) per tick on average",
   "lpctools.configs.tools.LC.reachDistance.name": "liquidCleanerReachDistance",
   "lpctools.configs.tools.LC.reachDistance.comment": "If ghost blocks or ghost items often appears,\nyou can try to decrease this value",
   "lpctools.configs.tools.LC.disableOnGUIOpened.name": "disableOnGUIOpened",
@@ -115,5 +107,9 @@
   "lpctools.configs.utils.limitRange.rangeLitematica.renderRangeTestType.name": "renderRangeTestType",
   "lpctools.configs.utils.limitRange.rangeLitematica.renderRangeTestType.comment": "Four operation modes for schematic render ranges:\n\"+\": Add shape to allowed area (Union)\n\"-\": Subtract shape from allowed area (Difference)\n\"+\": Add area outside shape (Inverse Union)\n\"-\": Keep only overlapping area (Intersection)",
   "lpctools.configs.utils.reachDistance.name": "Reach Distance",
-  "lpctools.configs.utils.reachDistance.comment": "Client Reach distance for this tool\nIf ghost blocks or ghost items often appears,\nyou can try to decrease this value"
+  "lpctools.configs.utils.reachDistance.comment": "Client Reach distance for this tool\nIf ghost blocks or ghost items often appears,\nyou can try to decrease this value",
+  "lpctools.configs.utils.limitOperationSpeed.name": "Limit Operation Speed",
+  "lpctools.configs.utils.limitOperationSpeed.comment": "Limit the operation speed of the tool\nPrevent being kicked out of some servers due to excessive packet sending",
+  "lpctools.configs.utils.limitOperationSpeed.maxOperationSpeed.name": "Maximum Operation Speed",
+  "lpctools.configs.utils.limitOperationSpeed.maxOperationSpeed.comment": "Maximum Operation Speed\nUsually the maximum average operation times per tick"
 }

@@ -59,7 +59,7 @@ public class SlightXRay implements ILPCValueChangeCallback, WorldRenderEvents.En
         setLPCToolsToggleText(slightXRay);
         displayColor = addColorConfig("displayColor", Color4f.fromColor(0x7F3F7FFF));
         XRayBlocksConfig = addStringListConfig("XRayBlocks", defaultXRayBlockIds, SlightXRay::refreshXRayBlocks);
-        displayRange = addRangeLimitConfig(false, "SX");
+        displayRange = addRangeLimitConfig(false);
     }
 
     private static void addAllRenderRegionsIntoWork(){

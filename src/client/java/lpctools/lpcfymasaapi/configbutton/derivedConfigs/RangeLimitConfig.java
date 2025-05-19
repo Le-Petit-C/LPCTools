@@ -32,5 +32,5 @@ public class RangeLimitConfig extends ThirdListConfig {
         else return ShapeList.emptyList();
     }
 
-    @Override public @NotNull String getFullTranslationKey() {return "lpctools.configs.utils.limitRange";}
+    @Override public @NotNull String getFullTranslationKey() {return fullKeyFromUtilBase(this);}
 }

@@ -2,10 +2,7 @@ package lpctools.tools.fillingAssistant;
 
 import fi.dy.masa.malilib.hotkeys.KeyCallbackToggleBoolean;
 import lpctools.lpcfymasaapi.Registry;
-import lpctools.lpcfymasaapi.configbutton.derivedConfigs.ArrayOptionListConfig;
-import lpctools.lpcfymasaapi.configbutton.derivedConfigs.RangeLimitConfig;
-import lpctools.lpcfymasaapi.configbutton.derivedConfigs.ReachDistanceConfig;
-import lpctools.lpcfymasaapi.configbutton.derivedConfigs.ThirdListConfig;
+import lpctools.lpcfymasaapi.configbutton.derivedConfigs.*;
 import lpctools.lpcfymasaapi.configbutton.transferredConfigs.*;
 import lpctools.lpcfymasaapi.implementations.ILPCValueChangeCallback;
 import net.minecraft.block.Block;
@@ -66,10 +63,9 @@ public class FillingAssistant {
     public static void init(){
         fillingAssistant = addBooleanHotkeyConfig("fillingAssistant", false, "", ()->onMainValueChanged(fillingAssistant.getBooleanValue()));
         fillingAssistant.getKeybind().setCallback(new KeyCallbackToggleBoolean(fillingAssistant));
-        limitPlaceSpeedConfig = addThirdListConfig("limitPlaceSpeed", false);
-        maxBlockPerTickConfig = addDoubleConfig(limitPlaceSpeedConfig, "maxBlockPerTick", 1.0, 0, 64);
+        limitPlaceSpeedConfig = addLimitOperationSpeedConfig(false, 1);
         reachDistanceConfig = addReachDistanceConfig(
-                ()->testDistanceConfig.setMin((int)reachDistanceConfig.getAsDouble() + 1)
+            ()->testDistanceConfig.setMin((int)reachDistanceConfig.getAsDouble() + 1)
         );
         testDistanceConfig = addIntegerConfig("testDistance", 6, 6, 64, new TestDistanceChangeCallback());
         disableOnLeftDownConfig = addBooleanConfig("disableOnLeftDown", true);
@@ -80,7 +76,7 @@ public class FillingAssistant {
         notOpaqueAsPassableConfig = addBooleanConfig("notOpaqueAsPassable", true);
         requiredBlocksConfig = addStringListConfig("requiredBlocks", defaultRequiredBlockIdList, () -> requiredBlocks = blockSetFromIds(requiredBlocksConfig.getStrings()));
         offhandFillingConfig = addBooleanConfig("offhandFilling", false);
-        limitFillingRange = addRangeLimitConfig(false, "FA");
+        limitFillingRange = addRangeLimitConfig(false);
         outerRangeBlockMethod = addArrayOptionListConfig(limitFillingRange, "outerRangeBlockMethod");
         for(OuterRangeBlockMethod method : OuterRangeBlockMethod.values())
             outerRangeBlockMethod.addOption(method.getKey(), method);
@@ -107,8 +103,7 @@ public class FillingAssistant {
     }
 
     static BooleanHotkeyConfig fillingAssistant;
-    static ThirdListConfig limitPlaceSpeedConfig;
-    static DoubleConfig maxBlockPerTickConfig;
+    static LimitOperationSpeedConfig limitPlaceSpeedConfig;
     static ReachDistanceConfig reachDistanceConfig;
     static IntegerConfig testDistanceConfig;
     static BooleanConfig disableOnLeftDownConfig;
