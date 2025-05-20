@@ -15,7 +15,7 @@ public class AlgorithmUtils {
         return new Iterable<>(){
             @Override public @NotNull Iterator<BlockPos> iterator() {
                 return new Iterator<>() {
-                    final BlockPos.Mutable currentPos = new BlockPos.Mutable(-distance, 0, 0);
+                    final BlockPos.Mutable currentPos = new BlockPos.Mutable(-distance - 1, 0, 0);
                     final BlockPos.Mutable returnPos = new BlockPos.Mutable();
                     @Override public boolean hasNext() {
                         return currentPos.getX() < distance;
