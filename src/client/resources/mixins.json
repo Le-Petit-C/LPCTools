@@ -9,6 +9,7 @@
     "LanguageMixin",
     "OnMouseButtonReturnMixin",
     "SplashTextResourceSupplierMixin",
+    "SpriteContentsMixin",
     "WorldChunkMixin",
     "MASAMixins.MuteMASAConfigMinMaxMixin.ConfigDoubleMixin",
     "MASAMixins.MuteMASAConfigMinMaxMixin.ConfigIntegerMixin"

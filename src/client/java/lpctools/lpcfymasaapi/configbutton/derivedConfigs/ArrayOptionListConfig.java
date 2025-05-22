@@ -9,6 +9,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
+import java.util.NoSuchElementException;
+import java.util.Objects;
 import java.util.function.Supplier;
 
 public class ArrayOptionListConfig<T> extends OptionListConfig implements Supplier<T> {
@@ -35,16 +37,50 @@ public class ArrayOptionListConfig<T> extends OptionListConfig implements Suppli
             for(OptionData<T> option : options)
                 if(option.getStringValue().equals(value))
                     return option;
-            return null;
+            throw new NoSuchElementException(value);
+        }
+        @Override public boolean equals(Object obj) {
+            if(obj == this) return true;
+            if(obj instanceof ArrayOptionListConfig.EmptyOptionData<?> emptyOptionData){
+                return Objects.equals(options, emptyOptionData.options)
+                    && options.getFirst().equals(this);
+            }
+            else if(obj instanceof ArrayOptionListConfig.OptionData<?> data){
+                return Objects.equals(options, data.options)
+                    && Objects.equals(translationKey, data.translationKey)
+                    && Objects.equals(userData, data.userData);
+            }
+            else return false;
         }
     }
     public record EmptyOptionData<T>(@NotNull OptionList<T> options) implements IArrayConfigOptionListEntry<T>{
         public static <T> EmptyOptionData<T> of(){return new EmptyOptionData<>(new OptionList<>());}
-        @Override public String getStringValue() {return "";}
-        @Override public String getDisplayName() {return "";}
-        @Override public IConfigOptionListEntry cycle(boolean b) {return this;}
-        @Override public IConfigOptionListEntry fromString(String value) {return null;}
-        @Override public T userData() {return null;}
+        @Override public String getStringValue() {
+            if(options.isEmpty()) return "";
+            else return options.getFirst().getStringValue();
+        }
+        @Override public String getDisplayName() {
+            if(options.isEmpty()) return "";
+            else return options.getFirst().getDisplayName();
+        }
+        @Override public IConfigOptionListEntry cycle(boolean b) {
+            if(options.isEmpty()) return this;
+            else return options.getFirst().cycle(b);
+        }
+        @Override public IConfigOptionListEntry fromString(String value) {
+            if(options.isEmpty()) return this;
+            else return options.getFirst().fromString(value);
+        }
+        @Override public T userData() {
+            if(options.isEmpty()) return null;
+            else return options.getFirst().userData;}
+        @Override public boolean equals(Object obj) {
+            if(this == obj) return true;
+            if(obj instanceof ArrayOptionListConfig.EmptyOptionData<?> emptyOptionData)
+                return Objects.equals(this.options(), emptyOptionData.options());
+            if(options.isEmpty()) return false;
+            else return options.getFirst().equals(obj);
+        }
     }
     @SuppressWarnings("unchecked")
     @NotNull IArrayConfigOptionListEntry<T> getCurrentOptionData(){return ((IArrayConfigOptionListEntry<T>)getOptionListValue());}
@@ -59,6 +95,5 @@ public class ArrayOptionListConfig<T> extends OptionListConfig implements Suppli
     public void addOption(@NotNull String translationKey, T userData){
         OptionList<T> list = getCurrentOptionData().options();
         list.addOption(translationKey, userData);
-        if(list.size() == 1) setOptionListValue(list.getFirst());
     }
 }

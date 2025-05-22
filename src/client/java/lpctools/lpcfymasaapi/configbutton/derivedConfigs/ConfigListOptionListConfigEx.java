@@ -6,6 +6,7 @@ import lpctools.lpcfymasaapi.implementations.ILPCConfig;
 import lpctools.lpcfymasaapi.implementations.ILPCConfigList;
 import lpctools.lpcfymasaapi.implementations.ILPCValueChangeCallback;
 import lpctools.lpcfymasaapi.implementations.IThirdListBase;
+import net.minecraft.client.MinecraftClient;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -37,7 +38,6 @@ public class ConfigListOptionListConfigEx<T extends ILPCConfigList> extends Arra
         baseObject.add(selectionsId, listObjects);
         return baseObject;
     }
-    
     @Override public void setValueFromJsonElement(@NotNull JsonElement element) {
         if(element instanceof JsonObject object
             && object.get(superJsonId) instanceof JsonElement superJson
@@ -51,8 +51,22 @@ public class ConfigListOptionListConfigEx<T extends ILPCConfigList> extends Arra
         }
         else warnFailedLoadingConfig(this, element);
     }
-    T addList(T list){
-        addOption(list.getFullTranslationKey(), list);
+    @Override public void onValueChanged() {
+        super.onValueChanged();
+        MinecraftClient mc = MinecraftClient.getInstance();
+        if(mc.currentScreen != null && getPage().get() == mc.currentScreen)
+            getPage().showPage();
+    }
+    @Override public boolean isModified() {
+        return !getOptionListValue().equals(getDefaultOptionListValue());
+    }
+    @Override public boolean isModified(String newValue) {
+        try {return !getOptionListValue().fromString(newValue).equals(getDefaultOptionListValue());
+        } catch (Exception ignored) {}
+        return true;
+    }
+    public T addList(T list){
+        addOption(list.getTitleFullTranslationKey(), list);
         return list;
     }
 }

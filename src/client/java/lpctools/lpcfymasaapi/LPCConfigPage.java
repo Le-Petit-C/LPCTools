@@ -16,6 +16,7 @@ import fi.dy.masa.malilib.gui.button.IButtonActionListener;
 import fi.dy.masa.malilib.gui.button.ButtonBase;
 import fi.dy.masa.malilib.gui.button.ButtonGeneric;
 import lpctools.lpcfymasaapi.implementations.ILPCConfigBase;
+import net.minecraft.client.MinecraftClient;
 import org.jetbrains.annotations.NotNull;
 
 import java.nio.file.Files;
@@ -52,7 +53,9 @@ public class LPCConfigPage implements IConfigHandler, Supplier<GuiBase>, ILPCCon
     //显示当前页面
     public void showPage(){
         if(pageInstance != null) pageInstance.initGui();
-        else GuiBase.openGui(pageInstance = new ConfigPageInstance(this));
+        else pageInstance = new ConfigPageInstance(this);
+        if(MinecraftClient.getInstance().currentScreen != pageInstance)
+            GuiBase.openGui(pageInstance);
     }
     //获取当前列
     public LPCConfigList getList(){return lists.get(selectedIndex);}

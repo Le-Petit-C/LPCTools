@@ -264,9 +264,9 @@ public interface LPCConfigStatics {
         return addLimitOperationSpeedConfig(peekConfigList(), defaultBoolean, defaultDouble);
     }
     static <T extends ILPCConfigList> ConfigListOptionListConfigEx<T> addConfigListOptionListConfigEx(@NotNull String nameKey){
-        return peekConfigList().addConfig(new ConfigListOptionListConfigEx<>(peekConfigList(), nameKey));
+        return addConfigListOptionListConfigEx(peekConfigList(), nameKey);
     }
     static <T extends ILPCConfigList> ConfigListOptionListConfigEx<T> addConfigListOptionListConfigEx(@NotNull String nameKey, @Nullable ILPCValueChangeCallback callback){
-        return peekConfigList().addConfig(new ConfigListOptionListConfigEx<>(peekConfigList(), nameKey, callback));
+        return addConfigListOptionListConfigEx(peekConfigList(), nameKey, callback);
     }
 }

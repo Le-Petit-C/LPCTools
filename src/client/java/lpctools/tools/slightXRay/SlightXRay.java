@@ -1,22 +1,21 @@
 package lpctools.tools.slightXRay;
 
 import com.google.common.collect.ImmutableList;
+import com.google.gson.JsonElement;
 import fi.dy.masa.malilib.render.MaLiLibPipelines;
 import fi.dy.masa.malilib.render.RenderContext;
 import fi.dy.masa.malilib.util.data.Color4f;
-import it.unimi.dsi.fastutil.objects.Object2IntMap;
-import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import lpctools.LPCTools;
 import lpctools.compact.derived.ShapeList;
 import lpctools.lpcfymasaapi.LPCConfigList;
 import lpctools.lpcfymasaapi.Registry;
 import lpctools.lpcfymasaapi.configbutton.derivedConfigs.ConfigListOptionListConfigEx;
+import lpctools.lpcfymasaapi.configbutton.transferredConfigs.*;
 import lpctools.lpcfymasaapi.implementations.ILPCConfigBase;
+import lpctools.lpcfymasaapi.implementations.ILPCConfigList;
 import lpctools.lpcfymasaapi.implementations.ILPCValueChangeCallback;
 import lpctools.lpcfymasaapi.configbutton.derivedConfigs.RangeLimitConfig;
-import lpctools.lpcfymasaapi.configbutton.transferredConfigs.BooleanHotkeyConfig;
-import lpctools.lpcfymasaapi.configbutton.transferredConfigs.ColorConfig;
-import lpctools.lpcfymasaapi.configbutton.transferredConfigs.StringListConfig;
+import lpctools.mixin.client.SpriteContentsMixin;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientChunkEvents;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientWorldEvents;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext;
@@ -28,13 +27,19 @@ import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.client.render.BufferBuilder;
 import net.minecraft.client.render.BuiltBuffer;
+import net.minecraft.client.render.model.BlockStateModel;
+import net.minecraft.client.texture.NativeImage;
+import net.minecraft.client.texture.Sprite;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.util.math.*;
 import net.minecraft.world.World;
 import net.minecraft.world.chunk.WorldChunk;
+import org.apache.commons.lang3.mutable.MutableInt;
 import org.jetbrains.annotations.NotNull;
 import org.joml.*;
 
+import java.awt.*;
+import java.lang.Math;
 import java.util.*;
 
 import static lpctools.lpcfymasaapi.LPCConfigStatics.*;
@@ -45,29 +50,85 @@ import static lpctools.util.MathUtils.*;
 
 public class SlightXRay implements ILPCValueChangeCallback, WorldRenderEvents.End, ClientChunkEvents.Load, ClientChunkEvents.Unload, ClientWorldEvents.AfterClientWorldChange {
     //markedBlocks放在多线程里用，记得要同步
-    static final @NotNull Object2IntOpenHashMap<BlockPos> markedBlocks = new Object2IntOpenHashMap<>();
+    static final @NotNull HashMap<BlockPos, MutableInt> markedBlocks = new HashMap<>();
     static final @NotNull ImmutableList<Block> defaultXRayBlocks = ImmutableList.of(
-            Blocks.DIAMOND_ORE, Blocks.DEEPSLATE_DIAMOND_ORE,
-            Blocks.DEEPSLATE_COAL_ORE, Blocks.EMERALD_ORE, Blocks.DEEPSLATE_EMERALD_ORE,
-            Blocks.OBSIDIAN, Blocks.CRYING_OBSIDIAN, Blocks.ENDER_CHEST, Blocks.REINFORCED_DEEPSLATE,
-            Blocks.BUDDING_AMETHYST, Blocks.CALCITE
+        Blocks.DIAMOND_ORE, Blocks.DEEPSLATE_DIAMOND_ORE,
+        Blocks.DEEPSLATE_COAL_ORE, Blocks.EMERALD_ORE, Blocks.DEEPSLATE_EMERALD_ORE,
+        Blocks.OBSIDIAN, Blocks.CRYING_OBSIDIAN, Blocks.ENDER_CHEST, Blocks.REINFORCED_DEEPSLATE,
+        Blocks.BUDDING_AMETHYST, Blocks.CALCITE,
+        Blocks.ANCIENT_DEBRIS
     );
-    static final @NotNull Object2IntOpenHashMap<Block> XRayBlocks = new Object2IntOpenHashMap<>(defaultXRayBlocks.toArray(new Block[0]), new int[defaultXRayBlocks.size()]);
+    static final @NotNull HashMap<Block, MutableInt> XRayBlocks;
     static final @NotNull ImmutableList<String> defaultXRayBlockIds = idListFromBlockList(defaultXRayBlocks);
     public static BooleanHotkeyConfig slightXRay;
     public static ConfigListOptionListConfigEx<ConfigListWithColorMethod> defaultColorMethod;
-    public static ColorConfig displayColor;
+    public static ColorConfig defaultColor;
     public static StringListConfig XRayBlocksConfig;
     public static RangeLimitConfig displayRange;
+    public static DoubleConfig saturationDelta;
+    public static DoubleConfig brightnessDelta;
+    public static IntegerConfig defaultAlpha;
+    static {
+        XRayBlocks = new HashMap<>();
+        for(Block block : defaultXRayBlocks)
+            XRayBlocks.put(block, new MutableInt(0));
+    }
 
     public static void init(){
         slightXRay = addBooleanHotkeyConfig("slightXRay", false, null, new SlightXRay());
         setLPCToolsToggleText(slightXRay);
-        defaultColorMethod = addConfigListOptionListConfigEx("defaultColor");
-        defaultColorMethod.addOption("displayColor", new ConfigListWithColorMethod(defaultColorMethod, "displayColor"));
-        displayColor = addColorConfig("displayColor", Color4f.fromColor(0x7F3F7FFF));
+        defaultColorMethod = peekConfigList().addConfig(
+            new ConfigListOptionListConfigEx<>(peekConfigList(), "defaultColorMethod", SlightXRay::refreshXRayBlocks){
+                @Override public void setValueFromJsonElement(@NotNull JsonElement element) {
+                    super.setValueFromJsonElement(element);
+                    onValueChanged();
+                }
+            });
+        ILPCConfigList byDefaultColor = defaultColorMethod.addList(
+            new ConfigListWithColorBase(defaultColorMethod, "byDefaultColor", block->defaultColor.getIntegerValue()) {
+        });
+        defaultColor = addColorConfig(byDefaultColor, "defaultColor", new Color4f(127, 127, 255, 127), SlightXRay::refreshXRayBlocks);
+        ILPCConfigList byTextureColor = defaultColorMethod.addList(
+            new ConfigListWithColorBase(defaultColorMethod, "byTextureColor", SlightXRay::getColorByTextureColor)
+        );
+        defaultAlpha = addIntegerConfig(byTextureColor, "defaultAlpha", 127, 0, 255, SlightXRay::refreshXRayBlocks);
+        saturationDelta = addDoubleConfig(byTextureColor, "saturationDelta", 1, -5, 5, SlightXRay::refreshXRayBlocks);
+        brightnessDelta = addDoubleConfig(byTextureColor, "brightnessDelta", 1, -5, 5, SlightXRay::refreshXRayBlocks);
         XRayBlocksConfig = addStringListConfig("XRayBlocks", defaultXRayBlockIds, SlightXRay::refreshXRayBlocks);
         displayRange = addRangeLimitConfig(false);
+    }
+    
+    private static int getColorByTextureColor(Block block) {
+        try{
+            BlockStateModel model = MinecraftClient.getInstance().getBlockRenderManager()
+                .getModel(block.getDefaultState());
+            Sprite particleSprite = model.particleSprite();
+            float r = 0, g = 0, b = 0;
+            float t = 0;
+            for(NativeImage image : ((SpriteContentsMixin)particleSprite.getContents()).getMipmapLevelsImages()){
+                for(int color : image.copyPixelsArgb()){
+                    float k = (color >>> 24) / 255.0f;
+                    r += ((color >>> 16) & 0xff) * k;
+                    g += ((color >>> 8) & 0xff) * k;
+                    b += (color & 0xff) * k;
+                    t += k;
+                }
+            }
+            if(t == 0) return 0x7f000000;
+            int ri = Math.round(r / t);
+            int gi = Math.round(g / t);
+            int bi = Math.round(b / t);
+            float[] hsb = Color.RGBtoHSB(ri, gi, bi, new float[3]);
+            hsb[1] = (float) Math.tanh(atanh(hsb[1] * 2 - 1) + saturationDelta.getAsDouble()) * 0.5f + 0.5f;
+            hsb[2] = (float) Math.tanh(atanh(hsb[2] * 2 - 1) + brightnessDelta.getAsDouble()) * 0.5f + 0.5f;
+            return (Color.HSBtoRGB(hsb[0], hsb[1], hsb[2]) & 0x00ffffff) | (defaultAlpha.getAsInt() << 24);
+        }
+        catch (Exception e){return 0x7f000000;}
+    }
+    
+    public static double atanh(double x) {
+        if (Math.abs(x) > 1) throw new IllegalArgumentException("atanh: input value out of bound [-1, 1]");
+        return 0.5 * Math.log((1 + x) / (1 - x));
     }
 
     private static void addAllRenderRegionsIntoWork(){
@@ -89,14 +150,15 @@ public class SlightXRay implements ILPCValueChangeCallback, WorldRenderEvents.En
     }
 
     private static void refreshXRayBlocks(){
-        Object2IntOpenHashMap<Block> newBlocks = new Object2IntOpenHashMap<>();
+        if(XRayBlocksConfig == null) return;
+        HashMap<Block, MutableInt> newBlocks = new HashMap<>();
         for(String str : XRayBlocksConfig){
             String[] splits = str.split(";");
             if(splits.length > 0 && splits.length < 3){
                 Block block = getBlockFromId(splits[0], true);
                 if(block == null) continue;
                 Integer color = null;
-                /*if(splits.length > 1) {
+                if(splits.length > 1) {
                     try {
                         color = Integer.parseUnsignedInt(splits[1], 16);
                     }catch (NumberFormatException e){
@@ -104,13 +166,16 @@ public class SlightXRay implements ILPCValueChangeCallback, WorldRenderEvents.En
                         continue;
                     }
                 }
-                if(color == null) color = displayColor.getColor().intValue;*/
-                color = block.getDefaultMapColor().color | (displayColor.getIntegerValue() & 0xff000000);
-                newBlocks.addTo(block, color);
+                if(color == null) color = defaultColorMethod.getCurrentUserdata().getColor(block);
+                newBlocks.put(block, new MutableInt(color));
             }
             else warnInvalidString(str);
         }
-        if(XRayBlocks.equals(newBlocks)) return;
+        if(XRayBlocks.keySet().equals(newBlocks.keySet())) {
+            for(Map.Entry<Block, MutableInt> block : newBlocks.entrySet())
+                XRayBlocks.get(block.getKey()).setValue(block.getValue());
+            return;
+        }
         XRayBlocks.clear();
         XRayBlocks.putAll(newBlocks);
         if(slightXRay.getAsBoolean()){
@@ -154,9 +219,9 @@ public class SlightXRay implements ILPCValueChangeCallback, WorldRenderEvents.En
         ShapeList shapes = displayRange.buildShapeList();
         boolean bufferUsed = false;
         synchronized (markedBlocks){
-            for(Object2IntMap.Entry<BlockPos> pos : markedBlocks.object2IntEntrySet()){
+            for(Map.Entry<BlockPos, MutableInt> pos : markedBlocks.entrySet()){
                 if(shapes.testPos(pos.getKey())){
-                    vertexBlock(matrix, buffer, pos.getKey(), pos.getIntValue(), shapes);
+                    vertexBlock(matrix, buffer, pos.getKey(), pos.getValue().intValue(), shapes);
                     bufferUsed = true;
                 }
             }
@@ -226,7 +291,7 @@ public class SlightXRay implements ILPCValueChangeCallback, WorldRenderEvents.En
         for(BlockPos pos1 : iterateInManhattanDistance(pos, 2)) {
             if(doShowAround(world.getBlockState(pos1))){
                 synchronized (markedBlocks){
-                    markedBlocks.put(pos.toImmutable(), XRayBlocks.getInt(state.getBlock()));
+                    markedBlocks.put(pos.toImmutable(), XRayBlocks.get(state.getBlock()));
                 }
                 return;
             }
@@ -240,18 +305,16 @@ public class SlightXRay implements ILPCValueChangeCallback, WorldRenderEvents.En
     static class XRayNecessaryState{
         public static class Data{
             public boolean doShowAround = false;
-            public int color = 0;
+            public MutableInt color = null;
             void set(BlockState state){
                 doShowAround = doShowAround(state);
                 Block block = state.getBlock();
-                if(XRayBlocks.containsKey(block))
-                    color = XRayBlocks.getInt(block);
-                else color = 0;
+                color = XRayBlocks.get(block);
                 if(state.getBlock() == Blocks.VOID_AIR)
                     doShowAround = false;
             }
             @SuppressWarnings("SameParameterValue")
-            void set(boolean doShowAround, int color){
+            void set(boolean doShowAround, MutableInt color){
                 this.doShowAround = doShowAround;
                 this.color = color;
             }
@@ -346,7 +409,7 @@ public class SlightXRay implements ILPCValueChangeCallback, WorldRenderEvents.En
             for(Map.Entry<BlockPos, XRayNecessaryState.Data> entry : states.iterateIn(2)){
                 int y = entry.getKey().getY();
                 boolean doShowAround = y < 2 || y >= states.worldHeight + 2;
-                entry.getValue().set(doShowAround, 0);
+                entry.getValue().set(doShowAround, null);
             }
         }catch (Exception e){
             notifyPlayer(e.getMessage(), false);
@@ -424,7 +487,7 @@ public class SlightXRay implements ILPCValueChangeCallback, WorldRenderEvents.En
     }
     private static void markData(BlockPos blockPos, BlockPos chunkStartPos, XRayNecessaryState.Data data){
         BlockPos pos = chunkStartPos.add(blockPos);
-        if(data.color != 0){
+        if(data.color != null){
             synchronized (markedBlocks){
                 markedBlocks.put(pos.toImmutable(), data.color);
             }
@@ -561,10 +624,17 @@ public class SlightXRay implements ILPCValueChangeCallback, WorldRenderEvents.En
         }
     }
     public interface DefaultColorMethod{
-    
+        int getColor(Block block);
     }
-    public static class ConfigListWithColorMethod extends LPCConfigList implements DefaultColorMethod{
-        public ConfigListWithColorMethod(ILPCConfigBase parent, String nameKey) {super(parent, nameKey);}
-        
+    public interface ConfigListWithColorMethod extends ILPCConfigList, DefaultColorMethod{}
+    public static class ConfigListWithColorBase extends LPCConfigList implements ConfigListWithColorMethod{
+        public ConfigListWithColorBase(ILPCConfigBase parent, String nameKey, @NotNull DefaultColorMethod defaultColorMethod) {
+            super(parent, nameKey);
+            this.defaultColorMethod = defaultColorMethod;
+        }
+        @Override public int getColor(Block block) {
+            return defaultColorMethod.getColor(block);
+        }
+        @NotNull DefaultColorMethod defaultColorMethod;
     }
 }

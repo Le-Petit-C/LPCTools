@@ -15,7 +15,7 @@ public class ConfigListOptionListConfig extends ConfigListOptionListConfigEx<ILP
     public ConfigListOptionListConfig(@NotNull ILPCConfigList parent, @NotNull String nameKey, @Nullable ILPCValueChangeCallback callback) {
         super(parent, nameKey, callback);
     }
-    ILPCConfigList addList(String nameKey){
+    public ILPCConfigList addList(String nameKey){
         ILPCConfigList list = new LPCConfigList(getParent(), getNameKey() + '.' + nameKey);
         return super.addList(list);
     }
