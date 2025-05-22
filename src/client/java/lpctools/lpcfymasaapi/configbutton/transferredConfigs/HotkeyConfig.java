@@ -54,7 +54,7 @@ public class HotkeyConfig extends ConfigHotkey implements ILPC_MASAConfigWrapper
         @Nullable private final BooleanSupplier enabled;
     }
 
-    @Override public void setValueFromJsonElement(JsonElement element) {
+    @Override public void setValueFromJsonElement(@NotNull JsonElement element) {
         List<Integer> lastKeys = List.copyOf(getKeybind().getKeys());
         super.setValueFromJsonElement(element);
         if(!lastKeys.equals(getKeybind().getKeys())) onValueChanged();

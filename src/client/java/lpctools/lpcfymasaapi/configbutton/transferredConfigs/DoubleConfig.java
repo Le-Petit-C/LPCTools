@@ -31,7 +31,7 @@ public class DoubleConfig extends ConfigDouble implements ILPC_MASAConfigWrapper
     public double setMax(double value){return LPCConfigUtils.muteMaxValue(this, value);}
     public double setMin(double value){return LPCConfigUtils.muteMinValue(this, value);}
 
-    @Override public void setValueFromJsonElement(JsonElement element) {
+    @Override public void setValueFromJsonElement(@NotNull JsonElement element) {
         double lastValue = getAsDouble();
         super.setValueFromJsonElement(element);
         if(lastValue != getAsDouble()) onValueChanged();

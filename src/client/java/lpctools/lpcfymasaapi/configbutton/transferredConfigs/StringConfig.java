@@ -28,7 +28,7 @@ public class StringConfig extends ConfigString implements ILPC_MASAConfigWrapper
         this(parent, nameKey, null, null);
     }
 
-    @Override public void setValueFromJsonElement(JsonElement element) {
+    @Override public void setValueFromJsonElement(@NotNull JsonElement element) {
         String lastString = get();
         super.setValueFromJsonElement(element);
         if(!lastString.equals(get())) onValueChanged();

@@ -1,6 +1,5 @@
 package lpctools.lpcfymasaapi.implementations;
 
-import com.google.gson.JsonObject;
 import fi.dy.masa.malilib.config.IConfigBase;
 import fi.dy.masa.malilib.config.IConfigResettable;
 import lpctools.lpcfymasaapi.LPCConfigPage;
@@ -40,14 +39,5 @@ public interface ILPCConfig extends ILPCConfigBase, IConfigBase, IConfigResettab
         }
         result.append(getNameTranslation());
         return result.toString();
-    }
-    //转化为JSON加入到配置列表JSON中
-    default void addIntoConfigListJson(@NotNull JsonObject configListJson){
-        configListJson.add(getName(), getAsJsonElement());
-    }
-    //从配置列表JSON中加载配置
-    default void loadFromConfigListJson(@NotNull JsonObject configListJson){
-        if (!configListJson.has(getName())) return;
-        setValueFromJsonElement(configListJson.get(getName()));
     }
 }

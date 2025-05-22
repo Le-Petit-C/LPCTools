@@ -25,7 +25,7 @@ public class StringListConfig extends ConfigStringList implements ILPC_MASAConfi
         ILPC_MASAConfigWrapperDefaultInit(callback);
     }
 
-    @Override public void setValueFromJsonElement(JsonElement element) {
+    @Override public void setValueFromJsonElement(@NotNull JsonElement element) {
         List<String> lastStrings = List.copyOf(getStrings());
         super.setValueFromJsonElement(element);
         if(!lastStrings.equals(getStrings())) onValueChanged();

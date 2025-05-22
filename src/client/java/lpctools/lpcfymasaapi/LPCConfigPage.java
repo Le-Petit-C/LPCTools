@@ -22,7 +22,10 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Supplier;
+
+import static lpctools.lpcfymasaapi.LPCConfigUtils.*;
 
 //单个总设置页面，就是在设置右上角分列出的不同页面
 public class LPCConfigPage implements IConfigHandler, Supplier<GuiBase>, ILPCConfigBase {
@@ -61,17 +64,9 @@ public class LPCConfigPage implements IConfigHandler, Supplier<GuiBase>, ILPCCon
     //如果文件中有目前未注册的配置项，不理它但是保留
     @Override public void load() {
         Path configFile = FileUtils.getConfigDirectoryAsPath().resolve(configFileName);
-        if (Files.exists(configFile) && Files.isReadable(configFile)) {
-            JsonElement element = JsonUtils.parseJsonFileAsPath(configFile);
-            if (element != null && element.isJsonObject()){
-                JsonObject pageJson = element.getAsJsonObject();
-                for(LPCConfigList list : lists)
-                    list.loadConfigListFromJson(pageJson);
-            }
-            else LPCAPIInit.LOGGER.error(
-                    "load(): Failed to parse config file '{}' as a JSON element.",
-                    configFile.toAbsolutePath());
-        }
+        if (Files.exists(configFile) && Files.isReadable(configFile)
+            && JsonUtils.parseJsonFileAsPath(configFile) instanceof JsonElement pageJson)
+            setValueFromJsonElement(pageJson);
     }
     @Override public void save() {
         Path configFile = FileUtils.getConfigDirectoryAsPath().resolve(configFileName);
@@ -82,17 +77,30 @@ public class LPCConfigPage implements IConfigHandler, Supplier<GuiBase>, ILPCCon
                 pageJson = element.getAsJsonObject();
         }
         if(pageJson == null) pageJson = new JsonObject();
+        for(Map.Entry<String, JsonElement> pair : getAsJsonElement().entrySet())
+            pageJson.add(pair.getKey(), pair.getValue());
         Path dir = FileUtils.getConfigDirectoryAsPath();
         if (!Files.exists(dir))
             FileUtils.createDirectoriesIfMissing(dir);
         if (Files.isDirectory(dir)) {
-            for(LPCConfigList list : lists)
-                list.addConfigListIntoJson(pageJson);
             Path file = dir.resolve(configFileName);
             JsonUtils.writeJsonToFileAsPath(pageJson, file);
         }
     }
-
+    @Override public @NotNull JsonObject getAsJsonElement() {
+        JsonObject pageJson = new JsonObject();
+        for(LPCConfigList list : lists)
+            list.addIntoParentJsonObject(pageJson);
+        return pageJson;
+    }
+    @Override public void setValueFromJsonElement(@NotNull JsonElement data) {
+        if(data instanceof JsonObject jsonObject){
+            for(LPCConfigList list : lists)
+                list.setValueFromParentJsonObject(jsonObject);
+        }
+        else warnFailedLoadingConfig(this, data);
+    }
+    
     static void staticAfterInit(){
         if(uninitializedConfigPages == null) return;
         for(LPCConfigPage page : uninitializedConfigPages)
@@ -120,6 +128,7 @@ public class LPCConfigPage implements IConfigHandler, Supplier<GuiBase>, ILPCCon
     @Override public @NotNull StringBuilder getFullPath() {
         return new StringBuilder(getModReference().modId).append('.').append(getNameKey());
     }
+    
     @Override public @NotNull LPCConfigPage getPage() {return this;}
 
     private static class ConfigPageInstance extends GuiConfigsBase{

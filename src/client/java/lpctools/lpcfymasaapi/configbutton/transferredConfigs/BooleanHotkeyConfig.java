@@ -24,7 +24,7 @@ public class BooleanHotkeyConfig extends ConfigBooleanHotkeyed implements ILPC_M
         ILPC_MASAConfigWrapperDefaultInit(callback);
         parent.getPage().getInputHandler().addHotkey(this);
     }
-    @Override public void setValueFromJsonElement(JsonElement element) {
+    @Override public void setValueFromJsonElement(@NotNull JsonElement element) {
         boolean lastBoolean = getAsBoolean();
         List<Integer> lastKeys = List.copyOf(getKeybind().getKeys());
         super.setValueFromJsonElement(element);

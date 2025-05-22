@@ -23,7 +23,7 @@ public class ColorConfig extends ConfigColor implements ILPC_MASAConfigWrapper<C
         ILPC_MASAConfigWrapperDefaultInit(callback);
     }
 
-    @Override public void setValueFromJsonElement(JsonElement element) {
+    @Override public void setValueFromJsonElement(@NotNull JsonElement element) {
         Color4f lastValue = getColor();
         super.setValueFromJsonElement(element);
         if(!lastValue.equals(getColor())) onValueChanged();

@@ -12,7 +12,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class OptionListConfig extends ConfigOptionList implements ILPC_MASAConfigWrapper<ConfigOptionList>, IButtonDisplay{
-
     public OptionListConfig(@NotNull ILPCConfigList parent, @NotNull String nameKey, @NotNull IConfigOptionListEntry defaultValue) {
         this(parent, nameKey, defaultValue, null);
     }
@@ -21,7 +20,7 @@ public class OptionListConfig extends ConfigOptionList implements ILPC_MASAConfi
         data = new LPCConfigData(parent, false);
         ILPC_MASAConfigWrapperDefaultInit(callback);
     }
-    @Override public void setValueFromJsonElement(JsonElement element) {
+    @Override public void setValueFromJsonElement(@NotNull JsonElement element) {
         String lastString = getStringValue();
         super.setValueFromJsonElement(element);
         if(!lastString.equals(getStringValue())) onValueChanged();

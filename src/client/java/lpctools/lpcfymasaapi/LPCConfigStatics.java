@@ -113,11 +113,11 @@ public interface LPCConfigStatics {
     static <T> ArrayOptionListConfig<T> addArrayOptionListConfig(ILPCConfigList list, @NotNull String nameKey, ILPCValueChangeCallback callback){
         return list.addConfig(new ArrayOptionListConfig<>(list, nameKey, callback));
     }
-    static ConfigListListConfig addConfigListListConfig(ILPCConfigList list, @NotNull String nameKey){
-        return list.addConfig(new ConfigListListConfig(list, nameKey));
+    static ConfigListOptionListConfig addConfigListOptionListConfig(ILPCConfigList list, @NotNull String nameKey){
+        return list.addConfig(new ConfigListOptionListConfig(list, nameKey));
     }
-    static ConfigListListConfig addConfigListListConfig(ILPCConfigList list, @NotNull String nameKey, ILPCValueChangeCallback callback){
-        return list.addConfig(new ConfigListListConfig(list, nameKey, callback));
+    static ConfigListOptionListConfig addConfigListOptionListConfig(ILPCConfigList list, @NotNull String nameKey, ILPCValueChangeCallback callback){
+        return list.addConfig(new ConfigListOptionListConfig(list, nameKey, callback));
     }
     static ReachDistanceConfig addReachDistanceConfig(ILPCConfigList list){
         return list.addConfig(new ReachDistanceConfig(list));
@@ -127,6 +127,12 @@ public interface LPCConfigStatics {
     }
     static LimitOperationSpeedConfig addLimitOperationSpeedConfig(ILPCConfigList list, boolean defaultBoolean, double defaultDouble){
         return list.addConfig(new LimitOperationSpeedConfig(list, defaultBoolean, defaultDouble));
+    }
+    static <T extends ILPCConfigList> ConfigListOptionListConfigEx<T> addConfigListOptionListConfigEx(ILPCConfigList list, @NotNull String nameKey){
+        return list.addConfig(new ConfigListOptionListConfigEx<>(list, nameKey));
+    }
+    static <T extends ILPCConfigList> ConfigListOptionListConfigEx<T> addConfigListOptionListConfigEx(ILPCConfigList list, @NotNull String nameKey, @Nullable ILPCValueChangeCallback callback){
+        return list.addConfig(new ConfigListOptionListConfigEx<>(list, nameKey, callback));
     }
 
     //不带List版本的，使用栈存储当前list，方便操作
@@ -242,11 +248,11 @@ public interface LPCConfigStatics {
     static <T> ArrayOptionListConfig<T> addArrayOptionListConfig(@NotNull String nameKey, ILPCValueChangeCallback callback){
         return addArrayOptionListConfig(peekConfigList(), nameKey, callback);
     }
-    static ConfigListListConfig addConfigListListConfig(@NotNull String nameKey){
-        return addConfigListListConfig(peekConfigList(), nameKey);
+    static ConfigListOptionListConfig addConfigListOptionListConfig(@NotNull String nameKey){
+        return addConfigListOptionListConfig(peekConfigList(), nameKey);
     }
-    static ConfigListListConfig addConfigListListConfig(@NotNull String nameKey, ILPCValueChangeCallback callback){
-        return addConfigListListConfig(peekConfigList(), nameKey, callback);
+    static ConfigListOptionListConfig addConfigListOptionListConfig(@NotNull String nameKey, ILPCValueChangeCallback callback){
+        return addConfigListOptionListConfig(peekConfigList(), nameKey, callback);
     }
     static ReachDistanceConfig addReachDistanceConfig(){
         return addReachDistanceConfig(peekConfigList());
@@ -256,5 +262,11 @@ public interface LPCConfigStatics {
     }
     static LimitOperationSpeedConfig addLimitOperationSpeedConfig(boolean defaultBoolean, double defaultDouble){
         return addLimitOperationSpeedConfig(peekConfigList(), defaultBoolean, defaultDouble);
+    }
+    static <T extends ILPCConfigList> ConfigListOptionListConfigEx<T> addConfigListOptionListConfigEx(@NotNull String nameKey){
+        return peekConfigList().addConfig(new ConfigListOptionListConfigEx<>(peekConfigList(), nameKey));
+    }
+    static <T extends ILPCConfigList> ConfigListOptionListConfigEx<T> addConfigListOptionListConfigEx(@NotNull String nameKey, @Nullable ILPCValueChangeCallback callback){
+        return peekConfigList().addConfig(new ConfigListOptionListConfigEx<>(peekConfigList(), nameKey, callback));
     }
 }

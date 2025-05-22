@@ -25,7 +25,7 @@ public class BooleanConfig extends ConfigBoolean implements ILPC_MASAConfigWrapp
     @Override public void accept(boolean b) {setBooleanValue(b);}
     @Override public @NotNull LPCConfigData getLPCConfigData() {return data;}
     private final @NotNull LPCConfigData data;
-    @Override public void setValueFromJsonElement(JsonElement element){
+    @Override public void setValueFromJsonElement(@NotNull JsonElement element){
         boolean lastValue = getBooleanValue();
         super.setValueFromJsonElement(element);
         if(lastValue != getBooleanValue()) onValueChanged();

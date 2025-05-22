@@ -8,7 +8,10 @@ import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import lpctools.LPCTools;
 import lpctools.compact.derived.ShapeList;
+import lpctools.lpcfymasaapi.LPCConfigList;
 import lpctools.lpcfymasaapi.Registry;
+import lpctools.lpcfymasaapi.configbutton.derivedConfigs.ConfigListOptionListConfigEx;
+import lpctools.lpcfymasaapi.implementations.ILPCConfigBase;
 import lpctools.lpcfymasaapi.implementations.ILPCValueChangeCallback;
 import lpctools.lpcfymasaapi.configbutton.derivedConfigs.RangeLimitConfig;
 import lpctools.lpcfymasaapi.configbutton.transferredConfigs.BooleanHotkeyConfig;
@@ -52,6 +55,7 @@ public class SlightXRay implements ILPCValueChangeCallback, WorldRenderEvents.En
     static final @NotNull Object2IntOpenHashMap<Block> XRayBlocks = new Object2IntOpenHashMap<>(defaultXRayBlocks.toArray(new Block[0]), new int[defaultXRayBlocks.size()]);
     static final @NotNull ImmutableList<String> defaultXRayBlockIds = idListFromBlockList(defaultXRayBlocks);
     public static BooleanHotkeyConfig slightXRay;
+    public static ConfigListOptionListConfigEx<ConfigListWithColorMethod> defaultColorMethod;
     public static ColorConfig displayColor;
     public static StringListConfig XRayBlocksConfig;
     public static RangeLimitConfig displayRange;
@@ -59,6 +63,8 @@ public class SlightXRay implements ILPCValueChangeCallback, WorldRenderEvents.En
     public static void init(){
         slightXRay = addBooleanHotkeyConfig("slightXRay", false, null, new SlightXRay());
         setLPCToolsToggleText(slightXRay);
+        defaultColorMethod = addConfigListOptionListConfigEx("defaultColor");
+        defaultColorMethod.addOption("displayColor", new ConfigListWithColorMethod(defaultColorMethod, "displayColor"));
         displayColor = addColorConfig("displayColor", Color4f.fromColor(0x7F3F7FFF));
         XRayBlocksConfig = addStringListConfig("XRayBlocks", defaultXRayBlockIds, SlightXRay::refreshXRayBlocks);
         displayRange = addRangeLimitConfig(false);
@@ -90,7 +96,7 @@ public class SlightXRay implements ILPCValueChangeCallback, WorldRenderEvents.En
                 Block block = getBlockFromId(splits[0], true);
                 if(block == null) continue;
                 Integer color = null;
-                if(splits.length > 1) {
+                /*if(splits.length > 1) {
                     try {
                         color = Integer.parseUnsignedInt(splits[1], 16);
                     }catch (NumberFormatException e){
@@ -98,7 +104,8 @@ public class SlightXRay implements ILPCValueChangeCallback, WorldRenderEvents.En
                         continue;
                     }
                 }
-                if(color == null) color = displayColor.getColor().intValue;
+                if(color == null) color = displayColor.getColor().intValue;*/
+                color = block.getDefaultMapColor().color | (displayColor.getIntegerValue() & 0xff000000);
                 newBlocks.addTo(block, color);
             }
             else warnInvalidString(str);
@@ -144,7 +151,6 @@ public class SlightXRay implements ILPCValueChangeCallback, WorldRenderEvents.En
         RenderContext ctx = new RenderContext(MaLiLibPipelines.POSITION_COLOR_MASA_NO_DEPTH);
         BufferBuilder buffer = ctx.getBuilder();
         Matrix4d matrix = worldToCameraMatrix4d(context.camera());
-        //int color = displayColor.get().getIntValue();
         ShapeList shapes = displayRange.buildShapeList();
         boolean bufferUsed = false;
         synchronized (markedBlocks){
@@ -241,6 +247,8 @@ public class SlightXRay implements ILPCValueChangeCallback, WorldRenderEvents.En
                 if(XRayBlocks.containsKey(block))
                     color = XRayBlocks.getInt(block);
                 else color = 0;
+                if(state.getBlock() == Blocks.VOID_AIR)
+                    doShowAround = false;
             }
             @SuppressWarnings("SameParameterValue")
             void set(boolean doShowAround, int color){
@@ -259,7 +267,7 @@ public class SlightXRay implements ILPCValueChangeCallback, WorldRenderEvents.En
                         data2[z] = new Data();
         }
         Data get(BlockPos pos){
-            return get(pos.getX() + 2, pos.getY() + 2, pos.getZ() + 2);
+            return get(pos.getX(), pos.getY(), pos.getZ());
         }
         Data get(int x, int y, int z){
             return data[x + 2][y + 2][z + 2];
@@ -359,6 +367,7 @@ public class SlightXRay implements ILPCValueChangeCallback, WorldRenderEvents.En
             }
         }
         //加载相邻区块中数据
+        world.isChunkLoaded(cx, cz);
         WorldChunk nxChunk = world.getChunk(cx - 1, cz);
         WorldChunk pxChunk = world.getChunk(cx + 1, cz);
         WorldChunk nzChunk = world.getChunk(cx, cz - 1);
@@ -550,5 +559,12 @@ public class SlightXRay implements ILPCValueChangeCallback, WorldRenderEvents.En
             buffer.vertex(ppp).color(color);
             buffer.vertex(npp).color(color);
         }
+    }
+    public interface DefaultColorMethod{
+    
+    }
+    public static class ConfigListWithColorMethod extends LPCConfigList implements DefaultColorMethod{
+        public ConfigListWithColorMethod(ILPCConfigBase parent, String nameKey) {super(parent, nameKey);}
+        
     }
 }

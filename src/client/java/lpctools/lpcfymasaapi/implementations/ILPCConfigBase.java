@@ -1,7 +1,10 @@
 package lpctools.lpcfymasaapi.implementations;
 
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import lpctools.lpcfymasaapi.LPCConfigPage;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public interface ILPCConfigBase {
     //获取当前配置的父对象，如果是LPCConfigPage则返回自身
@@ -17,5 +20,14 @@ public interface ILPCConfigBase {
     //使用这个获取根据多级parent定义的而不是配置本身自定义的键
     default @NotNull StringBuilder getFullPath(){
         return getParent().getFullPath().append('.').append(getNameKey());
+    }
+    //保存和加载时用的内容
+    @Nullable JsonElement getAsJsonElement();
+    default void addIntoParentJsonObject(@NotNull JsonObject object){
+        object.add(getNameKey(), getAsJsonElement());
+    }
+    void setValueFromJsonElement(@NotNull JsonElement data);
+    default void setValueFromParentJsonObject(@NotNull JsonObject object){
+        setValueFromJsonElement(object.get(getNameKey()));
     }
 }

@@ -13,6 +13,8 @@ import org.jetbrains.annotations.NotNull;
 import java.util.ArrayList;
 import java.util.Collection;
 
+import static lpctools.lpcfymasaapi.LPCConfigUtils.*;
+
 //第三级列表，配置中切换true或false可以展开或收起内含的配置项
 public class ThirdListConfig extends BooleanConfig implements IThirdListBase {
     public ThirdListConfig(ILPCConfigList parent, String nameKey, boolean defaultBoolean) {
@@ -34,21 +36,22 @@ public class ThirdListConfig extends BooleanConfig implements IThirdListBase {
         else return wrapperList;
     }
 
-    @Override public void addIntoConfigListJson(@NotNull JsonObject configListJson){
+    public static final String superJsonId = "value";
+    public static final String propertiesId = "properties";
+    @Override public @NotNull JsonElement getAsJsonElement(){
         JsonObject object = new JsonObject();
-        object.add("value", getAsJsonElement());
-        addConfigListIntoJson(object, "properties");
-        configListJson.add(this.getName(), object);
+        object.add(superJsonId, super.getAsJsonElement());
+        object.add(propertiesId, subConfigs.getAsJsonElement());
+        return object;
     }
-    @Override public void loadFromConfigListJson(@NotNull JsonObject configListJson){
-        if (!configListJson.has(this.getName())) return;
-        JsonElement jsonElement = configListJson.get(this.getName());
-        if(jsonElement.isJsonObject()){
-            JsonObject jsonObject = jsonElement.getAsJsonObject();
-            if(jsonObject.has("value"))
-                setValueFromJsonElement(jsonObject.get("value"));
-            loadConfigListFromJson(jsonObject, "properties");
+    @Override public void setValueFromJsonElement(@NotNull JsonElement element){
+        if(element instanceof JsonObject object
+            && object.get(superJsonId) instanceof JsonElement superElement
+            && object.get(propertiesId) instanceof JsonElement propertiesElement){
+            super.setValueFromJsonElement(superElement);
+            subConfigs.setValueFromJsonElement(propertiesElement);
         }
+        else warnFailedLoadingConfig(this, element);
     }
     private boolean lastValue;
     private final LPCConfigList subConfigs;

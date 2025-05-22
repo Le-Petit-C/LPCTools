@@ -31,7 +31,7 @@ public class IntegerConfig extends ConfigInteger implements ILPC_MASAConfigWrapp
     public int setMax(int value){return LPCConfigUtils.muteMaxValue(this, value);}
     public int setMin(int value){return LPCConfigUtils.muteMinValue(this, value);}
 
-    @Override public void setValueFromJsonElement(JsonElement element) {
+    @Override public void setValueFromJsonElement(@NotNull JsonElement element) {
         int lastInt = getAsInt();
         super.setValueFromJsonElement(element);
         if(lastInt != getAsInt()) onValueChanged();
