@@ -25,6 +25,7 @@ public class DebugConfigs {
     public static BooleanConfig renderDebugShapes;
     public static BooleanConfig displayClickSlotArguments;
     public static HotkeyConfig keyActDebug;
+    public static BooleanConfig showExecuteTime;
     public static void init(){
         renderDebugShapes = addBooleanConfig(
                 "renderDebugShapes", false, DebugConfigs::renderDebugShapesValueRefreshCallback);
@@ -36,6 +37,7 @@ public class DebugConfigs {
             player.setYaw(0);
             return true;
         });
+        showExecuteTime = addBooleanConfig("showExecuteTime", false);
     }
     private static void rendDebugShapes(WorldRenderContext context) {
         RenderContext ctx = new RenderContext(RenderPipelines.DEBUG_TRIANGLE_FAN, BufferUsage.STATIC_WRITE);

@@ -5,8 +5,10 @@ import com.google.gson.JsonElement;
 import fi.dy.masa.malilib.render.MaLiLibPipelines;
 import fi.dy.masa.malilib.render.RenderContext;
 import fi.dy.masa.malilib.util.data.Color4f;
+import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import lpctools.LPCTools;
 import lpctools.compact.derived.ShapeList;
+import lpctools.generic.GenericUtils;
 import lpctools.lpcfymasaapi.LPCConfigList;
 import lpctools.lpcfymasaapi.Registry;
 import lpctools.lpcfymasaapi.configbutton.derivedConfigs.ConfigListOptionListConfigEx;
@@ -33,24 +35,33 @@ import net.minecraft.client.texture.Sprite;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.util.math.*;
 import net.minecraft.world.World;
+import net.minecraft.world.chunk.Chunk;
+import net.minecraft.world.chunk.ChunkStatus;
 import net.minecraft.world.chunk.WorldChunk;
 import org.apache.commons.lang3.mutable.MutableInt;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.joml.*;
 
 import java.awt.*;
 import java.lang.Math;
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
 
 import static lpctools.lpcfymasaapi.LPCConfigStatics.*;
 import static lpctools.tools.ToolUtils.*;
 import static lpctools.util.AlgorithmUtils.*;
+import static lpctools.util.BlockUtils.*;
 import static lpctools.util.DataUtils.*;
 import static lpctools.util.MathUtils.*;
 
 public class SlightXRay implements ILPCValueChangeCallback, WorldRenderEvents.End, ClientChunkEvents.Load, ClientChunkEvents.Unload, ClientWorldEvents.AfterClientWorldChange {
-    //markedBlocks放在多线程里用，记得要同步
+    //以下几个变量使用synchronized(markedBlocks)同步
+    //标记的需要显示的区块
     static final @NotNull HashMap<BlockPos, MutableInt> markedBlocks = new HashMap<>();
+    //加载过或正要加载的区块
+    static final @NotNull HashSet<ChunkPos> loadedOrLoadingChunks = new HashSet<>();
+    //以上几个变量使用synchronized(markedBlocks)同步
     static final @NotNull ImmutableList<Block> defaultXRayBlocks = ImmutableList.of(
         Blocks.DIAMOND_ORE, Blocks.DEEPSLATE_DIAMOND_ORE,
         Blocks.DEEPSLATE_COAL_ORE, Blocks.EMERALD_ORE, Blocks.DEEPSLATE_EMERALD_ORE,
@@ -135,17 +146,12 @@ public class SlightXRay implements ILPCValueChangeCallback, WorldRenderEvents.En
         ClientWorld world = MinecraftClient.getInstance().world;
         ClientPlayerEntity player = MinecraftClient.getInstance().player;
         if(world == null || player == null) return;
-        int distance = MinecraftClient.getInstance().options.getViewDistance().getValue();
+        //int distance = MinecraftClient.getInstance().options.getViewDistance().getValue();
         ChunkPos chunkPos = player.getChunkPos();
-        for(int x = chunkPos.x - distance; x <= chunkPos.x + distance; ++x){
-            for(int z = chunkPos.z - distance; z <= chunkPos.z + distance; ++z){
-                if(world.isChunkLoaded(x, z)){
-                    WorldChunk chunk = world.getChunk(x, z);
-                    ChunkPos compPos = chunk.getPos();
-                    if(compPos.x != x || compPos.z != z) continue;
-                    updateChunkInAnotherThread(world, chunk, false);
-                }
-            }
+        for(Vector2i vec : iterateFromClosest(toVector2i(chunkPos))){
+            Chunk chunk = world.getChunk(vec.x, vec.y, ChunkStatus.FULL, false);
+            if(chunk == null) break;
+            updateChunkInCompletableFuture(world, chunk, false);
         }
     }
 
@@ -197,14 +203,8 @@ public class SlightXRay implements ILPCValueChangeCallback, WorldRenderEvents.En
             displayEnableMessage(slightXRay);
         }
         else {
-            if(Registry.unregisterWorldRenderEndCallback(this)){
-                synchronized (markedBlocks){
-                    markedBlocks.clear();
-                }
-                synchronized (threadTasks){
-                    threadTasks.clear();
-                }
-            }
+            if(Registry.unregisterWorldRenderEndCallback(this))
+                clearAll();
             Registry.unregisterClientChunkLoadCallbacks(this);
             Registry.unregisterClientChunkUnloadCallbacks(this);
             Registry.unregisterClientWorldChangeCallbacks(this);
@@ -221,7 +221,7 @@ public class SlightXRay implements ILPCValueChangeCallback, WorldRenderEvents.En
         synchronized (markedBlocks){
             for(Map.Entry<BlockPos, MutableInt> pos : markedBlocks.entrySet()){
                 if(shapes.testPos(pos.getKey())){
-                    vertexBlock(matrix, buffer, pos.getKey(), pos.getValue().intValue(), shapes);
+                    paintMethods.vertexBlock(matrix, buffer, pos.getKey(), pos.getValue().intValue(), shapes);
                     bufferUsed = true;
                 }
             }
@@ -238,11 +238,21 @@ public class SlightXRay implements ILPCValueChangeCallback, WorldRenderEvents.En
             LPCTools.LOGGER.error("lpctools.tools.slightXRay.slightXRay.onLast(): Draw Exception; {}", err.getMessage());
         }
     }
-    @Override public void onChunkLoad(ClientWorld clientWorld, WorldChunk worldChunk) {
-        updateChunkInAnotherThread(clientWorld, worldChunk, false);
+    @Override public void onChunkLoad(ClientWorld world, WorldChunk worldChunk) {
+        updateChunkInCompletableFuture(world, worldChunk, false);
+        ChunkPos pos = worldChunk.getPos();
+        Chunk chunk;
+        chunk = world.getChunk(pos.x - 1, pos.z, ChunkStatus.FULL, false);
+        if(chunk != null) updateChunkInCompletableFuture(world, chunk, false);
+        chunk = world.getChunk(pos.x, pos.z - 1, ChunkStatus.FULL, false);
+        if(chunk != null) updateChunkInCompletableFuture(world, chunk, false);
+        chunk = world.getChunk(pos.x + 1, pos.z, ChunkStatus.FULL, false);
+        if(chunk != null) updateChunkInCompletableFuture(world, chunk, false);
+        chunk = world.getChunk(pos.x, pos.z + 1, ChunkStatus.FULL, false);
+        if(chunk != null) updateChunkInCompletableFuture(world, chunk, false);
     }
-    @Override public void onChunkUnload(ClientWorld clientWorld, WorldChunk worldChunk) {
-        updateChunkInAnotherThread(clientWorld, worldChunk, true);
+    @Override public void onChunkUnload(ClientWorld world, WorldChunk worldChunk) {
+        updateChunkInCompletableFuture(world, worldChunk, true);
     }
 
     private static boolean doShowAround(BlockState state){
@@ -258,21 +268,25 @@ public class SlightXRay implements ILPCValueChangeCallback, WorldRenderEvents.En
     }
 
     private static void clearAll(){
+        CompletableFuture<?>[] futures = new CompletableFuture<?>[threads.size()];
         synchronized (threadTasks){
-            threadTasks.clear();
-            if(loadingThreadCount != 0) {
-                try {threadTasks.wait();} catch (InterruptedException ignored) {}
+            int n = 0;
+            for(CompletableFuture<?> future : threads.values()){
+                future.cancel(false);
+                futures[n++] = future;
             }
+            threadTasks.clear();
         }
+        CompletableFuture.allOf(futures);
         synchronized (markedBlocks){
             markedBlocks.clear();
+            loadedOrLoadingChunks.clear();
         }
     }
 
-    public static void setBlockStateTest(World world, BlockPos pos, BlockState lastState, BlockState currentState){
-        if(lastState == null) lastState = Blocks.AIR.getDefaultState();
+    public static void setBlockStateTest(World world, BlockPos pos, BlockState currentState){
         if(currentState == null) currentState = Blocks.AIR.getDefaultState();
-        if(doShowAround(lastState) && doShowAround(currentState)) return;
+        if(isFluid(currentState.getBlock())) return;
         if(doShowAround(currentState)){
             for(BlockPos pos1 : iterateInManhattanDistance(pos, 2))
                 testPos(world, pos1);
@@ -385,10 +399,15 @@ public class SlightXRay implements ILPCValueChangeCallback, WorldRenderEvents.En
         }
     }
 
-    private static void updateChunk(XRayNecessaryState states, ClientWorld world, WorldChunk chunk, boolean unload){
+    private static void updateChunk(XRayNecessaryState states, ThreadTask task){
+        HashMap<BlockPos, MutableInt> result = new HashMap<>();
+        Chunk chunk = task.chunk;
+        World world = task.world;
+        ThreadTask.NearbyChunks nearbyChunks = task.nearbyChunks;
         ChunkPos chunkPos = chunk.getPos();
         int cx = chunkPos.x, cz = chunkPos.z;
-        if(unload){
+        if(nearbyChunks == null){
+            //表示当前操作是卸载区块
             synchronized (markedBlocks){
                 Iterator<BlockPos> posIterator = markedBlocks.keySet().iterator();
                 while(posIterator.hasNext()){
@@ -430,49 +449,40 @@ public class SlightXRay implements ILPCValueChangeCallback, WorldRenderEvents.En
             }
         }
         //加载相邻区块中数据
-        world.isChunkLoaded(cx, cz);
-        WorldChunk nxChunk = world.getChunk(cx - 1, cz);
-        WorldChunk pxChunk = world.getChunk(cx + 1, cz);
-        WorldChunk nzChunk = world.getChunk(cx, cz - 1);
-        WorldChunk pzChunk = world.getChunk(cx, cz + 1);
-        if(nxChunk != null){
-            mutableBlockPos.setX(15);
-            for(int y = minY; y < topY; ++y){
-                mutableBlockPos.setY(y);
-                for(int z = 0; z < 16; ++z){
-                    mutableBlockPos.setZ(z);
-                    states.data[1][y - minY + 2][z + 2].set(nxChunk.getBlockState(mutableBlockPos));
-                }
+        Chunk nxChunk = nearbyChunks.nx;
+        Chunk pxChunk = nearbyChunks.px;
+        Chunk nzChunk = nearbyChunks.nz;
+        Chunk pzChunk = nearbyChunks.pz;
+        mutableBlockPos.setX(15);
+        for(int y = minY; y < topY; ++y){
+            mutableBlockPos.setY(y);
+            for(int z = 0; z < 16; ++z){
+                mutableBlockPos.setZ(z);
+                states.data[1][y - minY + 2][z + 2].set(nxChunk.getBlockState(mutableBlockPos));
             }
         }
-        if(pxChunk != null){
-            mutableBlockPos.setX(0);
-            for(int y = minY; y < topY; ++y){
-                mutableBlockPos.setY(y);
-                for(int z = 0; z < 16; ++z){
-                    mutableBlockPos.setZ(z);
-                    states.data[18][y - minY + 2][z + 2].set(pxChunk.getBlockState(mutableBlockPos));
-                }
+        mutableBlockPos.setX(0);
+        for(int y = minY; y < topY; ++y){
+            mutableBlockPos.setY(y);
+            for(int z = 0; z < 16; ++z){
+                mutableBlockPos.setZ(z);
+                states.data[18][y - minY + 2][z + 2].set(pxChunk.getBlockState(mutableBlockPos));
             }
         }
-        if(nzChunk != null){
-            mutableBlockPos.setZ(15);
-            for(int y = minY; y < topY; ++y){
-                mutableBlockPos.setY(y);
-                for(int x = 0; x < 16; ++x){
-                    mutableBlockPos.setX(x);
-                    states.data[x + 2][y - minY + 2][1].set(nzChunk.getBlockState(mutableBlockPos));
-                }
+        mutableBlockPos.setZ(15);
+        for(int y = minY; y < topY; ++y){
+            mutableBlockPos.setY(y);
+            for(int x = 0; x < 16; ++x){
+                mutableBlockPos.setX(x);
+                states.data[x + 2][y - minY + 2][1].set(nzChunk.getBlockState(mutableBlockPos));
             }
         }
-        if(pzChunk != null){
-            mutableBlockPos.setZ(0);
-            for(int y = minY; y < topY; ++y){
-                mutableBlockPos.setY(y);
-                for(int x = 0; x < 16; ++x){
-                    mutableBlockPos.setX(x);
-                    states.data[x + 2][y - minY + 2][18].set(pzChunk.getBlockState(mutableBlockPos));
-                }
+        mutableBlockPos.setZ(0);
+        for(int y = minY; y < topY; ++y){
+            mutableBlockPos.setY(y);
+            for(int x = 0; x < 16; ++x){
+                mutableBlockPos.setX(x);
+                states.data[x + 2][y - minY + 2][18].set(pzChunk.getBlockState(mutableBlockPos));
             }
         }
         BlockPos chunkStartPos = chunkPos.getStartPos().add(0, chunk.getBottomY(), 0);
@@ -481,148 +491,87 @@ public class SlightXRay implements ILPCValueChangeCallback, WorldRenderEvents.En
             if(!data.getValue().doShowAround) continue;
             for(Direction direction : Direction.values()){
                 BlockPos pos = data.getKey().offset(direction);
-                markData(pos, chunkStartPos, states.get(pos));
+                markData(result, pos, chunkStartPos, states.get(pos));
             }
+        }
+        synchronized (markedBlocks){
+            markedBlocks.putAll(result);
         }
     }
-    private static void markData(BlockPos blockPos, BlockPos chunkStartPos, XRayNecessaryState.Data data){
+    private static void markData(HashMap<BlockPos, MutableInt> result, BlockPos blockPos, BlockPos chunkStartPos, XRayNecessaryState.Data data){
         BlockPos pos = chunkStartPos.add(blockPos);
-        if(data.color != null){
-            synchronized (markedBlocks){
-                markedBlocks.put(pos.toImmutable(), data.color);
-            }
-        }
+        if(data.color != null)
+            result.put(pos.toImmutable(), data.color);
     }
 
+    //此处几个数据使用synchronized(threadTasks)同步
     private static final HashSet<ThreadTask> threadTasks = new HashSet<>();
-    private static final int maxLoadingThreadCount = 4;
-    private static final int threadTaskCountLimit = 4;
-    private static int loadingThreadCount = 0;
-    private record ThreadTask(ClientWorld world, WorldChunk chunk, boolean unload){
+    private static final Int2ObjectOpenHashMap<CompletableFuture<?>> threads = new Int2ObjectOpenHashMap<>();
+    private static int threadTaskId = 0;
+    
+    private record ThreadTask(@NotNull ClientWorld world, @NotNull Chunk chunk, @Nullable NearbyChunks nearbyChunks){
         @Override public int hashCode(){
             return chunk.getPos().hashCode();
         }
         @Override public boolean equals(Object o){
+            if(o == this) return true;
             if(o instanceof ThreadTask task)
-                return task.world == world && task.chunk == chunk && task.unload == unload;
+                return task.world.equals(world)
+                    && task.chunk.equals(chunk)
+                    && Objects.equals(task.nearbyChunks, nearbyChunks);
             return false;
         }
+        public record NearbyChunks(@NotNull Chunk nx,@NotNull  Chunk nz,@NotNull  Chunk px,@NotNull  Chunk pz){}
     }
 
-    private static void updateChunkInAnotherThread(ClientWorld world, WorldChunk chunk, boolean unload){
-        synchronized (threadTasks){
-            threadTasks.add(new ThreadTask(world, chunk, unload));
-            if(loadingThreadCount < maxLoadingThreadCount &&
-                    loadingThreadCount * threadTaskCountLimit < threadTasks.size()){
-                new Thread(SlightXRay::ThreadFunc).start();
-                ++loadingThreadCount;
+    //更新当前区块，如果区块更新过或者需要加载但是相邻有未加载的区块则不作操作
+    private static void updateChunkInCompletableFuture(ClientWorld world, Chunk chunk, boolean unload){
+        ChunkPos pos = chunk.getPos();
+        ThreadTask.NearbyChunks nearbyChunks;
+        synchronized (markedBlocks){
+            if(loadedOrLoadingChunks.contains(pos) != unload) return;
+            if(unload) {
+                loadedOrLoadingChunks.remove(pos);
+                nearbyChunks = null;
+            }
+            else {
+                Chunk nx = world.getChunk(pos.x - 1, pos.z, ChunkStatus.FULL, false);
+                Chunk nz = world.getChunk(pos.x, pos.z - 1, ChunkStatus.FULL, false);
+                Chunk px = world.getChunk(pos.x + 1, pos.z, ChunkStatus.FULL, false);
+                Chunk pz = world.getChunk(pos.x, pos.z + 1, ChunkStatus.FULL, false);
+                if(hasNull(nx, nz, px, pz)) return;
+                loadedOrLoadingChunks.add(pos);
+                //noinspection DataFlowIssue
+                nearbyChunks = new ThreadTask.NearbyChunks(nx, nz, px, pz);
             }
         }
-    }
-    private static void ThreadFunc(){
-        while(true){
-            ThreadTask task = null;
-            double minDistance = Double.MAX_VALUE;
-            ClientPlayerEntity player = MinecraftClient.getInstance().player;
-            Vec3i playerPos = player == null ? Vec3i.ZERO : player.getBlockPos();
-            synchronized (threadTasks){
-                for(ThreadTask task1 : threadTasks){
-                    double distance = task1.chunk.getPos().getCenterAtY(playerPos.getY()).getSquaredDistance(playerPos);
-                    if(distance < minDistance){
-                        minDistance = distance;
-                        task = task1;
-                    }
-                }
-                if(task == null){
-                    --loadingThreadCount;
-                    break;
-                }
-                threadTasks.remove(task);
-            }
-            XRayNecessaryState stateBuffer = new XRayNecessaryState(task.world.getHeight());
-            updateChunk(stateBuffer, task.world, task.chunk, task.unload);
-        }
         synchronized (threadTasks){
-            if(loadingThreadCount == 0)
-                threadTasks.notifyAll();
+            threadTasks.add(new ThreadTask(world, chunk, nearbyChunks));
+            int currentId = threadTaskId++;
+            threads.put(currentId, GenericUtils.runAsync(()->threadTask(currentId)));
         }
     }
-
-    private static class VertexVectorBuffer{
-        public final Vector4d center = new Vector4d();
-        public final Vector4d buf = new Vector4d();
-        public final Vector3f nnn = new Vector3f();
-        public final Vector3f nnp = new Vector3f();
-        public final Vector3f npn = new Vector3f();
-        public final Vector3f npp = new Vector3f();
-        public final Vector3f pnn = new Vector3f();
-        public final Vector3f pnp = new Vector3f();
-        public final Vector3f ppn = new Vector3f();
-        public final Vector3f ppp = new Vector3f();
-        public final BlockPos.Mutable mutablePos = new BlockPos.Mutable();
+    private static void threadTask(int me){
+        ThreadTask task = null;
+        double minDistance = Double.MAX_VALUE;
+        ClientPlayerEntity player = MinecraftClient.getInstance().player;
+        Vec3i playerPos = player == null ? Vec3i.ZERO : player.getBlockPos();
+        synchronized (threadTasks){
+            threads.remove(me);
+            for(ThreadTask task1 : threadTasks){
+                double distance = task1.chunk.getPos().getCenterAtY(playerPos.getY()).getSquaredDistance(playerPos);
+                if(distance < minDistance){
+                    minDistance = distance;
+                    task = task1;
+                }
+            }
+            if(task == null) return;
+            threadTasks.remove(task);
+        }
+        XRayNecessaryState stateBuffer = new XRayNecessaryState(task.world.getHeight());
+        updateChunk(stateBuffer, task);
     }
 
-    private final VertexVectorBuffer vertexVectorBuffer = new VertexVectorBuffer();
-
-    @SuppressWarnings("SameParameterValue")
-    private void vertexBlock(Matrix4d matrix, BufferBuilder buffer, BlockPos pos, int color, ShapeList shapes){
-        VertexVectorBuffer vBuf = vertexVectorBuffer;
-        Vector4d center = vBuf.center.set(pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5, 1);
-        Vector4d buf = vBuf.buf;
-        Vector3f nnn = center.add(-0.5, -0.5, -0.5, 0, buf).mul(matrix).xyz(vBuf.nnn);
-        Vector3f nnp = center.add(-0.5, -0.5, 0.5, 0, buf).mul(matrix).xyz(vBuf.nnp);
-        Vector3f npn = center.add(-0.5, 0.5, -0.5, 0, buf).mul(matrix).xyz(vBuf.npn);
-        Vector3f npp = center.add(-0.5, 0.5, 0.5, 0, buf).mul(matrix).xyz(vBuf.npp);
-        Vector3f pnn = center.add(0.5, -0.5, -0.5, 0, buf).mul(matrix).xyz(vBuf.pnn);
-        Vector3f pnp = center.add(0.5, -0.5, 0.5, 0, buf).mul(matrix).xyz(vBuf.pnp);
-        Vector3f ppn = center.add(0.5, 0.5, -0.5, 0, buf).mul(matrix).xyz(vBuf.ppn);
-        Vector3f ppp = center.add(0.5, 0.5, 0.5, 0, buf).mul(matrix).xyz(vBuf.ppp);
-        BlockPos.Mutable mutablePos = vBuf.mutablePos.set(pos);
-        mutablePos.setX(pos.getX() - 1);
-        if(!shapes.testPos(mutablePos) || !markedBlocks.containsKey(mutablePos)){
-            buffer.vertex(nnn).color(color);
-            buffer.vertex(nnp).color(color);
-            buffer.vertex(npp).color(color);
-            buffer.vertex(npn).color(color);
-        }
-        mutablePos.setX(pos.getX() + 1);
-        if(!shapes.testPos(mutablePos) || !markedBlocks.containsKey(mutablePos)){
-            buffer.vertex(pnn).color(color);
-            buffer.vertex(ppn).color(color);
-            buffer.vertex(ppp).color(color);
-            buffer.vertex(pnp).color(color);
-        }
-        mutablePos.setX(pos.getX());
-        mutablePos.setY(pos.getY() - 1);
-        if(!shapes.testPos(mutablePos) || !markedBlocks.containsKey(mutablePos)){
-            buffer.vertex(nnn).color(color);
-            buffer.vertex(pnn).color(color);
-            buffer.vertex(pnp).color(color);
-            buffer.vertex(nnp).color(color);
-        }
-        mutablePos.setY(pos.getY() + 1);
-        if(!shapes.testPos(mutablePos) || !markedBlocks.containsKey(mutablePos)){
-            buffer.vertex(npn).color(color);
-            buffer.vertex(npp).color(color);
-            buffer.vertex(ppp).color(color);
-            buffer.vertex(ppn).color(color);
-        }
-        mutablePos.setY(pos.getY());
-        mutablePos.setZ(pos.getZ() - 1);
-        if(!shapes.testPos(mutablePos) || !markedBlocks.containsKey(mutablePos)){
-            buffer.vertex(nnn).color(color);
-            buffer.vertex(npn).color(color);
-            buffer.vertex(ppn).color(color);
-            buffer.vertex(pnn).color(color);
-        }
-        mutablePos.setZ(pos.getZ() + 1);
-        if(!shapes.testPos(mutablePos) || !markedBlocks.containsKey(mutablePos)){
-            buffer.vertex(nnp).color(color);
-            buffer.vertex(pnp).color(color);
-            buffer.vertex(ppp).color(color);
-            buffer.vertex(npp).color(color);
-        }
-    }
     public interface DefaultColorMethod{
         int getColor(Block block);
     }
@@ -637,4 +586,5 @@ public class SlightXRay implements ILPCValueChangeCallback, WorldRenderEvents.En
         }
         @NotNull DefaultColorMethod defaultColorMethod;
     }
+    private final SlightXRayPaintMethods paintMethods = new SlightXRayPaintMethods();
 }

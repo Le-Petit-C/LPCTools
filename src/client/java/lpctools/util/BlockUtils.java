@@ -7,6 +7,7 @@ import net.minecraft.block.Waterloggable;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.fluid.Fluid;
+import net.minecraft.fluid.Fluids;
 import net.minecraft.item.BlockItem;
 import net.minecraft.item.Item;
 import net.minecraft.registry.Registries;
@@ -31,6 +32,7 @@ public class BlockUtils {
     public static boolean isZeroHardBlock(BlockState state){
         return state.getBlock().getHardness() == 0 || state.getBlock() == Blocks.KELP || state.getBlock() == Blocks.KELP_PLANT;
     }
+    //检测能不能被水冲掉
     public static boolean canBeReplacedByFluid(BlockState state){
         if(state.getBlock() instanceof Waterloggable) return false;
         for(Fluid fluid : Registries.FLUID)
@@ -48,5 +50,15 @@ public class BlockUtils {
         if(item instanceof BlockItem blockItem)
             return canBeReplacedByFluid(blockItem);
         return false;
+    }
+    //检测是不是流体，原版的话只有水或者岩浆
+    public static boolean isFluid(Block block){
+        for(Fluid fluid : Registries.FLUID)
+            if (fluid != Fluids.EMPTY && fluid.getDefaultState().getBlockState().getBlock().equals(block))
+                return true;
+        return false;
+    }
+    public static boolean isFluid(BlockState state){
+        return isFluid(state.getBlock());
     }
 }

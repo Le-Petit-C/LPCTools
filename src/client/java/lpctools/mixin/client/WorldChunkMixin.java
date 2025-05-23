@@ -21,7 +21,7 @@ public class WorldChunkMixin {
             ChunkPos chunkPos = castedThis.getPos();
             int rx = (pos.getX() & 15) + chunkPos.getStartX();
             int rz = (pos.getZ() & 15) + chunkPos.getStartZ();
-            SlightXRay.setBlockStateTest(world, new BlockPos(rx, pos.getY(), rz), cir.getReturnValue(), state);
+            SlightXRay.setBlockStateTest(world, new BlockPos(rx, pos.getY(), rz), state);
         }
     }
 }

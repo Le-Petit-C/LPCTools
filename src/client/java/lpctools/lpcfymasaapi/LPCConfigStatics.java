@@ -139,6 +139,7 @@ public interface LPCConfigStatics {
     @NotNull Stack<ILPCConfigList> listStack = new Stack<>();
     static ILPCConfigList peekConfigList(){return listStack.peek();}
     class ConfigListLayer implements Supplier<ILPCConfigList>, Consumer<ILPCConfigList>, AutoCloseable {
+        public ConfigListLayer(ILPCConfigList parent){listStack.push(parent);}
         public ConfigListLayer(){listStack.push(null);}
         @Override public void close(){listStack.pop();}
         @Override public void accept(ILPCConfigList list) {

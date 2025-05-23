@@ -6,7 +6,6 @@
     "AutoGrindstone",
     "BlockReplaceAction",
     "DisplayClickSlotArguments",
-    "LanguageMixin",
     "OnMouseButtonReturnMixin",
     "SplashTextResourceSupplierMixin",
     "SpriteContentsMixin",
