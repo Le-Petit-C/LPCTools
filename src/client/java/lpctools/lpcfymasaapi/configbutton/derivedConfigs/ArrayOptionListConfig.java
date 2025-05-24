@@ -96,4 +96,12 @@ public class ArrayOptionListConfig<T> extends OptionListConfig implements Suppli
         OptionList<T> list = getCurrentOptionData().options();
         list.addOption(translationKey, userData);
     }
+    @Override public boolean isModified() {
+        return !getOptionListValue().equals(getDefaultOptionListValue());
+    }
+    @Override public boolean isModified(String newValue) {
+        try {return !getOptionListValue().fromString(newValue).equals(getDefaultOptionListValue());
+        } catch (Exception ignored) {}
+        return true;
+    }
 }

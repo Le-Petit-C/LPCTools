@@ -31,13 +31,6 @@ public interface ILPCConfig extends ILPCConfigBase, IConfigBase, IConfigResettab
     }
     //获取当前配置基于默认parent对齐后的配置名
     default @NotNull String getAlignedNameTranslation(){
-        StringBuilder result = new StringBuilder();
-        ILPCConfigList parent = getParent();
-        while(parent instanceof ILPCConfig config){
-            result.append("    ");
-            parent = config.getParent();
-        }
-        result.append(getNameTranslation());
-        return result.toString();
+        return getParentSpaces() + getNameTranslation();
     }
 }

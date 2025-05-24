@@ -55,7 +55,7 @@ import static lpctools.util.BlockUtils.*;
 import static lpctools.util.DataUtils.*;
 import static lpctools.util.MathUtils.*;
 
-public class SlightXRay implements ILPCValueChangeCallback, WorldRenderEvents.End, ClientChunkEvents.Load, ClientChunkEvents.Unload, ClientWorldEvents.AfterClientWorldChange {
+public class SlightXRay implements ILPCValueChangeCallback, WorldRenderEvents.End, ClientChunkEvents.Load, ClientChunkEvents.Unload, ClientWorldEvents.AfterClientWorldChange, Registry.ClientWorldChunkSetBlockState {
     //以下几个变量使用synchronized(markedBlocks)同步
     //标记的需要显示的区块
     static final @NotNull HashMap<BlockPos, MutableInt> markedBlocks = new HashMap<>();
@@ -197,17 +197,19 @@ public class SlightXRay implements ILPCValueChangeCallback, WorldRenderEvents.En
         if(slightXRay.getAsBoolean()){
             if(Registry.registerWorldRenderEndCallback(this))
                 addAllRenderRegionsIntoWork();
-            Registry.registerClientChunkLoadCallbacks(this);
-            Registry.registerClientChunkUnloadCallbacks(this);
-            Registry.registerClientWorldChangeCallbacks(this);
+            Registry.registerClientChunkLoadCallback(this);
+            Registry.registerClientChunkUnloadCallback(this);
+            Registry.registerClientWorldChangeCallback(this);
+            Registry.registerClientWorldChunkSetBlockStateCallback(this);
             displayEnableMessage(slightXRay);
         }
         else {
             if(Registry.unregisterWorldRenderEndCallback(this))
                 clearAll();
-            Registry.unregisterClientChunkLoadCallbacks(this);
-            Registry.unregisterClientChunkUnloadCallbacks(this);
-            Registry.unregisterClientWorldChangeCallbacks(this);
+            Registry.unregisterClientChunkLoadCallback(this);
+            Registry.unregisterClientChunkUnloadCallback(this);
+            Registry.unregisterClientWorldChangeCallback(this);
+            Registry.unregisterClientWorldChunkSetBlockStateCallback(this);
             displayDisableMessage(slightXRay);
         }
     }
@@ -284,14 +286,14 @@ public class SlightXRay implements ILPCValueChangeCallback, WorldRenderEvents.En
         }
     }
 
-    public static void setBlockStateTest(World world, BlockPos pos, BlockState currentState){
-        if(currentState == null) currentState = Blocks.AIR.getDefaultState();
-        if(isFluid(currentState.getBlock())) return;
-        if(doShowAround(currentState)){
+    @Override public void onClientWorldChunkSetBlockState(WorldChunk chunk, BlockPos pos, BlockState lastState, BlockState newState){
+        if(newState == null) newState = Blocks.AIR.getDefaultState();
+        if(isFluid(newState.getBlock())) return;
+        if(doShowAround(newState)){
             for(BlockPos pos1 : iterateInManhattanDistance(pos, 2))
-                testPos(world, pos1);
+                testPos(chunk.getWorld(), pos1);
         }
-        else testPos(world, pos);
+        else testPos(chunk.getWorld(), pos);
     }
 
     private static void testPos(World world, BlockPos pos){

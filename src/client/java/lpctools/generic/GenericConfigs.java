@@ -8,9 +8,7 @@ import lpctools.lpcfymasaapi.configbutton.transferredConfigs.IntegerConfig;
 import lpctools.lpcfymasaapi.configbutton.transferredConfigs.StringListConfig;
 import net.minecraft.block.Block;
 import net.minecraft.block.Blocks;
-import net.minecraft.registry.Registries;
 
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -22,6 +20,8 @@ import static lpctools.util.DataUtils.*;
 public class GenericConfigs {
     public static void init(){
         configOpenGuiConfig = addConfigOpenGuiConfig("Z,C");
+        spawnLightLevelLimit = addIntegerConfig("spawnLightLevelLimit", 0, 0, 15);
+        liquidPlacesAsCanSpawn = addBooleanConfig("liquidPlacesAsCanSpawn", false);
         extraSpawnBlockIds = addStringListConfig("extraSpawnBlocks",
                 idListFromBlockList(defaultExtraSpawnBlocks),
                 ()->{
@@ -53,29 +53,18 @@ public class GenericConfigs {
     }
 
     public static ConfigOpenGuiConfig configOpenGuiConfig;
+    public static IntegerConfig spawnLightLevelLimit;
+    public static BooleanConfig liquidPlacesAsCanSpawn;
     public static StringListConfig extraSpawnBlockIds;
     public static StringListConfig extraNoSpawnBlockIds;
     public static BooleanConfig reachDistanceAlwaysUnlimited;
     public static ThirdListConfig useIndependentThreadPool;
     public static IntegerConfig threadCountConfig;
 
-    public static final ImmutableList<Block> defaultExtraSpawnBlocks;
-    public static final ImmutableList<Block> defaultExtraNoSpawnBlocks;
-    static {
-        ArrayList<Block> spawnBlocks = new ArrayList<>();
-        ArrayList<Block> noSpawnBlocks = new ArrayList<>();
-        for(Block block : Registries.BLOCK){
-            String id = getBlockId(block);
-            if(id.contains("trapdoor")) noSpawnBlocks.add(block);
-            if(id.contains("glass") && !id.contains("pane")) noSpawnBlocks.add(block);
-        }
-        spawnBlocks.add(Blocks.SOUL_SAND);
-        spawnBlocks.add(Blocks.MUD);
-        noSpawnBlocks.add(Blocks.BEDROCK);
-        noSpawnBlocks.add(Blocks.SCAFFOLDING);
-        defaultExtraSpawnBlocks = ImmutableList.copyOf(spawnBlocks);
-        defaultExtraNoSpawnBlocks = ImmutableList.copyOf(noSpawnBlocks);
-    }
+    public static final ImmutableList<Block> defaultExtraSpawnBlocks = ImmutableList.of();
+    public static final ImmutableList<Block> defaultExtraNoSpawnBlocks = ImmutableList.of(
+        Blocks.BEDROCK
+    );
     public static final HashSet<Block> extraSpawnBlocks = new HashSet<>(defaultExtraSpawnBlocks);
     public static final HashSet<Block> extraNoSpawnBlocks = new HashSet<>(defaultExtraNoSpawnBlocks);
     public static ThreadPoolExecutor threadPool;

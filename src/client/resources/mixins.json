@@ -5,6 +5,7 @@
   "client": [
     "AutoGrindstone",
     "BlockReplaceAction",
+    "ClientPlayNetworkHandlerMixin",
     "DisplayClickSlotArguments",
     "OnMouseButtonReturnMixin",
     "SplashTextResourceSupplierMixin",

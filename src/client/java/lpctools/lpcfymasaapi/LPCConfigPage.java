@@ -127,6 +127,7 @@ public class LPCConfigPage implements IConfigHandler, Supplier<GuiBase>, ILPCCon
 
     @Override public @NotNull ILPCConfigBase getParent() {return this;}
     @Override public @NotNull String getNameKey() {return "configs";}
+    @Override public @NotNull String getAlignSpaces(){return "";}
     //只有LPCConfigPage重载此方法，结束递归
     @Override public @NotNull StringBuilder getFullPath() {
         return new StringBuilder(getModReference().modId).append('.').append(getNameKey());

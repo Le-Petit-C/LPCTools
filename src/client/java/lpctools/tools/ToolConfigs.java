@@ -4,6 +4,7 @@ import lpctools.lpcfymasaapi.configbutton.derivedConfigs.ThirdListConfig;
 import lpctools.lpcfymasaapi.implementations.ILPCConfigList;
 import lpctools.tools.autoGrindstone.AutoGrindstone;
 import lpctools.tools.antiSpawner.AntiSpawner;
+import lpctools.tools.canSpawnXRay.CanSpawnXRay;
 import lpctools.tools.slightXRay.SlightXRay;
 import lpctools.tools.fillingAssistant.FillingAssistant;
 import lpctools.tools.liquidCleaner.LiquidCleaner;
@@ -16,6 +17,7 @@ public class ToolConfigs {
     static ThirdListConfig SXConfig;
     static ThirdListConfig AGConfig;
     static ThirdListConfig ASConfig;
+    static ThirdListConfig CSConfig;
     public static void init(){
         ILPCConfigList lastList = peekConfigList();
         try(ConfigListLayer layer = new ConfigListLayer()){
@@ -29,6 +31,8 @@ public class ToolConfigs {
             AutoGrindstone.init();
             layer.set(ASConfig = addThirdListConfig(lastList, "AS", false));
             AntiSpawner.init();
+            layer.set(CSConfig = addThirdListConfig(lastList, "CS", false));
+            CanSpawnXRay.init();
         }
     }
 }

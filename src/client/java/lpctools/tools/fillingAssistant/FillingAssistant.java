@@ -61,7 +61,7 @@ public class FillingAssistant {
         else return false;
     }
     public static void init(){
-        fillingAssistant = addBooleanHotkeyConfig("fillingAssistant", false, "", ()->onMainValueChanged(fillingAssistant.getBooleanValue()));
+        fillingAssistant = addBooleanHotkeyConfig("fillingAssistant", false, null, ()->onMainValueChanged(fillingAssistant.getBooleanValue()));
         fillingAssistant.getKeybind().setCallback(new KeyCallbackToggleBoolean(fillingAssistant));
         limitPlaceSpeedConfig = addLimitOperationSpeedConfig(false, 1);
         reachDistanceConfig = addReachDistanceConfig(

@@ -13,6 +13,14 @@ import static lpctools.util.MathUtils.*;
 
 @SuppressWarnings("unused")
 public class AlgorithmUtils {
+    //遍历长方体形状内的方块
+    public static Iterable<BlockPos> iterateInBox(int minX, int minY, int minZ, int maxX, int maxY, int maxZ){
+        return new InBoxIterable(minX, minY, minZ, maxX, maxY, maxZ);
+    }
+    public static Iterable<BlockPos> iterateInBox(BlockPos minPos, BlockPos maxPos){
+        return new InBoxIterable(minPos.getX(), minPos.getY(), minPos.getZ(), maxPos.getX(), maxPos.getY(), maxPos.getZ());
+    }
+    //遍历曼哈顿距离内的方块
     public static Iterable<BlockPos> iterateInManhattanDistance(BlockPos center, int distance){
         return new ManhattanIterable(center, distance);
     }
@@ -47,6 +55,29 @@ public class AlgorithmUtils {
     }
     public static ChunkPos toChunkPos(Vector2i vec){
         return new ChunkPos(vec.x, vec.y);
+    }
+    
+    public record InBoxIterable(int minX, int minY, int minZ, int maxX, int maxY, int maxZ) implements Iterable<BlockPos>{
+        @Override public @NotNull Iterator<BlockPos> iterator() {
+            return new Iterator<>() {
+                private final BlockPos.Mutable mutable = new BlockPos.Mutable(maxX, maxY, minZ - 1);
+                @Override public boolean hasNext() {
+                    return mutable.getZ() < maxZ || mutable.getY() < maxY || mutable.getX() < maxX;
+                }
+                @Override public BlockPos next() {
+                    mutable.setX(mutable.getX() + 1);
+                    if(mutable.getX() > maxX){
+                        mutable.setX(minX);
+                        mutable.setY(mutable.getY() + 1);
+                        if(mutable.getY() > maxY){
+                            mutable.setY(minY);
+                            mutable.setZ(mutable.getZ() + 1);
+                        }
+                    }
+                    return mutable;
+                }
+            };
+        }
     }
     
     public record ManhattanIterable(BlockPos center, int distance) implements Iterable<BlockPos>{

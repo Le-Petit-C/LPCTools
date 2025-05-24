@@ -30,4 +30,12 @@ public interface ILPCConfigBase {
     default void setValueFromParentJsonObject(@NotNull JsonObject object){
         setValueFromJsonElement(object.get(getNameKey()));
     }
+    //获取自己的子配置需要对齐的空格数
+    default String getAlignSpaces(){
+        return getParent().getAlignSpaces() + "    ";
+    }
+    //获取自己需要对齐的空格数
+    default String getParentSpaces(){
+        return getParent().getAlignSpaces();
+    }
 }

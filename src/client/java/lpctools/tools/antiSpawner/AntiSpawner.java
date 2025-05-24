@@ -79,7 +79,7 @@ public class AntiSpawner implements ClientTickEvents.EndTick {
             reachDistanceConfig.iterateFromClosest(mc.player.getEyePos().add(0, 0.5, 0)),
             pos->{
                 if(!shapeList.testPos(pos)) return NO_OPERATION;
-                if(!mayMobSpawnAt(mc.world, pos)) return NO_OPERATION;
+                if(!mayMobSpawnAt(mc.world, mc.world.getLightingProvider(), pos)) return NO_OPERATION;
                 if(!mc.world.getBlockState(pos).isReplaceable()) return NO_OPERATION;
                 limitOperationSpeedConfig.limitWithRestock(restockTest, 0);
                 mc.interactionManager.interactBlock(mc.player, Hand.MAIN_HAND, new BlockHitResult(
