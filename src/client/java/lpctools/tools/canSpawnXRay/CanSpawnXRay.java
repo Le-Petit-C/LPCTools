@@ -37,9 +37,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.joml.*;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 
 import static lpctools.generic.GenericUtils.mayMobSpawnAt;
@@ -47,7 +45,7 @@ import static lpctools.lpcfymasaapi.LPCConfigStatics.*;
 import static lpctools.tools.ToolUtils.*;
 import static lpctools.util.AlgorithmUtils.*;
 
-public class CanSpawnXRay implements WorldRenderEvents.Last, WorldRenderEvents.AfterTranslucent, Registry.ClientWorldChunkLightUpdated, ClientChunkEvents.Unload, Registry.ClientWorldChunkSetBlockState, ClientWorldEvents.AfterClientWorldChange, ClientTickEvents.StartTick {
+public class CanSpawnXRay implements WorldRenderEvents.Last, WorldRenderEvents.DebugRender, Registry.ClientWorldChunkLightUpdated, ClientChunkEvents.Unload, Registry.ClientWorldChunkSetBlockState, ClientWorldEvents.AfterClientWorldChange, ClientTickEvents.StartTick {
     public static BooleanHotkeyConfig canSpawnDisplay;
     public static ColorConfig displayColor;
     public static RangeLimitConfig rangeLimit;
@@ -72,7 +70,7 @@ public class CanSpawnXRay implements WorldRenderEvents.Last, WorldRenderEvents.A
         if(newValue) {
             if(Registry.registerWorldRenderLastCallback(this))
                 addAllIntoWork();
-            Registry.registerWorldRenderAfterTranslucentCallback(this);
+            Registry.registerWorldRenderBeforeDebugRenderCallback(this);
             Registry.registerClientWorldChunkLightUpdatedCallback(this);
             Registry.registerClientChunkUnloadCallback(this);
             Registry.registerClientWorldChunkSetBlockStateCallback(this);
@@ -82,7 +80,7 @@ public class CanSpawnXRay implements WorldRenderEvents.Last, WorldRenderEvents.A
         else{
             if(Registry.unregisterWorldRenderLastCallback(this))
                 clearAll();
-            Registry.unregisterWorldRenderAfterTranslucentCallback(this);
+            Registry.unregisterWorldBeforeDebugRenderCallback(this);
             Registry.unregisterClientWorldChunkLightUpdatedCallback(this);
             Registry.unregisterClientChunkUnloadCallback(this);
             Registry.unregisterClientWorldChunkSetBlockStateCallback(this);
@@ -250,8 +248,8 @@ public class CanSpawnXRay implements WorldRenderEvents.Last, WorldRenderEvents.A
                 return "minihudStyle";
             }
             @Override public RenderPipeline getShader(boolean xray) {
-                if(xray) return MaLiLibPipelines.DEBUG_LINES_MASA_SIMPLE_NO_DEPTH_NO_CULL;
-                else return MaLiLibPipelines.DEBUG_LINES_MASA_SIMPLE_NO_CULL;
+                if(xray) return MaLiLibPipelines.DEBUG_LINES_TRANSLUCENT_NO_DEPTH_NO_CULL;
+                else return MaLiLibPipelines.DEBUG_LINES_TRANSLUCENT_NO_CULL;
             }
             @Override public void vertex(BufferBuilder buffer, BlockPos pos, Vector3d cp, int color, boolean xray) {
                 double yOffset = xray ? 1 : 1.005;
@@ -278,19 +276,22 @@ public class CanSpawnXRay implements WorldRenderEvents.Last, WorldRenderEvents.A
                 return "fullSurface";
             }
             @Override public RenderPipeline getShader(boolean xray) {
-                if(xray) return MaLiLibPipelines.POSITION_COLOR_MASA_NO_DEPTH_NO_CULL;
-                else return MaLiLibPipelines.POSITION_COLOR_MASA;
+                if(xray) return MaLiLibPipelines.POSITION_COLOR_TRANSLUCENT_NO_DEPTH_NO_CULL;
+                else return MaLiLibPipelines.POSITION_COLOR_TRANSLUCENT;
             }
             @Override public void vertex(BufferBuilder buffer, BlockPos pos, Vector3d cp, int color, boolean xray) {
                 double yOffset = xray ? 1 : 1.005;
+                boolean direction = pos.getY() + yOffset < cp.y;
                 nn.set(pos.getX(), pos.getY() + yOffset, pos.getZ()).sub(cp);
                 np.set(pos.getX(), pos.getY() + yOffset, pos.getZ() + 1).sub(cp);
                 pp.set(pos.getX() + 1, pos.getY() + yOffset, pos.getZ() + 1).sub(cp);
                 pn.set(pos.getX() + 1, pos.getY() + yOffset, pos.getZ()).sub(cp);
                 buffer.vertex((float) nn.x, (float) nn.y, (float) nn.z).color(color);
-                buffer.vertex((float) np.x, (float) np.y, (float) np.z).color(color);
+                if(direction) buffer.vertex((float) np.x, (float) np.y, (float) np.z).color(color);
+                else buffer.vertex((float) pn.x, (float) pn.y, (float) pn.z).color(color);
                 buffer.vertex((float) pp.x, (float) pp.y, (float) pp.z).color(color);
-                buffer.vertex((float) pn.x, (float) pn.y, (float) pn.z).color(color);
+                if(direction) buffer.vertex((float) pn.x, (float) pn.y, (float) pn.z).color(color);
+                else buffer.vertex((float) np.x, (float) np.y, (float) np.z).color(color);
             }
         },
         new RenderMethod() {
@@ -306,8 +307,8 @@ public class CanSpawnXRay implements WorldRenderEvents.Last, WorldRenderEvents.A
                 return "lineCube";
             }
             @Override public RenderPipeline getShader(boolean xray) {
-                if(xray) return MaLiLibPipelines.DEBUG_LINES_MASA_SIMPLE_NO_DEPTH_NO_CULL;
-                else return MaLiLibPipelines.DEBUG_LINES_MASA_SIMPLE_NO_CULL;
+                if(xray) return MaLiLibPipelines.DEBUG_LINES_TRANSLUCENT_NO_DEPTH_NO_CULL;
+                else return MaLiLibPipelines.DEBUG_LINES_TRANSLUCENT;
             }
             @Override public void vertex(BufferBuilder buffer, BlockPos pos, Vector3d cp, int color, boolean xray) {
                 nn.set(pos.getX() + 0.1, pos.getY() + 1.1, pos.getZ() + 0.1).sub(cp);
@@ -352,10 +353,13 @@ public class CanSpawnXRay implements WorldRenderEvents.Last, WorldRenderEvents.A
         RenderContext ctx = new RenderContext(method.getShader(xray));
         BufferBuilder buffer = ctx.getBuilder();
         Vec3d cameraPos = context.camera().getPos();
+        BlockPos cameraBlockPos = BlockPos.ofFloored(cameraPos);
         Vector3d cp = new Vector3d(cameraPos.x, cameraPos.y, cameraPos.z);
         int color = displayColor.getIntegerValue();
         ShapeList shapeList = rangeLimit.buildShapeList();
         boolean bufferUsed = false;
+        PriorityQueue<BlockPos> queue = new PriorityQueue<>((o1, o2) ->
+            o2.getManhattanDistance(cameraBlockPos) - o1.getManhattanDistance(cameraBlockPos));
         synchronized (canSpawnPoses){
             if(canSpawnPoses.isEmpty()) return;
             SubChunkPos subChunkPos = new SubChunkPos(context.camera().getBlockPos());
@@ -364,12 +368,14 @@ public class CanSpawnXRay implements WorldRenderEvents.Last, WorldRenderEvents.A
                 SubChunkPos chunkPos = new SubChunkPos(vec.getX(), vec.getY(), vec.getZ());
                 HashSet<BlockPos> posSet = canSpawnPoses.get(chunkPos);
                 if(posSet == null) continue;
-                for(BlockPos pos : posSet){
-                    if(!shapeList.testPos(pos)) continue;
-                    method.vertex(buffer, pos, cp, color, xray);
-                    bufferUsed = true;
-                }
+                for(BlockPos pos : posSet) queue.add(pos.toImmutable());
             }
+        }
+        while (!queue.isEmpty()){
+            BlockPos pos = queue.poll();
+            if(!shapeList.testPos(pos)) continue;
+            method.vertex(buffer, pos, cp, color, xray);
+            bufferUsed = true;
         }
         if(!bufferUsed) return;
         try {
@@ -386,7 +392,7 @@ public class CanSpawnXRay implements WorldRenderEvents.Last, WorldRenderEvents.A
     @Override public void onLast(WorldRenderContext context) {
         if(renderXRays.getAsBoolean()) render(context);
     }
-    @Override public void afterTranslucent(WorldRenderContext context) {
+    @Override public void beforeDebugRender(WorldRenderContext context) {
         if(!renderXRays.getAsBoolean()) render(context);
     }
 }
