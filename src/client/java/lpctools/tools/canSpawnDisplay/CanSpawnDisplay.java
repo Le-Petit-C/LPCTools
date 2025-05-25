@@ -1,14 +1,11 @@
 package lpctools.tools.canSpawnDisplay;
 
-import com.mojang.blaze3d.pipeline.RenderPipeline;
-import fi.dy.masa.malilib.render.MaLiLibPipelines;
-import fi.dy.masa.malilib.render.RenderContext;
+import com.mojang.blaze3d.systems.RenderSystem;
 import fi.dy.masa.malilib.util.SubChunkPos;
-import fi.dy.masa.malilib.util.data.Color4f;
+import fi.dy.masa.malilib.util.Color4f;
 import it.unimi.dsi.fastutil.doubles.DoubleArrayList;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
-import lpctools.LPCTools;
 import lpctools.compact.derived.ShapeList;
 import lpctools.generic.GenericRegistry;
 import lpctools.generic.GenericUtils;
@@ -26,9 +23,9 @@ import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents;
 import net.minecraft.block.BlockState;
 import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.gl.ShaderProgramKeys;
 import net.minecraft.client.network.ClientPlayerEntity;
-import net.minecraft.client.render.BufferBuilder;
-import net.minecraft.client.render.BuiltBuffer;
+import net.minecraft.client.render.*;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.util.math.*;
 import net.minecraft.world.World;
@@ -49,7 +46,8 @@ import static lpctools.lpcfymasaapi.LPCConfigStatics.*;
 import static lpctools.tools.ToolUtils.*;
 import static lpctools.util.AlgorithmUtils.*;
 
-public class CanSpawnDisplay implements WorldRenderEvents.Last, WorldRenderEvents.DebugRender, Registry.ClientWorldChunkLightUpdated, ClientChunkEvents.Unload, Registry.ClientWorldChunkSetBlockState, ClientWorldEvents.AfterClientWorldChange, ClientTickEvents.StartTick, GenericRegistry.SpawnConditionChanged {
+@SuppressWarnings("deprecation")
+public class CanSpawnDisplay implements WorldRenderEvents.Last, WorldRenderEvents.AfterSetup, Registry.ClientWorldChunkLightUpdated, ClientChunkEvents.Unload, Registry.ClientWorldChunkSetBlockState, ClientWorldEvents.AfterClientWorldChange, ClientTickEvents.StartTick, GenericRegistry.SpawnConditionChanged {
     public static BooleanHotkeyConfig canSpawnDisplay;
     public static ColorConfig displayColor;
     public static RangeLimitConfig rangeLimit;
@@ -74,7 +72,7 @@ public class CanSpawnDisplay implements WorldRenderEvents.Last, WorldRenderEvent
         if(newValue) {
             if(Registry.registerWorldRenderLastCallback(this))
                 addAllIntoWork();
-            Registry.registerWorldRenderBeforeDebugRenderCallback(this);
+            Registry.registerWorldRenderAfterSetupCallback(this);
             Registry.registerClientWorldChunkLightUpdatedCallback(this);
             Registry.registerClientChunkUnloadCallback(this);
             Registry.registerClientWorldChunkSetBlockStateCallback(this);
@@ -85,7 +83,7 @@ public class CanSpawnDisplay implements WorldRenderEvents.Last, WorldRenderEvent
         else{
             if(Registry.unregisterWorldRenderLastCallback(this))
                 clearAll();
-            Registry.unregisterWorldBeforeDebugRenderCallback(this);
+            Registry.unregisterWorldRenderAfterSetupCallback(this);
             Registry.unregisterClientWorldChunkLightUpdatedCallback(this);
             Registry.unregisterClientChunkUnloadCallback(this);
             Registry.unregisterClientWorldChunkSetBlockStateCallback(this);
@@ -245,7 +243,7 @@ public class CanSpawnDisplay implements WorldRenderEvents.Last, WorldRenderEvent
     
     public interface RenderMethod{
         String getNameKey();
-        RenderPipeline getShader(boolean xray);
+        BufferBuilder getShader(Tessellator tessellator, boolean xray);
         void vertex(BufferBuilder buffer, BlockPos pos, Vector3d cameraPos, int color, boolean xray);
     }
     private static final RenderMethod[] renderMethods = {
@@ -257,9 +255,8 @@ public class CanSpawnDisplay implements WorldRenderEvents.Last, WorldRenderEvent
             @Override public String getNameKey() {
                 return "minihudStyle";
             }
-            @Override public RenderPipeline getShader(boolean xray) {
-                if(xray) return MaLiLibPipelines.DEBUG_LINES_TRANSLUCENT_NO_DEPTH_NO_CULL;
-                else return MaLiLibPipelines.DEBUG_LINES_TRANSLUCENT_NO_CULL;
+            @Override public BufferBuilder getShader(Tessellator tessellator, boolean xray) {
+                return tessellator.begin(VertexFormat.DrawMode.DEBUG_LINES, VertexFormats.POSITION_COLOR);
             }
             @Override public void vertex(BufferBuilder buffer, BlockPos pos, Vector3d cp, int color, boolean xray) {
                 double yOffset = xray ? 1 : 1.005;
@@ -285,9 +282,8 @@ public class CanSpawnDisplay implements WorldRenderEvents.Last, WorldRenderEvent
             @Override public String getNameKey() {
                 return "fullSurface";
             }
-            @Override public RenderPipeline getShader(boolean xray) {
-                if(xray) return MaLiLibPipelines.POSITION_COLOR_TRANSLUCENT_NO_DEPTH_NO_CULL;
-                else return MaLiLibPipelines.POSITION_COLOR_TRANSLUCENT;
+            @Override public BufferBuilder getShader(Tessellator tessellator, boolean xray) {
+                return tessellator.begin(VertexFormat.DrawMode.QUADS, VertexFormats.POSITION_COLOR);
             }
             @Override public void vertex(BufferBuilder buffer, BlockPos pos, Vector3d cp, int color, boolean xray) {
                 double yOffset = xray ? 1 : 1.005;
@@ -316,9 +312,8 @@ public class CanSpawnDisplay implements WorldRenderEvents.Last, WorldRenderEvent
             @Override public String getNameKey() {
                 return "lineCube";
             }
-            @Override public RenderPipeline getShader(boolean xray) {
-                if(xray) return MaLiLibPipelines.DEBUG_LINES_TRANSLUCENT_NO_DEPTH_NO_CULL;
-                else return MaLiLibPipelines.DEBUG_LINES_TRANSLUCENT;
+            @Override public BufferBuilder getShader(Tessellator tessellator, boolean xray) {
+                return tessellator.begin(VertexFormat.DrawMode.DEBUG_LINES, VertexFormats.POSITION_COLOR);
             }
             @Override public void vertex(BufferBuilder buffer, BlockPos pos, Vector3d cp, int color, boolean xray) {
                 nn.set(pos.getX() + 0.1, pos.getY() + 1.1, pos.getZ() + 0.1).sub(cp);
@@ -360,8 +355,8 @@ public class CanSpawnDisplay implements WorldRenderEvents.Last, WorldRenderEvent
     public void render(WorldRenderContext context) {
         RenderMethod method = renderMethod.get();
         boolean xray = renderXRays.getAsBoolean();
-        RenderContext ctx = new RenderContext(method.getShader(xray));
-        BufferBuilder buffer = ctx.getBuilder();
+        Tessellator tessellator = Tessellator.getInstance();
+        BufferBuilder buffer = method.getShader(tessellator, xray);
         Vec3d cameraPos = context.camera().getPos();
         Vector3d cp = new Vector3d(cameraPos.x, cameraPos.y, cameraPos.z);
         int color = displayColor.getIntegerValue();
@@ -390,21 +385,14 @@ public class CanSpawnDisplay implements WorldRenderEvents.Last, WorldRenderEvent
         if(index.isEmpty()) return;
         index.sort((o1, o2) -> (int) Math.signum(distance.getDouble(o2) - distance.getDouble(o1)));
         for (int ind : index) method.vertex(buffer, list.get(ind), cp, color, xray);
-        try {
-            BuiltBuffer meshData = buffer.endNullable();
-            if (meshData != null) {
-                ctx.draw(meshData, false, true);
-                meshData.close();
-            }
-            ctx.close();
-        } catch (Exception err) {
-            LPCTools.LOGGER.error("lpctools.tools.slightXRay.slightXRay.onLast(): Draw Exception; {}", err.getMessage());
-        }
+        if(xray) RenderSystem.disableDepthTest();
+        RenderSystem.setShader(ShaderProgramKeys.POSITION_COLOR);
+        BufferRenderer.drawWithGlobalProgram(buffer.end());
     }
     @Override public void onLast(WorldRenderContext context) {
         if(renderXRays.getAsBoolean()) render(context);
     }
-    @Override public void beforeDebugRender(WorldRenderContext context) {
+    @Override public void afterSetup(WorldRenderContext context) {
         if(!renderXRays.getAsBoolean()) render(context);
     }
 }

@@ -10,23 +10,16 @@ import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents;
 import net.minecraft.block.BlockState;
 import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.gl.Framebuffer;
 import net.minecraft.client.gui.DrawContext;
-import net.minecraft.client.render.*;
-import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.client.world.ClientWorld;
-import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
-import net.minecraft.text.Text;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Vec3d;
 import net.minecraft.util.profiler.Profiler;
 import net.minecraft.world.chunk.WorldChunk;
 import org.jetbrains.annotations.NotNull;
 import org.joml.Matrix4f;
 
 import java.util.LinkedHashSet;
-import java.util.function.Consumer;
 
 @SuppressWarnings({"UnusedReturnValue", "unused"})
 public class Registry {
@@ -212,7 +205,7 @@ public class Registry {
         handler.registerWorldLastRenderer(renderer);
         handler.registerGameOverlayRenderer(renderer);
         handler.registerTooltipLastRenderer(renderer);
-        handler.registerWorldPostDebugRenderer(renderer);
+        //handler.registerWorldPostDebugRenderer(renderer);
         handler.registerWorldPreWeatherRenderer(renderer);
         ClientChunkEvents.CHUNK_LOAD.register(Registry::runClientChunkLoadCallbacks);
         ClientChunkEvents.CHUNK_UNLOAD.register(Registry::runClientChunkUnloadCallbacks);
@@ -231,7 +224,7 @@ public class Registry {
         @Override public void onRenderGameOverlayPost(DrawContext drawContext) {
             for(IRenderer renderer : malilibRenderCallbacks) renderer.onRenderGameOverlayPost(drawContext);
         }
-        @Override public void onRenderWorldPostDebugRender(MatrixStack matrices, Frustum frustum, VertexConsumerProvider.Immediate immediate, Vec3d camera, Profiler profiler) {
+        /*@Override public void onRenderWorldPostDebugRender(MatrixStack matrices, Frustum frustum, VertexConsumerProvider.Immediate immediate, Vec3d camera, Profiler profiler) {
             for(IRenderer renderer : malilibRenderCallbacks) renderer.onRenderWorldPostDebugRender(matrices, frustum, immediate, camera, profiler);
         }
         @Override public void onRenderWorldPreWeather(Framebuffer fb, Matrix4f posMatrix, Matrix4f projMatrix, Frustum frustum, Camera camera, Fog fog, BufferBuilderStorage buffers, Profiler profiler) {
@@ -239,11 +232,11 @@ public class Registry {
         }
         @Override public void onRenderWorldLastAdvanced(Framebuffer fb, Matrix4f posMatrix, Matrix4f projMatrix, Frustum frustum, Camera camera, Fog fog, BufferBuilderStorage buffers, Profiler profiler) {
             for(IRenderer renderer : malilibRenderCallbacks) renderer.onRenderWorldLastAdvanced(fb, posMatrix, projMatrix, frustum, camera, fog, buffers, profiler);
-        }
+        }*/
         @Override public void onRenderWorldLast(Matrix4f posMatrix, Matrix4f projMatrix) {
             for(IRenderer renderer : malilibRenderCallbacks) renderer.onRenderWorldLast(posMatrix, projMatrix);
         }
-        @Override public void onRenderTooltipComponentInsertFirst(Item.TooltipContext context, ItemStack stack, Consumer<Text> list) {
+        /*@Override public void onRenderTooltipComponentInsertFirst(Item.TooltipContext context, ItemStack stack, Consumer<Text> list) {
             for(IRenderer renderer : malilibRenderCallbacks) renderer.onRenderTooltipComponentInsertFirst(context, stack, list);
         }
         @Override public void onRenderTooltipComponentInsertMiddle(Item.TooltipContext context, ItemStack stack, Consumer<Text> list) {
@@ -251,7 +244,7 @@ public class Registry {
         }
         @Override public void onRenderTooltipComponentInsertLast(Item.TooltipContext context, ItemStack stack, Consumer<Text> list) {
             for(IRenderer renderer : malilibRenderCallbacks) renderer.onRenderTooltipComponentInsertLast(context, stack, list);
-        }
+        }*/
         @Override public void onRenderTooltipLast(DrawContext drawContext, ItemStack stack, int x, int y) {
             for(IRenderer renderer : malilibRenderCallbacks) renderer.onRenderTooltipLast(drawContext, stack, x, y);
         }

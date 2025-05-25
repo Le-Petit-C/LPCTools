@@ -14,7 +14,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 @Mixin(WorldChunk.class)
 public class WorldChunkMixin {
     @Inject(method = "setBlockState", at = @At("RETURN"))
-    void chunkSetBlockState(BlockPos pos, BlockState state, int flags, CallbackInfoReturnable<BlockState> cir){
+    void chunkSetBlockState(BlockPos pos, BlockState state, boolean moved, CallbackInfoReturnable<BlockState> cir){
         WorldChunk castedThis = (WorldChunk)(Object)this;
         if(!(castedThis.getWorld() instanceof ClientWorld)) return;
         if(Registry.isClientChunkSetBlockStateCallbackEmpty()) return;

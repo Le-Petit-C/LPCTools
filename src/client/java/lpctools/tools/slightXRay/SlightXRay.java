@@ -2,11 +2,9 @@ package lpctools.tools.slightXRay;
 
 import com.google.common.collect.ImmutableList;
 import com.google.gson.JsonElement;
-import fi.dy.masa.malilib.render.MaLiLibPipelines;
-import fi.dy.masa.malilib.render.RenderContext;
-import fi.dy.masa.malilib.util.data.Color4f;
+import com.mojang.blaze3d.systems.RenderSystem;
+import fi.dy.masa.malilib.util.Color4f;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
-import lpctools.LPCTools;
 import lpctools.compact.derived.ShapeList;
 import lpctools.generic.GenericUtils;
 import lpctools.lpcfymasaapi.LPCConfigList;
@@ -26,10 +24,10 @@ import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
 import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.gl.ShaderProgramKeys;
 import net.minecraft.client.network.ClientPlayerEntity;
-import net.minecraft.client.render.BufferBuilder;
-import net.minecraft.client.render.BuiltBuffer;
-import net.minecraft.client.render.model.BlockStateModel;
+import net.minecraft.client.render.*;
+import net.minecraft.client.render.model.BakedModel;
 import net.minecraft.client.texture.NativeImage;
 import net.minecraft.client.texture.Sprite;
 import net.minecraft.client.world.ClientWorld;
@@ -55,6 +53,7 @@ import static lpctools.util.BlockUtils.*;
 import static lpctools.util.DataUtils.*;
 import static lpctools.util.MathUtils.*;
 
+@SuppressWarnings("deprecation")
 public class SlightXRay implements ILPCValueChangeCallback, WorldRenderEvents.End, ClientChunkEvents.Load, ClientChunkEvents.Unload, ClientWorldEvents.AfterClientWorldChange, Registry.ClientWorldChunkSetBlockState {
     //以下几个变量使用synchronized(markedBlocks)同步
     //标记的需要显示的区块
@@ -111,9 +110,9 @@ public class SlightXRay implements ILPCValueChangeCallback, WorldRenderEvents.En
     
     private static int getColorByTextureColor(Block block) {
         try{
-            BlockStateModel model = MinecraftClient.getInstance().getBlockRenderManager()
+            BakedModel model = MinecraftClient.getInstance().getBlockRenderManager()
                 .getModel(block.getDefaultState());
-            Sprite particleSprite = model.particleSprite();
+            Sprite particleSprite = model.getParticleSprite();
             float r = 0, g = 0, b = 0;
             float t = 0;
             for(NativeImage image : ((SpriteContentsMixin)particleSprite.getContents()).getMipmapLevelsImages()){
@@ -215,8 +214,8 @@ public class SlightXRay implements ILPCValueChangeCallback, WorldRenderEvents.En
     }
 
     @Override public void onEnd(WorldRenderContext context) {
-        RenderContext ctx = new RenderContext(MaLiLibPipelines.POSITION_COLOR_MASA_NO_DEPTH);
-        BufferBuilder buffer = ctx.getBuilder();
+        Tessellator tessellator = Tessellator.getInstance();
+        BufferBuilder buffer = tessellator.begin(VertexFormat.DrawMode.QUADS, VertexFormats.POSITION_COLOR);
         Matrix4d matrix = worldToCameraMatrix4d(context.camera());
         ShapeList shapes = displayRange.buildShapeList();
         boolean bufferUsed = false;
@@ -229,16 +228,11 @@ public class SlightXRay implements ILPCValueChangeCallback, WorldRenderEvents.En
             }
         }
         if(!bufferUsed) return;
-        try {
-            BuiltBuffer meshData = buffer.endNullable();
-            if (meshData != null) {
-                ctx.draw(meshData, false, true);
-                meshData.close();
-            }
-            ctx.close();
-        } catch (Exception err) {
-            LPCTools.LOGGER.error("lpctools.tools.slightXRay.slightXRay.onLast(): Draw Exception; {}", err.getMessage());
-        }
+        RenderSystem.disableDepthTest();
+        RenderSystem.enableBlend();
+        RenderSystem.setShader(ShaderProgramKeys.POSITION_COLOR);
+        RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
+        BufferRenderer.drawWithGlobalProgram(buffer.end());
     }
     @Override public void onChunkLoad(ClientWorld world, WorldChunk worldChunk) {
         updateChunkInCompletableFuture(world, worldChunk, false);
