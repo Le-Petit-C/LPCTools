@@ -1,10 +1,11 @@
 package lpctools.tools.autoGrindstone;
 
 import com.google.common.collect.ImmutableList;
-import lpctools.lpcfymasaapi.configbutton.derivedConfigs.ThirdListConfig;
 import lpctools.lpcfymasaapi.configbutton.transferredConfigs.BooleanHotkeyConfig;
 import lpctools.lpcfymasaapi.configbutton.transferredConfigs.StringListConfig;
-import lpctools.tools.ToolConfigs;
+
+import static lpctools.lpcfymasaapi.LPCConfigStatics.*;
+import static lpctools.tools.ToolUtils.*;
 
 public class AutoGrindstone {
     public static final ImmutableList<String> defaultStrings = ImmutableList.of(
@@ -12,13 +13,9 @@ public class AutoGrindstone {
     );
     public static BooleanHotkeyConfig autoGrindstoneConfig;
     public static StringListConfig limitEnchantmentsConfig;
-    public static void init(ThirdListConfig AGConfig){
-        autoGrindstoneConfig = AGConfig.addBooleanHotkeyConfig("autoGrindstone", false, null);
-        autoGrindstoneConfig.getKeybind().setCallback((action, key)->{
-            autoGrindstoneConfig.toggleBooleanValue();
-            ToolConfigs.displayToggleMessage(autoGrindstoneConfig);
-            return true;
-        });
-        limitEnchantmentsConfig = AGConfig.addStringListConfig("limitEnchantments", defaultStrings);
+    public static void init(){
+        autoGrindstoneConfig = addBooleanHotkeyConfig("autoGrindstone", false, null);
+        setLPCToolsToggleText(autoGrindstoneConfig);
+        limitEnchantmentsConfig = addStringListConfig("limitEnchantments", defaultStrings);
     }
 }

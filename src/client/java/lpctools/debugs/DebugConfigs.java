@@ -1,46 +1,75 @@
 package lpctools.debugs;
 
-import com.mojang.blaze3d.systems.RenderSystem;
-import lpctools.lpcfymasaapi.LPCConfigList;
-import lpctools.lpcfymasaapi.LPCConfigPage;
+import com.mojang.blaze3d.buffers.BufferUsage;
+import fi.dy.masa.malilib.hotkeys.IKeybind;
+import fi.dy.masa.malilib.hotkeys.KeyAction;
+import fi.dy.masa.malilib.render.RenderContext;
+import lpctools.LPCTools;
 import lpctools.lpcfymasaapi.Registry;
 import lpctools.lpcfymasaapi.configbutton.transferredConfigs.BooleanConfig;
+import lpctools.lpcfymasaapi.configbutton.transferredConfigs.HotkeyConfig;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents;
-import net.minecraft.client.gl.ShaderProgramKeys;
-import net.minecraft.client.render.*;
+import net.minecraft.block.BlockState;
+import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.gl.RenderPipelines;
+import net.minecraft.client.network.ClientPlayerEntity;
+import net.minecraft.client.render.BufferBuilder;
+import net.minecraft.client.render.BuiltBuffer;
+import net.minecraft.client.world.ClientWorld;
+import net.minecraft.text.Text;
+import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.joml.Matrix4f;
+import org.joml.Vector3f;
 
 import java.time.Clock;
 
-import static lpctools.util.MathUtils.*;
+import static lpctools.generic.GenericUtils.mayMobSpawnOn;
+import static lpctools.lpcfymasaapi.LPCConfigStatics.*;
 
 public class DebugConfigs {
-    public static LPCConfigList debugs;
     public static BooleanConfig renderDebugShapes;
     public static BooleanConfig displayClickSlotArguments;
-    public static void init(@NotNull LPCConfigPage page){
-        debugs = page.addList("debugs");
-        renderDebugShapes = debugs.addBooleanConfig(
+    public static HotkeyConfig keyActDebug;
+    public static BooleanConfig showExecuteTime;
+    public static HotkeyConfig getBlockStateHotkey;
+    public static BooleanConfig briefBlockState;
+    public static void init(){
+        renderDebugShapes = addBooleanConfig(
                 "renderDebugShapes", false, DebugConfigs::renderDebugShapesValueRefreshCallback);
-        displayClickSlotArguments = debugs.addBooleanConfig("displayClickSlotArguments", false);
+        displayClickSlotArguments = addBooleanConfig("displayClickSlotArguments", false);
+        keyActDebug = addHotkeyConfig("keyActDebug", "", (action, bind)->{
+            ClientPlayerEntity player = MinecraftClient.getInstance().player;
+            if(player == null) return false;
+            player.setPitch(0);
+            player.setYaw(0);
+            return true;
+        });
+        showExecuteTime = addBooleanConfig("showExecuteTime", false);
+        getBlockStateHotkey = addHotkeyConfig("getBlockStateHotkey", "", DebugConfigs::getBlockStateHotkeyCallback);
+        briefBlockState = addBooleanConfig("briefBlockState", true);
     }
     private static void rendDebugShapes(WorldRenderContext context) {
-        Tessellator tessellator = Tessellator.getInstance();
-        BufferBuilder buffer = tessellator.begin(VertexFormat.DrawMode.TRIANGLE_STRIP, VertexFormats.POSITION_COLOR);
-        Matrix4f matrix = inverseOffsetMatrix4f(context.camera().getPos().toVector3f());
+        RenderContext ctx = new RenderContext(RenderPipelines.DEBUG_TRIANGLE_FAN, BufferUsage.STATIC_WRITE);
+        BufferBuilder buffer = ctx.getBuilder();
+        Vector3f cam = context.camera().getPos().toVector3f();
+        float x = cam.x, y = cam.y, z = cam.z;
         float theta = Clock.systemUTC().millis() % 6283 / 1000.0f;
         float alpha = MathHelper.PI * 2 / 3;
-        buffer.vertex(matrix, MathHelper.cos(theta), 0, MathHelper.sin(theta)).color(0xFFFF0000);
-        buffer.vertex(matrix, MathHelper.cos(theta + alpha), 0, MathHelper.sin(theta + alpha)).color(0xFF00FF00);
-        buffer.vertex(matrix, MathHelper.cos(theta - alpha), 0, MathHelper.sin(theta - alpha)).color(0xFF0000FF);
-        RenderSystem.disableCull();
-        RenderSystem.setShader(ShaderProgramKeys.POSITION_COLOR);
-        RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
-        BufferRenderer.drawWithGlobalProgram(buffer.end());
+        buffer.vertex(MathHelper.cos(theta) - x, -y, MathHelper.sin(theta) - z).color(0xFFFF0000);
+        buffer.vertex(MathHelper.cos(theta + alpha) - x, -y, MathHelper.sin(theta + alpha) - z).color(0xFF00FF00);
+        buffer.vertex(MathHelper.cos(theta - alpha) - x, -y, MathHelper.sin(theta - alpha) - z).color(0xFF0000FF);
+        try {
+            BuiltBuffer meshData = buffer.endNullable();
+            if (meshData != null) {
+                ctx.draw(meshData, false, true);
+                meshData.close();
+            }
+            ctx.close();
+        } catch (Exception err) {
+            LPCTools.LOGGER.error("renderBlockOutline(): Draw Exception; {}", err.getMessage());
+        }
     }
     private static @Nullable WorldRenderEvents.Last debugShapesRenderer;
     private static void renderDebugShapesValueRefreshCallback(){
@@ -56,5 +85,25 @@ public class DebugConfigs {
                 debugShapesRenderer = null;
             }
         }
+    }
+    private static boolean getBlockStateHotkeyCallback(KeyAction action, IKeybind keybind){
+        MinecraftClient client = MinecraftClient.getInstance();
+        ClientWorld world = client.world;
+        ClientPlayerEntity player = client.player;
+        if(world == null || player == null) return false;
+        BlockPos pos = player.getBlockPos();
+        BlockState state = world.getBlockState(pos);
+        BlockState finalState;
+        if(state.isAir()) finalState = world.getBlockState(pos.down());
+        else finalState = state;
+        if(briefBlockState.getAsBoolean()){
+            String msg = "isOpaque:" + finalState.isOpaque() + '\n' +
+                "isTransparent:" + finalState.isTransparent() + '\n' +
+                "isOpaqueFullCube:" + finalState.isOpaqueFullCube() + '\n' +
+                "mayMobSpawnOn:" + mayMobSpawnOn(finalState) + '\n';
+            player.sendMessage(Text.of(msg), false);
+        }
+        else player.sendMessage(Text.of(finalState.toString()), false);
+        return true;
     }
 }

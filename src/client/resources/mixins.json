@@ -4,15 +4,19 @@
   "compatibilityLevel": "JAVA_21",
   "client": [
     "AutoGrindstone",
-    "displayClickSlotArguments",
+    "BlockReplaceAction",
+    "ClientPlayNetworkHandlerMixin",
+    "DisplayClickSlotArguments",
     "OnMouseButtonReturnMixin",
-    "SplashTextResourceSupplierMixin"
+    "SplashTextResourceSupplierMixin",
+    "SpriteContentsMixin",
+    "WorldChunkMixin",
+    "MASAMixins.MuteMASAConfigMinMaxMixin.ConfigDoubleMixin",
+    "MASAMixins.MuteMASAConfigMinMaxMixin.ConfigIntegerMixin"
   ],
   "injectors": {
     "defaultRequire": 1
   },
   "mixins": [
-    "LanguageMixin",
-    "WorldChunkMixin"
   ]
 }

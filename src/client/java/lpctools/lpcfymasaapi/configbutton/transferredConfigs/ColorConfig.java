@@ -2,34 +2,34 @@ package lpctools.lpcfymasaapi.configbutton.transferredConfigs;
 
 import com.google.gson.JsonElement;
 import fi.dy.masa.malilib.config.options.ConfigColor;
-import fi.dy.masa.malilib.config.options.ConfigInteger;
-import fi.dy.masa.malilib.util.Color4f;
-import lpctools.lpcfymasaapi.configbutton.ILPCConfigList;
-import lpctools.lpcfymasaapi.configbutton.ILPCValueChangeCallback;
-import lpctools.lpcfymasaapi.configbutton.ILPC_MASAConfigWrapper;
+import fi.dy.masa.malilib.util.data.Color4f;
+import lpctools.lpcfymasaapi.implementations.ILPCConfigList;
+import lpctools.lpcfymasaapi.implementations.ILPCValueChangeCallback;
+import lpctools.lpcfymasaapi.implementations.ILPC_MASAConfigWrapper;
+import lpctools.lpcfymasaapi.implementations.data.LPCConfigData;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.function.IntConsumer;
-import java.util.function.IntSupplier;
+import java.util.function.Consumer;
+import java.util.function.Supplier;
 
-public class ColorConfig extends ConfigColor implements ILPC_MASAConfigWrapper<ConfigInteger>, IntSupplier, IntConsumer {
-    public ColorConfig(@NotNull ILPCConfigList defaultParent, @NotNull String nameKey, int defaultColor){
-        this(defaultParent, nameKey, defaultColor, null);
+public class ColorConfig extends ConfigColor implements ILPC_MASAConfigWrapper<ConfigColor>, Supplier<Color4f>, Consumer<Color4f> {
+    public ColorConfig(@NotNull ILPCConfigList parent, @NotNull String nameKey, Color4f defaultColor){
+        this(parent, nameKey, defaultColor, null);
     }
-    public ColorConfig(@NotNull ILPCConfigList parent, @NotNull String nameKey, int defaultColor, @Nullable ILPCValueChangeCallback callback){
-        super(nameKey, String.format("0x%x", defaultColor));
-        data = new Data(parent, false);
+    public ColorConfig(@NotNull ILPCConfigList parent, @NotNull String nameKey, Color4f defaultColor, @Nullable ILPCValueChangeCallback callback){
+        super(nameKey, defaultColor);
+        data = new LPCConfigData(parent, false);
         ILPC_MASAConfigWrapperDefaultInit(callback);
     }
 
-    @Override public void setValueFromJsonElement(JsonElement element) {
-        @SuppressWarnings("deprecation") Color4f lastValue = getColor();
+    @Override public void setValueFromJsonElement(@NotNull JsonElement element) {
+        Color4f lastValue = getColor();
         super.setValueFromJsonElement(element);
         if(!lastValue.equals(getColor())) onValueChanged();
     }
-    @Override public int getAsInt() {return getColor().intValue;}
-    @Override public void accept(int color) {setIntegerValue(color);}
-    @Override public @NotNull Data getLPCConfigData() {return data;}
-    private final @NotNull Data data;
+    @Override public Color4f get() {return getColor();}
+    @Override public void accept(Color4f color) {setIntegerValue(color.getIntValue());}
+    @Override public @NotNull LPCConfigData getLPCConfigData() {return data;}
+    private final @NotNull LPCConfigData data;
 }

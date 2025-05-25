@@ -11,7 +11,7 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(ClientPlayerInteractionManager.class)
-public class displayClickSlotArguments {
+public class DisplayClickSlotArguments {
     @Inject(method = "clickSlot", at = @At("HEAD"))
     void displayArguments(int syncId, int slotId, int button, SlotActionType actionType, PlayerEntity player, CallbackInfo ci){
         if(!DebugConfigs.displayClickSlotArguments.getAsBoolean()) return;
