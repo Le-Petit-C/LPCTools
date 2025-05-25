@@ -47,7 +47,7 @@ import static lpctools.tools.ToolUtils.*;
 import static lpctools.util.AlgorithmUtils.*;
 
 @SuppressWarnings("deprecation")
-public class CanSpawnDisplay implements WorldRenderEvents.Last, WorldRenderEvents.AfterSetup, Registry.ClientWorldChunkLightUpdated, ClientChunkEvents.Unload, Registry.ClientWorldChunkSetBlockState, ClientWorldEvents.AfterClientWorldChange, ClientTickEvents.StartTick, GenericRegistry.SpawnConditionChanged {
+public class CanSpawnDisplay implements WorldRenderEvents.Last, WorldRenderEvents.DebugRender, Registry.ClientWorldChunkLightUpdated, ClientChunkEvents.Unload, Registry.ClientWorldChunkSetBlockState, ClientWorldEvents.AfterClientWorldChange, ClientTickEvents.StartTick, GenericRegistry.SpawnConditionChanged {
     public static BooleanHotkeyConfig canSpawnDisplay;
     public static ColorConfig displayColor;
     public static RangeLimitConfig rangeLimit;
@@ -72,7 +72,7 @@ public class CanSpawnDisplay implements WorldRenderEvents.Last, WorldRenderEvent
         if(newValue) {
             if(Registry.registerWorldRenderLastCallback(this))
                 addAllIntoWork();
-            Registry.registerWorldRenderAfterSetupCallback(this);
+            Registry.registerWorldRenderBeforeDebugRenderCallback(this);
             Registry.registerClientWorldChunkLightUpdatedCallback(this);
             Registry.registerClientChunkUnloadCallback(this);
             Registry.registerClientWorldChunkSetBlockStateCallback(this);
@@ -83,7 +83,7 @@ public class CanSpawnDisplay implements WorldRenderEvents.Last, WorldRenderEvent
         else{
             if(Registry.unregisterWorldRenderLastCallback(this))
                 clearAll();
-            Registry.unregisterWorldRenderAfterSetupCallback(this);
+            Registry.unregisterWorldBeforeDebugRenderCallback(this);
             Registry.unregisterClientWorldChunkLightUpdatedCallback(this);
             Registry.unregisterClientChunkUnloadCallback(this);
             Registry.unregisterClientWorldChunkSetBlockStateCallback(this);
@@ -386,13 +386,15 @@ public class CanSpawnDisplay implements WorldRenderEvents.Last, WorldRenderEvent
         index.sort((o1, o2) -> (int) Math.signum(distance.getDouble(o2) - distance.getDouble(o1)));
         for (int ind : index) method.vertex(buffer, list.get(ind), cp, color, xray);
         if(xray) RenderSystem.disableDepthTest();
+        else RenderSystem.enableDepthTest();
+        RenderSystem.enableBlend();
         RenderSystem.setShader(ShaderProgramKeys.POSITION_COLOR);
         BufferRenderer.drawWithGlobalProgram(buffer.end());
     }
     @Override public void onLast(WorldRenderContext context) {
         if(renderXRays.getAsBoolean()) render(context);
     }
-    @Override public void afterSetup(WorldRenderContext context) {
+    @Override public void beforeDebugRender(WorldRenderContext context) {
         if(!renderXRays.getAsBoolean()) render(context);
     }
 }
