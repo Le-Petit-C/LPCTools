@@ -14,26 +14,31 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
+import static lpctools.generic.GenericRegistry.*;
 import static lpctools.lpcfymasaapi.LPCConfigStatics.*;
 import static lpctools.util.DataUtils.*;
 
 public class GenericConfigs {
     public static void init(){
         configOpenGuiConfig = addConfigOpenGuiConfig("Z,C");
-        spawnLightLevelLimit = addIntegerConfig("spawnLightLevelLimit", 0, 0, 15);
-        liquidPlacesAsCanSpawn = addBooleanConfig("liquidPlacesAsCanSpawn", false);
+        spawnLightLevelLimit = addIntegerConfig("spawnLightLevelLimit", 0, 0, 15,
+            GenericRegistry::runSpawnConditionChanged);
+        liquidPlacesAsCanSpawn = addBooleanConfig("liquidPlacesAsCanSpawn", false,
+            GenericRegistry::runSpawnConditionChanged);
         extraSpawnBlockIds = addStringListConfig("extraSpawnBlocks",
-                idListFromBlockList(defaultExtraSpawnBlocks),
-                ()->{
+            idListFromBlockList(defaultExtraSpawnBlocks),
+            ()->{
             extraSpawnBlocks.clear();
             extraSpawnBlocks.addAll(blockSetFromIds(extraSpawnBlockIds));
+            runSpawnConditionChanged();
         });
         extraNoSpawnBlockIds = addStringListConfig("extraNoSpawnBlocks",
-                idListFromBlockList(defaultExtraNoSpawnBlocks),
-                ()->{
-                    extraNoSpawnBlocks.clear();
-                    extraNoSpawnBlocks.addAll(blockSetFromIds(extraNoSpawnBlockIds));
-                });
+            idListFromBlockList(defaultExtraNoSpawnBlocks),
+            ()->{
+            extraNoSpawnBlocks.clear();
+            extraNoSpawnBlocks.addAll(blockSetFromIds(extraNoSpawnBlockIds));
+            runSpawnConditionChanged();
+        });
         reachDistanceAlwaysUnlimited = addBooleanConfig("reachDistanceAlwaysUnlimited", false);
         useIndependentThreadPool = addThirdListConfig("threadPool", true);
         threadCountConfig = addIntegerConfig(useIndependentThreadPool, "threadCount", 4,

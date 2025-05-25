@@ -1,13 +1,16 @@
-package lpctools.tools.canSpawnXRay;
+package lpctools.tools.canSpawnDisplay;
 
 import com.mojang.blaze3d.pipeline.RenderPipeline;
 import fi.dy.masa.malilib.render.MaLiLibPipelines;
 import fi.dy.masa.malilib.render.RenderContext;
 import fi.dy.masa.malilib.util.SubChunkPos;
 import fi.dy.masa.malilib.util.data.Color4f;
+import it.unimi.dsi.fastutil.doubles.DoubleArrayList;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.ints.IntArrayList;
 import lpctools.LPCTools;
 import lpctools.compact.derived.ShapeList;
+import lpctools.generic.GenericRegistry;
 import lpctools.generic.GenericUtils;
 import lpctools.lpcfymasaapi.Registry;
 import lpctools.lpcfymasaapi.configbutton.derivedConfigs.ArrayOptionListConfig;
@@ -37,6 +40,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.joml.*;
 
+import java.lang.Math;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 
@@ -45,7 +49,7 @@ import static lpctools.lpcfymasaapi.LPCConfigStatics.*;
 import static lpctools.tools.ToolUtils.*;
 import static lpctools.util.AlgorithmUtils.*;
 
-public class CanSpawnXRay implements WorldRenderEvents.Last, WorldRenderEvents.DebugRender, Registry.ClientWorldChunkLightUpdated, ClientChunkEvents.Unload, Registry.ClientWorldChunkSetBlockState, ClientWorldEvents.AfterClientWorldChange, ClientTickEvents.StartTick {
+public class CanSpawnDisplay implements WorldRenderEvents.Last, WorldRenderEvents.DebugRender, Registry.ClientWorldChunkLightUpdated, ClientChunkEvents.Unload, Registry.ClientWorldChunkSetBlockState, ClientWorldEvents.AfterClientWorldChange, ClientTickEvents.StartTick, GenericRegistry.SpawnConditionChanged {
     public static BooleanHotkeyConfig canSpawnDisplay;
     public static ColorConfig displayColor;
     public static RangeLimitConfig rangeLimit;
@@ -64,8 +68,8 @@ public class CanSpawnXRay implements WorldRenderEvents.Last, WorldRenderEvents.D
             renderMethod.addOption(renderMethod.getFullTranslationKey() + '.' + method.getNameKey(), method);
         renderXRays = addBooleanConfig("renderXRays", true);
     }
-    private static final CanSpawnXRay instance = new CanSpawnXRay();
-    public static CanSpawnXRay getInstance(){return instance;}
+    private static final CanSpawnDisplay instance = new CanSpawnDisplay();
+    public static CanSpawnDisplay getInstance(){return instance;}
     public void onValueChanged(boolean newValue){
         if(newValue) {
             if(Registry.registerWorldRenderLastCallback(this))
@@ -76,6 +80,7 @@ public class CanSpawnXRay implements WorldRenderEvents.Last, WorldRenderEvents.D
             Registry.registerClientWorldChunkSetBlockStateCallback(this);
             Registry.registerClientWorldChangeCallback(this);
             Registry.registerStartClientTickCallback(this);
+            GenericRegistry.SPAWN_CONDITION_CHANGED.register(this);
         }
         else{
             if(Registry.unregisterWorldRenderLastCallback(this))
@@ -86,6 +91,7 @@ public class CanSpawnXRay implements WorldRenderEvents.Last, WorldRenderEvents.D
             Registry.unregisterClientWorldChunkSetBlockStateCallback(this);
             Registry.unregisterClientWorldChangeCallback(this);
             Registry.unregisterStartClientTickCallback(this);
+            GenericRegistry.SPAWN_CONDITION_CHANGED.unregister(this);
         }
     }
     private final HashMap<SubChunkPos, HashSet<BlockPos>> canSpawnPoses = new HashMap<>();
@@ -135,6 +141,10 @@ public class CanSpawnXRay implements WorldRenderEvents.Last, WorldRenderEvents.D
             }
         }
         needRefreshPoses.clear();
+    }
+    @Override public void onSpawnConditionChanged() {
+        clearAll();
+        addAllIntoWork();
     }
     
     private record ThreadTask(@NotNull Chunk chunk, @Nullable LightingProvider light, boolean load){}
@@ -353,31 +363,33 @@ public class CanSpawnXRay implements WorldRenderEvents.Last, WorldRenderEvents.D
         RenderContext ctx = new RenderContext(method.getShader(xray));
         BufferBuilder buffer = ctx.getBuilder();
         Vec3d cameraPos = context.camera().getPos();
-        BlockPos cameraBlockPos = BlockPos.ofFloored(cameraPos);
         Vector3d cp = new Vector3d(cameraPos.x, cameraPos.y, cameraPos.z);
         int color = displayColor.getIntegerValue();
         ShapeList shapeList = rangeLimit.buildShapeList();
-        boolean bufferUsed = false;
-        PriorityQueue<BlockPos> queue = new PriorityQueue<>((o1, o2) ->
-            o2.getManhattanDistance(cameraBlockPos) - o1.getManhattanDistance(cameraBlockPos));
+        double squaredRenderBlockDistance = renderDistance.getAsDouble() * renderDistance.getAsDouble() * 256;
+        ArrayList<BlockPos> list = new ArrayList<>();
+        DoubleArrayList distance = new DoubleArrayList();
+        IntArrayList index = new IntArrayList();
+        Vec3d cameraDiv16Pos = new Vec3d(cameraPos.x / 16, cameraPos.y / 16, cameraPos.z / 16);
         synchronized (canSpawnPoses){
             if(canSpawnPoses.isEmpty()) return;
-            SubChunkPos subChunkPos = new SubChunkPos(context.camera().getBlockPos());
-            BlockPos blockPos = new BlockPos(subChunkPos.getX(), subChunkPos.getY(), subChunkPos.getZ());
-            for(Vec3i vec : iterateFromClosestInDistance(blockPos.toCenterPos(), renderDistance.getAsDouble())){
+            for(Vec3i vec : iterateFromClosestInDistance(cameraDiv16Pos, renderDistance.getAsDouble() + 0.866025403784439)){
                 SubChunkPos chunkPos = new SubChunkPos(vec.getX(), vec.getY(), vec.getZ());
                 HashSet<BlockPos> posSet = canSpawnPoses.get(chunkPos);
                 if(posSet == null) continue;
-                for(BlockPos pos : posSet) queue.add(pos.toImmutable());
+                for(BlockPos pos : posSet){
+                    double d = pos.getSquaredDistance(cameraPos);
+                    if(d > squaredRenderBlockDistance) continue;
+                    if(!shapeList.testPos(pos)) continue;
+                    list.add(pos);
+                    distance.add(d);
+                    index.add(index.size());
+                }
             }
         }
-        while (!queue.isEmpty()){
-            BlockPos pos = queue.poll();
-            if(!shapeList.testPos(pos)) continue;
-            method.vertex(buffer, pos, cp, color, xray);
-            bufferUsed = true;
-        }
-        if(!bufferUsed) return;
+        if(index.isEmpty()) return;
+        index.sort((o1, o2) -> (int) Math.signum(distance.getDouble(o2) - distance.getDouble(o1)));
+        for (int ind : index) method.vertex(buffer, list.get(ind), cp, color, xray);
         try {
             BuiltBuffer meshData = buffer.endNullable();
             if (meshData != null) {

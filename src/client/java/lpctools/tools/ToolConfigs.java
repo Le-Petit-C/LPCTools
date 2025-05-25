@@ -4,7 +4,7 @@ import lpctools.lpcfymasaapi.configbutton.derivedConfigs.ThirdListConfig;
 import lpctools.lpcfymasaapi.implementations.ILPCConfigList;
 import lpctools.tools.autoGrindstone.AutoGrindstone;
 import lpctools.tools.antiSpawner.AntiSpawner;
-import lpctools.tools.canSpawnXRay.CanSpawnXRay;
+import lpctools.tools.canSpawnDisplay.CanSpawnDisplay;
 import lpctools.tools.slightXRay.SlightXRay;
 import lpctools.tools.fillingAssistant.FillingAssistant;
 import lpctools.tools.liquidCleaner.LiquidCleaner;
@@ -32,7 +32,7 @@ public class ToolConfigs {
             layer.set(ASConfig = addThirdListConfig(lastList, "AS", false));
             AntiSpawner.init();
             layer.set(CSConfig = addThirdListConfig(lastList, "CS", false));
-            CanSpawnXRay.init();
+            CanSpawnDisplay.init();
         }
     }
 }

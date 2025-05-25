@@ -15,6 +15,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashSet;
 
 @SuppressWarnings("unused")
@@ -104,11 +105,14 @@ public class DataUtils {
         return ret;
     }
     public static @NotNull HashSet<@NotNull Item> itemSetFromIds(Iterable<String> ids){
-        HashSet<Item> ret = new HashSet<>();
+        return itemSetFromIds(ids, new HashSet<>(), false);
+    }
+    public static <T extends Collection<Item>> @NotNull T itemSetFromIds(Iterable<String> ids, T result, boolean clear){
+        if(clear) result.clear();
         for(String id : ids){
             Item block = getItemFromId(id, true);
-            if(block != null) ret.add(block);
+            if(block != null) result.add(block);
         }
-        return ret;
+        return result;
     }
 }

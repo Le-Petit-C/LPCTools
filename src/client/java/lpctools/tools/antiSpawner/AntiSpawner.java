@@ -43,7 +43,8 @@ public class AntiSpawner implements ClientTickEvents.EndTick {
         setLPCToolsToggleText(antiSpawnerConfig);
         limitOperationSpeedConfig = addLimitOperationSpeedConfig(false, 1);
         reachDistanceConfig = addReachDistanceConfig();
-        placeableItemIds = addStringListConfig("placeableItems", idListFromItemList(defaultPlaceableItems));
+        placeableItemIds = addStringListConfig("placeableItems", idListFromItemList(defaultPlaceableItems),
+            ()->itemSetFromIds(placeableItemIds.get(), placeableItems, true));
         rangeLimitConfig = addRangeLimitConfig(false);
     }
     private static final AntiSpawner instance = new AntiSpawner();
