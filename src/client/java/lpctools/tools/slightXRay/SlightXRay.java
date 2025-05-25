@@ -1,16 +1,21 @@
 package lpctools.tools.slightXRay;
 
 import com.google.common.collect.ImmutableList;
+import com.google.gson.JsonElement;
 import com.mojang.blaze3d.systems.RenderSystem;
+import fi.dy.masa.malilib.util.Color4f;
+import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import lpctools.compact.derived.ShapeList;
+import lpctools.generic.GenericUtils;
+import lpctools.lpcfymasaapi.LPCConfigList;
 import lpctools.lpcfymasaapi.Registry;
-import lpctools.lpcfymasaapi.configbutton.ILPCValueChangeCallback;
+import lpctools.lpcfymasaapi.configbutton.derivedConfigs.ConfigListOptionListConfigEx;
+import lpctools.lpcfymasaapi.configbutton.transferredConfigs.*;
+import lpctools.lpcfymasaapi.implementations.ILPCConfigBase;
+import lpctools.lpcfymasaapi.implementations.ILPCConfigList;
+import lpctools.lpcfymasaapi.implementations.ILPCValueChangeCallback;
 import lpctools.lpcfymasaapi.configbutton.derivedConfigs.RangeLimitConfig;
-import lpctools.lpcfymasaapi.configbutton.derivedConfigs.ThirdListConfig;
-import lpctools.lpcfymasaapi.configbutton.transferredConfigs.BooleanHotkeyConfig;
-import lpctools.lpcfymasaapi.configbutton.transferredConfigs.ColorConfig;
-import lpctools.lpcfymasaapi.configbutton.transferredConfigs.StringListConfig;
-import lpctools.tools.ToolConfigs;
+import lpctools.mixin.client.SpriteContentsMixin;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientChunkEvents;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientWorldEvents;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext;
@@ -22,98 +27,189 @@ import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gl.ShaderProgramKeys;
 import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.client.render.*;
+import net.minecraft.client.render.model.BakedModel;
+import net.minecraft.client.texture.NativeImage;
+import net.minecraft.client.texture.Sprite;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.util.math.*;
 import net.minecraft.world.World;
+import net.minecraft.world.chunk.Chunk;
+import net.minecraft.world.chunk.ChunkStatus;
 import net.minecraft.world.chunk.WorldChunk;
+import org.apache.commons.lang3.mutable.MutableInt;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.joml.*;
 
+import java.awt.*;
+import java.lang.Math;
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
 
+import static lpctools.lpcfymasaapi.LPCConfigStatics.*;
+import static lpctools.tools.ToolUtils.*;
 import static lpctools.util.AlgorithmUtils.*;
+import static lpctools.util.BlockUtils.*;
 import static lpctools.util.DataUtils.*;
 import static lpctools.util.MathUtils.*;
 
-public class SlightXRay implements ILPCValueChangeCallback, WorldRenderEvents.End, ClientChunkEvents.Load, ClientChunkEvents.Unload, ClientWorldEvents.AfterClientWorldChange {
-    //markedBlocks放在多线程里用，记得要同步
-    static final @NotNull HashSet<BlockPos> markedBlocks = new HashSet<>();
+@SuppressWarnings("deprecation")
+public class SlightXRay implements ILPCValueChangeCallback, WorldRenderEvents.End, ClientChunkEvents.Load, ClientChunkEvents.Unload, ClientWorldEvents.AfterClientWorldChange, Registry.ClientWorldChunkSetBlockState {
+    //以下几个变量使用synchronized(markedBlocks)同步
+    //标记的需要显示的区块
+    static final @NotNull HashMap<BlockPos, MutableInt> markedBlocks = new HashMap<>();
+    //加载过或正要加载的区块
+    static final @NotNull HashSet<ChunkPos> loadedOrLoadingChunks = new HashSet<>();
+    //以上几个变量使用synchronized(markedBlocks)同步
     static final @NotNull ImmutableList<Block> defaultXRayBlocks = ImmutableList.of(
-            Blocks.DIAMOND_ORE, Blocks.DEEPSLATE_DIAMOND_ORE,
-            Blocks.DEEPSLATE_COAL_ORE, Blocks.EMERALD_ORE, Blocks.DEEPSLATE_EMERALD_ORE,
-            Blocks.OBSIDIAN, Blocks.CRYING_OBSIDIAN, Blocks.ENDER_CHEST, Blocks.REINFORCED_DEEPSLATE,
-            Blocks.BUDDING_AMETHYST, Blocks.CALCITE
+        Blocks.DIAMOND_ORE, Blocks.DEEPSLATE_DIAMOND_ORE,
+        Blocks.DEEPSLATE_COAL_ORE, Blocks.EMERALD_ORE, Blocks.DEEPSLATE_EMERALD_ORE,
+        Blocks.OBSIDIAN, Blocks.CRYING_OBSIDIAN, Blocks.ENDER_CHEST, Blocks.REINFORCED_DEEPSLATE,
+        Blocks.BUDDING_AMETHYST, Blocks.CALCITE,
+        Blocks.ANCIENT_DEBRIS
     );
-    static final @NotNull HashSet<Block> XRayBlocks = new HashSet<>(defaultXRayBlocks);
+    static final @NotNull HashMap<Block, MutableInt> XRayBlocks;
     static final @NotNull ImmutableList<String> defaultXRayBlockIds = idListFromBlockList(defaultXRayBlocks);
     public static BooleanHotkeyConfig slightXRay;
-    public static ColorConfig displayColor;
+    public static ConfigListOptionListConfigEx<ConfigListWithColorMethod> defaultColorMethod;
+    public static ColorConfig defaultColor;
     public static StringListConfig XRayBlocksConfig;
     public static RangeLimitConfig displayRange;
+    public static DoubleConfig saturationDelta;
+    public static DoubleConfig brightnessDelta;
+    public static IntegerConfig defaultAlpha;
+    static {
+        XRayBlocks = new HashMap<>();
+        for(Block block : defaultXRayBlocks)
+            XRayBlocks.put(block, new MutableInt(0));
+    }
 
-    public static void init(ThirdListConfig SXConfig){
-        slightXRay = SXConfig.addBooleanHotkeyConfig("slightXRay", false, null, new SlightXRay());
-        slightXRay.getKeybind().setCallback((action, key) -> {
-            slightXRay.toggleBooleanValue();
-            ToolConfigs.displayToggleMessage(slightXRay);
-            return true;
+    public static void init(){
+        slightXRay = addBooleanHotkeyConfig("slightXRay", false, null, new SlightXRay());
+        setLPCToolsToggleText(slightXRay);
+        defaultColorMethod = peekConfigList().addConfig(
+            new ConfigListOptionListConfigEx<>(peekConfigList(), "defaultColorMethod", SlightXRay::refreshXRayBlocks){
+                @Override public void setValueFromJsonElement(@NotNull JsonElement element) {
+                    super.setValueFromJsonElement(element);
+                    onValueChanged();
+                }
+            });
+        ILPCConfigList byDefaultColor = defaultColorMethod.addList(
+            new ConfigListWithColorBase(defaultColorMethod, "byDefaultColor", block->defaultColor.getIntegerValue()) {
         });
-        displayColor = SXConfig.addColorConfig("displayColor", 0x7F3F7FFF);
-        XRayBlocksConfig = SXConfig.addStringListConfig("XRayBlocks", defaultXRayBlockIds, SlightXRay::refreshXRayBlocks);
-        displayRange = SXConfig.addRangeLimitConfig(false, "SX");
+        defaultColor = addColorConfig(byDefaultColor, "defaultColor", new Color4f(127, 127, 255, 127), SlightXRay::refreshXRayBlocks);
+        ILPCConfigList byTextureColor = defaultColorMethod.addList(
+            new ConfigListWithColorBase(defaultColorMethod, "byTextureColor", SlightXRay::getColorByTextureColor)
+        );
+        defaultAlpha = addIntegerConfig(byTextureColor, "defaultAlpha", 127, 0, 255, SlightXRay::refreshXRayBlocks);
+        saturationDelta = addDoubleConfig(byTextureColor, "saturationDelta", 1, -5, 5, SlightXRay::refreshXRayBlocks);
+        brightnessDelta = addDoubleConfig(byTextureColor, "brightnessDelta", 1, -5, 5, SlightXRay::refreshXRayBlocks);
+        XRayBlocksConfig = addStringListConfig("XRayBlocks", defaultXRayBlockIds, SlightXRay::refreshXRayBlocks);
+        displayRange = addRangeLimitConfig(false);
+    }
+    
+    private static int getColorByTextureColor(Block block) {
+        try{
+            BakedModel model = MinecraftClient.getInstance().getBlockRenderManager()
+                .getModel(block.getDefaultState());
+            Sprite particleSprite = model.getParticleSprite();
+            float r = 0, g = 0, b = 0;
+            float t = 0;
+            for(NativeImage image : ((SpriteContentsMixin)particleSprite.getContents()).getMipmapLevelsImages()){
+                for(int color : image.copyPixelsArgb()){
+                    float k = (color >>> 24) / 255.0f;
+                    r += ((color >>> 16) & 0xff) * k;
+                    g += ((color >>> 8) & 0xff) * k;
+                    b += (color & 0xff) * k;
+                    t += k;
+                }
+            }
+            if(t == 0) return 0x7f000000;
+            int ri = Math.round(r / t);
+            int gi = Math.round(g / t);
+            int bi = Math.round(b / t);
+            float[] hsb = Color.RGBtoHSB(ri, gi, bi, new float[3]);
+            hsb[1] = (float) Math.tanh(atanh(hsb[1] * 2 - 1) + saturationDelta.getAsDouble()) * 0.5f + 0.5f;
+            hsb[2] = (float) Math.tanh(atanh(hsb[2] * 2 - 1) + brightnessDelta.getAsDouble()) * 0.5f + 0.5f;
+            return (Color.HSBtoRGB(hsb[0], hsb[1], hsb[2]) & 0x00ffffff) | (defaultAlpha.getAsInt() << 24);
+        }
+        catch (Exception e){return 0x7f000000;}
+    }
+    
+    public static double atanh(double x) {
+        if (Math.abs(x) > 1) throw new IllegalArgumentException("atanh: input value out of bound [-1, 1]");
+        return 0.5 * Math.log((1 + x) / (1 - x));
     }
 
     private static void addAllRenderRegionsIntoWork(){
         ClientWorld world = MinecraftClient.getInstance().world;
         ClientPlayerEntity player = MinecraftClient.getInstance().player;
         if(world == null || player == null) return;
-        int distance = MinecraftClient.getInstance().options.getViewDistance().getValue();
+        //int distance = MinecraftClient.getInstance().options.getViewDistance().getValue();
         ChunkPos chunkPos = player.getChunkPos();
-        for(int x = chunkPos.x - distance; x <= chunkPos.x + distance; ++x){
-            for(int z = chunkPos.z - distance; z <= chunkPos.z + distance; ++z){
-                if(world.isChunkLoaded(x, z)){
-                    WorldChunk chunk = world.getChunk(x, z);
-                    ChunkPos compPos = chunk.getPos();
-                    if(compPos.x != x || compPos.z != z) continue;
-                    updateChunkInAnotherThread(world, chunk, false);
-                }
-            }
+        for(Vector2i vec : iterateFromClosest(toVector2i(chunkPos))){
+            Chunk chunk = world.getChunk(vec.x, vec.y, ChunkStatus.FULL, false);
+            if(chunk == null) break;
+            updateChunkInCompletableFuture(world, chunk, false);
         }
     }
 
     private static void refreshXRayBlocks(){
-        HashSet<Block> newBlocks = blockSetFromIds(XRayBlocksConfig.getStrings());
-        if(XRayBlocks.equals(newBlocks)) return;
+        if(XRayBlocksConfig == null) return;
+        HashMap<Block, MutableInt> newBlocks = new HashMap<>();
+        for(String str : XRayBlocksConfig){
+            String[] splits = str.split(";");
+            if(splits.length > 0 && splits.length < 3){
+                Block block = getBlockFromId(splits[0], true);
+                if(block == null) continue;
+                Integer color = null;
+                if(splits.length > 1) {
+                    try {
+                        color = Integer.parseUnsignedInt(splits[1], 16);
+                    }catch (NumberFormatException e){
+                        warnInvalidString(str);
+                        continue;
+                    }
+                }
+                if(color == null) color = defaultColorMethod.getCurrentUserdata().getColor(block);
+                newBlocks.put(block, new MutableInt(color));
+            }
+            else warnInvalidString(str);
+        }
+        if(XRayBlocks.keySet().equals(newBlocks.keySet())) {
+            for(Map.Entry<Block, MutableInt> block : newBlocks.entrySet())
+                XRayBlocks.get(block.getKey()).setValue(block.getValue());
+            return;
+        }
         XRayBlocks.clear();
-        XRayBlocks.addAll(newBlocks);
+        XRayBlocks.putAll(newBlocks);
         if(slightXRay.getAsBoolean()){
             clearAll();
             addAllRenderRegionsIntoWork();
         }
+    }
+    private static void warnInvalidString(String str){
+        notifyPlayer(String.format("§eWarning: Invalid string \"%s\"", str), false);
     }
 
     @Override public void onValueChanged() {
         if(slightXRay.getAsBoolean()){
             if(Registry.registerWorldRenderEndCallback(this))
                 addAllRenderRegionsIntoWork();
-            Registry.registerClientChunkLoadCallbacks(this);
-            Registry.registerClientChunkUnloadCallbacks(this);
-            Registry.registerClientWorldChangeCallbacks(this);
-            ToolConfigs.displayEnableMessage(slightXRay);
+            Registry.registerClientChunkLoadCallback(this);
+            Registry.registerClientChunkUnloadCallback(this);
+            Registry.registerClientWorldChangeCallback(this);
+            Registry.registerClientWorldChunkSetBlockStateCallback(this);
+            displayEnableMessage(slightXRay);
         }
         else {
-            if(Registry.unregisterWorldRenderEndCallback(this)){
-                synchronized (markedBlocks){
-                    markedBlocks.clear();
-                }
-                synchronized (threadTasks){
-                    threadTasks.clear();
-                }
-            }
-            Registry.unregisterClientChunkLoadCallbacks(this);
-            Registry.unregisterClientChunkUnloadCallbacks(this);
-            Registry.unregisterClientWorldChangeCallbacks(this);
-            ToolConfigs.displayDisableMessage(slightXRay);
+            if(Registry.unregisterWorldRenderEndCallback(this))
+                clearAll();
+            Registry.unregisterClientChunkLoadCallback(this);
+            Registry.unregisterClientChunkUnloadCallback(this);
+            Registry.unregisterClientWorldChangeCallback(this);
+            Registry.unregisterClientWorldChunkSetBlockStateCallback(this);
+            displayDisableMessage(slightXRay);
         }
     }
 
@@ -121,14 +217,12 @@ public class SlightXRay implements ILPCValueChangeCallback, WorldRenderEvents.En
         Tessellator tessellator = Tessellator.getInstance();
         BufferBuilder buffer = tessellator.begin(VertexFormat.DrawMode.QUADS, VertexFormats.POSITION_COLOR);
         Matrix4d matrix = worldToCameraMatrix4d(context.camera());
-        int color = displayColor.getAsInt();
         ShapeList shapes = displayRange.buildShapeList();
         boolean bufferUsed = false;
         synchronized (markedBlocks){
-            if(markedBlocks.isEmpty()) return;
-            for(BlockPos pos : markedBlocks){
-                if(shapes.testPos(pos)){
-                    vertexBlock(matrix, buffer, pos, color, shapes);
+            for(Map.Entry<BlockPos, MutableInt> pos : markedBlocks.entrySet()){
+                if(shapes.testPos(pos.getKey())){
+                    paintMethods.vertexBlock(matrix, buffer, pos.getKey(), pos.getValue().intValue(), shapes);
                     bufferUsed = true;
                 }
             }
@@ -140,11 +234,21 @@ public class SlightXRay implements ILPCValueChangeCallback, WorldRenderEvents.En
         RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
         BufferRenderer.drawWithGlobalProgram(buffer.end());
     }
-    @Override public void onChunkLoad(ClientWorld clientWorld, WorldChunk worldChunk) {
-        updateChunkInAnotherThread(clientWorld, worldChunk, false);
+    @Override public void onChunkLoad(ClientWorld world, WorldChunk worldChunk) {
+        updateChunkInCompletableFuture(world, worldChunk, false);
+        ChunkPos pos = worldChunk.getPos();
+        Chunk chunk;
+        chunk = world.getChunk(pos.x - 1, pos.z, ChunkStatus.FULL, false);
+        if(chunk != null) updateChunkInCompletableFuture(world, chunk, false);
+        chunk = world.getChunk(pos.x, pos.z - 1, ChunkStatus.FULL, false);
+        if(chunk != null) updateChunkInCompletableFuture(world, chunk, false);
+        chunk = world.getChunk(pos.x + 1, pos.z, ChunkStatus.FULL, false);
+        if(chunk != null) updateChunkInCompletableFuture(world, chunk, false);
+        chunk = world.getChunk(pos.x, pos.z + 1, ChunkStatus.FULL, false);
+        if(chunk != null) updateChunkInCompletableFuture(world, chunk, false);
     }
-    @Override public void onChunkUnload(ClientWorld clientWorld, WorldChunk worldChunk) {
-        updateChunkInAnotherThread(clientWorld, worldChunk, true);
+    @Override public void onChunkUnload(ClientWorld world, WorldChunk worldChunk) {
+        updateChunkInCompletableFuture(world, worldChunk, true);
     }
 
     private static boolean doShowAround(BlockState state){
@@ -152,7 +256,7 @@ public class SlightXRay implements ILPCValueChangeCallback, WorldRenderEvents.En
     }
 
     private static boolean isXRayTarget(BlockState state){
-        return XRayBlocks.contains(state.getBlock());
+        return XRayBlocks.containsKey(state.getBlock());
     }
 
     @Override public void afterWorldChange(MinecraftClient client, ClientWorld world) {
@@ -160,76 +264,148 @@ public class SlightXRay implements ILPCValueChangeCallback, WorldRenderEvents.En
     }
 
     private static void clearAll(){
+        CompletableFuture<?>[] futures = new CompletableFuture<?>[threads.size()];
         synchronized (threadTasks){
-            threadTasks.clear();
-            if(loadingThreadCount != 0) {
-                try {threadTasks.wait();} catch (InterruptedException ignored) {}
+            int n = 0;
+            for(CompletableFuture<?> future : threads.values()){
+                future.cancel(false);
+                futures[n++] = future;
             }
+            threadTasks.clear();
         }
+        CompletableFuture.allOf(futures);
         synchronized (markedBlocks){
             markedBlocks.clear();
+            loadedOrLoadingChunks.clear();
         }
     }
 
-    private enum XRayNecessaryState{
-        F_F(false, false),
-        F_T(false, true),
-        T_F(true, false),
-        T_T(true, true);
-        public final boolean doShowAround, isXRayTarget;
-        public static XRayNecessaryState of(BlockState state){
-            if(state.getBlock() != Blocks.VOID_AIR)
-                return values()[(isXRayTarget(state) ? 1 : 0) + (doShowAround(state) ? 2 : 0)];
-            else return null;
-        }
-        XRayNecessaryState(boolean doShowAround, boolean isXRayTarget){
-            this.doShowAround = doShowAround;
-            this.isXRayTarget = isXRayTarget;
-        }
-    }
-
-    public static void setBlockStateTest(World world, BlockPos pos, BlockState lastState, BlockState currentState){
-        if(lastState == null) lastState = Blocks.AIR.getDefaultState();
-        if(currentState == null) currentState = Blocks.AIR.getDefaultState();
-        if(doShowAround(lastState) && doShowAround(currentState)) return;
-        if(doShowAround(currentState)){
+    @Override public void onClientWorldChunkSetBlockState(WorldChunk chunk, BlockPos pos, BlockState lastState, BlockState newState){
+        if(newState == null) newState = Blocks.AIR.getDefaultState();
+        if(isFluid(newState.getBlock())) return;
+        if(doShowAround(newState)){
             for(BlockPos pos1 : iterateInManhattanDistance(pos, 2))
-                testPos(world, pos1, world.getBlockState(pos1));
+                testPos(chunk.getWorld(), pos1);
         }
-        else testPos(world, pos, currentState);
+        else testPos(chunk.getWorld(), pos);
     }
 
-    private static void testPos(World world, BlockPos pos, BlockState state){
+    private static void testPos(World world, BlockPos pos){
+        BlockState state = world.getBlockState(pos);
         if(!isXRayTarget(state)){
             synchronized (markedBlocks){
-                markedBlocks.remove(pos);
+                markedBlocks.keySet().remove(pos);
             }
             return;
         }
         for(BlockPos pos1 : iterateInManhattanDistance(pos, 2)) {
             if(doShowAround(world.getBlockState(pos1))){
                 synchronized (markedBlocks){
-                    markedBlocks.add(pos.mutableCopy());
+                    markedBlocks.put(pos.toImmutable(), XRayBlocks.get(state.getBlock()));
                 }
                 return;
             }
         }
         synchronized (markedBlocks){
-            markedBlocks.remove(pos);
+            markedBlocks.keySet().remove(pos);
+        }
+    }
+    
+    //用于存放预处理后的数据，向外拓展了一格处理相邻区块的内容，再向外拓展了一格防止越界
+    static class XRayNecessaryState{
+        public static class Data{
+            public boolean doShowAround = false;
+            public MutableInt color = null;
+            void set(BlockState state){
+                doShowAround = doShowAround(state);
+                Block block = state.getBlock();
+                color = XRayBlocks.get(block);
+                if(state.getBlock() == Blocks.VOID_AIR)
+                    doShowAround = false;
+            }
+            @SuppressWarnings("SameParameterValue")
+            void set(boolean doShowAround, MutableInt color){
+                this.doShowAround = doShowAround;
+                this.color = color;
+            }
+        }
+        public final int worldHeight;
+        public final Data[][][] data;
+        XRayNecessaryState(int worldHeight){
+            data = new Data[20][worldHeight + 4][20];
+            this.worldHeight = worldHeight;
+            for (Data[][] data1 : data)
+                for (Data[] data2 : data1)
+                    for (int z = 0; z < data2.length; ++z)
+                        data2[z] = new Data();
+        }
+        Data get(BlockPos pos){
+            return get(pos.getX(), pos.getY(), pos.getZ());
+        }
+        Data get(int x, int y, int z){
+            return data[x + 2][y + 2][z + 2];
+        }
+        public static class MutableEntry<T, U> implements Map.Entry<T, U>{
+            T key; U value;
+            @Override public T getKey() {
+                return key;
+            }
+            @Override public U getValue() {
+                return value;
+            }
+            @Override public U setValue(U value) {
+                U old = this.value;
+                this.value = value;
+                return old;
+            }
+            MutableEntry(T key, U value){
+                this.key = key;
+                this.value = value;
+            }
+        }
+        //在区块范围拓展若干格的范围内遍历，坐标是相对于区块xyz最小点的坐标
+        Iterable<Map.Entry<BlockPos, Data>> iterateIn(int expand){
+            return new Iterable<>() {
+                @Override public @NotNull Iterator<Map.Entry<BlockPos, Data>> iterator() {
+                    return new Iterator<>() {
+                        final BlockPos.Mutable pos = new BlockPos.Mutable(expand + 15, worldHeight + expand - 1, -expand - 1);
+                        final Map.Entry<BlockPos, Data> currentData
+                            = new MutableEntry<>(pos, new Data());
+                        @Override public boolean hasNext() {
+                            return pos.getZ() < expand + 15
+                                || pos.getY() < expand + worldHeight - 1
+                                || pos.getX() < expand + 15;
+                        }
+                        @Override public Map.Entry<BlockPos, Data> next() {
+                            pos.setX(pos.getX() + 1);
+                            if(pos.getX() >= expand + 16){
+                                pos.setX(-expand);
+                                pos.setY(pos.getY() + 1);
+                                if(pos.getY() >= expand + worldHeight){
+                                    pos.setY(-expand);
+                                    pos.setZ(pos.getZ() + 1);
+                                }
+                            }
+                            currentData.setValue(get(pos));
+                            return currentData;
+                        }
+                    };
+                }
+            };
         }
     }
 
-    //states用于存放预处理后的数据，向外拓展了一格处理相邻区块的内容，再向外拓展了一格防止越界
-    private static XRayNecessaryState[][][] allocateStateBuffer(XRayNecessaryState[][][] lastBuffer, World world){
-        if(lastBuffer != null && lastBuffer[0].length == world.getHeight()) return lastBuffer;
-        return new XRayNecessaryState[20][world.getHeight() + 4][20];
-    }
-    private static void updateChunk(XRayNecessaryState[][][] states, ClientWorld world, WorldChunk chunk, boolean unload){
+    private static void updateChunk(XRayNecessaryState states, ThreadTask task){
+        HashMap<BlockPos, MutableInt> result = new HashMap<>();
+        Chunk chunk = task.chunk;
+        World world = task.world;
+        ThreadTask.NearbyChunks nearbyChunks = task.nearbyChunks;
         ChunkPos chunkPos = chunk.getPos();
         int cx = chunkPos.x, cz = chunkPos.z;
-        if(unload){
+        if(nearbyChunks == null){
+            //表示当前操作是卸载区块
             synchronized (markedBlocks){
-                Iterator<BlockPos> posIterator = markedBlocks.iterator();
+                Iterator<BlockPos> posIterator = markedBlocks.keySet().iterator();
                 while(posIterator.hasNext()){
                     BlockPos pos = posIterator.next();
                     int sx = pos.getX() - (cx << 4);
@@ -243,227 +419,168 @@ public class SlightXRay implements ILPCValueChangeCallback, WorldRenderEvents.En
         int minY = world.getBottomY();
         int numY = world.getHeight();
         int topY = minY + numY;
-
-        //初始化states数据
-        for(XRayNecessaryState[][] states1 : states){
-            for(int y = 0; y < states1.length; ++y){
-                XRayNecessaryState[] states2 = states1[y];
-                if(world.isOutOfHeightLimit(y))
-                    Arrays.fill(states2, XRayNecessaryState.of(Blocks.AIR.getDefaultState()));
-                else Arrays.fill(states2, null);
+        try {
+            //初始化states数据
+            for(Map.Entry<BlockPos, XRayNecessaryState.Data> entry : states.iterateIn(2)){
+                int y = entry.getKey().getY();
+                boolean doShowAround = y < 2 || y >= states.worldHeight + 2;
+                entry.getValue().set(doShowAround, null);
             }
+        }catch (Exception e){
+            notifyPlayer(e.getMessage(), false);
+            throw new RuntimeException(e);
         }
         //加载本区块中数据
         BlockPos.Mutable mutableBlockPos = new BlockPos.Mutable();
         for(int x = 0; x < 16; ++x){
             mutableBlockPos.setX(x);
-            XRayNecessaryState[][] states1 = states[x + 2];
+            XRayNecessaryState.Data[][] states1 = states.data[x + 2];
             for(int y = minY; y < topY; ++y){
                 mutableBlockPos.setY(y);
-                XRayNecessaryState[] states2 = states1[y - minY + 2];
+                XRayNecessaryState.Data[] states2 = states1[y - minY + 2];
                 for(int z = 0; z < 16; ++z){
                     mutableBlockPos.setZ(z);
-                    states2[z + 2] = XRayNecessaryState.of(chunk.getBlockState(mutableBlockPos));
+                    states2[z + 2].set(chunk.getBlockState(mutableBlockPos));
                 }
             }
         }
         //加载相邻区块中数据
-        WorldChunk nxChunk = world.isChunkLoaded(cx - 1, cz) ? world.getChunk(cx - 1, cz) : null;
-        WorldChunk pxChunk = world.isChunkLoaded(cx + 1, cz) ? world.getChunk(cx + 1, cz) : null;
-        WorldChunk nzChunk = world.isChunkLoaded(cx, cz - 1) ? world.getChunk(cx, cz - 1) : null;
-        WorldChunk pzChunk = world.isChunkLoaded(cx, cz + 1) ? world.getChunk(cx, cz + 1) : null;
-        if(nxChunk != null){
-            mutableBlockPos.setX(-1);
-            for(int y = minY; y < topY; ++y){
-                mutableBlockPos.setY(y);
-                for(int z = 0; z < 16; ++z){
-                    mutableBlockPos.setZ(z);
-                    states[1][y - minY + 2][z + 2] = XRayNecessaryState.of(nxChunk.getBlockState(mutableBlockPos));
-                }
+        Chunk nxChunk = nearbyChunks.nx;
+        Chunk pxChunk = nearbyChunks.px;
+        Chunk nzChunk = nearbyChunks.nz;
+        Chunk pzChunk = nearbyChunks.pz;
+        mutableBlockPos.setX(15);
+        for(int y = minY; y < topY; ++y){
+            mutableBlockPos.setY(y);
+            for(int z = 0; z < 16; ++z){
+                mutableBlockPos.setZ(z);
+                states.data[1][y - minY + 2][z + 2].set(nxChunk.getBlockState(mutableBlockPos));
             }
         }
-        if(pxChunk != null){
-            mutableBlockPos.setX(16);
-            for(int y = minY; y < topY; ++y){
-                mutableBlockPos.setY(y);
-                for(int z = 0; z < 16; ++z){
-                    mutableBlockPos.setZ(z);
-                    states[18][y - minY + 2][z + 2] = XRayNecessaryState.of(pxChunk.getBlockState(mutableBlockPos));
-                }
+        mutableBlockPos.setX(0);
+        for(int y = minY; y < topY; ++y){
+            mutableBlockPos.setY(y);
+            for(int z = 0; z < 16; ++z){
+                mutableBlockPos.setZ(z);
+                states.data[18][y - minY + 2][z + 2].set(pxChunk.getBlockState(mutableBlockPos));
             }
         }
-        if(nzChunk != null){
-            mutableBlockPos.setZ(-1);
-            for(int y = minY; y < topY; ++y){
-                mutableBlockPos.setY(y);
-                for(int x = 0; x < 16; ++x){
-                    mutableBlockPos.setX(x);
-                    states[x + 2][y - minY + 2][1] = XRayNecessaryState.of(nzChunk.getBlockState(mutableBlockPos));
-                }
+        mutableBlockPos.setZ(15);
+        for(int y = minY; y < topY; ++y){
+            mutableBlockPos.setY(y);
+            for(int x = 0; x < 16; ++x){
+                mutableBlockPos.setX(x);
+                states.data[x + 2][y - minY + 2][1].set(nzChunk.getBlockState(mutableBlockPos));
             }
         }
-        if(pzChunk != null){
-            mutableBlockPos.setZ(16);
-            for(int y = minY; y < topY; ++y){
-                mutableBlockPos.setY(y);
-                for(int x = 0; x < 16; ++x){
-                    mutableBlockPos.setX(x);
-                    states[x + 2][y - minY + 2][18] = XRayNecessaryState.of(pzChunk.getBlockState(mutableBlockPos));
-                }
+        mutableBlockPos.setZ(0);
+        for(int y = minY; y < topY; ++y){
+            mutableBlockPos.setY(y);
+            for(int x = 0; x < 16; ++x){
+                mutableBlockPos.setX(x);
+                states.data[x + 2][y - minY + 2][18].set(pzChunk.getBlockState(mutableBlockPos));
             }
         }
+        BlockPos chunkStartPos = chunkPos.getStartPos().add(0, chunk.getBottomY(), 0);
         //检测并加入过关数据
-        for(int x = 1; x <= 18; ++x){
-            for(int y = 1; y <= numY + 2; ++y){
-                for(int z = 1; z <= 18; ++z){
-                    if(states[x][y][z] == null || !states[x][y][z].doShowAround) continue;
-                    if(states[x - 1][y][z] != null) markPos(x - 3, y + minY - 2, z - 2, chunkPos, states[x - 1][y][z].isXRayTarget);
-                    if(states[x + 1][y][z] != null) markPos(x - 1, y + minY - 2, z - 2, chunkPos, states[x + 1][y][z].isXRayTarget);
-                    if(states[x][y - 1][z] != null) markPos(x - 2, y + minY - 3, z - 2, chunkPos, states[x][y - 1][z].isXRayTarget);
-                    if(states[x][y + 1][z] != null) markPos(x - 2, y + minY - 1, z - 2, chunkPos, states[x][y + 1][z].isXRayTarget);
-                    if(states[x][y][z - 1] != null) markPos(x - 2, y + minY - 2, z - 3, chunkPos, states[x][y][z - 1].isXRayTarget);
-                    if(states[x][y][z + 1] != null) markPos(x - 2, y + minY - 2, z - 1, chunkPos, states[x][y][z + 1].isXRayTarget);
-                }
+        for(Map.Entry<BlockPos, XRayNecessaryState.Data> data : states.iterateIn(1)){
+            if(!data.getValue().doShowAround) continue;
+            for(Direction direction : Direction.values()){
+                BlockPos pos = data.getKey().offset(direction);
+                markData(result, pos, chunkStartPos, states.get(pos));
             }
+        }
+        synchronized (markedBlocks){
+            markedBlocks.putAll(result);
         }
     }
-    private static void markPos(int x, int y, int z, ChunkPos chunkPos, boolean status){
-        BlockPos pos = chunkPos.getStartPos().add(x, y, z);
-        if(status){
-            synchronized (markedBlocks){
-                markedBlocks.add(pos.mutableCopy());
-            }
-        }
+    private static void markData(HashMap<BlockPos, MutableInt> result, BlockPos blockPos, BlockPos chunkStartPos, XRayNecessaryState.Data data){
+        BlockPos pos = chunkStartPos.add(blockPos);
+        if(data.color != null)
+            result.put(pos.toImmutable(), data.color);
     }
 
+    //此处几个数据使用synchronized(threadTasks)同步
     private static final HashSet<ThreadTask> threadTasks = new HashSet<>();
-    private static final int maxLoadingThreadCount = 4;
-    private static final int threadTaskCountLimit = 4;
-    private static int loadingThreadCount = 0;
-    private record ThreadTask(ClientWorld world, WorldChunk chunk, boolean unload){
+    private static final Int2ObjectOpenHashMap<CompletableFuture<?>> threads = new Int2ObjectOpenHashMap<>();
+    private static int threadTaskId = 0;
+    
+    private record ThreadTask(@NotNull ClientWorld world, @NotNull Chunk chunk, @Nullable NearbyChunks nearbyChunks){
         @Override public int hashCode(){
             return chunk.getPos().hashCode();
         }
         @Override public boolean equals(Object o){
+            if(o == this) return true;
             if(o instanceof ThreadTask task)
-                return task.world == world && task.chunk == chunk && task.unload == unload;
+                return task.world.equals(world)
+                    && task.chunk.equals(chunk)
+                    && Objects.equals(task.nearbyChunks, nearbyChunks);
             return false;
         }
+        public record NearbyChunks(@NotNull Chunk nx,@NotNull  Chunk nz,@NotNull  Chunk px,@NotNull  Chunk pz){}
     }
 
-    private static void updateChunkInAnotherThread(ClientWorld world, WorldChunk chunk, boolean unload){
-        synchronized (threadTasks){
-            threadTasks.add(new ThreadTask(world, chunk, unload));
-            if(loadingThreadCount < maxLoadingThreadCount &&
-                    loadingThreadCount * threadTaskCountLimit < threadTasks.size()){
-                new Thread(SlightXRay::ThreadFunc).start();
-                ++loadingThreadCount;
+    //更新当前区块，如果区块更新过或者需要加载但是相邻有未加载的区块则不作操作
+    private static void updateChunkInCompletableFuture(ClientWorld world, Chunk chunk, boolean unload){
+        ChunkPos pos = chunk.getPos();
+        ThreadTask.NearbyChunks nearbyChunks;
+        synchronized (markedBlocks){
+            if(loadedOrLoadingChunks.contains(pos) != unload) return;
+            if(unload) {
+                loadedOrLoadingChunks.remove(pos);
+                nearbyChunks = null;
+            }
+            else {
+                Chunk nx = world.getChunk(pos.x - 1, pos.z, ChunkStatus.FULL, false);
+                Chunk nz = world.getChunk(pos.x, pos.z - 1, ChunkStatus.FULL, false);
+                Chunk px = world.getChunk(pos.x + 1, pos.z, ChunkStatus.FULL, false);
+                Chunk pz = world.getChunk(pos.x, pos.z + 1, ChunkStatus.FULL, false);
+                if(hasNull(nx, nz, px, pz)) return;
+                loadedOrLoadingChunks.add(pos);
+                //noinspection DataFlowIssue
+                nearbyChunks = new ThreadTask.NearbyChunks(nx, nz, px, pz);
             }
         }
-    }
-    private static void ThreadFunc(){
-        XRayNecessaryState[][][] stateBuffer = null;
-        while(true){
-            ThreadTask task = null;
-            double minDistance = Double.MAX_VALUE;
-            ClientPlayerEntity player = MinecraftClient.getInstance().player;
-            Vec3i playerPos = player == null ? Vec3i.ZERO : player.getBlockPos();
-            synchronized (threadTasks){
-                for(ThreadTask task1 : threadTasks){
-                    double distance = task1.chunk.getPos().getCenterAtY(playerPos.getY()).getSquaredDistance(playerPos);
-                    if(distance < minDistance){
-                        minDistance = distance;
-                        task = task1;
-                    }
-                }
-                if(task == null){
-                    --loadingThreadCount;
-                    break;
-                }
-                threadTasks.remove(task);
-            }
-            stateBuffer = allocateStateBuffer(stateBuffer, task.world);
-            updateChunk(stateBuffer, task.world, task.chunk, task.unload);
-        }
         synchronized (threadTasks){
-            if(loadingThreadCount == 0)
-                threadTasks.notifyAll();
+            threadTasks.add(new ThreadTask(world, chunk, nearbyChunks));
+            int currentId = threadTaskId++;
+            threads.put(currentId, GenericUtils.runAsync(()->threadTask(currentId)));
         }
     }
-
-    private static class VertexVectorBuffer{
-        public final Vector4d center = new Vector4d();
-        public final Vector4d buf = new Vector4d();
-        public final Vector3f nnn = new Vector3f();
-        public final Vector3f nnp = new Vector3f();
-        public final Vector3f npn = new Vector3f();
-        public final Vector3f npp = new Vector3f();
-        public final Vector3f pnn = new Vector3f();
-        public final Vector3f pnp = new Vector3f();
-        public final Vector3f ppn = new Vector3f();
-        public final Vector3f ppp = new Vector3f();
-        public final BlockPos.Mutable mutablePos = new BlockPos.Mutable();
+    private static void threadTask(int me){
+        ThreadTask task = null;
+        double minDistance = Double.MAX_VALUE;
+        ClientPlayerEntity player = MinecraftClient.getInstance().player;
+        Vec3i playerPos = player == null ? Vec3i.ZERO : player.getBlockPos();
+        synchronized (threadTasks){
+            threads.remove(me);
+            for(ThreadTask task1 : threadTasks){
+                double distance = task1.chunk.getPos().getCenterAtY(playerPos.getY()).getSquaredDistance(playerPos);
+                if(distance < minDistance){
+                    minDistance = distance;
+                    task = task1;
+                }
+            }
+            if(task == null) return;
+            threadTasks.remove(task);
+        }
+        XRayNecessaryState stateBuffer = new XRayNecessaryState(task.world.getHeight());
+        updateChunk(stateBuffer, task);
     }
 
-    private final VertexVectorBuffer vertexVectorBuffer = new VertexVectorBuffer();
-
-    @SuppressWarnings("SameParameterValue")
-    private void vertexBlock(Matrix4d matrix, BufferBuilder buffer, BlockPos pos, int color, ShapeList shapes){
-        VertexVectorBuffer vBuf = vertexVectorBuffer;
-        Vector4d center = vBuf.center.set(pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5, 1);
-        Vector4d buf = vBuf.buf;
-        Vector3f nnn = vecTrans(center.add(-0.5, -0.5, -0.5, 0, buf).mul(matrix), vBuf.nnn);
-        Vector3f nnp = vecTrans(center.add(-0.5, -0.5, 0.5, 0, buf).mul(matrix), vBuf.nnp);
-        Vector3f npn = vecTrans(center.add(-0.5, 0.5, -0.5, 0, buf).mul(matrix), vBuf.npn);
-        Vector3f npp = vecTrans(center.add(-0.5, 0.5, 0.5, 0, buf).mul(matrix), vBuf.npp);
-        Vector3f pnn = vecTrans(center.add(0.5, -0.5, -0.5, 0, buf).mul(matrix), vBuf.pnn);
-        Vector3f pnp = vecTrans(center.add(0.5, -0.5, 0.5, 0, buf).mul(matrix), vBuf.pnp);
-        Vector3f ppn = vecTrans(center.add(0.5, 0.5, -0.5, 0, buf).mul(matrix), vBuf.ppn);
-        Vector3f ppp = vecTrans(center.add(0.5, 0.5, 0.5, 0, buf).mul(matrix), vBuf.ppp);
-        BlockPos.Mutable mutablePos = vBuf.mutablePos.set(pos);
-        mutablePos.setX(pos.getX() - 1);
-        if(!shapes.testPos(mutablePos) || !markedBlocks.contains(mutablePos)){
-            buffer.vertex(nnn).color(color);
-            buffer.vertex(nnp).color(color);
-            buffer.vertex(npp).color(color);
-            buffer.vertex(npn).color(color);
-        }
-        mutablePos.setX(pos.getX() + 1);
-        if(!shapes.testPos(mutablePos) || !markedBlocks.contains(mutablePos)){
-            buffer.vertex(pnn).color(color);
-            buffer.vertex(ppn).color(color);
-            buffer.vertex(ppp).color(color);
-            buffer.vertex(pnp).color(color);
-        }
-        mutablePos.setX(pos.getX());
-        mutablePos.setY(pos.getY() - 1);
-        if(!shapes.testPos(mutablePos) || !markedBlocks.contains(mutablePos)){
-            buffer.vertex(nnn).color(color);
-            buffer.vertex(pnn).color(color);
-            buffer.vertex(pnp).color(color);
-            buffer.vertex(nnp).color(color);
-        }
-        mutablePos.setY(pos.getY() + 1);
-        if(!shapes.testPos(mutablePos) || !markedBlocks.contains(mutablePos)){
-            buffer.vertex(npn).color(color);
-            buffer.vertex(npp).color(color);
-            buffer.vertex(ppp).color(color);
-            buffer.vertex(ppn).color(color);
-        }
-        mutablePos.setY(pos.getY());
-        mutablePos.setZ(pos.getZ() - 1);
-        if(!shapes.testPos(mutablePos) || !markedBlocks.contains(mutablePos)){
-            buffer.vertex(nnn).color(color);
-            buffer.vertex(npn).color(color);
-            buffer.vertex(ppn).color(color);
-            buffer.vertex(pnn).color(color);
-        }
-        mutablePos.setZ(pos.getZ() + 1);
-        if(!shapes.testPos(mutablePos) || !markedBlocks.contains(mutablePos)){
-            buffer.vertex(nnp).color(color);
-            buffer.vertex(pnp).color(color);
-            buffer.vertex(ppp).color(color);
-            buffer.vertex(npp).color(color);
-        }
+    public interface DefaultColorMethod{
+        int getColor(Block block);
     }
+    public interface ConfigListWithColorMethod extends ILPCConfigList, DefaultColorMethod{}
+    public static class ConfigListWithColorBase extends LPCConfigList implements ConfigListWithColorMethod{
+        public ConfigListWithColorBase(ILPCConfigBase parent, String nameKey, @NotNull DefaultColorMethod defaultColorMethod) {
+            super(parent, nameKey);
+            this.defaultColorMethod = defaultColorMethod;
+        }
+        @Override public int getColor(Block block) {
+            return defaultColorMethod.getColor(block);
+        }
+        @NotNull DefaultColorMethod defaultColorMethod;
+    }
+    private final SlightXRayPaintMethods paintMethods = new SlightXRayPaintMethods();
 }

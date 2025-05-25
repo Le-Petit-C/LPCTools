@@ -1,4 +1,4 @@
-package lpctools.lpcfymasaapi.configbutton;
+package lpctools.lpcfymasaapi.implementations;
 
 import org.jetbrains.annotations.NotNull;
 
