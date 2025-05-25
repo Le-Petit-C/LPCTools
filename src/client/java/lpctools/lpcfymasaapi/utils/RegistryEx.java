@@ -3,6 +3,7 @@ package lpctools.lpcfymasaapi.utils;
 import java.util.LinkedHashSet;
 import java.util.function.Consumer;
 
+@SuppressWarnings("UnusedReturnValue")
 public class RegistryEx<T> {
     public final LinkedHashSet<T> callbacks = new LinkedHashSet<>();
     public boolean register(T callback){return callbacks.add(callback);}
