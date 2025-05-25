@@ -89,8 +89,8 @@ public class DebugConfigs {
         else finalState = state;
         if(briefBlockState.getAsBoolean()){
             String msg = "isOpaque:" + finalState.isOpaque() + '\n' +
-                "isTransparent:" + finalState.isTransparent() + '\n' +
-                "isOpaqueFullCube:" + finalState.isOpaqueFullCube() + '\n' +
+                //"isTransparent:" + finalState.isTransparent() + '\n' +
+                //"isOpaqueFullCube:" + finalState.isOpaqueFullCube() + '\n' +
                 "mayMobSpawnOn:" + mayMobSpawnOn(finalState) + '\n';
             player.sendMessage(Text.of(msg), false);
         }

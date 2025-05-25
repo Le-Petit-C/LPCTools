@@ -33,7 +33,7 @@ public class GenericUtils {
         if(extraNoSpawnBlocks.contains(steppedBlock.getBlock())) return false;
         if(extraSpawnBlocks.contains(steppedBlock.getBlock())) return true;
         if(!steppedBlock.isOpaque()) return false;
-        if(steppedBlock.isOpaqueFullCube()) return true;
+        //if(steppedBlock.isOpaqueFullCube()) return true;
         return steppedBlock.isSideSolid(EmptyBlockView.INSTANCE, BlockPos.ORIGIN, Direction.UP, SideShapeType.FULL);
     }
     

@@ -205,7 +205,7 @@ public class Registry {
         handler.registerGameOverlayRenderer(renderer);
         handler.registerTooltipLastRenderer(renderer);
         //handler.registerWorldPostDebugRenderer(renderer);
-        handler.registerWorldPreWeatherRenderer(renderer);
+        //handler.registerWorldPreWeatherRenderer(renderer);
         ClientChunkEvents.CHUNK_LOAD.register(Registry::runClientChunkLoadCallbacks);
         ClientChunkEvents.CHUNK_UNLOAD.register(Registry::runClientChunkUnloadCallbacks);
     }

@@ -114,11 +114,11 @@ public class SlightXRay implements ILPCValueChangeCallback, WorldRenderEvents.En
             float r = 0, g = 0, b = 0;
             float t = 0;
             for(NativeImage image : ((SpriteContentsMixin)particleSprite.getContents()).getMipmapLevelsImages()){
-                for(int color : image.copyPixelsArgb()){
+                for(int color : image.copyPixelsRgba()){
                     float k = (color >>> 24) / 255.0f;
-                    r += ((color >>> 16) & 0xff) * k;
+                    b += ((color >>> 16) & 0xff) * k;
                     g += ((color >>> 8) & 0xff) * k;
-                    b += (color & 0xff) * k;
+                    r += (color & 0xff) * k;
                     t += k;
                 }
             }
