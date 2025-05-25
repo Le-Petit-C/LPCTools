@@ -3,11 +3,11 @@ package lpctools.tools.liquidCleaner;
 import com.google.common.collect.ImmutableList;
 import fi.dy.masa.malilib.hotkeys.KeyCallbackToggleBoolean;
 import lpctools.lpcfymasaapi.Registry;
-import lpctools.lpcfymasaapi.configbutton.derivedConfigs.ThirdListConfig;
+import lpctools.lpcfymasaapi.configbutton.derivedConfigs.LimitOperationSpeedConfig;
+import lpctools.lpcfymasaapi.configbutton.derivedConfigs.ReachDistanceConfig;
 import lpctools.lpcfymasaapi.configbutton.transferredConfigs.*;
 import lpctools.lpcfymasaapi.configbutton.transferredConfigs.BooleanConfig;
 import lpctools.lpcfymasaapi.configbutton.transferredConfigs.StringListConfig;
-import lpctools.tools.ToolConfigs;
 import lpctools.lpcfymasaapi.configbutton.derivedConfigs.RangeLimitConfig;
 import net.minecraft.block.Block;
 import net.minecraft.item.Item;
@@ -19,24 +19,26 @@ import org.jetbrains.annotations.Nullable;
 import java.util.HashSet;
 import java.util.List;
 
+import static lpctools.lpcfymasaapi.LPCConfigStatics.*;
+import static lpctools.tools.ToolUtils.*;
+
 public class LiquidCleaner {
-    public static void init(ThirdListConfig LCConfig){
-        liquidCleaner = LCConfig.addBooleanHotkeyConfig("liquidCleaner", false, null, ()->valueChangeCallback(liquidCleaner.getAsBoolean()));
+    public static void init(){
+        liquidCleaner = addBooleanHotkeyConfig("liquidCleaner", false, null, ()->valueChangeCallback(liquidCleaner.getAsBoolean()));
         liquidCleaner.getKeybind().setCallback(new KeyCallbackToggleBoolean(liquidCleaner));
-        limitInteractSpeedConfig = LCConfig.addThirdListConfig("limitInteractSpeed", false);
-        maxBlockPerTickConfig = limitInteractSpeedConfig.addDoubleConfig("maxBlockPerTick", 1.0, 0, 64);
-        reachDistanceConfig = LCConfig.addDoubleConfig("reachDistance", 4.5, 0, 5);
-        disableOnGUIOpened = LCConfig.addBooleanConfig("disableOnGUIOpened", false);
-        offhandFillingConfig = LCConfig.addBooleanConfig("offhandFilling", false);
-        blockBlackListConfig = LCConfig.addStringListConfig("blockBlackList", ImmutableList.of(), LiquidCleaner::onBlacklistRefresh);
-        ignoreDownwardTest = LCConfig.addBooleanConfig("ignoreDownwardTest", false);
-        limitCleaningRange = LCConfig.addRangeLimitConfig(false, "LC");
-        expandRange = limitCleaningRange.addBooleanConfig("expandRange", false);
+        limitOperationSpeedConfig = addLimitOperationSpeedConfig(false, 1);
+        reachDistanceConfig = addReachDistanceConfig();
+        disableOnGUIOpened = addBooleanConfig("disableOnGUIOpened", false);
+        offhandFillingConfig = addBooleanConfig("offhandFilling", false);
+        blockBlackListConfig = addStringListConfig("blockBlackList", ImmutableList.of(), LiquidCleaner::onBlacklistRefresh);
+        ignoreDownwardTest = addBooleanConfig("ignoreDownwardTest", false);
+        limitCleaningRange = addRangeLimitConfig(false);
+        expandRange = addBooleanConfig(limitCleaningRange, "expandRange", false);
     }
     public static boolean isEnabled(){return onEndTick != null;}
     public static void enableTool(){
         if(isEnabled()) return;
-        ToolConfigs.displayEnableMessage(liquidCleaner);
+        displayEnableMessage(liquidCleaner);
         onEndTick = new OnEndTick();
         Registry.registerEndClientTickCallback(onEndTick);
     }
@@ -44,13 +46,12 @@ public class LiquidCleaner {
         if(!isEnabled()) return;
         Registry.unregisterEndClientTickCallback(onEndTick);
         onEndTick = null;
-        ToolConfigs.displayDisableReason(liquidCleaner, reasonKey);
+        displayDisableReason(liquidCleaner, reasonKey);
     }
 
     public static BooleanHotkeyConfig liquidCleaner;
-    public static ThirdListConfig limitInteractSpeedConfig;
-    public static DoubleConfig maxBlockPerTickConfig;
-    public static DoubleConfig reachDistanceConfig;
+    public static LimitOperationSpeedConfig limitOperationSpeedConfig;
+    public static ReachDistanceConfig reachDistanceConfig;
     public static BooleanConfig disableOnGUIOpened;
     public static BooleanConfig offhandFillingConfig;
     public static StringListConfig blockBlackListConfig;

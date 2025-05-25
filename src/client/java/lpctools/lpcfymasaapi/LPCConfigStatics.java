@@ -1,0 +1,273 @@
+package lpctools.lpcfymasaapi;
+
+import com.google.common.collect.ImmutableList;
+import fi.dy.masa.malilib.config.IConfigOptionListEntry;
+import fi.dy.masa.malilib.hotkeys.IHotkeyCallback;
+import fi.dy.masa.malilib.util.Color4f;
+import lpctools.lpcfymasaapi.configbutton.derivedConfigs.*;
+import lpctools.lpcfymasaapi.configbutton.transferredConfigs.*;
+import lpctools.lpcfymasaapi.implementations.ILPCConfig;
+import lpctools.lpcfymasaapi.implementations.ILPCConfigList;
+import lpctools.lpcfymasaapi.implementations.ILPCValueChangeCallback;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import java.util.Stack;
+import java.util.function.Consumer;
+import java.util.function.IntConsumer;
+import java.util.function.IntSupplier;
+import java.util.function.Supplier;
+
+@SuppressWarnings({"unused", "UnusedReturnValue", "deprecation"})
+public interface LPCConfigStatics {
+    //加入的配置无法删除
+    //加入的配置不会立刻从文件中加载已有的设定，直到loadFromConfigPageJson被调用（一般来自LPCConfigPage中的load()），
+    //一般情况下是malilib初始化时或者加入了一个世界时malilib会调用load()，此时会从文件中加载所有保存的配置
+    static BooleanConfig addBooleanConfig(ILPCConfigList list, @NotNull String nameKey, boolean defaultBoolean){
+        return list.addConfig(new BooleanConfig(list, nameKey, defaultBoolean));
+    }
+    static BooleanConfig addBooleanConfig(ILPCConfigList list, @NotNull String nameKey, boolean defaultBoolean, @Nullable ILPCValueChangeCallback callback){
+        return list.addConfig(new BooleanConfig(list, nameKey, defaultBoolean, callback));
+    }
+    static IntegerConfig addIntegerConfig(ILPCConfigList list, @NotNull String nameKey, int defaultInteger){
+        return list.addConfig(new IntegerConfig(list, nameKey, defaultInteger));
+    }
+    static IntegerConfig addIntegerConfig(ILPCConfigList list, @NotNull String nameKey, int defaultInteger, @Nullable ILPCValueChangeCallback callback){
+        return list.addConfig(new IntegerConfig(list, nameKey, defaultInteger, callback));
+    }
+    static IntegerConfig addIntegerConfig(ILPCConfigList list, @NotNull String nameKey, int defaultInteger, int minValue, int maxValue){
+        return list.addConfig(new IntegerConfig(list, nameKey, defaultInteger, minValue, maxValue));
+    }
+    static IntegerConfig addIntegerConfig(ILPCConfigList list, @NotNull String nameKey, int defaultInteger, int minValue, int maxValue, @Nullable ILPCValueChangeCallback callback){
+        return list.addConfig(new IntegerConfig(list, nameKey, defaultInteger, minValue, maxValue, callback));
+    }
+    static DoubleConfig addDoubleConfig(ILPCConfigList list, @NotNull String nameKey, double defaultDouble){
+        return list.addConfig(new DoubleConfig(list, nameKey, defaultDouble));
+    }
+    static DoubleConfig addDoubleConfig(ILPCConfigList list, @NotNull String nameKey, double defaultDouble, @Nullable ILPCValueChangeCallback callback){
+        return list.addConfig(new DoubleConfig(list, nameKey, defaultDouble, callback));
+    }
+    static DoubleConfig addDoubleConfig(ILPCConfigList list, @NotNull String nameKey, double defaultDouble, double minValue, double maxValue){
+        return list.addConfig(new DoubleConfig(list, nameKey, defaultDouble, minValue, maxValue));
+    }
+    static DoubleConfig addDoubleConfig(ILPCConfigList list, @NotNull String nameKey, double defaultDouble, double minValue, double maxValue, @Nullable ILPCValueChangeCallback callback){
+        return list.addConfig(new DoubleConfig(list, nameKey, defaultDouble, minValue, maxValue, callback));
+    }
+    static HotkeyConfig addHotkeyConfig(ILPCConfigList list, @NotNull String nameKey, @Nullable String defaultStorageString, @NotNull IHotkeyCallback callBack){
+        return list.addConfig(new HotkeyConfig(list, nameKey, defaultStorageString, callBack));
+    }
+    static BooleanHotkeyConfig addBooleanHotkeyConfig(ILPCConfigList list, @NotNull String nameKey, boolean defaultBoolean, @Nullable String defaultStorageString){
+        return list.addConfig(new BooleanHotkeyConfig(list, nameKey, defaultBoolean, defaultStorageString));
+    }
+    static BooleanHotkeyConfig addBooleanHotkeyConfig(ILPCConfigList list, @NotNull String nameKey, boolean defaultBoolean, @Nullable String defaultStorageString, @Nullable ILPCValueChangeCallback callback){
+        return list.addConfig(new BooleanHotkeyConfig(list, nameKey, defaultBoolean, defaultStorageString, callback));
+    }
+    static StringListConfig addStringListConfig(ILPCConfigList list, @NotNull String nameKey, @Nullable ImmutableList<String> defaultValue){
+        return list.addConfig(new StringListConfig(list, nameKey, defaultValue));
+    }
+    static StringListConfig addStringListConfig(ILPCConfigList list, @NotNull String nameKey, @Nullable ImmutableList<String> defaultValue, @Nullable ILPCValueChangeCallback callback){
+        return list.addConfig(new StringListConfig(list, nameKey, defaultValue, callback));
+    }
+    static ConfigOpenGuiConfig addConfigOpenGuiConfig(ILPCConfigList list, @Nullable String defaultStorageString){
+        return list.addConfig(new ConfigOpenGuiConfig(list, defaultStorageString));
+    }
+    static ThirdListConfig addThirdListConfig(ILPCConfigList list, @NotNull String nameKey, boolean defaultBoolean){
+        return list.addConfig(new ThirdListConfig(list, nameKey, defaultBoolean));
+    }
+    static <T> OptionListConfig addOptionListConfig(ILPCConfigList list, @NotNull String nameKey, IConfigOptionListEntry defaultOption){
+        return list.addConfig(new OptionListConfig(list, nameKey, defaultOption));
+    }
+    static <T> OptionListConfig addOptionListConfig(ILPCConfigList list, @NotNull String nameKey, IConfigOptionListEntry defaultOption, @Nullable ILPCValueChangeCallback callback){
+        return list.addConfig(new OptionListConfig(list, nameKey, defaultOption, callback));
+    }
+    static <T extends IntSupplier & IntConsumer> IntegerArrayListConfig<T> addIntegerListConfig(ILPCConfigList list, @NotNull String nameKey, Iterable<T> values){
+        return list.addConfig(new IntegerArrayListConfig<>(list, nameKey, values));
+    }
+    static <T extends IntSupplier & IntConsumer> IntegerArrayListConfig<T> addIntegerListConfig(ILPCConfigList list, @NotNull String nameKey, Iterable<T> values, @Nullable ILPCValueChangeCallback callback){
+        return list.addConfig(new IntegerArrayListConfig<>(list, nameKey, values));
+    }
+    static StringConfig addStringConfig(ILPCConfigList list, @NotNull String nameKey, @Nullable String defaultString, @Nullable ILPCValueChangeCallback callback){
+        return list.addConfig(new StringConfig(list, nameKey, defaultString, callback));
+    }
+    static StringConfig addStringConfig(ILPCConfigList list, @NotNull String nameKey, @Nullable String defaultString){
+        return list.addConfig(new StringConfig(list, nameKey, defaultString));
+    }
+    static StringConfig addStringConfig(ILPCConfigList list, @NotNull String nameKey, @Nullable ILPCValueChangeCallback callback){
+        return list.addConfig(new StringConfig(list, nameKey, callback));
+    }
+    static StringConfig addStringConfig(ILPCConfigList list, @NotNull String nameKey){
+        return list.addConfig(new StringConfig(list, nameKey));
+    }
+    static RangeLimitConfig addRangeLimitConfig(ILPCConfigList list, boolean defaultBoolean, String defaultPrefix){
+        return list.addConfig(new RangeLimitConfig(list, defaultBoolean, defaultPrefix));
+    }
+    static ColorConfig addColorConfig(ILPCConfigList list, @NotNull String nameKey, @NotNull Color4f defaultColor){
+        return list.addConfig(new ColorConfig(list, nameKey, defaultColor));
+    }
+    static ColorConfig addColorConfig(ILPCConfigList list, @NotNull String nameKey, @NotNull Color4f defaultColor, @Nullable ILPCValueChangeCallback callback){
+        return list.addConfig(new ColorConfig(list, nameKey, defaultColor, callback));
+    }
+    static <T> ArrayOptionListConfig<T> addArrayOptionListConfig(ILPCConfigList list, @NotNull String nameKey){
+        return list.addConfig(new ArrayOptionListConfig<>(list, nameKey));
+    }
+    static <T> ArrayOptionListConfig<T> addArrayOptionListConfig(ILPCConfigList list, @NotNull String nameKey, ILPCValueChangeCallback callback){
+        return list.addConfig(new ArrayOptionListConfig<>(list, nameKey, callback));
+    }
+    static ConfigListOptionListConfig addConfigListOptionListConfig(ILPCConfigList list, @NotNull String nameKey){
+        return list.addConfig(new ConfigListOptionListConfig(list, nameKey));
+    }
+    static ConfigListOptionListConfig addConfigListOptionListConfig(ILPCConfigList list, @NotNull String nameKey, ILPCValueChangeCallback callback){
+        return list.addConfig(new ConfigListOptionListConfig(list, nameKey, callback));
+    }
+    static ReachDistanceConfig addReachDistanceConfig(ILPCConfigList list){
+        return list.addConfig(new ReachDistanceConfig(list));
+    }
+    static ReachDistanceConfig addReachDistanceConfig(ILPCConfigList list, @Nullable ILPCValueChangeCallback callback){
+        return list.addConfig(new ReachDistanceConfig(list, callback));
+    }
+    static LimitOperationSpeedConfig addLimitOperationSpeedConfig(ILPCConfigList list, boolean defaultBoolean, double defaultDouble){
+        return list.addConfig(new LimitOperationSpeedConfig(list, defaultBoolean, defaultDouble));
+    }
+    static <T extends ILPCConfigList> ConfigListOptionListConfigEx<T> addConfigListOptionListConfigEx(ILPCConfigList list, @NotNull String nameKey){
+        return list.addConfig(new ConfigListOptionListConfigEx<>(list, nameKey));
+    }
+    static <T extends ILPCConfigList> ConfigListOptionListConfigEx<T> addConfigListOptionListConfigEx(ILPCConfigList list, @NotNull String nameKey, @Nullable ILPCValueChangeCallback callback){
+        return list.addConfig(new ConfigListOptionListConfigEx<>(list, nameKey, callback));
+    }
+
+    //不带List版本的，使用栈存储当前list，方便操作
+    @NotNull Stack<ILPCConfigList> listStack = new Stack<>();
+    static ILPCConfigList peekConfigList(){return listStack.peek();}
+    class ConfigListLayer implements Supplier<ILPCConfigList>, Consumer<ILPCConfigList>, AutoCloseable {
+        public ConfigListLayer(ILPCConfigList parent){listStack.push(parent);}
+        public ConfigListLayer(){listStack.push(null);}
+        @Override public void close(){listStack.pop();}
+        @Override public void accept(ILPCConfigList list) {
+            listStack.pop();
+            listStack.push(list);
+        }
+        @Override public ILPCConfigList get() {
+            return listStack.peek();
+        }
+        public <T extends ILPCConfigList> T set(T list){
+            listStack.pop();
+            listStack.push(list);
+            return list;
+        }
+    }
+    static <T extends ILPCConfig> T addConfig(T config){return listStack.peek().addConfig(config);}
+    static BooleanConfig addBooleanConfig(@NotNull String nameKey, boolean defaultBoolean){
+        return addBooleanConfig(peekConfigList(), nameKey, defaultBoolean);
+    }
+    static BooleanConfig addBooleanConfig(@NotNull String nameKey, boolean defaultBoolean, @Nullable ILPCValueChangeCallback callback){
+        return addBooleanConfig(peekConfigList(), nameKey, defaultBoolean, callback);
+    }
+    static IntegerConfig addIntegerConfig(@NotNull String nameKey, int defaultInteger){
+        return addIntegerConfig(peekConfigList(), nameKey, defaultInteger);
+    }
+    static IntegerConfig addIntegerConfig(@NotNull String nameKey, int defaultInteger, @Nullable ILPCValueChangeCallback callback){
+        return addIntegerConfig(peekConfigList(), nameKey, defaultInteger, callback);
+    }
+    static IntegerConfig addIntegerConfig(@NotNull String nameKey, int defaultInteger, int minValue, int maxValue){
+        return addIntegerConfig(peekConfigList(), nameKey, defaultInteger, minValue, maxValue);
+    }
+    static IntegerConfig addIntegerConfig(@NotNull String nameKey, int defaultInteger, int minValue, int maxValue, @Nullable ILPCValueChangeCallback callback){
+        return addIntegerConfig(peekConfigList(), nameKey, defaultInteger, minValue, maxValue, callback);
+    }
+    static DoubleConfig addDoubleConfig(@NotNull String nameKey, double defaultDouble){
+        return addDoubleConfig(peekConfigList(), nameKey, defaultDouble);
+    }
+    static DoubleConfig addDoubleConfig(@NotNull String nameKey, double defaultDouble, @Nullable ILPCValueChangeCallback callback){
+        return addDoubleConfig(peekConfigList(), nameKey, defaultDouble, callback);
+    }
+    static DoubleConfig addDoubleConfig(@NotNull String nameKey, double defaultDouble, double minValue, double maxValue){
+        return addDoubleConfig(peekConfigList(), nameKey, defaultDouble, minValue, maxValue);
+    }
+    static DoubleConfig addDoubleConfig(@NotNull String nameKey, double defaultDouble, double minValue, double maxValue, @Nullable ILPCValueChangeCallback callback){
+        return addDoubleConfig(peekConfigList(), nameKey, defaultDouble, minValue, maxValue, callback);
+    }
+    static HotkeyConfig addHotkeyConfig(@NotNull String nameKey, @Nullable String defaultStorageString, @NotNull IHotkeyCallback callBack){
+        return addHotkeyConfig(peekConfigList(), nameKey, defaultStorageString, callBack);
+    }
+    static BooleanHotkeyConfig addBooleanHotkeyConfig(@NotNull String nameKey, boolean defaultBoolean, @Nullable String defaultStorageString){
+        return addBooleanHotkeyConfig(peekConfigList(), nameKey, defaultBoolean, defaultStorageString);
+    }
+    static BooleanHotkeyConfig addBooleanHotkeyConfig(@NotNull String nameKey, boolean defaultBoolean, @Nullable String defaultStorageString, @Nullable ILPCValueChangeCallback callback){
+        return addBooleanHotkeyConfig(peekConfigList(), nameKey, defaultBoolean, defaultStorageString, callback);
+    }
+    static StringListConfig addStringListConfig(@NotNull String nameKey, @Nullable ImmutableList<String> defaultValue){
+        return addStringListConfig(peekConfigList(), nameKey, defaultValue);
+    }
+    static StringListConfig addStringListConfig(@NotNull String nameKey, @Nullable ImmutableList<String> defaultValue, @Nullable ILPCValueChangeCallback callback){
+        return addStringListConfig(peekConfigList(), nameKey, defaultValue, callback);
+    }
+    static ConfigOpenGuiConfig addConfigOpenGuiConfig(@Nullable String defaultStorageString){
+        return addConfigOpenGuiConfig(peekConfigList(), defaultStorageString);
+    }
+    static ThirdListConfig addThirdListConfig(@NotNull String nameKey, boolean defaultBoolean){
+        return addThirdListConfig(peekConfigList(), nameKey, defaultBoolean);
+    }
+    static <T> OptionListConfig addOptionListConfig(@NotNull String nameKey, IConfigOptionListEntry defaultOption){
+        return addOptionListConfig(peekConfigList(), nameKey, defaultOption);
+    }
+    static <T> OptionListConfig addOptionListConfig(@NotNull String nameKey, IConfigOptionListEntry defaultOption, @Nullable ILPCValueChangeCallback callback){
+        return addOptionListConfig(peekConfigList(), nameKey, defaultOption, callback);
+    }
+    static <T extends IntSupplier & IntConsumer> IntegerArrayListConfig<T> addIntegerListConfig(@NotNull String nameKey, Iterable<T> values){
+        return addIntegerListConfig(peekConfigList(), nameKey, values);
+    }
+    static <T extends IntSupplier & IntConsumer> IntegerArrayListConfig<T> addIntegerListConfig(@NotNull String nameKey, Iterable<T> values, @Nullable ILPCValueChangeCallback callback){
+        return addIntegerListConfig(peekConfigList(), nameKey, values);
+    }
+    static StringConfig addStringConfig(@NotNull String nameKey, @Nullable String defaultString, @Nullable ILPCValueChangeCallback callback){
+        return addStringConfig(peekConfigList(), nameKey, defaultString, callback);
+    }
+    static StringConfig addStringConfig(@NotNull String nameKey, @Nullable String defaultString){
+        return addStringConfig(peekConfigList(), nameKey, defaultString);
+    }
+    static StringConfig addStringConfig(@NotNull String nameKey, @Nullable ILPCValueChangeCallback callback){
+        return addStringConfig(peekConfigList(), nameKey, callback);
+    }
+    static StringConfig addStringConfig(@NotNull String nameKey){
+        return addStringConfig(peekConfigList(), nameKey);
+    }
+    static RangeLimitConfig addRangeLimitConfig(boolean defaultBoolean, String defaultPrefix){
+        return addRangeLimitConfig(peekConfigList(), defaultBoolean, defaultPrefix);
+    }
+    static RangeLimitConfig addRangeLimitConfig(boolean defaultBoolean){
+        return addRangeLimitConfig(peekConfigList(), defaultBoolean, peekConfigList().getNameKey());
+    }
+    static ColorConfig addColorConfig(@NotNull String nameKey, @NotNull Color4f defaultColor){
+        return addColorConfig(peekConfigList(), nameKey, defaultColor);
+    }
+    static ColorConfig addColorConfig(@NotNull String nameKey, @NotNull Color4f defaultColor, @Nullable ILPCValueChangeCallback callback){
+        return addColorConfig(peekConfigList(), nameKey, defaultColor, callback);
+    }
+    static <T> ArrayOptionListConfig<T> addArrayOptionListConfig(@NotNull String nameKey){
+        return addArrayOptionListConfig(peekConfigList(), nameKey);
+    }
+    static <T> ArrayOptionListConfig<T> addArrayOptionListConfig(@NotNull String nameKey, ILPCValueChangeCallback callback){
+        return addArrayOptionListConfig(peekConfigList(), nameKey, callback);
+    }
+    static ConfigListOptionListConfig addConfigListOptionListConfig(@NotNull String nameKey){
+        return addConfigListOptionListConfig(peekConfigList(), nameKey);
+    }
+    static ConfigListOptionListConfig addConfigListOptionListConfig(@NotNull String nameKey, ILPCValueChangeCallback callback){
+        return addConfigListOptionListConfig(peekConfigList(), nameKey, callback);
+    }
+    static ReachDistanceConfig addReachDistanceConfig(){
+        return addReachDistanceConfig(peekConfigList());
+    }
+    static ReachDistanceConfig addReachDistanceConfig(@Nullable ILPCValueChangeCallback callback){
+        return addReachDistanceConfig(peekConfigList(), callback);
+    }
+    static LimitOperationSpeedConfig addLimitOperationSpeedConfig(boolean defaultBoolean, double defaultDouble){
+        return addLimitOperationSpeedConfig(peekConfigList(), defaultBoolean, defaultDouble);
+    }
+    static <T extends ILPCConfigList> ConfigListOptionListConfigEx<T> addConfigListOptionListConfigEx(@NotNull String nameKey){
+        return addConfigListOptionListConfigEx(peekConfigList(), nameKey);
+    }
+    static <T extends ILPCConfigList> ConfigListOptionListConfigEx<T> addConfigListOptionListConfigEx(@NotNull String nameKey, @Nullable ILPCValueChangeCallback callback){
+        return addConfigListOptionListConfigEx(peekConfigList(), nameKey, callback);
+    }
+}

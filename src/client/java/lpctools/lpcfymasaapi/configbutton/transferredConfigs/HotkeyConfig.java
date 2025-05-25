@@ -6,7 +6,10 @@ import fi.dy.masa.malilib.hotkeys.IHotkeyCallback;
 import fi.dy.masa.malilib.hotkeys.IKeybind;
 import fi.dy.masa.malilib.hotkeys.KeyAction;
 import fi.dy.masa.malilib.util.StringUtils;
-import lpctools.lpcfymasaapi.configbutton.*;
+import lpctools.lpcfymasaapi.implementations.IButtonDisplay;
+import lpctools.lpcfymasaapi.implementations.ILPCConfigList;
+import lpctools.lpcfymasaapi.implementations.ILPC_MASAConfigWrapper;
+import lpctools.lpcfymasaapi.implementations.data.LPCConfigData;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.text.Text;
@@ -20,8 +23,8 @@ import java.util.function.IntSupplier;
 
 public class HotkeyConfig extends ConfigHotkey implements ILPC_MASAConfigWrapper<ConfigHotkey> {
     public HotkeyConfig(@NotNull ILPCConfigList parent, @NotNull String nameKey, @Nullable String defaultStorageString, @NotNull IHotkeyCallback hotkeyCallback){
-        super(nameKey, defaultStorageString);
-        data = new Data(parent, true);
+        super(nameKey, defaultStorageString != null ? defaultStorageString : "");
+        data = new LPCConfigData(parent, true);
         ILPC_MASAConfigWrapperDefaultInit(null);
         parent.getPage().getInputHandler().addHotkey(this);
         getKeybind().setCallback(hotkeyCallback);
@@ -51,11 +54,11 @@ public class HotkeyConfig extends ConfigHotkey implements ILPC_MASAConfigWrapper
         @Nullable private final BooleanSupplier enabled;
     }
 
-    @Override public void setValueFromJsonElement(JsonElement element) {
+    @Override public void setValueFromJsonElement(@NotNull JsonElement element) {
         List<Integer> lastKeys = List.copyOf(getKeybind().getKeys());
         super.setValueFromJsonElement(element);
         if(!lastKeys.equals(getKeybind().getKeys())) onValueChanged();
     }
-    @Override public @NotNull Data getLPCConfigData() {return data;}
-    private final @NotNull Data data;
+    @Override public @NotNull LPCConfigData getLPCConfigData() {return data;}
+    private final @NotNull LPCConfigData data;
 }

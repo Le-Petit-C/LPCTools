@@ -35,19 +35,19 @@ public class HandRestock {
         if(offhandPriority == 1 && restockTest.isStackOk(ItemUtils.getOffhandStack(inventory))) return 40;
         return -1;
     }
-    //从背包里寻找集合中的物品并将其换到主手，成功使主手拿上给定物品返回true，失败返回false
+    //从背包里寻找集合中的物品并将其换到手上，成功使主手拿上给定物品返回拿到的物品数量，失败返回0
     //offhandPriority与search中的offhandPriority同义，进一步地，如果offhandPriority=-1即副手优先级比主手高，则变成填充副手而不是主手
     //restockOffhand表示是否填充副手
-    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
-    public static boolean restock(IRestockTest restockTest, int offhandPriority){
+    public static int restock(IRestockTest restockTest, int offhandPriority){
         int i = search(restockTest, offhandPriority);
-        if(i == -1) return false;
+        if(i == -1) return 0;
         ClientPlayerEntity player = MinecraftClient.getInstance().player;
-        if (player == null) return false;
+        if (player == null) return 0;
         PlayerInventory inventory = player.getInventory();
-        if(inventory == null) return false;
+        if(inventory == null) return 0;
         ClientPlayerInteractionManager itm = MinecraftClient.getInstance().interactionManager;
-        if(itm == null) return false;
+        if(itm == null) return 0;
+        int count = inventory.getStack(i).getCount();
         if(offhandPriority == -1){
             if(i != 40)
                 ItemUtils.swapSlotWithOffhand(i);
@@ -56,6 +56,6 @@ public class HandRestock {
             if(i < 9) inventory.setSelectedSlot(i);
             else ItemUtils.swapSlotWithMainhand(i);
         }
-        return true;
+        return count;
     }
 }
