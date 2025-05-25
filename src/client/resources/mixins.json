@@ -12,7 +12,7 @@
     "SpriteContentsMixin",
     "WorldChunkMixin",
     "MASAMixins.MuteMASAConfigMinMaxMixin.ConfigDoubleMixin",
-    "MASAMixins.MuteMASAConfigMinMaxMixin.ConfigIntegerMixin"
+    "MASAMixins.MuteMASAConfigMinMaxMixin.ConfigIntegerMixin",
     "RegistryMixins$afterClientWorldChangeEvent",
     "SplashTextResourceSupplierMixin"
   ],

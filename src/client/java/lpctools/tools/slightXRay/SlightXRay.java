@@ -53,7 +53,7 @@ import static lpctools.util.DataUtils.*;
 import static lpctools.util.MathUtils.*;
 
 @SuppressWarnings("deprecation")
-public class SlightXRay implements ILPCValueChangeCallback, WorldRenderEvents.End, ClientChunkEvents.Load, ClientChunkEvents.Unload, ClientWorldEvents.AfterClientWorldChange, Registry.ClientWorldChunkSetBlockState {
+public class SlightXRay implements ILPCValueChangeCallback, WorldRenderEvents.End, ClientChunkEvents.Load, ClientChunkEvents.Unload, Registry.AfterClientWorldChange, Registry.ClientWorldChunkSetBlockState {
     //以下几个变量使用synchronized(markedBlocks)同步
     //标记的需要显示的区块
     static final @NotNull HashMap<BlockPos, MutableInt> markedBlocks = new HashMap<>();
