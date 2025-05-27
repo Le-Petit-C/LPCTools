@@ -43,6 +43,7 @@ import org.joml.*;
 import java.lang.Math;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.Function;
 
 import static lpctools.generic.GenericUtils.mayMobSpawnAt;
 import static lpctools.lpcfymasaapi.LPCConfigStatics.*;
@@ -94,9 +95,10 @@ public class CanSpawnDisplay implements WorldRenderEvents.Last, WorldRenderEvent
             GenericRegistry.SPAWN_CONDITION_CHANGED.unregister(this);
         }
     }
+    private static final Function<SubChunkPos, HashSet<BlockPos>> putCanSpawnPosesComputeFunction = k->new HashSet<>();
     private final HashMap<SubChunkPos, HashSet<BlockPos>> canSpawnPoses = new HashMap<>();
     private static void putCanSpawnPoses(HashMap<SubChunkPos, HashSet<BlockPos>> map, BlockPos pos){
-        map.computeIfAbsent(new SubChunkPos(pos), k->new HashSet<>()).add(pos.toImmutable());
+        map.computeIfAbsent(new SubChunkPos(pos), putCanSpawnPosesComputeFunction).add(pos.toImmutable());
     }
     private static void removeCanSpawnPoses(HashMap<SubChunkPos, HashSet<BlockPos>> map, BlockPos pos){
         HashSet<BlockPos> set = map.get(new SubChunkPos(pos));
@@ -130,14 +132,15 @@ public class CanSpawnDisplay implements WorldRenderEvents.Last, WorldRenderEvent
         }
         for(Map.Entry<BlockPos, World> entry : needRefreshPoses.entrySet()){
             BlockPos pos = entry.getKey();
+            BlockPos up = pos.up();
             World world = entry.getValue();
             boolean maySpawn = mayMobSpawnAt(world, world.getLightingProvider(), pos);
             boolean maySpawnUp = mayMobSpawnAt(world, world.getLightingProvider(), pos.up());
             synchronized (canSpawnPoses){
-                if(maySpawn) putCanSpawnPoses(canSpawnPoses, pos.down());
-                else removeCanSpawnPoses(canSpawnPoses, pos.down());
-                if(maySpawnUp) putCanSpawnPoses(canSpawnPoses, pos);
+                if(maySpawn) putCanSpawnPoses(canSpawnPoses, pos);
                 else removeCanSpawnPoses(canSpawnPoses, pos);
+                if(maySpawnUp) putCanSpawnPoses(canSpawnPoses, up);
+                else removeCanSpawnPoses(canSpawnPoses, up);
             }
         }
         needRefreshPoses.clear();
@@ -184,15 +187,8 @@ public class CanSpawnDisplay implements WorldRenderEvents.Last, WorldRenderEvent
         new Vector2i(-1, 0),
         new Vector2i(0, -1),};
     private boolean testAndAddChunkIntoWork(World world, ChunkPos pos){
-        boolean b = true;
-        for(Vector2i direction : directions){
-            if(world.getChunk(pos.x + direction.x, pos.z + direction.y, ChunkStatus.FULL, false) == null) {
-                b = false;
-                break;
-            }
-        }
         Chunk chunk = world.getChunk(pos.x, pos.z, ChunkStatus.FULL, false);
-        if(b && chunk != null) synchronized (tasks){
+        if(chunk != null) synchronized (tasks){
             chunkTasks.add(new ThreadTask(chunk, world.getLightingProvider(), true));
             int task = taskIndex++;
             tasks.put(task, GenericUtils.runAsync(()->prepareAndUpdateChunk(task)));
@@ -211,7 +207,10 @@ public class CanSpawnDisplay implements WorldRenderEvents.Last, WorldRenderEvent
             tasks.remove(taskIndex);
             for (ThreadTask task : chunkTasks){
                 int newDistance = task.chunk.getPos().getSquaredDistance(center);
-                if(newDistance < minDistance) chunk = task;
+                if(newDistance < minDistance) {
+                    chunk = task;
+                    minDistance = newDistance;
+                }
             }
             chunkTasks.remove(chunk);
         }
@@ -222,15 +221,15 @@ public class CanSpawnDisplay implements WorldRenderEvents.Last, WorldRenderEvent
         int yCeiling = (chunk.getBottomY() + chunk.getHeight()) >> 4;
         int x = chunk.getPos().x, z = chunk.getPos().z;
         synchronized (canSpawnPoses) {
-            for (int y = chunk.getBottomY() >> 4; y < yCeiling; ++y)
+            for (int y = chunk.getBottomY() >> 4; y <= yCeiling; ++y)
                 canSpawnPoses.remove(new SubChunkPos(x, y, z));
         }
         if(!task.load) return;
-        BlockPos regionStartPos = chunk.getPos().getStartPos().add(0, chunk.getBottomY(), 0);
+        BlockPos regionStartPos = chunk.getPos().getStartPos().add(0, chunk.getBottomY() + 1, 0);
         Iterable<BlockPos> iterableBox = iterateInBox(regionStartPos, regionStartPos.add(15, chunk.getHeight() - 1, 15));
         HashMap<SubChunkPos, HashSet<BlockPos>> result = new HashMap<>();
         for(BlockPos pos : iterableBox)
-            if(mayMobSpawnAt(chunk, task.light, pos.up())) putCanSpawnPoses(result, pos);
+            if(mayMobSpawnAt(chunk, task.light, pos)) putCanSpawnPoses(result, pos);
         synchronized (canSpawnPoses){
             canSpawnPoses.putAll(result);
         }
@@ -262,7 +261,7 @@ public class CanSpawnDisplay implements WorldRenderEvents.Last, WorldRenderEvent
                 else return MaLiLibPipelines.DEBUG_LINES_TRANSLUCENT_NO_CULL;
             }
             @Override public void vertex(BufferBuilder buffer, BlockPos pos, Vector3d cp, int color, boolean xray) {
-                double yOffset = xray ? 1 : 1.005;
+                double yOffset = xray ? 0 : 0.005;
                 nn.set(pos.getX() + 0.1, pos.getY() + yOffset, pos.getZ() + 0.1).sub(cp);
                 pn.set(pos.getX() + 0.9, pos.getY() + yOffset, pos.getZ() + 0.1).sub(cp);
                 pp.set(pos.getX() + 0.9, pos.getY() + yOffset, pos.getZ() + 0.9).sub(cp);
@@ -290,7 +289,7 @@ public class CanSpawnDisplay implements WorldRenderEvents.Last, WorldRenderEvent
                 else return MaLiLibPipelines.POSITION_COLOR_TRANSLUCENT;
             }
             @Override public void vertex(BufferBuilder buffer, BlockPos pos, Vector3d cp, int color, boolean xray) {
-                double yOffset = xray ? 1 : 1.005;
+                double yOffset = xray ? 0 : 0.005;
                 boolean direction = pos.getY() + yOffset < cp.y;
                 nn.set(pos.getX(), pos.getY() + yOffset, pos.getZ()).sub(cp);
                 np.set(pos.getX(), pos.getY() + yOffset, pos.getZ() + 1).sub(cp);
@@ -321,14 +320,14 @@ public class CanSpawnDisplay implements WorldRenderEvents.Last, WorldRenderEvent
                 else return MaLiLibPipelines.DEBUG_LINES_TRANSLUCENT;
             }
             @Override public void vertex(BufferBuilder buffer, BlockPos pos, Vector3d cp, int color, boolean xray) {
-                nn.set(pos.getX() + 0.1, pos.getY() + 1.1, pos.getZ() + 0.1).sub(cp);
-                pn.set(pos.getX() + 0.9, pos.getY() + 1.1, pos.getZ() + 0.1).sub(cp);
-                pp.set(pos.getX() + 0.9, pos.getY() + 1.1, pos.getZ() + 0.9).sub(cp);
-                np.set(pos.getX() + 0.1, pos.getY() + 1.1, pos.getZ() + 0.9).sub(cp);
-                nn1.set(pos.getX() + 0.1, pos.getY() + 1.9, pos.getZ() + 0.1).sub(cp);
-                pn1.set(pos.getX() + 0.9, pos.getY() + 1.9, pos.getZ() + 0.1).sub(cp);
-                pp1.set(pos.getX() + 0.9, pos.getY() + 1.9, pos.getZ() + 0.9).sub(cp);
-                np1.set(pos.getX() + 0.1, pos.getY() + 1.9, pos.getZ() + 0.9).sub(cp);
+                nn.set(pos.getX() + 0.1, pos.getY() + 0.1, pos.getZ() + 0.1).sub(cp);
+                pn.set(pos.getX() + 0.9, pos.getY() + 0.1, pos.getZ() + 0.1).sub(cp);
+                pp.set(pos.getX() + 0.9, pos.getY() + 0.1, pos.getZ() + 0.9).sub(cp);
+                np.set(pos.getX() + 0.1, pos.getY() + 0.1, pos.getZ() + 0.9).sub(cp);
+                nn1.set(pos.getX() + 0.1, pos.getY() + 0.9, pos.getZ() + 0.1).sub(cp);
+                pn1.set(pos.getX() + 0.9, pos.getY() + 0.9, pos.getZ() + 0.1).sub(cp);
+                pp1.set(pos.getX() + 0.9, pos.getY() + 0.9, pos.getZ() + 0.9).sub(cp);
+                np1.set(pos.getX() + 0.1, pos.getY() + 0.9, pos.getZ() + 0.9).sub(cp);
                 buffer.vertex((float) nn.x, (float) nn.y, (float) nn.z).color(color);
                 buffer.vertex((float) pn.x, (float) pn.y, (float) pn.z).color(color);
                 buffer.vertex((float) pn.x, (float) pn.y, (float) pn.z).color(color);
