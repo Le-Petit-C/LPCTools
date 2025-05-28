@@ -1,14 +1,19 @@
 package lpctools.tools.canSpawnDisplay;
 
+import com.mojang.blaze3d.buffers.BufferType;
+import com.mojang.blaze3d.buffers.BufferUsage;
+import com.mojang.blaze3d.buffers.GpuBuffer;
 import com.mojang.blaze3d.pipeline.RenderPipeline;
+import com.mojang.blaze3d.systems.RenderPass;
+import com.mojang.blaze3d.systems.RenderSystem;
+import com.mojang.blaze3d.textures.GpuTexture;
+import com.mojang.blaze3d.vertex.VertexFormat;
 import fi.dy.masa.malilib.render.MaLiLibPipelines;
-import fi.dy.masa.malilib.render.RenderContext;
 import fi.dy.masa.malilib.util.SubChunkPos;
 import fi.dy.masa.malilib.util.data.Color4f;
 import it.unimi.dsi.fastutil.doubles.DoubleArrayList;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
-import lpctools.LPCTools;
 import lpctools.compact.derived.ShapeList;
 import lpctools.generic.GenericRegistry;
 import lpctools.generic.GenericUtils;
@@ -19,6 +24,8 @@ import lpctools.lpcfymasaapi.configbutton.transferredConfigs.BooleanConfig;
 import lpctools.lpcfymasaapi.configbutton.transferredConfigs.BooleanHotkeyConfig;
 import lpctools.lpcfymasaapi.configbutton.transferredConfigs.ColorConfig;
 import lpctools.lpcfymasaapi.configbutton.transferredConfigs.DoubleConfig;
+import lpctools.render.LPCExtraPipelines;
+import lpctools.util.MathUtils;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientChunkEvents;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientWorldEvents;
@@ -26,9 +33,8 @@ import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents;
 import net.minecraft.block.BlockState;
 import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.gl.Framebuffer;
 import net.minecraft.client.network.ClientPlayerEntity;
-import net.minecraft.client.render.BufferBuilder;
-import net.minecraft.client.render.BuiltBuffer;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.util.math.*;
 import net.minecraft.world.World;
@@ -39,8 +45,10 @@ import net.minecraft.world.chunk.light.LightingProvider;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.joml.*;
+import org.lwjgl.system.MemoryUtil;
 
 import java.lang.Math;
+import java.nio.ByteBuffer;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
@@ -243,16 +251,16 @@ public class CanSpawnDisplay implements WorldRenderEvents.Last, WorldRenderEvent
     }
     
     public interface RenderMethod{
+        int getVertexBufferSizePerBlock();
+        int getIndexBufferSizePerBlockByInt();
         String getNameKey();
         RenderPipeline getShader(boolean xray);
-        void vertex(BufferBuilder buffer, BlockPos pos, Vector3d cameraPos, int color, boolean xray);
+        void vertex(ByteBuffer indexBuffer, ByteBuffer vertexBuffer, BlockPos pos, int color, boolean xray);
     }
     private static final RenderMethod[] renderMethods = {
         new RenderMethod() {
-            final Vector3d nn = new Vector3d();
-            final Vector3d np = new Vector3d();
-            final Vector3d pp = new Vector3d();
-            final Vector3d pn = new Vector3d();
+            @Override public int getVertexBufferSizePerBlock(){return 64;}
+            @Override public int getIndexBufferSizePerBlockByInt(){return 8;}
             @Override public String getNameKey() {
                 return "minihudStyle";
             }
@@ -260,58 +268,49 @@ public class CanSpawnDisplay implements WorldRenderEvents.Last, WorldRenderEvent
                 if(xray) return MaLiLibPipelines.DEBUG_LINES_TRANSLUCENT_NO_DEPTH_NO_CULL;
                 else return MaLiLibPipelines.DEBUG_LINES_TRANSLUCENT_NO_CULL;
             }
-            @Override public void vertex(BufferBuilder buffer, BlockPos pos, Vector3d cp, int color, boolean xray) {
+            @Override public void vertex(ByteBuffer indexBuffer, ByteBuffer vertexBuffer, BlockPos pos, int color, boolean xray) {
                 double yOffset = xray ? 0 : 0.005;
-                nn.set(pos.getX() + 0.1, pos.getY() + yOffset, pos.getZ() + 0.1).sub(cp);
-                pn.set(pos.getX() + 0.9, pos.getY() + yOffset, pos.getZ() + 0.1).sub(cp);
-                pp.set(pos.getX() + 0.9, pos.getY() + yOffset, pos.getZ() + 0.9).sub(cp);
-                np.set(pos.getX() + 0.1, pos.getY() + yOffset, pos.getZ() + 0.9).sub(cp);
-                buffer.vertex((float) nn.x, (float) nn.y, (float) nn.z).color(color);
-                buffer.vertex((float) pn.x, (float) pn.y, (float) pn.z).color(color);
-                buffer.vertex((float) pn.x, (float) pn.y, (float) pn.z).color(color);
-                buffer.vertex((float) pp.x, (float) pp.y, (float) pp.z).color(color);
-                buffer.vertex((float) pp.x, (float) pp.y, (float) pp.z).color(color);
-                buffer.vertex((float) np.x, (float) np.y, (float) np.z).color(color);
-                buffer.vertex((float) np.x, (float) np.y, (float) np.z).color(color);
-                buffer.vertex((float) nn.x, (float) nn.y, (float) nn.z).color(color);
+                float y = (float) (pos.getY() + yOffset);
+                float minX = (float) (pos.getX() + 0.1), maxX = (float) (pos.getX() + 0.9);
+                float minZ = (float) (pos.getZ() + 0.1), maxZ = (float) (pos.getZ() + 0.9);
+                int position = vertexBuffer.position() >>> 4;
+                indexBuffer.putInt(position).putInt(position + 1);
+                indexBuffer.putInt(position + 1).putInt(position + 2);
+                indexBuffer.putInt(position + 2).putInt(position + 3);
+                indexBuffer.putInt(position + 3).putInt(position);
+                vertexBuffer.putFloat(minX).putFloat(y).putFloat(minZ).putInt(color);
+                vertexBuffer.putFloat(maxX).putFloat(y).putFloat(minZ).putInt(color);
+                vertexBuffer.putFloat(maxX).putFloat(y).putFloat(maxZ).putInt(color);
+                vertexBuffer.putFloat(minX).putFloat(y).putFloat(maxZ).putInt(color);
             }
         },
         new RenderMethod() {
-            final Vector3d nn = new Vector3d();
-            final Vector3d np = new Vector3d();
-            final Vector3d pp = new Vector3d();
-            final Vector3d pn = new Vector3d();
+            @Override public int getVertexBufferSizePerBlock(){return 64;}
+            @Override public int getIndexBufferSizePerBlockByInt(){return 6;}
             @Override public String getNameKey() {
                 return "fullSurface";
             }
             @Override public RenderPipeline getShader(boolean xray) {
-                if(xray) return MaLiLibPipelines.POSITION_COLOR_TRANSLUCENT_NO_DEPTH_NO_CULL;
-                else return MaLiLibPipelines.POSITION_COLOR_TRANSLUCENT;
+                if(xray) return MaLiLibPipelines.POSITION_COLOR_MASA_NO_DEPTH_NO_CULL;
+                else return LPCExtraPipelines.POSITION_COLOR_MASA_NO_CULL;
             }
-            @Override public void vertex(BufferBuilder buffer, BlockPos pos, Vector3d cp, int color, boolean xray) {
+            @Override public void vertex(ByteBuffer indexBuffer, ByteBuffer vertexBuffer, BlockPos pos, int color, boolean xray) {
                 double yOffset = xray ? 0 : 0.005;
-                boolean direction = pos.getY() + yOffset < cp.y;
-                nn.set(pos.getX(), pos.getY() + yOffset, pos.getZ()).sub(cp);
-                np.set(pos.getX(), pos.getY() + yOffset, pos.getZ() + 1).sub(cp);
-                pp.set(pos.getX() + 1, pos.getY() + yOffset, pos.getZ() + 1).sub(cp);
-                pn.set(pos.getX() + 1, pos.getY() + yOffset, pos.getZ()).sub(cp);
-                buffer.vertex((float) nn.x, (float) nn.y, (float) nn.z).color(color);
-                if(direction) buffer.vertex((float) np.x, (float) np.y, (float) np.z).color(color);
-                else buffer.vertex((float) pn.x, (float) pn.y, (float) pn.z).color(color);
-                buffer.vertex((float) pp.x, (float) pp.y, (float) pp.z).color(color);
-                if(direction) buffer.vertex((float) pn.x, (float) pn.y, (float) pn.z).color(color);
-                else buffer.vertex((float) np.x, (float) np.y, (float) np.z).color(color);
+                float y = (float) (pos.getY() + yOffset);
+                float minX = pos.getX(), maxX = pos.getX() + 1;
+                float minZ = pos.getZ(), maxZ = pos.getZ() + 1;
+                int position = vertexBuffer.position() >>> 4;
+                indexBuffer.putInt(position).putInt(position + 1).putInt(position + 2);
+                indexBuffer.putInt(position).putInt(position + 2).putInt(position + 3);
+                vertexBuffer.putFloat(minX).putFloat(y).putFloat(minZ).putInt(color);
+                vertexBuffer.putFloat(maxX).putFloat(y).putFloat(minZ).putInt(color);
+                vertexBuffer.putFloat(maxX).putFloat(y).putFloat(maxZ).putInt(color);
+                vertexBuffer.putFloat(minX).putFloat(y).putFloat(maxZ).putInt(color);
             }
         },
         new RenderMethod() {
-            final Vector3d nn = new Vector3d();
-            final Vector3d np = new Vector3d();
-            final Vector3d pp = new Vector3d();
-            final Vector3d pn = new Vector3d();
-            final Vector3d nn1 = new Vector3d();
-            final Vector3d np1 = new Vector3d();
-            final Vector3d pp1 = new Vector3d();
-            final Vector3d pn1 = new Vector3d();
+            @Override public int getVertexBufferSizePerBlock(){return 128;}
+            @Override public int getIndexBufferSizePerBlockByInt(){return 24;}
             @Override public String getNameKey() {
                 return "lineCube";
             }
@@ -319,39 +318,31 @@ public class CanSpawnDisplay implements WorldRenderEvents.Last, WorldRenderEvent
                 if(xray) return MaLiLibPipelines.DEBUG_LINES_TRANSLUCENT_NO_DEPTH_NO_CULL;
                 else return MaLiLibPipelines.DEBUG_LINES_TRANSLUCENT;
             }
-            @Override public void vertex(BufferBuilder buffer, BlockPos pos, Vector3d cp, int color, boolean xray) {
-                nn.set(pos.getX() + 0.1, pos.getY() + 0.1, pos.getZ() + 0.1).sub(cp);
-                pn.set(pos.getX() + 0.9, pos.getY() + 0.1, pos.getZ() + 0.1).sub(cp);
-                pp.set(pos.getX() + 0.9, pos.getY() + 0.1, pos.getZ() + 0.9).sub(cp);
-                np.set(pos.getX() + 0.1, pos.getY() + 0.1, pos.getZ() + 0.9).sub(cp);
-                nn1.set(pos.getX() + 0.1, pos.getY() + 0.9, pos.getZ() + 0.1).sub(cp);
-                pn1.set(pos.getX() + 0.9, pos.getY() + 0.9, pos.getZ() + 0.1).sub(cp);
-                pp1.set(pos.getX() + 0.9, pos.getY() + 0.9, pos.getZ() + 0.9).sub(cp);
-                np1.set(pos.getX() + 0.1, pos.getY() + 0.9, pos.getZ() + 0.9).sub(cp);
-                buffer.vertex((float) nn.x, (float) nn.y, (float) nn.z).color(color);
-                buffer.vertex((float) pn.x, (float) pn.y, (float) pn.z).color(color);
-                buffer.vertex((float) pn.x, (float) pn.y, (float) pn.z).color(color);
-                buffer.vertex((float) pp.x, (float) pp.y, (float) pp.z).color(color);
-                buffer.vertex((float) pp.x, (float) pp.y, (float) pp.z).color(color);
-                buffer.vertex((float) np.x, (float) np.y, (float) np.z).color(color);
-                buffer.vertex((float) np.x, (float) np.y, (float) np.z).color(color);
-                buffer.vertex((float) nn.x, (float) nn.y, (float) nn.z).color(color);
-                buffer.vertex((float) nn1.x, (float) nn1.y, (float) nn1.z).color(color);
-                buffer.vertex((float) pn1.x, (float) pn1.y, (float) pn1.z).color(color);
-                buffer.vertex((float) pn1.x, (float) pn1.y, (float) pn1.z).color(color);
-                buffer.vertex((float) pp1.x, (float) pp1.y, (float) pp1.z).color(color);
-                buffer.vertex((float) pp1.x, (float) pp1.y, (float) pp1.z).color(color);
-                buffer.vertex((float) np1.x, (float) np1.y, (float) np1.z).color(color);
-                buffer.vertex((float) np1.x, (float) np1.y, (float) np1.z).color(color);
-                buffer.vertex((float) nn1.x, (float) nn1.y, (float) nn1.z).color(color);
-                buffer.vertex((float) nn.x, (float) nn.y, (float) nn.z).color(color);
-                buffer.vertex((float) nn1.x, (float) nn1.y, (float) nn1.z).color(color);
-                buffer.vertex((float) pn.x, (float) pn.y, (float) pn.z).color(color);
-                buffer.vertex((float) pn1.x, (float) pn1.y, (float) pn1.z).color(color);
-                buffer.vertex((float) pp.x, (float) pp.y, (float) pp.z).color(color);
-                buffer.vertex((float) pp1.x, (float) pp1.y, (float) pp1.z).color(color);
-                buffer.vertex((float) np.x, (float) np.y, (float) np.z).color(color);
-                buffer.vertex((float) np1.x, (float) np1.y, (float) np1.z).color(color);
+            @Override public void vertex(ByteBuffer indexBuffer, ByteBuffer vertexBuffer, BlockPos pos, int color, boolean xray) {
+                float minX = (float) (pos.getX() + 0.1), maxX = (float) (pos.getX() + 0.9);
+                float minY = (float) (pos.getY() + 0.1), maxY = (float) (pos.getY() + 0.9);
+                float minZ = (float) (pos.getZ() + 0.1), maxZ = (float) (pos.getZ() + 0.9);
+                int position = vertexBuffer.position() >>> 4;
+                indexBuffer.putInt(position).putInt(position + 1);
+                indexBuffer.putInt(position + 2).putInt(position + 3);
+                indexBuffer.putInt(position + 4).putInt(position + 5);
+                indexBuffer.putInt(position + 6).putInt(position + 7);
+                indexBuffer.putInt(position).putInt(position + 2);
+                indexBuffer.putInt(position + 1).putInt(position + 3);
+                indexBuffer.putInt(position + 4).putInt(position + 6);
+                indexBuffer.putInt(position + 5).putInt(position + 7);
+                indexBuffer.putInt(position).putInt(position + 4);
+                indexBuffer.putInt(position + 1).putInt(position + 5);
+                indexBuffer.putInt(position + 2).putInt(position + 6);
+                indexBuffer.putInt(position + 3).putInt(position + 7);
+                vertexBuffer.putFloat(minX).putFloat(minY).putFloat(minZ).putInt(color);
+                vertexBuffer.putFloat(maxX).putFloat(minY).putFloat(minZ).putInt(color);
+                vertexBuffer.putFloat(minX).putFloat(maxY).putFloat(minZ).putInt(color);
+                vertexBuffer.putFloat(maxX).putFloat(maxY).putFloat(minZ).putInt(color);
+                vertexBuffer.putFloat(minX).putFloat(minY).putFloat(maxZ).putInt(color);
+                vertexBuffer.putFloat(maxX).putFloat(minY).putFloat(maxZ).putInt(color);
+                vertexBuffer.putFloat(minX).putFloat(maxY).putFloat(maxZ).putInt(color);
+                vertexBuffer.putFloat(maxX).putFloat(maxY).putFloat(maxZ).putInt(color);
             }
         }
     };
@@ -359,10 +350,7 @@ public class CanSpawnDisplay implements WorldRenderEvents.Last, WorldRenderEvent
     public void render(WorldRenderContext context) {
         RenderMethod method = renderMethod.get();
         boolean xray = renderXRays.getAsBoolean();
-        RenderContext ctx = new RenderContext(method.getShader(xray));
-        BufferBuilder buffer = ctx.getBuilder();
         Vec3d cameraPos = context.camera().getPos();
-        Vector3d cp = new Vector3d(cameraPos.x, cameraPos.y, cameraPos.z);
         int color = displayColor.getIntegerValue();
         ShapeList shapeList = rangeLimit.buildShapeList();
         double squaredRenderBlockDistance = renderDistance.getAsDouble() * renderDistance.getAsDouble() * 256;
@@ -388,17 +376,38 @@ public class CanSpawnDisplay implements WorldRenderEvents.Last, WorldRenderEvent
         }
         if(index.isEmpty()) return;
         index.sort((o1, o2) -> (int) Math.signum(distance.getDouble(o2) - distance.getDouble(o1)));
-        for (int ind : index) method.vertex(buffer, list.get(ind), cp, color, xray);
-        try {
-            BuiltBuffer meshData = buffer.endNullable();
-            if (meshData != null) {
-                ctx.draw(meshData, false, true);
-                meshData.close();
-            }
-            ctx.close();
-        } catch (Exception err) {
-            LPCTools.LOGGER.error("lpctools.tools.slightXRay.slightXRay.onLast(): Draw Exception; {}", err.getMessage());
+        int blockCount = index.size();
+        int indexCount = blockCount * method.getIndexBufferSizePerBlockByInt();
+        ByteBuffer indexBuffer = MemoryUtil.memAlloc(indexCount * 4);
+        ByteBuffer vertexBuffer = MemoryUtil.memAlloc(blockCount * method.getVertexBufferSizePerBlock());
+        for (int ind : index) method.vertex(indexBuffer, vertexBuffer, list.get(ind), color, xray);
+        indexBuffer.flip();
+        vertexBuffer.flip();
+        GpuBuffer gpuIndexBuffer = RenderSystem.getDevice()
+            .createBuffer(null, BufferType.INDICES, BufferUsage.STATIC_WRITE, indexBuffer);
+        GpuBuffer gpuVertexBuffer = RenderSystem.getDevice()
+            .createBuffer(null, BufferType.VERTICES, BufferUsage.STATIC_WRITE, vertexBuffer);
+        MemoryUtil.memFree(indexBuffer);
+        MemoryUtil.memFree(vertexBuffer);
+        Framebuffer framebuffer = MinecraftClient.getInstance().getFramebuffer();
+        Matrix4fStack stack = RenderSystem.getModelViewStack();
+        stack.pushMatrix();
+        stack.mul(MathUtils.inverseOffsetMatrix4f(cameraPos.toVector3f()));
+        GpuTexture gpuTexture;
+        GpuTexture gpuTexture2;
+        gpuTexture = framebuffer.getColorAttachment();
+        gpuTexture2 = framebuffer.getDepthAttachment();
+        try (RenderPass renderPass = RenderSystem.getDevice()
+            .createCommandEncoder()
+            .createRenderPass(gpuTexture, OptionalInt.empty(), gpuTexture2, OptionalDouble.empty())) {
+            renderPass.setPipeline(method.getShader(xray));
+            renderPass.setIndexBuffer(gpuIndexBuffer, VertexFormat.IndexType.INT);
+            renderPass.setVertexBuffer(0, gpuVertexBuffer);
+            renderPass.drawIndexed(0, indexCount);
         }
+        stack.popMatrix();
+        gpuIndexBuffer.close();
+        gpuVertexBuffer.close();
     }
     @Override public void onLast(WorldRenderContext context) {
         if(renderXRays.getAsBoolean()) render(context);
