@@ -44,6 +44,7 @@ import org.joml.*;
 import java.awt.*;
 import java.lang.Math;
 import java.util.*;
+import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
 
 import static lpctools.lpcfymasaapi.LPCConfigStatics.*;
@@ -273,7 +274,10 @@ public class SlightXRay implements ILPCValueChangeCallback, WorldRenderEvents.En
             }
             threadTasks.clear();
         }
-        CompletableFuture.allOf(futures);
+        for(CompletableFuture<?> future : futures){
+            try{future.join();
+            } catch (CancellationException ignored){}
+        }
         synchronized (markedBlocks){
             markedBlocks.clear();
             loadedOrLoadingChunks.clear();

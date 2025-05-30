@@ -16,6 +16,7 @@ import net.minecraft.item.Item;
 import net.minecraft.registry.Registries;
 import net.minecraft.util.Hand;
 import net.minecraft.util.hit.BlockHitResult;
+import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
 
 import java.util.ArrayList;
@@ -83,9 +84,13 @@ public class AntiSpawner implements ClientTickEvents.EndTick {
                 if(!mayMobSpawnAt(mc.world, mc.world.getLightingProvider(), pos)) return NO_OPERATION;
                 if(!mc.world.getBlockState(pos).isReplaceable()) return NO_OPERATION;
                 limitOperationSpeedConfig.limitWithRestock(restockTest, 0);
-                mc.interactionManager.interactBlock(mc.player, Hand.MAIN_HAND, new BlockHitResult(
-                    pos.toBottomCenterPos(), Direction.UP, pos.offset(Direction.DOWN), false
-                ));
+                BlockPos downPos = pos.down();
+                BlockPos hitPos;
+                if(mc.world.getBlockState(pos.down()).isReplaceable()) hitPos = pos;
+                else hitPos = downPos;
+                BlockHitResult hitResult = new BlockHitResult(
+                    pos.toBottomCenterPos(), Direction.UP, hitPos, false);
+                mc.interactionManager.interactBlock(mc.player, Hand.MAIN_HAND, hitResult);
                 return OPERATED;
             });
     }
