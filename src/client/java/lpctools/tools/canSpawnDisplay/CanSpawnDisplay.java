@@ -1,8 +1,13 @@
 package lpctools.tools.canSpawnDisplay;
 
-import com.mojang.blaze3d.pipeline.RenderPipeline;
-import fi.dy.masa.malilib.render.MaLiLibPipelines;
-import fi.dy.masa.malilib.render.RenderContext;
+import com.mojang.blaze3d.buffers.BufferType;
+import com.mojang.blaze3d.buffers.BufferUsage;
+import com.mojang.blaze3d.buffers.GpuBuffer;
+import com.mojang.blaze3d.systems.GpuDevice;
+import com.mojang.blaze3d.systems.RenderPass;
+import com.mojang.blaze3d.systems.RenderSystem;
+import com.mojang.blaze3d.textures.GpuTexture;
+import com.mojang.blaze3d.vertex.VertexFormat;
 import fi.dy.masa.malilib.util.SubChunkPos;
 import fi.dy.masa.malilib.util.data.Color4f;
 import it.unimi.dsi.fastutil.doubles.DoubleArrayList;
@@ -19,6 +24,7 @@ import lpctools.lpcfymasaapi.configbutton.transferredConfigs.BooleanConfig;
 import lpctools.lpcfymasaapi.configbutton.transferredConfigs.BooleanHotkeyConfig;
 import lpctools.lpcfymasaapi.configbutton.transferredConfigs.ColorConfig;
 import lpctools.lpcfymasaapi.configbutton.transferredConfigs.DoubleConfig;
+import lpctools.util.MathUtils;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientChunkEvents;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientWorldEvents;
@@ -26,9 +32,8 @@ import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents;
 import net.minecraft.block.BlockState;
 import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.gl.Framebuffer;
 import net.minecraft.client.network.ClientPlayerEntity;
-import net.minecraft.client.render.BufferBuilder;
-import net.minecraft.client.render.BuiltBuffer;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.util.math.*;
 import net.minecraft.world.World;
@@ -36,25 +41,30 @@ import net.minecraft.world.chunk.Chunk;
 import net.minecraft.world.chunk.ChunkStatus;
 import net.minecraft.world.chunk.WorldChunk;
 import net.minecraft.world.chunk.light.LightingProvider;
+import org.apache.commons.lang3.mutable.MutableInt;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.joml.*;
+import org.lwjgl.system.MemoryUtil;
 
 import java.lang.Math;
+import java.nio.ByteBuffer;
 import java.util.*;
+import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.Function;
 
 import static lpctools.generic.GenericUtils.mayMobSpawnAt;
 import static lpctools.lpcfymasaapi.LPCConfigStatics.*;
 import static lpctools.tools.ToolUtils.*;
 import static lpctools.util.AlgorithmUtils.*;
 
-public class CanSpawnDisplay implements WorldRenderEvents.Last, WorldRenderEvents.DebugRender, Registry.ClientWorldChunkLightUpdated, ClientChunkEvents.Unload, Registry.ClientWorldChunkSetBlockState, ClientWorldEvents.AfterClientWorldChange, ClientTickEvents.StartTick, GenericRegistry.SpawnConditionChanged {
+public class CanSpawnDisplay implements WorldRenderEvents.Last, WorldRenderEvents.DebugRender, WorldRenderEvents.Start, Registry.ClientWorldChunkLightUpdated, ClientChunkEvents.Unload, Registry.ClientWorldChunkSetBlockState, ClientWorldEvents.AfterClientWorldChange, ClientTickEvents.StartTick, GenericRegistry.SpawnConditionChanged {
     public static BooleanHotkeyConfig canSpawnDisplay;
     public static ColorConfig displayColor;
     public static RangeLimitConfig rangeLimit;
     public static DoubleConfig renderDistance;
-    public static ArrayOptionListConfig<RenderMethod> renderMethod;
+    public static ArrayOptionListConfig<IRenderMethod> renderMethod;
     public static BooleanConfig renderXRays;
     public static void init(){
         canSpawnDisplay = addBooleanHotkeyConfig("canSpawnDisplay", false, null,
@@ -62,9 +72,9 @@ public class CanSpawnDisplay implements WorldRenderEvents.Last, WorldRenderEvent
         setLPCToolsToggleText(canSpawnDisplay);
         displayColor = addColorConfig("displayColor", Color4f.fromColor(0x7fffffff));
         rangeLimit = addRangeLimitConfig(false);
-        renderDistance = addDoubleConfig("renderDistance", 4, 1.5, Double.MAX_VALUE);
+        renderDistance = addDoubleConfig("renderDistance", 4, 1.5, 64);
         renderMethod = addArrayOptionListConfig("renderMethod");
-        for(RenderMethod method : renderMethods)
+        for(IRenderMethod method : renderMethods)
             renderMethod.addOption(renderMethod.getFullTranslationKey() + '.' + method.getNameKey(), method);
         renderXRays = addBooleanConfig("renderXRays", true);
     }
@@ -75,6 +85,7 @@ public class CanSpawnDisplay implements WorldRenderEvents.Last, WorldRenderEvent
             if(Registry.registerWorldRenderLastCallback(this))
                 addAllIntoWork();
             Registry.registerWorldRenderBeforeDebugRenderCallback(this);
+            Registry.registerWorldRenderStartCallback(this);
             Registry.registerClientWorldChunkLightUpdatedCallback(this);
             Registry.registerClientChunkUnloadCallback(this);
             Registry.registerClientWorldChunkSetBlockStateCallback(this);
@@ -86,6 +97,7 @@ public class CanSpawnDisplay implements WorldRenderEvents.Last, WorldRenderEvent
             if(Registry.unregisterWorldRenderLastCallback(this))
                 clearAll();
             Registry.unregisterWorldBeforeDebugRenderCallback(this);
+            Registry.unregisterWorldRenderStartCallback(this);
             Registry.unregisterClientWorldChunkLightUpdatedCallback(this);
             Registry.unregisterClientChunkUnloadCallback(this);
             Registry.unregisterClientWorldChunkSetBlockStateCallback(this);
@@ -94,9 +106,10 @@ public class CanSpawnDisplay implements WorldRenderEvents.Last, WorldRenderEvent
             GenericRegistry.SPAWN_CONDITION_CHANGED.unregister(this);
         }
     }
+    private static final Function<SubChunkPos, HashSet<BlockPos>> putCanSpawnPosesComputeFunction = k->new HashSet<>();
     private final HashMap<SubChunkPos, HashSet<BlockPos>> canSpawnPoses = new HashMap<>();
     private static void putCanSpawnPoses(HashMap<SubChunkPos, HashSet<BlockPos>> map, BlockPos pos){
-        map.computeIfAbsent(new SubChunkPos(pos), k->new HashSet<>()).add(pos.toImmutable());
+        map.computeIfAbsent(new SubChunkPos(pos), putCanSpawnPosesComputeFunction).add(pos.toImmutable());
     }
     private static void removeCanSpawnPoses(HashMap<SubChunkPos, HashSet<BlockPos>> map, BlockPos pos){
         HashSet<BlockPos> set = map.get(new SubChunkPos(pos));
@@ -130,14 +143,15 @@ public class CanSpawnDisplay implements WorldRenderEvents.Last, WorldRenderEvent
         }
         for(Map.Entry<BlockPos, World> entry : needRefreshPoses.entrySet()){
             BlockPos pos = entry.getKey();
+            BlockPos up = pos.up();
             World world = entry.getValue();
             boolean maySpawn = mayMobSpawnAt(world, world.getLightingProvider(), pos);
             boolean maySpawnUp = mayMobSpawnAt(world, world.getLightingProvider(), pos.up());
             synchronized (canSpawnPoses){
-                if(maySpawn) putCanSpawnPoses(canSpawnPoses, pos.down());
-                else removeCanSpawnPoses(canSpawnPoses, pos.down());
-                if(maySpawnUp) putCanSpawnPoses(canSpawnPoses, pos);
+                if(maySpawn) putCanSpawnPoses(canSpawnPoses, pos);
                 else removeCanSpawnPoses(canSpawnPoses, pos);
+                if(maySpawnUp) putCanSpawnPoses(canSpawnPoses, up);
+                else removeCanSpawnPoses(canSpawnPoses, up);
             }
         }
         needRefreshPoses.clear();
@@ -164,7 +178,10 @@ public class CanSpawnDisplay implements WorldRenderEvents.Last, WorldRenderEvent
             chunkTasks.clear();
             taskIndex = 0;
         }
-        CompletableFuture.allOf(futures);
+        for(CompletableFuture<?> future : futures){
+            try{future.join();
+            } catch (CancellationException ignored){}
+        }
         synchronized (canSpawnPoses){
             canSpawnPoses.clear();
         }
@@ -184,15 +201,8 @@ public class CanSpawnDisplay implements WorldRenderEvents.Last, WorldRenderEvent
         new Vector2i(-1, 0),
         new Vector2i(0, -1),};
     private boolean testAndAddChunkIntoWork(World world, ChunkPos pos){
-        boolean b = true;
-        for(Vector2i direction : directions){
-            if(world.getChunk(pos.x + direction.x, pos.z + direction.y, ChunkStatus.FULL, false) == null) {
-                b = false;
-                break;
-            }
-        }
         Chunk chunk = world.getChunk(pos.x, pos.z, ChunkStatus.FULL, false);
-        if(b && chunk != null) synchronized (tasks){
+        if(chunk != null) synchronized (tasks){
             chunkTasks.add(new ThreadTask(chunk, world.getLightingProvider(), true));
             int task = taskIndex++;
             tasks.put(task, GenericUtils.runAsync(()->prepareAndUpdateChunk(task)));
@@ -211,7 +221,10 @@ public class CanSpawnDisplay implements WorldRenderEvents.Last, WorldRenderEvent
             tasks.remove(taskIndex);
             for (ThreadTask task : chunkTasks){
                 int newDistance = task.chunk.getPos().getSquaredDistance(center);
-                if(newDistance < minDistance) chunk = task;
+                if(newDistance < minDistance) {
+                    chunk = task;
+                    minDistance = newDistance;
+                }
             }
             chunkTasks.remove(chunk);
         }
@@ -222,15 +235,15 @@ public class CanSpawnDisplay implements WorldRenderEvents.Last, WorldRenderEvent
         int yCeiling = (chunk.getBottomY() + chunk.getHeight()) >> 4;
         int x = chunk.getPos().x, z = chunk.getPos().z;
         synchronized (canSpawnPoses) {
-            for (int y = chunk.getBottomY() >> 4; y < yCeiling; ++y)
+            for (int y = chunk.getBottomY() >> 4; y <= yCeiling; ++y)
                 canSpawnPoses.remove(new SubChunkPos(x, y, z));
         }
         if(!task.load) return;
-        BlockPos regionStartPos = chunk.getPos().getStartPos().add(0, chunk.getBottomY(), 0);
+        BlockPos regionStartPos = chunk.getPos().getStartPos().add(0, chunk.getBottomY() + 1, 0);
         Iterable<BlockPos> iterableBox = iterateInBox(regionStartPos, regionStartPos.add(15, chunk.getHeight() - 1, 15));
         HashMap<SubChunkPos, HashSet<BlockPos>> result = new HashMap<>();
         for(BlockPos pos : iterableBox)
-            if(mayMobSpawnAt(chunk, task.light, pos.up())) putCanSpawnPoses(result, pos);
+            if(mayMobSpawnAt(chunk, task.light, pos)) putCanSpawnPoses(result, pos);
         synchronized (canSpawnPoses){
             canSpawnPoses.putAll(result);
         }
@@ -243,168 +256,149 @@ public class CanSpawnDisplay implements WorldRenderEvents.Last, WorldRenderEvent
         }
     }
     
-    public interface RenderMethod{
-        String getNameKey();
-        RenderPipeline getShader(boolean xray);
-        void vertex(BufferBuilder buffer, BlockPos pos, Vector3d cameraPos, int color, boolean xray);
-    }
-    private static final RenderMethod[] renderMethods = {
-        new RenderMethod() {
-            final Vector3d nn = new Vector3d();
-            final Vector3d np = new Vector3d();
-            final Vector3d pp = new Vector3d();
-            final Vector3d pn = new Vector3d();
-            @Override public String getNameKey() {
-                return "minihudStyle";
-            }
-            @Override public RenderPipeline getShader(boolean xray) {
-                if(xray) return MaLiLibPipelines.DEBUG_LINES_TRANSLUCENT_NO_DEPTH_NO_CULL;
-                else return MaLiLibPipelines.DEBUG_LINES_TRANSLUCENT_NO_CULL;
-            }
-            @Override public void vertex(BufferBuilder buffer, BlockPos pos, Vector3d cp, int color, boolean xray) {
-                double yOffset = xray ? 1 : 1.005;
-                nn.set(pos.getX() + 0.1, pos.getY() + yOffset, pos.getZ() + 0.1).sub(cp);
-                pn.set(pos.getX() + 0.9, pos.getY() + yOffset, pos.getZ() + 0.1).sub(cp);
-                pp.set(pos.getX() + 0.9, pos.getY() + yOffset, pos.getZ() + 0.9).sub(cp);
-                np.set(pos.getX() + 0.1, pos.getY() + yOffset, pos.getZ() + 0.9).sub(cp);
-                buffer.vertex((float) nn.x, (float) nn.y, (float) nn.z).color(color);
-                buffer.vertex((float) pn.x, (float) pn.y, (float) pn.z).color(color);
-                buffer.vertex((float) pn.x, (float) pn.y, (float) pn.z).color(color);
-                buffer.vertex((float) pp.x, (float) pp.y, (float) pp.z).color(color);
-                buffer.vertex((float) pp.x, (float) pp.y, (float) pp.z).color(color);
-                buffer.vertex((float) np.x, (float) np.y, (float) np.z).color(color);
-                buffer.vertex((float) np.x, (float) np.y, (float) np.z).color(color);
-                buffer.vertex((float) nn.x, (float) nn.y, (float) nn.z).color(color);
-            }
-        },
-        new RenderMethod() {
-            final Vector3d nn = new Vector3d();
-            final Vector3d np = new Vector3d();
-            final Vector3d pp = new Vector3d();
-            final Vector3d pn = new Vector3d();
-            @Override public String getNameKey() {
-                return "fullSurface";
-            }
-            @Override public RenderPipeline getShader(boolean xray) {
-                if(xray) return MaLiLibPipelines.POSITION_COLOR_TRANSLUCENT_NO_DEPTH_NO_CULL;
-                else return MaLiLibPipelines.POSITION_COLOR_TRANSLUCENT;
-            }
-            @Override public void vertex(BufferBuilder buffer, BlockPos pos, Vector3d cp, int color, boolean xray) {
-                double yOffset = xray ? 1 : 1.005;
-                boolean direction = pos.getY() + yOffset < cp.y;
-                nn.set(pos.getX(), pos.getY() + yOffset, pos.getZ()).sub(cp);
-                np.set(pos.getX(), pos.getY() + yOffset, pos.getZ() + 1).sub(cp);
-                pp.set(pos.getX() + 1, pos.getY() + yOffset, pos.getZ() + 1).sub(cp);
-                pn.set(pos.getX() + 1, pos.getY() + yOffset, pos.getZ()).sub(cp);
-                buffer.vertex((float) nn.x, (float) nn.y, (float) nn.z).color(color);
-                if(direction) buffer.vertex((float) np.x, (float) np.y, (float) np.z).color(color);
-                else buffer.vertex((float) pn.x, (float) pn.y, (float) pn.z).color(color);
-                buffer.vertex((float) pp.x, (float) pp.y, (float) pp.z).color(color);
-                if(direction) buffer.vertex((float) pn.x, (float) pn.y, (float) pn.z).color(color);
-                else buffer.vertex((float) np.x, (float) np.y, (float) np.z).color(color);
-            }
-        },
-        new RenderMethod() {
-            final Vector3d nn = new Vector3d();
-            final Vector3d np = new Vector3d();
-            final Vector3d pp = new Vector3d();
-            final Vector3d pn = new Vector3d();
-            final Vector3d nn1 = new Vector3d();
-            final Vector3d np1 = new Vector3d();
-            final Vector3d pp1 = new Vector3d();
-            final Vector3d pn1 = new Vector3d();
-            @Override public String getNameKey() {
-                return "lineCube";
-            }
-            @Override public RenderPipeline getShader(boolean xray) {
-                if(xray) return MaLiLibPipelines.DEBUG_LINES_TRANSLUCENT_NO_DEPTH_NO_CULL;
-                else return MaLiLibPipelines.DEBUG_LINES_TRANSLUCENT;
-            }
-            @Override public void vertex(BufferBuilder buffer, BlockPos pos, Vector3d cp, int color, boolean xray) {
-                nn.set(pos.getX() + 0.1, pos.getY() + 1.1, pos.getZ() + 0.1).sub(cp);
-                pn.set(pos.getX() + 0.9, pos.getY() + 1.1, pos.getZ() + 0.1).sub(cp);
-                pp.set(pos.getX() + 0.9, pos.getY() + 1.1, pos.getZ() + 0.9).sub(cp);
-                np.set(pos.getX() + 0.1, pos.getY() + 1.1, pos.getZ() + 0.9).sub(cp);
-                nn1.set(pos.getX() + 0.1, pos.getY() + 1.9, pos.getZ() + 0.1).sub(cp);
-                pn1.set(pos.getX() + 0.9, pos.getY() + 1.9, pos.getZ() + 0.1).sub(cp);
-                pp1.set(pos.getX() + 0.9, pos.getY() + 1.9, pos.getZ() + 0.9).sub(cp);
-                np1.set(pos.getX() + 0.1, pos.getY() + 1.9, pos.getZ() + 0.9).sub(cp);
-                buffer.vertex((float) nn.x, (float) nn.y, (float) nn.z).color(color);
-                buffer.vertex((float) pn.x, (float) pn.y, (float) pn.z).color(color);
-                buffer.vertex((float) pn.x, (float) pn.y, (float) pn.z).color(color);
-                buffer.vertex((float) pp.x, (float) pp.y, (float) pp.z).color(color);
-                buffer.vertex((float) pp.x, (float) pp.y, (float) pp.z).color(color);
-                buffer.vertex((float) np.x, (float) np.y, (float) np.z).color(color);
-                buffer.vertex((float) np.x, (float) np.y, (float) np.z).color(color);
-                buffer.vertex((float) nn.x, (float) nn.y, (float) nn.z).color(color);
-                buffer.vertex((float) nn1.x, (float) nn1.y, (float) nn1.z).color(color);
-                buffer.vertex((float) pn1.x, (float) pn1.y, (float) pn1.z).color(color);
-                buffer.vertex((float) pn1.x, (float) pn1.y, (float) pn1.z).color(color);
-                buffer.vertex((float) pp1.x, (float) pp1.y, (float) pp1.z).color(color);
-                buffer.vertex((float) pp1.x, (float) pp1.y, (float) pp1.z).color(color);
-                buffer.vertex((float) np1.x, (float) np1.y, (float) np1.z).color(color);
-                buffer.vertex((float) np1.x, (float) np1.y, (float) np1.z).color(color);
-                buffer.vertex((float) nn1.x, (float) nn1.y, (float) nn1.z).color(color);
-                buffer.vertex((float) nn.x, (float) nn.y, (float) nn.z).color(color);
-                buffer.vertex((float) nn1.x, (float) nn1.y, (float) nn1.z).color(color);
-                buffer.vertex((float) pn.x, (float) pn.y, (float) pn.z).color(color);
-                buffer.vertex((float) pn1.x, (float) pn1.y, (float) pn1.z).color(color);
-                buffer.vertex((float) pp.x, (float) pp.y, (float) pp.z).color(color);
-                buffer.vertex((float) pp1.x, (float) pp1.y, (float) pp1.z).color(color);
-                buffer.vertex((float) np.x, (float) np.y, (float) np.z).color(color);
-                buffer.vertex((float) np1.x, (float) np1.y, (float) np1.z).color(color);
-            }
-        }
+    private static final IRenderMethod[] renderMethods = {
+        new MinihudStyleRenderMethod(),
+        new FullSurfaceRenderMethod(),
+        new LineCubeRenderMethod()
     };
     
-    public void render(WorldRenderContext context) {
-        RenderMethod method = renderMethod.get();
+    CompletableFuture<CompletableFuture<?>> renderPrepareTask = null;
+    IRenderMethod method = null;
+    ByteBuffer indexBuffer = null;
+    ByteBuffer vertexBuffer = null;
+    Vec3d camPos = null;
+    int thisRenderIndexCount;
+    int lastBlockCount = 0;
+    
+    private static final Function<CanSpawnDisplay, CompletableFuture<Void>> renderPrepareSupplier = instance->{
+        CompletableFuture<MutableInt> finalTask = CompletableFuture.completedFuture(new MutableInt(0));
+        int lastBlockCount = instance.lastBlockCount;
+        MutableInt thisBlockCount = new MutableInt(0);
+        IRenderMethod method = instance.method;
+        int sizePerVertex = method.getVertexBufferSizePerVertex();
+        int vertexPerBlock = method.getVertexCountPerBlock();
+        int indexPerBlock = method.getIndexCountPerBlock();
+        ByteBuffer indexBuffer = instance.indexBuffer =MemoryUtil.memAlloc(lastBlockCount * indexPerBlock * 4);
+        ByteBuffer vertexBuffer = instance.vertexBuffer = MemoryUtil.memAlloc(lastBlockCount * vertexPerBlock * sizePerVertex);
         boolean xray = renderXRays.getAsBoolean();
-        RenderContext ctx = new RenderContext(method.getShader(xray));
-        BufferBuilder buffer = ctx.getBuilder();
-        Vec3d cameraPos = context.camera().getPos();
-        Vector3d cp = new Vector3d(cameraPos.x, cameraPos.y, cameraPos.z);
-        int color = displayColor.getIntegerValue();
+        Vec3d cameraPos = instance.camPos;
         ShapeList shapeList = rangeLimit.buildShapeList();
         double squaredRenderBlockDistance = renderDistance.getAsDouble() * renderDistance.getAsDouble() * 256;
-        ArrayList<BlockPos> list = new ArrayList<>();
-        DoubleArrayList distance = new DoubleArrayList();
-        IntArrayList index = new IntArrayList();
         Vec3d cameraDiv16Pos = new Vec3d(cameraPos.x / 16, cameraPos.y / 16, cameraPos.z / 16);
-        synchronized (canSpawnPoses){
-            if(canSpawnPoses.isEmpty()) return;
-            for(Vec3i vec : iterateFromClosestInDistance(cameraDiv16Pos, renderDistance.getAsDouble() + 0.866025403784439)){
-                SubChunkPos chunkPos = new SubChunkPos(vec.getX(), vec.getY(), vec.getZ());
-                HashSet<BlockPos> posSet = canSpawnPoses.get(chunkPos);
-                if(posSet == null) continue;
-                for(BlockPos pos : posSet){
-                    double d = pos.getSquaredDistance(cameraPos);
-                    if(d > squaredRenderBlockDistance) continue;
-                    if(!shapeList.testPos(pos)) continue;
-                    list.add(pos);
-                    distance.add(d);
-                    index.add(index.size());
+        for(Vec3i vec : iterateFromClosestInDistance(cameraDiv16Pos, renderDistance.getAsDouble() + 0.866025403784439)) {
+            SubChunkPos chunkPos = new SubChunkPos(vec.getX(), vec.getY(), vec.getZ());
+            HashSet<BlockPos> posSet = instance.canSpawnPoses.get(chunkPos);
+            if(posSet == null) continue;
+            CompletableFuture<ArrayList<BlockPos>> chunkTask = CompletableFuture.supplyAsync(
+                ()->{
+                    ArrayList<BlockPos> list = new ArrayList<>();
+                    DoubleArrayList distance = new DoubleArrayList();
+                    IntArrayList indexes = new IntArrayList();
+                    for(BlockPos pos : posSet){
+                        double d = pos.getSquaredDistance(cameraPos);
+                        if(d > squaredRenderBlockDistance) continue;
+                        if(!shapeList.testPos(pos)) continue;
+                        list.add(pos);
+                        distance.add(d);
+                        indexes.add(indexes.size());
+                    }
+                    indexes.sort((o1, o2) -> (int) Math.signum(distance.getDouble(o2) - distance.getDouble(o1)));
+                    for(int n = 0; n < indexes.size(); ++n){
+                        while(indexes.getInt(n) != n){
+                            int thisIndex = indexes.getInt(n);
+                            int thatIndex = indexes.getInt(thisIndex);
+                            BlockPos thisIndexedBlockPos = list.get(thisIndex);
+                            BlockPos thatIndexedBlockPos = list.get(thatIndex);
+                            indexes.set(n, thatIndex);
+                            indexes.set(thisIndex, thisIndex);
+                            list.set(thisIndex, thatIndexedBlockPos);
+                            list.set(thatIndex, thisIndexedBlockPos);
+                        }
+                    }
+                    return list;
                 }
-            }
+            );
+            finalTask = finalTask.thenCombine(chunkTask, (index, list)->{
+                int blockCount = list.size();
+                int usedBufferCount = thisBlockCount.getAndAdd(blockCount);
+                int operatingIndex = index.getValue();
+                for(BlockPos pos : list){
+                    if(usedBufferCount >= lastBlockCount) break;
+                    method.vertex(indexBuffer, vertexBuffer, pos, operatingIndex, xray);
+                    ++usedBufferCount;operatingIndex += vertexPerBlock;
+                }
+                index.setValue(operatingIndex);
+                return index;
+            });
         }
-        if(index.isEmpty()) return;
-        index.sort((o1, o2) -> (int) Math.signum(distance.getDouble(o2) - distance.getDouble(o1)));
-        for (int ind : index) method.vertex(buffer, list.get(ind), cp, color, xray);
-        try {
-            BuiltBuffer meshData = buffer.endNullable();
-            if (meshData != null) {
-                ctx.draw(meshData, false, true);
-                meshData.close();
-            }
-            ctx.close();
-        } catch (Exception err) {
-            LPCTools.LOGGER.error("lpctools.tools.slightXRay.slightXRay.onLast(): Draw Exception; {}", err.getMessage());
+        return finalTask.thenApply(index->{
+            indexBuffer.flip();
+            vertexBuffer.flip();
+            instance.lastBlockCount = thisBlockCount.getValue();
+            instance.thisRenderIndexCount = index.getValue() / vertexPerBlock * indexPerBlock;
+            return null;
+        });
+    };
+    
+    public void renderPrepare(WorldRenderContext context){
+        if(renderPrepareTask != null || indexBuffer != null || vertexBuffer != null){
+            LPCTools.LOGGER.warn("CanSpawnDisplay: Last render not cleared");
+            if(renderPrepareTask != null) renderPrepareTask.join();
+            if(indexBuffer != null) MemoryUtil.memFree(indexBuffer);
+            if(vertexBuffer != null) MemoryUtil.memFree(vertexBuffer);
+            renderPrepareTask = null;
+            indexBuffer = vertexBuffer = null;
         }
+        method = renderMethod.get();
+        camPos = context.camera().getPos();
+        renderPrepareTask = CompletableFuture.supplyAsync(()->renderPrepareSupplier.apply(this));
+    }
+    
+    public void render(WorldRenderContext context) {
+        int color = displayColor.getIntegerValue();
+        renderPrepareTask.join().join();renderPrepareTask = null;
+        if (thisRenderIndexCount == 0) {
+            MemoryUtil.memFree(indexBuffer);indexBuffer = null;
+            MemoryUtil.memFree(vertexBuffer);vertexBuffer = null;
+            return;
+        }
+        GpuDevice device = RenderSystem.getDevice();
+        GpuBuffer gpuIndexBuffer = device.createBuffer(null, BufferType.INDICES, BufferUsage.STATIC_WRITE, indexBuffer);
+        GpuBuffer gpuVertexBuffer = device.createBuffer(null, BufferType.VERTICES, BufferUsage.STATIC_WRITE, vertexBuffer);
+        MemoryUtil.memFree(indexBuffer);indexBuffer = null;
+        MemoryUtil.memFree(vertexBuffer);vertexBuffer = null;
+        Framebuffer framebuffer = MinecraftClient.getInstance().getFramebuffer();
+        Matrix4fStack stack = RenderSystem.getModelViewStack();
+        stack.pushMatrix();
+        stack.mul(MathUtils.inverseOffsetMatrix4f(camPos.toVector3f()));
+        GpuTexture gpuTexture;
+        GpuTexture gpuTexture2;
+        gpuTexture = framebuffer.getColorAttachment();
+        gpuTexture2 = framebuffer.getDepthAttachment();
+        RenderSystem.setShaderColor(
+            ColorHelper.getRed(color) / 255.0f,
+            ColorHelper.getGreen(color) / 255.0f,
+            ColorHelper.getBlue(color) / 255.0f,
+            ColorHelper.getAlpha(color) / 255.0f);
+        try (RenderPass renderPass = device.createCommandEncoder()
+            .createRenderPass(gpuTexture, OptionalInt.empty(), gpuTexture2, OptionalDouble.empty())) {
+            renderPass.setPipeline(method.getShader(renderXRays.getAsBoolean()));
+            renderPass.setIndexBuffer(gpuIndexBuffer, VertexFormat.IndexType.INT);
+            renderPass.setVertexBuffer(0, gpuVertexBuffer);
+            renderPass.drawIndexed(0, thisRenderIndexCount);
+        }
+        RenderSystem.setShaderColor(1.0f, 1.0f, 1.0f, 1.0f);
+        stack.popMatrix();
+        gpuIndexBuffer.close();
+        gpuVertexBuffer.close();
     }
     @Override public void onLast(WorldRenderContext context) {
         if(renderXRays.getAsBoolean()) render(context);
     }
     @Override public void beforeDebugRender(WorldRenderContext context) {
         if(!renderXRays.getAsBoolean()) render(context);
+    }
+    @Override public void onStart(WorldRenderContext context) {
+        renderPrepare(context);
     }
 }

@@ -1,5 +1,6 @@
 package lpctools.generic;
 
+import net.minecraft.block.AbstractRailBlock;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.SideShapeType;
 import net.minecraft.util.math.BlockPos;
@@ -20,6 +21,8 @@ public class GenericUtils {
     public static boolean mayMobSpawnAt(@NotNull BlockView world, @Nullable LightingProvider light, BlockPos pos){
         BlockState block = world.getBlockState(pos);
         if(!block.getCollisionShape(world, pos).isEmpty()) return false;
+        if(block.emitsRedstonePower()) return false;
+        if(block.getBlock() instanceof AbstractRailBlock) return false;
         if(light != null && light.getLight(pos, 15) > spawnLightLevelLimit.getAsInt()) return false;
         int fluidLevel = block.getFluidState().getLevel();
         if(fluidLevel != 0){
