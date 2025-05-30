@@ -10,7 +10,7 @@ import java.nio.ByteBuffer;
 public class FullSurfaceRenderMethod implements IRenderMethod{
     @Override public int getVertexBufferSizePerVertex(){return 16;}
     @Override public int getVertexCountPerBlock(){return 4;}
-    @Override public int getIndexBufferSizePerBlockByInt(){return 6;}
+    @Override public int getIndexCountPerBlock(){return 6;}
     @Override public String getNameKey() {
         return "fullSurface";
     }

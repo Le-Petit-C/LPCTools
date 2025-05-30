@@ -8,7 +8,7 @@ import java.nio.ByteBuffer;
 public interface IRenderMethod {
     int getVertexBufferSizePerVertex();
     int getVertexCountPerBlock();
-    int getIndexBufferSizePerBlockByInt();
+    int getIndexCountPerBlock();
     String getNameKey();
     RenderPipeline getShader(boolean xray);
     void vertex(ByteBuffer indexBuffer, ByteBuffer vertexBuffer, BlockPos pos, int index, boolean xray);

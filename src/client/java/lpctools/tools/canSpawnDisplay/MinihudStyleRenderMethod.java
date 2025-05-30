@@ -9,7 +9,7 @@ import java.nio.ByteBuffer;
 public class MinihudStyleRenderMethod implements IRenderMethod{
     @Override public int getVertexBufferSizePerVertex(){return 16;}
     @Override public int getVertexCountPerBlock(){return 4;}
-    @Override public int getIndexBufferSizePerBlockByInt(){return 8;}
+    @Override public int getIndexCountPerBlock(){return 8;}
     @Override public String getNameKey() {
         return "minihudStyle";
     }

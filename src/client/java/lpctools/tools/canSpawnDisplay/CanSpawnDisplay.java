@@ -3,6 +3,7 @@ package lpctools.tools.canSpawnDisplay;
 import com.mojang.blaze3d.buffers.BufferType;
 import com.mojang.blaze3d.buffers.BufferUsage;
 import com.mojang.blaze3d.buffers.GpuBuffer;
+import com.mojang.blaze3d.systems.GpuDevice;
 import com.mojang.blaze3d.systems.RenderPass;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.textures.GpuTexture;
@@ -40,6 +41,7 @@ import net.minecraft.world.chunk.Chunk;
 import net.minecraft.world.chunk.ChunkStatus;
 import net.minecraft.world.chunk.WorldChunk;
 import net.minecraft.world.chunk.light.LightingProvider;
+import org.apache.commons.lang3.mutable.MutableInt;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.joml.*;
@@ -265,10 +267,19 @@ public class CanSpawnDisplay implements WorldRenderEvents.Last, WorldRenderEvent
     ByteBuffer indexBuffer = null;
     ByteBuffer vertexBuffer = null;
     Vec3d camPos = null;
-    int indexCount;
+    int thisRenderIndexCount;
+    int lastBlockCount = 0;
     
-    private static final Function<CanSpawnDisplay, CompletableFuture<?>> renderPrepareSupplier = instance->{
-        CompletableFuture<ArrayList<BlockPos>> finalTask = CompletableFuture.completedFuture(new ArrayList<>());
+    private static final Function<CanSpawnDisplay, CompletableFuture<Void>> renderPrepareSupplier = instance->{
+        CompletableFuture<MutableInt> finalTask = CompletableFuture.completedFuture(new MutableInt(0));
+        int lastBlockCount = instance.lastBlockCount;
+        MutableInt thisBlockCount = new MutableInt(0);
+        IRenderMethod method = instance.method;
+        int sizePerVertex = method.getVertexBufferSizePerVertex();
+        int vertexPerBlock = method.getVertexCountPerBlock();
+        int indexPerBlock = method.getIndexCountPerBlock();
+        ByteBuffer indexBuffer = instance.indexBuffer =MemoryUtil.memAlloc(lastBlockCount * indexPerBlock * 4);
+        ByteBuffer vertexBuffer = instance.vertexBuffer = MemoryUtil.memAlloc(lastBlockCount * vertexPerBlock * sizePerVertex);
         boolean xray = renderXRays.getAsBoolean();
         Vec3d cameraPos = instance.camPos;
         ShapeList shapeList = rangeLimit.buildShapeList();
@@ -307,29 +318,24 @@ public class CanSpawnDisplay implements WorldRenderEvents.Last, WorldRenderEvent
                     return list;
                 }
             );
-            finalTask = finalTask.thenCombine(chunkTask, (list1, list2)->{
-                list1.addAll(list2);
-                return list1;
+            finalTask = finalTask.thenCombine(chunkTask, (index, list)->{
+                int blockCount = list.size();
+                int usedBufferCount = thisBlockCount.getAndAdd(blockCount);
+                int operatingIndex = index.getValue();
+                for(BlockPos pos : list){
+                    if(usedBufferCount >= lastBlockCount) break;
+                    method.vertex(indexBuffer, vertexBuffer, pos, operatingIndex, xray);
+                    ++usedBufferCount;operatingIndex += vertexPerBlock;
+                }
+                index.setValue(operatingIndex);
+                return index;
             });
         }
-        return finalTask.thenApply(list->{
-            IRenderMethod method = instance.method;
-            int vertexPerBlock = method.getVertexCountPerBlock();
-            int sizePerVertex = method.getVertexBufferSizePerVertex();
-            int blockCount = list.size();
-            int indexCount = blockCount * method.getIndexBufferSizePerBlockByInt();
-            int index = 0;
-            ByteBuffer indexBuffer = MemoryUtil.memAlloc(indexCount * 4);
-            ByteBuffer vertexBuffer = MemoryUtil.memAlloc(blockCount * vertexPerBlock * sizePerVertex);
-            for (BlockPos pos : list) {
-                method.vertex(indexBuffer, vertexBuffer, pos, index, xray);
-                index += vertexPerBlock;
-            }
+        return finalTask.thenApply(index->{
             indexBuffer.flip();
             vertexBuffer.flip();
-            instance.indexCount = indexCount;
-            instance.indexBuffer = indexBuffer;
-            instance.vertexBuffer = vertexBuffer;
+            instance.lastBlockCount = thisBlockCount.getValue();
+            instance.thisRenderIndexCount = index.getValue() / vertexPerBlock * indexPerBlock;
             return null;
         });
     };
@@ -351,15 +357,14 @@ public class CanSpawnDisplay implements WorldRenderEvents.Last, WorldRenderEvent
     public void render(WorldRenderContext context) {
         int color = displayColor.getIntegerValue();
         renderPrepareTask.join().join();renderPrepareTask = null;
-        if(indexCount == 0){
+        if (thisRenderIndexCount == 0) {
             MemoryUtil.memFree(indexBuffer);indexBuffer = null;
             MemoryUtil.memFree(vertexBuffer);vertexBuffer = null;
             return;
         }
-        GpuBuffer gpuIndexBuffer = RenderSystem.getDevice()
-            .createBuffer(null, BufferType.INDICES, BufferUsage.STATIC_WRITE, indexBuffer);
-        GpuBuffer gpuVertexBuffer = RenderSystem.getDevice()
-            .createBuffer(null, BufferType.VERTICES, BufferUsage.STATIC_WRITE, vertexBuffer);
+        GpuDevice device = RenderSystem.getDevice();
+        GpuBuffer gpuIndexBuffer = device.createBuffer(null, BufferType.INDICES, BufferUsage.STATIC_WRITE, indexBuffer);
+        GpuBuffer gpuVertexBuffer = device.createBuffer(null, BufferType.VERTICES, BufferUsage.STATIC_WRITE, vertexBuffer);
         MemoryUtil.memFree(indexBuffer);indexBuffer = null;
         MemoryUtil.memFree(vertexBuffer);vertexBuffer = null;
         Framebuffer framebuffer = MinecraftClient.getInstance().getFramebuffer();
@@ -375,13 +380,12 @@ public class CanSpawnDisplay implements WorldRenderEvents.Last, WorldRenderEvent
             ColorHelper.getGreen(color) / 255.0f,
             ColorHelper.getBlue(color) / 255.0f,
             ColorHelper.getAlpha(color) / 255.0f);
-        try (RenderPass renderPass = RenderSystem.getDevice()
-            .createCommandEncoder()
+        try (RenderPass renderPass = device.createCommandEncoder()
             .createRenderPass(gpuTexture, OptionalInt.empty(), gpuTexture2, OptionalDouble.empty())) {
             renderPass.setPipeline(method.getShader(renderXRays.getAsBoolean()));
             renderPass.setIndexBuffer(gpuIndexBuffer, VertexFormat.IndexType.INT);
             renderPass.setVertexBuffer(0, gpuVertexBuffer);
-            renderPass.drawIndexed(0, indexCount);
+            renderPass.drawIndexed(0, thisRenderIndexCount);
         }
         RenderSystem.setShaderColor(1.0f, 1.0f, 1.0f, 1.0f);
         stack.popMatrix();

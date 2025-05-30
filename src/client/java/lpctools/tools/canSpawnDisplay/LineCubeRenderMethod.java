@@ -9,7 +9,7 @@ import java.nio.ByteBuffer;
 public class LineCubeRenderMethod implements IRenderMethod{
     @Override public int getVertexBufferSizePerVertex(){return 16;}
     @Override public int getVertexCountPerBlock(){return 8;}
-    @Override public int getIndexBufferSizePerBlockByInt(){return 24;}
+    @Override public int getIndexCountPerBlock(){return 24;}
     @Override public String getNameKey() {
         return "lineCube";
     }

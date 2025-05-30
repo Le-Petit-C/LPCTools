@@ -17,8 +17,6 @@ import org.jetbrains.annotations.Nullable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
-import java.util.function.Consumer;
-import java.util.function.Supplier;
 
 @SuppressWarnings("unused")
 public class DataUtils {
