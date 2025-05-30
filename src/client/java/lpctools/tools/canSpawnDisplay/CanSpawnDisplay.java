@@ -1,15 +1,9 @@
 package lpctools.tools.canSpawnDisplay;
 
-import com.mojang.blaze3d.buffers.BufferType;
-import com.mojang.blaze3d.buffers.BufferUsage;
-import com.mojang.blaze3d.buffers.GpuBuffer;
-import com.mojang.blaze3d.systems.GpuDevice;
-import com.mojang.blaze3d.systems.RenderPass;
+import com.mojang.blaze3d.platform.GlConst;
 import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.blaze3d.textures.GpuTexture;
-import com.mojang.blaze3d.vertex.VertexFormat;
 import fi.dy.masa.malilib.util.SubChunkPos;
-import fi.dy.masa.malilib.util.data.Color4f;
+import fi.dy.masa.malilib.util.Color4f;
 import it.unimi.dsi.fastutil.doubles.DoubleArrayList;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
@@ -32,8 +26,10 @@ import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents;
 import net.minecraft.block.BlockState;
 import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.gl.Framebuffer;
+import net.minecraft.client.gl.*;
 import net.minecraft.client.network.ClientPlayerEntity;
+import net.minecraft.client.render.*;
+import net.minecraft.client.render.VertexFormat;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.util.math.*;
 import net.minecraft.world.World;
@@ -70,6 +66,7 @@ public class CanSpawnDisplay implements WorldRenderEvents.Last, WorldRenderEvent
         canSpawnDisplay = addBooleanHotkeyConfig("canSpawnDisplay", false, null,
             ()->instance.onValueChanged(canSpawnDisplay.getAsBoolean()));
         setLPCToolsToggleText(canSpawnDisplay);
+        //noinspection deprecation
         displayColor = addColorConfig("displayColor", Color4f.fromColor(0x7fffffff));
         rangeLimit = addRangeLimitConfig(false);
         renderDistance = addDoubleConfig("renderDistance", 4, 1.5, 64);
@@ -362,30 +359,30 @@ public class CanSpawnDisplay implements WorldRenderEvents.Last, WorldRenderEvent
             MemoryUtil.memFree(vertexBuffer);vertexBuffer = null;
             return;
         }
-        GpuDevice device = RenderSystem.getDevice();
-        GpuBuffer gpuIndexBuffer = device.createBuffer(null, BufferType.INDICES, BufferUsage.STATIC_WRITE, indexBuffer);
-        GpuBuffer gpuVertexBuffer = device.createBuffer(null, BufferType.VERTICES, BufferUsage.STATIC_WRITE, vertexBuffer);
+        GpuBuffer gpuIndexBuffer = new GpuBuffer(GlBufferTarget.INDICES, GlUsage.STATIC_WRITE, indexBuffer);
+        GpuBuffer gpuVertexBuffer = new GpuBuffer(GlBufferTarget.VERTICES, GlUsage.STATIC_WRITE, vertexBuffer);
         MemoryUtil.memFree(indexBuffer);indexBuffer = null;
         MemoryUtil.memFree(vertexBuffer);vertexBuffer = null;
-        Framebuffer framebuffer = MinecraftClient.getInstance().getFramebuffer();
+        //Framebuffer framebuffer = MinecraftClient.getInstance().getFramebuffer();
         Matrix4fStack stack = RenderSystem.getModelViewStack();
         stack.pushMatrix();
         stack.mul(MathUtils.inverseOffsetMatrix4f(camPos.toVector3f()));
-        GpuTexture gpuTexture;
-        GpuTexture gpuTexture2;
-        gpuTexture = framebuffer.getColorAttachment();
-        gpuTexture2 = framebuffer.getDepthAttachment();
         RenderSystem.setShaderColor(
             ColorHelper.getRed(color) / 255.0f,
             ColorHelper.getGreen(color) / 255.0f,
             ColorHelper.getBlue(color) / 255.0f,
             ColorHelper.getAlpha(color) / 255.0f);
-        try (RenderPass renderPass = device.createCommandEncoder()
-            .createRenderPass(gpuTexture, OptionalInt.empty(), gpuTexture2, OptionalDouble.empty())) {
-            renderPass.setPipeline(method.getShader(renderXRays.getAsBoolean()));
-            renderPass.setIndexBuffer(gpuIndexBuffer, VertexFormat.IndexType.INT);
-            renderPass.setVertexBuffer(0, gpuVertexBuffer);
-            renderPass.drawIndexed(0, thisRenderIndexCount);
+        RenderSystem.enableBlend();
+        if(renderXRays.getAsBoolean()) RenderSystem.disableDepthTest();
+        RenderSystem.setShader(method.getShader());
+        BufferRenderer.resetCurrentVertexBuffer();
+        ShaderProgram program = MinecraftClient.getInstance().getShaderLoader().getOrCreateProgram(method.getShader());
+        if(program != null){
+            gpuIndexBuffer.bind();
+            gpuVertexBuffer.bind();
+            program.bind();
+            RenderSystem.drawElements(VertexFormat.DrawMode.LINES.glMode, thisRenderIndexCount, GlConst.GL_UNSIGNED_INT);
+            program.unbind();
         }
         RenderSystem.setShaderColor(1.0f, 1.0f, 1.0f, 1.0f);
         stack.popMatrix();

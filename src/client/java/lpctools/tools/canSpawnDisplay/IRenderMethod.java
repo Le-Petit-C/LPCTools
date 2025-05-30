@@ -1,6 +1,6 @@
 package lpctools.tools.canSpawnDisplay;
 
-import com.mojang.blaze3d.pipeline.RenderPipeline;
+import net.minecraft.client.gl.ShaderProgramKey;
 import net.minecraft.util.math.BlockPos;
 
 import java.nio.ByteBuffer;
@@ -10,6 +10,6 @@ public interface IRenderMethod {
     int getVertexCountPerBlock();
     int getIndexCountPerBlock();
     String getNameKey();
-    RenderPipeline getShader(boolean xray);
+    ShaderProgramKey getShader();
     void vertex(ByteBuffer indexBuffer, ByteBuffer vertexBuffer, BlockPos pos, int index, boolean xray);
 }

@@ -1,45 +1,33 @@
 package lpctools.debugs;
 
-import com.mojang.blaze3d.buffers.BufferType;
+import com.mojang.blaze3d.platform.GlConst;
+import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.blaze3d.buffers.GpuBuffer;
-import com.mojang.blaze3d.pipeline.RenderPipeline;
-import com.mojang.blaze3d.systems.RenderPass;
-import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.blaze3d.textures.GpuTexture;
-import com.mojang.blaze3d.vertex.VertexFormat;
 import fi.dy.masa.malilib.hotkeys.IKeybind;
 import fi.dy.masa.malilib.hotkeys.KeyAction;
-import fi.dy.masa.malilib.render.MaLiLibPipelines;
-import fi.dy.masa.malilib.render.RenderContext;
-import lpctools.LPCTools;
 import lpctools.lpcfymasaapi.Registry;
 import lpctools.lpcfymasaapi.configbutton.transferredConfigs.BooleanConfig;
 import lpctools.lpcfymasaapi.configbutton.transferredConfigs.HotkeyConfig;
-import lpctools.util.MathUtils;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents;
 import net.minecraft.block.BlockState;
 import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.gl.Framebuffer;
-import net.minecraft.client.gl.RenderPipelines;
-import net.minecraft.client.gl.ShaderProgramKeys;
+import net.minecraft.client.gl.*;
 import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.client.render.*;
+import net.minecraft.client.util.BufferAllocator;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.text.Text;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
-import org.joml.Matrix4fStack;
-import org.joml.Vector3f;
-import org.lwjgl.system.MemoryUtil;
 import org.jetbrains.annotations.Nullable;
+import org.joml.Matrix4fStack;
+import org.lwjgl.opengl.GL30;
+import org.lwjgl.system.MemoryUtil;
 import org.joml.Matrix4f;
 
 import java.nio.ByteBuffer;
 import java.time.Clock;
-import java.util.OptionalDouble;
-import java.util.OptionalInt;
 
 import static lpctools.generic.GenericUtils.mayMobSpawnOn;
 import static lpctools.lpcfymasaapi.LPCConfigStatics.*;
@@ -70,9 +58,10 @@ public class DebugConfigs {
     private static GpuBuffer testBuffer;
     private static GpuBuffer testIndexBuffer;
     private static boolean bufferUpdated = false;
+    private static final BufferAllocator bufferAllocator = new BufferAllocator(786432);
     private static void rendDebugShapes(WorldRenderContext context) {
-        Tessellator tessellator = Tessellator.getInstance();
-        BufferBuilder buffer = tessellator.begin(VertexFormat.DrawMode.TRIANGLE_STRIP, VertexFormats.POSITION_COLOR);
+        /*Tessellator tessellator = Tessellator.getInstance();
+        BufferBuilder buffer = tessellator.begin(VertexFormat.DrawMode.TRIANGLES, VertexFormats.POSITION_COLOR);
         Matrix4f matrix = inverseOffsetMatrix4f(context.camera().getPos().toVector3f());
         float theta = Clock.systemUTC().millis() % 6283 / 1000.0f;
         float alpha = MathHelper.PI * 2 / 3;
@@ -80,22 +69,76 @@ public class DebugConfigs {
         buffer.vertex(matrix, MathHelper.cos(theta + alpha), 0, MathHelper.sin(theta + alpha)).color(0xFF00FF00);
         buffer.vertex(matrix, MathHelper.cos(theta - alpha), 0, MathHelper.sin(theta - alpha)).color(0xFF0000FF);
         RenderSystem.disableCull();
+        RenderSystem.enableDepthTest();
         RenderSystem.setShader(ShaderProgramKeys.POSITION_COLOR);
-        RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
-        BufferRenderer.drawWithGlobalProgram(buffer.end());
-        
+        BufferRenderer.drawWithGlobalProgram(buffer.end());*/
+        ShaderProgram shaderProgram = MinecraftClient.getInstance().getShaderLoader().getOrCreateProgram(ShaderProgramKeys.POSITION_COLOR);
+        assert shaderProgram != null;
+        VertexFormat.DrawMode drawMode = VertexFormat.DrawMode.TRIANGLES;
+        VertexFormat.IndexType indexType = VertexFormat.IndexType.SHORT;
+        BufferBuilder buffer = new BufferBuilder(bufferAllocator, drawMode, VertexFormats.POSITION_COLOR);
+        Matrix4f matrix = inverseOffsetMatrix4f(context.camera().getPos().toVector3f());
+        float theta = Clock.systemUTC().millis() % 6283 / 1000.0f;
+        float alpha = MathHelper.PI * 2 / 3;
+        buffer.vertex(matrix, MathHelper.cos(theta), 0, MathHelper.sin(theta)).color(0xFFFF0000);
+        buffer.vertex(matrix, MathHelper.cos(theta + alpha), 0, MathHelper.sin(theta + alpha)).color(0xFF00FF00);
+        buffer.vertex(matrix, MathHelper.cos(theta - alpha), 0, MathHelper.sin(theta - alpha)).color(0xFF0000FF);
+        RenderSystem.disableCull();
+        RenderSystem.enableDepthTest();
+        BuiltBuffer buffer1 = buffer.end();
+        RenderSystem.assertOnRenderThread();
+        GlUsage usage = GlUsage.STATIC_WRITE;
+        GpuBuffer vertexBuffer_vertexBuffer = new GpuBuffer(GlBufferTarget.VERTICES, usage, 0);
+        GpuBuffer vertexBuffer_indexBuffer = null;
+        RenderSystem.ShapeIndexBuffer sharedSequentialIndexBuffer = null;
+        int vertexBuffer_vertexArrayId = GlStateManager._glGenVertexArrays();
+        GlStateManager._glBindVertexArray(vertexBuffer_vertexArrayId);
+        RenderSystem.assertOnRenderThread();
+        BuiltBuffer.DrawParameters drawParameters = buffer1.getDrawParameters();
+        ByteBuffer vertexBuffer1 = buffer1.getBuffer();
+        vertexBuffer_vertexBuffer.bind();
+        drawParameters.format().setupState();
+        if (vertexBuffer1 != null) {
+            vertexBuffer_vertexBuffer.resize(vertexBuffer1.remaining());
+            vertexBuffer_vertexBuffer.copyFrom(vertexBuffer1, 0);
+        }
+        ByteBuffer buf = buffer1.getSortedBuffer();
+        if (buf != null) {
+            vertexBuffer_indexBuffer = new GpuBuffer(GlBufferTarget.INDICES, usage, buf);
+        } else {
+            RenderSystem.ShapeIndexBuffer shapeIndexBuffer = RenderSystem.getSequentialBuffer(drawParameters.mode());
+            if (shapeIndexBuffer != sharedSequentialIndexBuffer || !shapeIndexBuffer.isLargeEnough(drawParameters.indexCount())) {
+                shapeIndexBuffer.bindAndGrow(drawParameters.indexCount());
+            }
+        }
+        buffer1.close();
+        buffer1.close();
+        Matrix4f viewMatrix = RenderSystem.getModelViewMatrix();
+        Matrix4f projectionMatrix = RenderSystem.getProjectionMatrix();
+        shaderProgram.initializeUniforms(drawMode, viewMatrix, projectionMatrix, MinecraftClient.getInstance().getWindow());
+        shaderProgram.bind();
+        RenderSystem.drawElements(drawMode.glMode, 3, indexType.glType);
+        shaderProgram.unbind();
+        vertexBuffer_vertexBuffer.close();
+        if (vertexBuffer_indexBuffer != null) vertexBuffer_indexBuffer.close();
+        RenderSystem.glDeleteVertexArrays(vertexBuffer_vertexArrayId);
+    }
+    
+    
+    private static void reserved(){
+        //if(true) return;
+        Matrix4f matrix = new Matrix4f();
         if(!bufferUpdated)//noinspection CommentedOutCode
         {
             ByteBuffer buffer2 = MemoryUtil.memAlloc(16 * 4);
-            buffer2.putFloat(1).putFloat(1).putFloat(1).putInt(0x7fffffff);
-            buffer2.putFloat(-1).putFloat(1).putFloat(1).putInt(0x7fffffff);
-            buffer2.putFloat(-1).putFloat(-1).putFloat(1).putInt(0x7fffffff);
+            buffer2.putFloat(1).putFloat(1).putFloat(-1).putInt(0x7fffffff);
+            buffer2.putFloat(-1).putFloat(1).putFloat(-1).putInt(0x7fffffff);
+            buffer2.putFloat(-1).putFloat(-1).putFloat(-1).putInt(0x7fffffff);
             //buffer2.putFloat(1).putFloat(1).putFloat(1).putInt(0x7fffffff);
             //buffer2.putFloat(-1).putFloat(-1).putFloat(1).putInt(0x7fffffff);
-            buffer2.putFloat(1).putFloat(-1).putFloat(1).putInt(0x7fffffff);
+            buffer2.putFloat(1).putFloat(-1).putFloat(-1).putInt(0x7fffffff);
             buffer2.flip();
-            testBuffer = RenderSystem.getDevice()
-                .createBuffer(null, BufferType.VERTICES, BufferUsage.STATIC_WRITE, buffer2);
+            testBuffer = new GpuBuffer(GlBufferTarget.VERTICES, GlUsage.STATIC_WRITE, buffer2);
             MemoryUtil.memFree(buffer2);
             /*testBuffer = RenderSystem.getDevice()
             .createBuffer(null, BufferType.VERTICES, BufferUsage.STATIC_WRITE, 6 * VertexFormats.POSITION_COLOR.getVertexSize());
@@ -113,39 +156,49 @@ public class DebugConfigs {
             }*/
             ByteBuffer buffer1 = MemoryUtil.memAlloc(16);
             buffer1.putShort((short) 0);
+            //buffer1.putShort((short) 1);
             buffer1.putShort((short) 1);
-            buffer1.putShort((short) 1);
+            //buffer1.putShort((short) 2);
             buffer1.putShort((short) 2);
-            buffer1.putShort((short) 2);
+            //buffer1.putShort((short) 3);
             buffer1.putShort((short) 3);
-            buffer1.putShort((short) 3);
-            buffer1.putShort((short) 0);
+            //buffer1.putShort((short) 0);
             buffer1.flip();
-            testIndexBuffer = RenderSystem.getDevice()
-                .createBuffer(null, BufferType.INDICES, BufferUsage.STATIC_WRITE, buffer1);
+            testIndexBuffer = new GpuBuffer(GlBufferTarget.INDICES, GlUsage.STATIC_WRITE, buffer1);
             MemoryUtil.memFree(buffer1);
             bufferUpdated = true;
         }
         
         {
-            RenderPipeline renderPipeline = MaLiLibPipelines.DEBUG_LINES_TRANSLUCENT;
-            Framebuffer framebuffer = MinecraftClient.getInstance().getFramebuffer();
             Matrix4fStack stack = RenderSystem.getModelViewStack();
             stack.pushMatrix();
-            stack.mul(MathUtils.inverseOffsetMatrix4f(cam));
-            GpuTexture gpuTexture;
-            GpuTexture gpuTexture2;
-            gpuTexture = framebuffer.getColorAttachment();
-            gpuTexture2 = framebuffer.getDepthAttachment();
-            try (RenderPass renderPass = RenderSystem.getDevice()
-                .createCommandEncoder()
-                .createRenderPass(gpuTexture, OptionalInt.empty(), gpuTexture2, OptionalDouble.empty())) {
-                renderPass.setPipeline(renderPipeline);
-                renderPass.setVertexBuffer(0, testBuffer);
-                renderPass.setIndexBuffer(testIndexBuffer, VertexFormat.IndexType.SHORT);
-                renderPass.drawIndexed(0, 8);
-                //renderPass.draw(0, 6);
+            stack.mul(matrix);
+            ShaderProgram program = MinecraftClient.getInstance().getShaderLoader().getOrCreateProgram(ShaderProgramKeys.POSITION_COLOR);
+            if(program != null){
+                program.bind();
+                //testBuffer.bind();
+                GL30.glBindVertexArray(testBuffer.handle);
+                testIndexBuffer.bind();
+                Framebuffer framebuffer = MinecraftClient.getInstance().getFramebuffer();
+                framebuffer.beginWrite(false);
+                program.initializeUniforms(
+                    VertexFormat.DrawMode.TRIANGLE_FAN,
+                    stack.get(new Matrix4f()),
+                    RenderSystem.getProjectionMatrix(),
+                    MinecraftClient.getInstance().getWindow());
+                /*float[] arr = new float[16];
+                if(program.modelViewMat != null) {
+                    stack.get(arr);
+                    program.modelViewMat.set(arr);
+                }
+                if(program.projectionMat != null) {
+                    RenderSystem.getProjectionMatrix().set(arr);
+                    program.projectionMat.set(arr);
+                }**/
+                RenderSystem.drawElements(VertexFormat.DrawMode.TRIANGLE_FAN.glMode, 4, GlConst.GL_UNSIGNED_SHORT);
+                program.unbind();
             }
+                //renderPass.draw(0, 6);
             stack.popMatrix();
         }
     }

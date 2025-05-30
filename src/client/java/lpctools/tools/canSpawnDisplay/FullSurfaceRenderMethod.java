@@ -1,8 +1,7 @@
 package lpctools.tools.canSpawnDisplay;
 
-import com.mojang.blaze3d.pipeline.RenderPipeline;
-import fi.dy.masa.malilib.render.MaLiLibPipelines;
-import lpctools.render.LPCExtraPipelines;
+import net.minecraft.client.gl.ShaderProgramKey;
+import net.minecraft.client.gl.ShaderProgramKeys;
 import net.minecraft.util.math.BlockPos;
 
 import java.nio.ByteBuffer;
@@ -14,9 +13,8 @@ public class FullSurfaceRenderMethod implements IRenderMethod{
     @Override public String getNameKey() {
         return "fullSurface";
     }
-    @Override public RenderPipeline getShader(boolean xray) {
-        if(xray) return MaLiLibPipelines.POSITION_COLOR_MASA_NO_DEPTH_NO_CULL;
-        else return LPCExtraPipelines.POSITION_COLOR_MASA_NO_CULL;
+    @Override public ShaderProgramKey getShader() {
+        return ShaderProgramKeys.POSITION_COLOR;
     }
     @Override public void vertex(ByteBuffer indexBuffer, ByteBuffer vertexBuffer, BlockPos pos, int index, boolean xray) {
         double yOffset = xray ? 0 : 0.005;

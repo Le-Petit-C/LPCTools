@@ -1,7 +1,7 @@
 package lpctools.tools.canSpawnDisplay;
 
-import com.mojang.blaze3d.pipeline.RenderPipeline;
-import fi.dy.masa.malilib.render.MaLiLibPipelines;
+import net.minecraft.client.gl.ShaderProgramKey;
+import net.minecraft.client.gl.ShaderProgramKeys;
 import net.minecraft.util.math.BlockPos;
 
 import java.nio.ByteBuffer;
@@ -13,9 +13,8 @@ public class LineCubeRenderMethod implements IRenderMethod{
     @Override public String getNameKey() {
         return "lineCube";
     }
-    @Override public RenderPipeline getShader(boolean xray) {
-        if(xray) return MaLiLibPipelines.DEBUG_LINES_TRANSLUCENT_NO_DEPTH_NO_CULL;
-        else return MaLiLibPipelines.DEBUG_LINES_TRANSLUCENT;
+    @Override public ShaderProgramKey getShader() {
+        return ShaderProgramKeys.RENDERTYPE_LINES;
     }
     @Override public void vertex(ByteBuffer indexBuffer, ByteBuffer vertexBuffer, BlockPos pos, int index, boolean xray) {
         float minX = (float) (pos.getX() + 0.1), maxX = (float) (pos.getX() + 0.9);
