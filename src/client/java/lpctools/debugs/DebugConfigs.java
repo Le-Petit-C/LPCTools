@@ -28,6 +28,7 @@ import org.joml.Matrix4f;
 
 import java.nio.ByteBuffer;
 import java.time.Clock;
+import java.util.stream.Collectors;
 
 import static lpctools.generic.GenericUtils.mayMobSpawnOn;
 import static lpctools.lpcfymasaapi.LPCConfigStatics.*;
@@ -76,7 +77,8 @@ public class DebugConfigs {
         assert shaderProgram != null;
         VertexFormat.DrawMode drawMode = VertexFormat.DrawMode.TRIANGLES;
         VertexFormat.IndexType indexType = VertexFormat.IndexType.SHORT;
-        BufferBuilder buffer = new BufferBuilder(bufferAllocator, drawMode, VertexFormats.POSITION_COLOR);
+        VertexFormat vertexFormat = VertexFormats.POSITION_COLOR;
+        BufferBuilder buffer = new BufferBuilder(bufferAllocator, drawMode, vertexFormat);
         Matrix4f matrix = inverseOffsetMatrix4f(context.camera().getPos().toVector3f());
         float theta = Clock.systemUTC().millis() % 6283 / 1000.0f;
         float alpha = MathHelper.PI * 2 / 3;
@@ -85,16 +87,18 @@ public class DebugConfigs {
         buffer.vertex(matrix, MathHelper.cos(theta - alpha), 0, MathHelper.sin(theta - alpha)).color(0xFF0000FF);
         RenderSystem.disableCull();
         RenderSystem.enableDepthTest();
-        BuiltBuffer buffer1 = buffer.end();
-        RenderSystem.assertOnRenderThread();
+        BuiltBuffer builtBuffer;
+        BufferAllocator.CloseableBuffer closeableBuffer = bufferAllocator.getAllocated();
+        int i = drawMode.getIndexCount(3);
+        builtBuffer = new BuiltBuffer(closeableBuffer, new BuiltBuffer.DrawParameters(vertexFormat, 3, i, drawMode, indexType));
         GlUsage usage = GlUsage.STATIC_WRITE;
         GpuBuffer vertexBuffer_vertexBuffer = new GpuBuffer(GlBufferTarget.VERTICES, usage, 0);
         GpuBuffer vertexBuffer_indexBuffer;
         int vertexBuffer_vertexArrayId = GlStateManager._glGenVertexArrays();
         GlStateManager._glBindVertexArray(vertexBuffer_vertexArrayId);
         RenderSystem.assertOnRenderThread();
-        BuiltBuffer.DrawParameters drawParameters = buffer1.getDrawParameters();
-        ByteBuffer vertexBuffer1 = buffer1.getBuffer();
+        BuiltBuffer.DrawParameters drawParameters = builtBuffer.getDrawParameters();
+        ByteBuffer vertexBuffer1 = builtBuffer.getBuffer();
         vertexBuffer_vertexBuffer.bind();
         drawParameters.format().setupState();
         if (vertexBuffer1 != null) {
@@ -106,7 +110,7 @@ public class DebugConfigs {
         buf.flip();
         vertexBuffer_indexBuffer = new GpuBuffer(GlBufferTarget.INDICES, usage, buf);
         MemoryUtil.memFree(buf);
-        buffer1.close();
+        builtBuffer.close();
         Matrix4f viewMatrix = RenderSystem.getModelViewMatrix();
         Matrix4f projectionMatrix = RenderSystem.getProjectionMatrix();
         shaderProgram.initializeUniforms(drawMode, viewMatrix, projectionMatrix, MinecraftClient.getInstance().getWindow());
