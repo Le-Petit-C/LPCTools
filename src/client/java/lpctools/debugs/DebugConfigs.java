@@ -88,7 +88,8 @@ public class DebugConfigs {
             LPCTools.LOGGER.error("renderBlockOutline(): Draw Exception; {}", err.getMessage());
         }
         
-        if(!bufferUpdated){
+        if(!bufferUpdated)//noinspection CommentedOutCode
+        {
             ByteBuffer buffer2 = MemoryUtil.memAlloc(16 * 4);
             buffer2.putFloat(1).putFloat(1).putFloat(1).putInt(0x7fffffff);
             buffer2.putFloat(-1).putFloat(1).putFloat(1).putInt(0x7fffffff);
