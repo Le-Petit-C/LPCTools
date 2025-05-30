@@ -89,8 +89,7 @@ public class DebugConfigs {
         RenderSystem.assertOnRenderThread();
         GlUsage usage = GlUsage.STATIC_WRITE;
         GpuBuffer vertexBuffer_vertexBuffer = new GpuBuffer(GlBufferTarget.VERTICES, usage, 0);
-        GpuBuffer vertexBuffer_indexBuffer = null;
-        RenderSystem.ShapeIndexBuffer sharedSequentialIndexBuffer = null;
+        GpuBuffer vertexBuffer_indexBuffer;
         int vertexBuffer_vertexArrayId = GlStateManager._glGenVertexArrays();
         GlStateManager._glBindVertexArray(vertexBuffer_vertexArrayId);
         RenderSystem.assertOnRenderThread();
@@ -102,16 +101,11 @@ public class DebugConfigs {
             vertexBuffer_vertexBuffer.resize(vertexBuffer1.remaining());
             vertexBuffer_vertexBuffer.copyFrom(vertexBuffer1, 0);
         }
-        ByteBuffer buf = buffer1.getSortedBuffer();
-        if (buf != null) {
-            vertexBuffer_indexBuffer = new GpuBuffer(GlBufferTarget.INDICES, usage, buf);
-        } else {
-            RenderSystem.ShapeIndexBuffer shapeIndexBuffer = RenderSystem.getSequentialBuffer(drawParameters.mode());
-            if (shapeIndexBuffer != sharedSequentialIndexBuffer || !shapeIndexBuffer.isLargeEnough(drawParameters.indexCount())) {
-                shapeIndexBuffer.bindAndGrow(drawParameters.indexCount());
-            }
-        }
-        buffer1.close();
+        ByteBuffer buf = MemoryUtil.memAlloc(6);
+        buf.putShort((short) 0).putShort((short) 1).putShort((short) 2);
+        buf.flip();
+        vertexBuffer_indexBuffer = new GpuBuffer(GlBufferTarget.INDICES, usage, buf);
+        MemoryUtil.memFree(buf);
         buffer1.close();
         Matrix4f viewMatrix = RenderSystem.getModelViewMatrix();
         Matrix4f projectionMatrix = RenderSystem.getProjectionMatrix();
@@ -120,7 +114,7 @@ public class DebugConfigs {
         RenderSystem.drawElements(drawMode.glMode, 3, indexType.glType);
         shaderProgram.unbind();
         vertexBuffer_vertexBuffer.close();
-        if (vertexBuffer_indexBuffer != null) vertexBuffer_indexBuffer.close();
+        vertexBuffer_indexBuffer.close();
         RenderSystem.glDeleteVertexArrays(vertexBuffer_vertexArrayId);
     }
     
