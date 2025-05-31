@@ -25,7 +25,6 @@ public class DebugConfigs {
     public static HotkeyConfig getBlockStateHotkey;
     public static BooleanConfig briefBlockState;
     public static void init(){
-        RenderTest.init();
         renderDebugShapes = addBooleanConfig(
                 "renderDebugShapes", false, DebugConfigs::renderDebugShapesValueRefreshCallback);
         displayClickSlotArguments = addBooleanConfig("displayClickSlotArguments", false);

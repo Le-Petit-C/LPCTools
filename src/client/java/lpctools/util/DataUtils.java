@@ -1,7 +1,6 @@
 package lpctools.util;
 
 import com.google.common.collect.ImmutableList;
-import lpctools.LPCTools;
 import lpctools.lpcfymasaapi.LPCAPIInit;
 import net.minecraft.block.Block;
 import net.minecraft.block.Blocks;
@@ -16,6 +15,7 @@ import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.lwjgl.opengl.GL30;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -125,5 +125,29 @@ public class DataUtils {
             if(block != null) result.add(block);
         }
         return result;
+    }
+    private static double lastTime;
+    public static int putGlError(String pos){
+        int err = GL30.glGetError();
+        String info = ofGLError(err, null);
+        if(info == null) return err;
+        notifyPlayer(Text.of(String.format("%s:%x:%s", pos, err, info)), false);
+        return err;
+    }
+    public static int putGlError(String pos, double time){
+        double current = System.currentTimeMillis() / 1000.0;
+        if(current - lastTime < time) return GL30.glGetError();
+        return putGlError(pos);
+    }
+    public static String ofGLError(int glError, String def){
+        return switch (glError) {
+            case GL30.GL_INVALID_ENUM -> "GL_INVALID_ENUM";
+            case GL30.GL_INVALID_VALUE -> "GL_INVALID_VALUE";
+            case GL30.GL_INVALID_OPERATION -> "GL_INVALID_OPERATION";
+            case GL30.GL_STACK_OVERFLOW -> "GL_STACK_OVERFLOW";
+            case GL30.GL_STACK_UNDERFLOW -> "GL_STACK_UNDERFLOW";
+            case GL30.GL_OUT_OF_MEMORY -> "GL_OUT_OF_MEMORY";
+            default -> def;
+        };
     }
 }
