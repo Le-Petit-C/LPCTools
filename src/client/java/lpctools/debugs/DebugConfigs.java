@@ -14,7 +14,6 @@ import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gl.*;
 import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.client.render.*;
-import net.minecraft.client.util.BufferAllocator;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.text.Text;
 import net.minecraft.util.math.BlockPos;
@@ -55,7 +54,6 @@ public class DebugConfigs {
         briefBlockState = addBooleanConfig("briefBlockState", true);
     }
     
-    private static final BufferAllocator bufferAllocator = new BufferAllocator(786432);
     private static void rendDebugShapes(WorldRenderContext context) {
         /*Tessellator tessellator = Tessellator.getInstance();
         BufferBuilder buffer = tessellator.begin(VertexFormat.DrawMode.TRIANGLES, VertexFormats.POSITION_COLOR);
@@ -122,36 +120,40 @@ public class DebugConfigs {
         .putFloat(-1).putFloat(-1).putFloat(-1).putInt(0x7fffffff)
         .putFloat(1).putFloat(-1).putFloat(-1).putInt(0x7fffffff)
         .flip();
+    private static boolean initialized = false;
+    private static GpuBuffer indexBuffer;
+    private static GpuBuffer vertexBuffer;
+    private static int vertexArrayId;
+    private static ShaderProgram program;
     private static void reserved(WorldRenderContext context){
-        //if(!bufferUpdated)//noinspection CommentedOutCode
-        GpuBuffer vertexBuffer;
-        GpuBuffer indexBuffer;
-        indexBuffer = new GpuBuffer(GlBufferTarget.INDICES, GlUsage.STATIC_WRITE, indexByteBuffer);
-        vertexBuffer = new GpuBuffer(GlBufferTarget.VERTICES, GlUsage.STATIC_WRITE, vertexByteBuffer);
-        int vertexArrayId = GL30.glGenVertexArrays();
+        if(!initialized)
+            program = MinecraftClient.getInstance().getShaderLoader().getOrCreateProgram(ShaderProgramKeys.POSITION_COLOR);
+        if(program == null) return;
+        if(!initialized) {
+            indexBuffer = new GpuBuffer(GlBufferTarget.INDICES, GlUsage.STATIC_WRITE, indexByteBuffer);
+            vertexBuffer = new GpuBuffer(GlBufferTarget.VERTICES, GlUsage.STATIC_WRITE, vertexByteBuffer);
+            vertexArrayId = GL30.glGenVertexArrays();
+            GL30.glBindVertexArray(vertexArrayId);
+            VertexFormat format = VertexFormats.POSITION_COLOR;
+            indexBuffer.bind();
+            vertexBuffer.bind();
+            format.setupState();
+            GL30.glBindVertexArray(0);
+            initialized = true;
+        }
         GL30.glBindVertexArray(vertexArrayId);
         Matrix4f matrix = inverseOffsetMatrix4f(context.camera().getPos().toVector3f());
-        ShaderProgram program = MinecraftClient.getInstance().getShaderLoader().getOrCreateProgram(ShaderProgramKeys.POSITION_COLOR);
-        if (program != null) {
-            VertexFormat.DrawMode drawMode = VertexFormat.DrawMode.DEBUG_LINES;
-            VertexFormat format = VertexFormats.POSITION_COLOR;
-            format.setupState();
-            vertexBuffer.bind();
-            indexBuffer.bind();
-            Matrix4fStack stack = RenderSystem.getModelViewStack();
-            stack.pushMatrix();
-            program.initializeUniforms(
-                drawMode, stack.mul(matrix), RenderSystem.getProjectionMatrix(),
-                MinecraftClient.getInstance().getWindow());
-            program.bind();
-            GL30.glDrawElements(GlConst.GL_LINES, 8, GlConst.GL_UNSIGNED_SHORT, 0);
-            program.unbind();
-            stack.popMatrix();
-        }
+        VertexFormat.DrawMode drawMode = VertexFormat.DrawMode.DEBUG_LINES;
+        Matrix4fStack stack = RenderSystem.getModelViewStack();
+        stack.pushMatrix();
+        program.initializeUniforms(
+            drawMode, stack.mul(matrix), RenderSystem.getProjectionMatrix(),
+            MinecraftClient.getInstance().getWindow());
+        program.bind();
+        GL30.glDrawElements(drawMode.glMode, 8, GlConst.GL_UNSIGNED_SHORT, 0);
+        program.unbind();
+        stack.popMatrix();
         GL30.glBindVertexArray(0);
-        GL30.glDeleteVertexArrays(vertexArrayId);
-        vertexBuffer.close();
-        indexBuffer.close();
     }
     private static final WorldRenderEvents.Last debugShapesRenderer = DebugConfigs::rendDebugShapes;
     private static void renderDebugShapesValueRefreshCallback(){
