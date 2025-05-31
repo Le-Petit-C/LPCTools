@@ -1,6 +1,7 @@
 package lpctools.util;
 
 import com.google.common.collect.ImmutableList;
+import lpctools.LPCTools;
 import lpctools.lpcfymasaapi.LPCAPIInit;
 import net.minecraft.block.Block;
 import net.minecraft.block.Blocks;
@@ -9,17 +10,27 @@ import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.item.Item;
 import net.minecraft.item.Items;
 import net.minecraft.registry.Registries;
+import net.minecraft.resource.Resource;
+import net.minecraft.resource.ResourceManager;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.Optional;
 
 @SuppressWarnings("unused")
 public class DataUtils {
+    public static @Nullable String getTextFileResource(ResourceManager manager, Identifier resId){
+        Optional<Resource> res = manager.getResource(resId);
+        if(res.isEmpty()) return null;
+        try {return new String(res.get().getInputStream().readAllBytes());
+        } catch (IOException ignored) {return null;}
+    }
     public static void notifyPlayer(String message, boolean overlay){
         ClientPlayerEntity player = MinecraftClient.getInstance().player;
         if(player != null) player.sendMessage(Text.of(message), overlay);

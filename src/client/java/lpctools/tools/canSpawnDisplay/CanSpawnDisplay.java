@@ -93,7 +93,7 @@ public class CanSpawnDisplay implements WorldRenderEvents.Last, WorldRenderEvent
         else{
             if(Registry.unregisterWorldRenderLastCallback(this))
                 clearAll();
-            Registry.unregisterWorldBeforeDebugRenderCallback(this);
+            Registry.unregisterWorldRenderBeforeDebugRenderCallback(this);
             Registry.unregisterWorldRenderStartCallback(this);
             Registry.unregisterClientWorldChunkLightUpdatedCallback(this);
             Registry.unregisterClientChunkUnloadCallback(this);

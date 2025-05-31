@@ -68,7 +68,7 @@ public class Registry {
     public static boolean registerWorldRenderBeforeDebugRenderCallback(WorldRenderEvents.DebugRender callback){
         return worldRenderBeforeDebugRenderCallbacks.add(callback);
     }
-    public static boolean unregisterWorldBeforeDebugRenderCallback(WorldRenderEvents.DebugRender callback){
+    public static boolean unregisterWorldRenderBeforeDebugRenderCallback(WorldRenderEvents.DebugRender callback){
         return worldRenderBeforeDebugRenderCallbacks.remove(callback);
     }
     public static boolean registerWorldRenderAfterTranslucentCallback(WorldRenderEvents.AfterTranslucent callback){
@@ -266,6 +266,7 @@ public class Registry {
     @NotNull private static final LinkedHashSet<ClientWorldEvents.AfterClientWorldChange> clientWorldChangeCallbacks = new LinkedHashSet<>();
     @NotNull private static final LinkedHashSet<ClientWorldChunkSetBlockState> clientWorldChunkSetBlockStateCallback = new LinkedHashSet<>();
     @NotNull private static final LinkedHashSet<ClientWorldChunkLightUpdated> clientWorldChunkLightUpdatedCallback = new LinkedHashSet<>();
+    
     public static boolean isClientChunkSetBlockStateCallbackEmpty(){return clientWorldChunkSetBlockStateCallback.isEmpty();}
     public interface InGameEndMouse {
         void onInGameEndMouse(int button, int action, int mods);
