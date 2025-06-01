@@ -1,5 +1,7 @@
 package lpctools.lpcfymasaapi.gl;
 
+import org.lwjgl.opengl.GL45;
+
 import static org.lwjgl.opengl.GL11.*;
 import static org.lwjgl.opengl.GL15.*;
 
@@ -45,5 +47,16 @@ public class Constants {
         DYNAMIC_COPY(GL_DYNAMIC_COPY);
         BufferMode(int value){this.value = value;}
         public final int value;
+    }
+    public enum EnableMask{
+        BLEND(GL_BLEND),
+        CULL_FACE(GL_CULL_FACE),
+        DEPTH_TEST(GL_DEPTH_TEST);
+        EnableMask(int value){this.value = value;}
+        public final int value;
+        public void enable(){GL45.glEnable(value);}
+        public void disable(){GL45.glDisable(value);}
+        public void enable(boolean b){if(b) enable();else disable();}
+        public boolean isEnabled(){return GL45.glIsEnabled(value);}
     }
 }

@@ -37,7 +37,6 @@ public class RenderTest1 {
         float theta = Clock.systemUTC().millis() % 6283 / 1000.0f;
         float alpha = MathHelper.PI * 2 / 3;
         RenderSystem.disableCull();
-        RenderSystem.enableDepthTest();
         GlUsage usage = GlUsage.STATIC_WRITE;
         GpuBuffer vertexBuffer_indexBuffer;
         ByteBuffer vertexBuffer1 = MemoryUtil.memAlloc(48);
@@ -68,5 +67,6 @@ public class RenderTest1 {
         vertexBuffer_vertexBuffer.close();
         vertexBuffer_indexBuffer.close();
         GL30.glDeleteVertexArrays(vertexArrayId);
+        RenderSystem.enableCull();
     }
 }
