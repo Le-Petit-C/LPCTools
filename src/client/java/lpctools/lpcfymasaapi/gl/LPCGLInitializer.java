@@ -6,21 +6,16 @@ import net.minecraft.resource.ResourceManager;
 import net.minecraft.resource.ResourceType;
 import net.minecraft.util.Identifier;
 
-import java.util.LinkedHashSet;
-import java.util.function.Consumer;
+import java.util.HashSet;
 
 public class LPCGLInitializer {
     static ResourceManager manager;
-    private static final LinkedHashSet<Consumer<ResourceManager>>
-        resourceReloadListeners = new LinkedHashSet<>();
-    public static void register(Consumer<ResourceManager> callback){
-        resourceReloadListeners.add(callback);
-        if(manager != null) callback.accept(manager);
-    }
-    public static void unregister(Consumer<ResourceManager> callback){
-        resourceReloadListeners.remove(callback);
-    }
     public static void init(){}
+    static final HashSet<Shader> shaders = new HashSet<>();
+    static final HashSet<Program<?>> programs = new HashSet<>();
+    static final HashSet<UniformData> uniforms = new HashSet<>();
+    static final HashSet<Buffer> buffers = new HashSet<>();
+    static final HashSet<VertexArray> vertexArrays = new HashSet<>();
     static {
         Identifier lpcShaderResourceReloadCallbackId
             = Identifier.of("lpctools", "shader_reload");
@@ -31,9 +26,13 @@ public class LPCGLInitializer {
                 }
                 @Override public void reload(ResourceManager manager) {
                     LPCGLInitializer.manager = manager;
-                    for(Consumer<ResourceManager> shader : resourceReloadListeners)
-                        shader.accept(manager);
+                    for(Shader shader : shaders) shader.reloadAndCompile();
+                    for(Program<?> program : programs) program.attachAndLink();
+                    for(UniformData uniformData : uniforms) uniformData.updateLocation();
+                    for(Buffer buffer : buffers) buffer.gen();
+                    for(VertexArray vertexArray : vertexArrays) vertexArray.gen();
                 }
             });
     }
+    static boolean initialized(){return manager != null;}
 }

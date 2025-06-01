@@ -2,6 +2,11 @@ package lpctools.debugs;
 
 import com.mojang.blaze3d.platform.GlConst;
 import com.mojang.blaze3d.systems.RenderSystem;
+import lpctools.lpcfymasaapi.gl.Buffer;
+import lpctools.lpcfymasaapi.gl.Constants;
+import lpctools.lpcfymasaapi.gl.VertexArray;
+import lpctools.lpcfymasaapi.gl.furtherWarpped.VertexTypes;
+import lpctools.shader.RenderBuffers;
 import lpctools.shader.ShaderPrograms;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext;
 import net.minecraft.client.render.VertexFormat;
@@ -28,40 +33,48 @@ public class RenderTest2 {
         .putFloat(1).putFloat(-1).putFloat(-2).putInt(0x7fffffff)
         .flip();
     private static boolean initialized = false;
-    private static int vertexArrayId;
+    private static final Buffer vertexBuffer = new Buffer();
+    private static final Buffer indexBuffer = new Buffer();
+    private static final VertexArray vertexArray = new VertexArray();
+    private static final RenderBuffers.SimpleRenderBuffer buf
+        = RenderBuffers.simpleRenderBuffer(Constants.BufferMode.STATIC_DRAW);
+    static {
+        buf.putFloat(1).putFloat(1).putFloat(2).putInt(0x7fffffff)
+            .putFloat(-1).putFloat(1).putFloat(2).putInt(0x7fffffff)
+            .putFloat(-1).putFloat(-1).putFloat(2).putInt(0x7fffffff)
+            .putFloat(1).putFloat(-1).putFloat(2).putInt(0x7fffffff)
+            .putIndex(0).putIndex(1).putIndex(1).putIndex(2)
+            .putIndex(2).putIndex(3).putIndex(3).putIndex(0);
+    }
     private static void init(){
-        int indexBuffer = GL30.glGenBuffers();
-        int vertexBuffer = GL30.glGenBuffers();
-        vertexArrayId = GL30.glGenVertexArrays();
-        GL30.glBindVertexArray(vertexArrayId);
-        GL30.glBindBuffer(GL30.GL_ELEMENT_ARRAY_BUFFER, indexBuffer);
-        GL30.glBindBuffer(GL30.GL_ARRAY_BUFFER, vertexBuffer);
-        GL30.glBufferData(GL30.GL_ELEMENT_ARRAY_BUFFER, indexByteBuffer, GL30.GL_STATIC_DRAW);
-        GL30.glBufferData(GL30.GL_ARRAY_BUFFER, vertexByteBuffer, GL30.GL_STATIC_DRAW);
-        GL30.glVertexAttribPointer(0, 3, GL30.GL_FLOAT, false, 16, 0);
-        GL30.glEnableVertexAttribArray(0);
-        GL30.glVertexAttribPointer(1, 3, GL30.GL_UNSIGNED_BYTE, true, 16, 12);
-        GL30.glEnableVertexAttribArray(1);
-        GL30.glBindVertexArray(0);
+        vertexArray.bind();
+        indexBuffer.data(indexByteBuffer, Constants.BufferMode.STATIC_DRAW);
+        vertexBuffer.data(vertexByteBuffer, Constants.BufferMode.STATIC_DRAW);
+        indexBuffer.bindAsElementArray();
+        vertexBuffer.bindAsArray();
+        VertexTypes.POSITION_COLOR.attribAndEnable();
+        vertexArray.unbind();
         initialized = true;
     }
     public static void render(WorldRenderContext context){
-        ShaderPrograms.SimpleProgram program = ShaderPrograms.simple_program;
+        ShaderPrograms.SimpleProgram program = ShaderPrograms.SIMPLE_PROGRAM;
         GL30.glGetError();
         if(!initialized) init();
         if(!initialized) return;
-        GL30.glBindVertexArray(vertexArrayId);
-        Matrix4f matrix = inverseOffsetMatrix4f(context.camera().getPos().toVector3f());
-        VertexFormat.DrawMode drawMode = VertexFormat.DrawMode.DEBUG_LINES;
         Matrix4fStack stack = RenderSystem.getModelViewStack();
         stack.pushMatrix();
+        Matrix4f matrix = inverseOffsetMatrix4f(context.camera().getPos().toVector3f());
         stack.mul(matrix);
-        GL30.glUseProgram(ShaderPrograms.simple_program.getGlProgramId());
-        program.getModMatUniform().set(RenderSystem.getModelViewStack());
-        program.getProjMatUniform().set(RenderSystem.getProjectionMatrix());
+        vertexArray.bind();
+        VertexFormat.DrawMode drawMode = VertexFormat.DrawMode.DEBUG_LINES;
+        program.setModelMatrix(RenderSystem.getModelViewStack());
+        program.setProjectionMatrix(RenderSystem.getProjectionMatrix());
         program.useAndUniform();
         GL30.glDrawElements(drawMode.glMode, 8, GlConst.GL_UNSIGNED_SHORT, 0);
+        vertexArray.unbind();
+        buf.program.setProjectionMatrix(RenderSystem.getProjectionMatrix());
+        buf.program.setModelMatrix(RenderSystem.getModelViewStack());
+        buf.renderWithIndexes(Constants.DrawMode.LINES);
         stack.popMatrix();
-        GL30.glBindVertexArray(0);
     }
 }

@@ -1,13 +1,12 @@
 package lpctools.lpcfymasaapi.gl;
 
 import lpctools.util.DataUtils;
-import net.minecraft.resource.ResourceManager;
 import net.minecraft.util.Identifier;
 import org.lwjgl.opengl.GL30;
 
-import java.util.function.Consumer;
+import static lpctools.lpcfymasaapi.gl.LPCGLInitializer.*;
 
-public class Shader implements AutoCloseable, Consumer<ResourceManager> {
+public class Shader implements AutoCloseable{
     private int glShaderId = 0;
     public final int shaderType;
     public final Identifier resourceId;
@@ -16,14 +15,15 @@ public class Shader implements AutoCloseable, Consumer<ResourceManager> {
     public Shader(Identifier resourceId, int shaderType){
         this.resourceId = resourceId;
         this.shaderType = shaderType;
-        LPCGLInitializer.register(this);
+        LPCGLInitializer.shaders.add(this);
+        if(initialized()) reloadAndCompile();
     }
     @Override public void close() {
-        LPCGLInitializer.unregister(this);
+        LPCGLInitializer.shaders.remove(this);
         GL30.glDeleteShader(glShaderId);
         glShaderId = 0;
     }
-    @Override public void accept(ResourceManager manager) {
+    public void reloadAndCompile() {
         String code = DataUtils.getTextFileResource(manager, resourceId);
         if(code == null) return;
         if(glShaderId == 0) glShaderId = GL30.glCreateShader(shaderType);

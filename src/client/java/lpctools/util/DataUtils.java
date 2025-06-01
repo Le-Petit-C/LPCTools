@@ -1,6 +1,7 @@
 package lpctools.util;
 
 import com.google.common.collect.ImmutableList;
+import it.unimi.dsi.fastutil.objects.Object2DoubleOpenHashMap;
 import lpctools.lpcfymasaapi.LPCAPIInit;
 import net.minecraft.block.Block;
 import net.minecraft.block.Blocks;
@@ -126,7 +127,7 @@ public class DataUtils {
         }
         return result;
     }
-    private static double lastTime;
+    private static final Object2DoubleOpenHashMap<String> lastTime = new Object2DoubleOpenHashMap<>();
     public static int putGlError(String pos){
         int err = GL30.glGetError();
         String info = ofGLError(err, null);
@@ -136,7 +137,8 @@ public class DataUtils {
     }
     public static int putGlError(String pos, double time){
         double current = System.currentTimeMillis() / 1000.0;
-        if(current - lastTime < time) return GL30.glGetError();
+        if(current - lastTime.getDouble(pos) < time) return GL30.glGetError();
+        lastTime.put(pos, current);
         return putGlError(pos);
     }
     public static String ofGLError(int glError, String def){
