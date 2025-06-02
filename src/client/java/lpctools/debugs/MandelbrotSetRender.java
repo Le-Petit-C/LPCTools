@@ -45,7 +45,6 @@ public class MandelbrotSetRender extends ThirdListConfig implements WorldRenderE
                 Constants.EnableMask.DEPTH_TEST
             }, new boolean[]{true, false, true}
         )){
-            //Matrix4f matrix = inverseOffsetMatrix4f(context.camera().getPos().toVector3f());
             double y = 1;
             double stretch = this.stretch.getAsDouble();
             double a = stretch * 2;
@@ -66,16 +65,10 @@ public class MandelbrotSetRender extends ThirdListConfig implements WorldRenderE
             float _minZ = (float)(minZ - camPos.z);
             float _maxZ = (float)(maxZ - camPos.z);
             float _y = (float)(y - camPos.y);
-            buffer.putFloats(_minX, _y, _minZ, (float)(minX - camPos.x) / _stretch, (float)(minZ - camPos.z) / _stretch);
-            buffer.putFloats(_maxX, _y, _minZ, (float)(maxX - camPos.x) / _stretch, (float)(minZ - camPos.z) / _stretch);
-            buffer.putFloats(_minX, _y, _maxZ, (float)(minX - camPos.x) / _stretch, (float)(maxZ - camPos.z) / _stretch);
-            buffer.putFloats(_maxX, _y, _maxZ, (float)(maxX - camPos.x) / _stretch, (float)(maxZ - camPos.z) / _stretch);
-            double hx = camPos.x * 0x01000000 / _stretch;
-            double hy = camPos.z * 0x01000000 / _stretch;
-            int sx = (int) Math.floor(hx);
-            int sy = (int) Math.floor(hy);
-            hx -= sx; hy -= sy;
-            buffer.setShift(new Vector4i((int)(long)(hx * 4294967296.0), sx, (int)(long)(hy * 4294967296.0), sy));
+            buffer.putFloats(_minX, _y, _minZ, (float)minX / _stretch, (float)minZ / _stretch);
+            buffer.putFloats(_maxX, _y, _minZ, (float)maxX / _stretch, (float)minZ / _stretch);
+            buffer.putFloats(_minX, _y, _maxZ, (float)minX / _stretch, (float)maxZ / _stretch);
+            buffer.putFloats(_maxX, _y, _maxZ, (float)maxX / _stretch, (float)maxZ / _stretch);
             buffer.setModelMatrix(context.positionMatrix());
             buffer.setProjectionMatrix(context.projectionMatrix());
             buffer.setOutColor(new Vector4f(1, 1, 1, 1));
@@ -96,14 +89,12 @@ public class MandelbrotSetRender extends ThirdListConfig implements WorldRenderE
         public final Uniform.Uniform4f setColorUniform = addUniform(new Uniform.Uniform4f(this, "setColor"));
         public final Uniform.Uniform4f outColorUniform = addUniform(new Uniform.Uniform4f(this, "outColor"));
         public final Uniform.Uniform1i maxDepthUniform = addUniform(new Uniform.Uniform1i(this, "maxDepth"));
-        public final Uniform.Uniform4ui shiftUniform = addUniform(new Uniform.Uniform4ui(this, "shift"));
         public MandelbrotSetRenderProgram() {super(mandelbrotSetVertexShader, mandelbrotSetFragmentShader, POSITION_COMPLEX);}
         @Override public void setProjectionMatrix(Matrix4f matrix) {projUniform.set(matrix);}
         @Override public void setModelMatrix(Matrix4f matrix) {modUniform.set(matrix);}
         public void setSetColor(Vector4f color){setColorUniform.set(color);}
         public void setOutColor(Vector4f color){outColorUniform.set(color);}
         public void setMaxDepth(int depth){maxDepthUniform.setValue(depth);}
-        public void setShift(Vector4i shift){shiftUniform.set(shift);}
     }
     public static class MandelbrotSetRenderBuffer extends RenderBuffer<MandelbrotSetRenderProgram> implements ShaderPrograms.WithProjectionMatrix, ShaderPrograms.WithModelViewMatrix{
         public MandelbrotSetRenderBuffer(Constants.BufferMode bufferMode) {super(bufferMode, mandelbrotSetRenderProgram);}
@@ -112,6 +103,5 @@ public class MandelbrotSetRender extends ThirdListConfig implements WorldRenderE
         public void setSetColor(Vector4f color){program.setSetColor(color);}
         public void setOutColor(Vector4f color){program.setOutColor(color);}
         public void setMaxDepth(int depth){program.setMaxDepth(depth);}
-        public void setShift(Vector4i shift){program.setShift(shift);}
     }
 }
