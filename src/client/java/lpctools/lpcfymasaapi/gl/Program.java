@@ -6,14 +6,14 @@ import java.util.ArrayList;
 
 import static lpctools.lpcfymasaapi.gl.LPCGLInitializer.initialized;
 
-public class Program<T extends VertexAttrib> implements AutoCloseable{
+public class Program implements AutoCloseable{
     public final Shader vertexShader;
     public final Shader fragmentShader;
-    public final T attrib;
+    public final VertexAttrib attrib;
     protected final ArrayList<Uniform> uniforms = new ArrayList<>();
     private int glProgramId;
     public int getGlProgramId(){return glProgramId;}
-    public Program(Shader vertexShader, Shader fragmentShader, T attrib){
+    public Program(Shader vertexShader, Shader fragmentShader, VertexAttrib attrib){
         this.vertexShader = vertexShader;
         this.fragmentShader = fragmentShader;
         this.attrib = attrib;

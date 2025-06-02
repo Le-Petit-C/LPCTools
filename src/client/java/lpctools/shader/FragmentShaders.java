@@ -7,7 +7,7 @@ import org.lwjgl.opengl.GL30;
 public class FragmentShaders {
     public static void init(){}
     public static final Shader no_change = newLPCFrag("no_change.glsl");
-    private static Shader newLPCFrag(String file){
+    public static Shader newLPCFrag(String file){
         return new Shader(Identifier.of("lpctools","shaders/fragments/" + file), GL30.GL_FRAGMENT_SHADER);
     }
 }

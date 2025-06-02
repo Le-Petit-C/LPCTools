@@ -1,14 +1,29 @@
 package lpctools.debugs;
 
 import lpctools.lpcfymasaapi.configbutton.derivedConfigs.ThirdListConfig;
+import lpctools.lpcfymasaapi.configbutton.transferredConfigs.DoubleConfig;
+import lpctools.lpcfymasaapi.configbutton.transferredConfigs.IntegerConfig;
+import lpctools.lpcfymasaapi.gl.*;
+import lpctools.lpcfymasaapi.gl.furtherWarpped.RenderBuffer;
 import lpctools.lpcfymasaapi.implementations.ILPCConfigList;
 import lpctools.lpcfymasaapi.implementations.ILPCValueChangeCallback;
+import lpctools.shader.ShaderPrograms;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents;
+import net.minecraft.util.math.Vec3d;
+import org.joml.*;
 
+import java.lang.Math;
+
+import static lpctools.lpcfymasaapi.LPCConfigStatics.*;
 import static lpctools.lpcfymasaapi.Registry.*;
+import static lpctools.lpcfymasaapi.gl.furtherWarpped.VertexAttribElements.*;
+import static lpctools.shader.FragmentShaders.*;
+import static lpctools.shader.VertexShaders.*;
 
 public class MandelbrotSetRender extends ThirdListConfig implements WorldRenderEvents.DebugRender {
+    public final IntegerConfig maxDepth;
+    public final DoubleConfig stretch;
     public MandelbrotSetRender(ILPCConfigList parent) {
         super(parent, "mandelbrotSet", false);
         ILPCValueChangeCallback onValueChanged = () -> {
@@ -16,9 +31,87 @@ public class MandelbrotSetRender extends ThirdListConfig implements WorldRenderE
             else unregisterWorldRenderBeforeDebugRenderCallback(this);
         };
         setValueChangeCallback(onValueChanged);
+        try(ConfigListLayer ignored = new ConfigListLayer(this)){
+            maxDepth = addIntegerConfig("maxDepth", 128, 0, 65536);
+            stretch = addDoubleConfig("stretch", 1);
+        }
     }
     
-    @Override public void beforeDebugRender(WorldRenderContext worldRenderContext) {
+    @Override public void beforeDebugRender(WorldRenderContext context) {
+        try(MaskLayer ignored = new MaskLayer(
+            new Constants.EnableMask[]{
+                Constants.EnableMask.BLEND,
+                Constants.EnableMask.CULL_FACE,
+                Constants.EnableMask.DEPTH_TEST
+            }, new boolean[]{true, false, true}
+        )){
+            //Matrix4f matrix = inverseOffsetMatrix4f(context.camera().getPos().toVector3f());
+            double y = 1;
+            double stretch = this.stretch.getAsDouble();
+            double a = stretch * 2;
+            float _stretch = (float)stretch;
+            Vec3d camPos = context.camera().getPos();
+            double d = Math.abs((camPos.y - y) * 128);
+            double maxX = camPos.x + d;
+            double minX = camPos.x - d;
+            double maxZ = camPos.z + d;
+            double minZ = camPos.z - d;
+            if(maxX > a) maxX = a;
+            if(minX < -a) minX = -a;
+            if(maxZ > a) maxZ = a;
+            if(minZ < -a) minZ = -a;
+            buffer.clear();
+            float _minX = (float)(minX - camPos.x);
+            float _maxX = (float)(maxX - camPos.x);
+            float _minZ = (float)(minZ - camPos.z);
+            float _maxZ = (float)(maxZ - camPos.z);
+            float _y = (float)(y - camPos.y);
+            buffer.putFloats(_minX, _y, _minZ, (float)(minX - camPos.x) / _stretch, (float)(minZ - camPos.z) / _stretch);
+            buffer.putFloats(_maxX, _y, _minZ, (float)(maxX - camPos.x) / _stretch, (float)(minZ - camPos.z) / _stretch);
+            buffer.putFloats(_minX, _y, _maxZ, (float)(minX - camPos.x) / _stretch, (float)(maxZ - camPos.z) / _stretch);
+            buffer.putFloats(_maxX, _y, _maxZ, (float)(maxX - camPos.x) / _stretch, (float)(maxZ - camPos.z) / _stretch);
+            double hx = camPos.x * 0x01000000 / _stretch;
+            double hy = camPos.z * 0x01000000 / _stretch;
+            int sx = (int) Math.floor(hx);
+            int sy = (int) Math.floor(hy);
+            hx -= sx; hy -= sy;
+            buffer.setShift(new Vector4i((int)(long)(hx * 4294967296.0), sx, (int)(long)(hy * 4294967296.0), sy));
+            buffer.setModelMatrix(context.positionMatrix());
+            buffer.setProjectionMatrix(context.projectionMatrix());
+            buffer.setOutColor(new Vector4f(1, 1, 1, 1));
+            buffer.setSetColor(new Vector4f(0, 0, 0, 1));
+            buffer.setMaxDepth(maxDepth.getAsInt());
+            buffer.render(Constants.DrawMode.TRIANGLE_STRIP);
+        }
+    }
+    public static final VertexAttrib POSITION_COMPLEX = new VertexAttrib(VEC3F, VEC2F);
+    public static final Shader mandelbrotSetVertexShader = newLPCVert("mandelbrot_set.glsl");
+    public static final Shader mandelbrotSetFragmentShader = newLPCFrag("mandelbrot_set.glsl");
+    public static final MandelbrotSetRenderProgram mandelbrotSetRenderProgram = new MandelbrotSetRenderProgram();
+    private static final MandelbrotSetRenderBuffer buffer = new MandelbrotSetRenderBuffer(Constants.BufferMode.DYNAMIC_DRAW);
     
+    public static class MandelbrotSetRenderProgram extends Program implements ShaderPrograms.WithProjectionMatrix, ShaderPrograms.WithModelViewMatrix {
+        public final Uniform.UniformMatrix4f projUniform = addUniform(new Uniform.UniformMatrix4f(this, "projectionMatrix"));
+        public final Uniform.UniformMatrix4f modUniform = addUniform(new Uniform.UniformMatrix4f(this, "modelViewMatrix"));
+        public final Uniform.Uniform4f setColorUniform = addUniform(new Uniform.Uniform4f(this, "setColor"));
+        public final Uniform.Uniform4f outColorUniform = addUniform(new Uniform.Uniform4f(this, "outColor"));
+        public final Uniform.Uniform1i maxDepthUniform = addUniform(new Uniform.Uniform1i(this, "maxDepth"));
+        public final Uniform.Uniform4ui shiftUniform = addUniform(new Uniform.Uniform4ui(this, "shift"));
+        public MandelbrotSetRenderProgram() {super(mandelbrotSetVertexShader, mandelbrotSetFragmentShader, POSITION_COMPLEX);}
+        @Override public void setProjectionMatrix(Matrix4f matrix) {projUniform.set(matrix);}
+        @Override public void setModelMatrix(Matrix4f matrix) {modUniform.set(matrix);}
+        public void setSetColor(Vector4f color){setColorUniform.set(color);}
+        public void setOutColor(Vector4f color){outColorUniform.set(color);}
+        public void setMaxDepth(int depth){maxDepthUniform.setValue(depth);}
+        public void setShift(Vector4i shift){shiftUniform.set(shift);}
+    }
+    public static class MandelbrotSetRenderBuffer extends RenderBuffer<MandelbrotSetRenderProgram> implements ShaderPrograms.WithProjectionMatrix, ShaderPrograms.WithModelViewMatrix{
+        public MandelbrotSetRenderBuffer(Constants.BufferMode bufferMode) {super(bufferMode, mandelbrotSetRenderProgram);}
+        @Override public void setProjectionMatrix(Matrix4f matrix) {program.setProjectionMatrix(matrix);}
+        @Override public void setModelMatrix(Matrix4f matrix) {program.setModelMatrix(matrix);}
+        public void setSetColor(Vector4f color){program.setSetColor(color);}
+        public void setOutColor(Vector4f color){program.setOutColor(color);}
+        public void setMaxDepth(int depth){program.setMaxDepth(depth);}
+        public void setShift(Vector4i shift){program.setShift(shift);}
     }
 }

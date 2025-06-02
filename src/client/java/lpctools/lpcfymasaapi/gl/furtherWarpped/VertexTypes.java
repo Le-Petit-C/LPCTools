@@ -4,9 +4,8 @@ import lpctools.lpcfymasaapi.gl.VertexAttrib;
 
 import static lpctools.lpcfymasaapi.gl.furtherWarpped.VertexAttribElements.*;
 
+@SuppressWarnings("unused")
 public class VertexTypes {
-    public static final PositionColor POSITION_COLOR = new PositionColor();
-    public static class PositionColor extends VertexAttrib{
-        private PositionColor(){super(VEC3F, ARGB32);}
-    }
+    public static final VertexAttrib POSITION_COLOR = new VertexAttrib(VEC3F, ARGB32);
+    public static final VertexAttrib POSITION = new VertexAttrib(VEC3F);
 }

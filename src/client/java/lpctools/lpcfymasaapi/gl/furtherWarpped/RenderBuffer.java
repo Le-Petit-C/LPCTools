@@ -9,18 +9,13 @@ import org.lwjgl.system.MemoryUtil;
 
 import java.nio.ByteBuffer;
 
-@SuppressWarnings("unused")
-public class RenderBuffer<T extends VertexAttrib, U extends Program<T>> implements AutoCloseable{
+@SuppressWarnings({"unused", "UnusedReturnValue"})
+public class RenderBuffer<T extends Program> implements AutoCloseable{
     public final Constants.BufferMode bufferMode;
-    public final U program;
-    public RenderBuffer(Constants.BufferMode bufferMode, U program){
+    public final T program;
+    public RenderBuffer(Constants.BufferMode bufferMode, T program){
         this.bufferMode = bufferMode;
         this.program = program;
-        vertexArray.bind();
-        indexBuffer.bindAsElementArray();
-        vertexBuffer.bindAsArray();
-        program.attrib.attribAndEnable();
-        vertexArray.unbind();
     }
     public void renderWithIndexes(Constants.DrawMode drawMode){
         if(dirty) refresh();
@@ -48,6 +43,11 @@ public class RenderBuffer<T extends VertexAttrib, U extends Program<T>> implemen
         vertexArrayBuffer.clear();
     }
     void refresh(){
+        vertexArray.bind();
+        indexBuffer.bindAsElementArray();
+        vertexBuffer.bindAsArray();
+        program.attrib.attribAndEnable();
+        vertexArray.unbind();
         int size = Math.max(indexArrayBuffer.size() * 4, vertexArrayBuffer.size());
         ByteBuffer buffer = MemoryUtil.memAlloc(size);
         for(int index : indexArrayBuffer) buffer.putInt(index);
@@ -60,13 +60,17 @@ public class RenderBuffer<T extends VertexAttrib, U extends Program<T>> implemen
         MemoryUtil.memFree(buffer);
         dirty = false;
     }
-    public RenderBuffer<T, U> putIndex(int index){indexArrayBuffer.add(index);dirty = true;return this;}
-    public RenderBuffer<T, U> putByte(byte b){_putByte(b);dirty = true;return this;}
-    public RenderBuffer<T, U> putBytes(byte... bytes){for(byte b : bytes) _putByte(b);dirty = true;return this;}
-    public RenderBuffer<T, U> putInt(int n){_putInt(n);dirty = true;return this;}
-    public RenderBuffer<T, U> putInts(int... ints){for(int i : ints) _putInt(i);dirty = true;return this;}
-    public RenderBuffer<T, U> putFloat(float f){_putFloat(f);dirty = true;return this;}
-    public RenderBuffer<T, U> putFloats(float... floats){for(float f : floats) _putFloat(f);dirty = true;return this;}
+    public RenderBuffer<T> putIndex(int index){indexArrayBuffer.add(index);dirty = true;return this;}
+    public RenderBuffer<T> putByte(byte b){_putByte(b);dirty = true;return this;}
+    public RenderBuffer<T> putBytes(byte... bytes){for(byte b : bytes) _putByte(b);dirty = true;return this;}
+    public RenderBuffer<T> putInt(int n){_putInt(n);dirty = true;return this;}
+    public RenderBuffer<T> putInts(int... ints){for(int i : ints) _putInt(i);dirty = true;return this;}
+    public RenderBuffer<T> putFloat(float f){_putFloat(f);dirty = true;return this;}
+    public RenderBuffer<T> putFloats(float... floats){for(float f : floats) _putFloat(f);dirty = true;return this;}
+    public RenderBuffer<T> putLong(long n){_putLong(n);dirty = true;return this;}
+    public RenderBuffer<T> putLongs(long... longs){for(long i : longs) _putLong(i);dirty = true;return this;}
+    public RenderBuffer<T> putDouble(double d){_putDouble(d);dirty = true;return this;}
+    public RenderBuffer<T> putDoubles(double... doubles){for(double d : doubles) _putDouble(d);dirty = true;return this;}
     //下面这几个方法不会markDirty，用的时候要注意自行mark一下
     public void _putByte(byte b){vertexArrayBuffer.add(b);}
     public void _putInt(int n){
@@ -76,6 +80,17 @@ public class RenderBuffer<T extends VertexAttrib, U extends Program<T>> implemen
         _putByte((byte)(n >>> 24));
     }
     public void _putFloat(float f){_putInt(Float.floatToRawIntBits(f));}
+    public void _putLong(long n){
+        _putByte((byte)n);
+        _putByte((byte)(n >>> 8));
+        _putByte((byte)(n >>> 16));
+        _putByte((byte)(n >>> 24));
+        _putByte((byte)(n >>> 32));
+        _putByte((byte)(n >>> 40));
+        _putByte((byte)(n >>> 48));
+        _putByte((byte)(n >>> 56));
+    }
+    public void _putDouble(double f){_putLong(Double.doubleToRawLongBits(f));}
     public void markDirty(){dirty = true;}
     private boolean dirty;
     private final IntArrayList indexArrayBuffer = new IntArrayList();

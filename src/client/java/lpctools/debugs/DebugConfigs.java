@@ -26,6 +26,7 @@ public class DebugConfigs {
     public static BooleanConfig showExecuteTime;
     public static HotkeyConfig getBlockStateHotkey;
     public static BooleanConfig briefBlockState;
+    public static MandelbrotSetRender mandelbrotSetRender;
     public static void init(){
         renderDebugShapes = addBooleanConfig(
                 "renderDebugShapes", false, DebugConfigs::renderDebugShapesValueRefreshCallback);
@@ -40,6 +41,7 @@ public class DebugConfigs {
         showExecuteTime = addBooleanConfig("showExecuteTime", false);
         getBlockStateHotkey = addHotkeyConfig("getBlockStateHotkey", "", DebugConfigs::getBlockStateHotkeyCallback);
         briefBlockState = addBooleanConfig("briefBlockState", true);
+        mandelbrotSetRender = addConfig(new MandelbrotSetRender(peekConfigList()));
     }
     
     private static void renderDebugShapes(WorldRenderContext context){

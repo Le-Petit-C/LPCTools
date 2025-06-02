@@ -12,7 +12,7 @@ public class ShaderPrograms {
     public interface WithProjectionMatrix{ void setProjectionMatrix(Matrix4f matrix);}
     public interface WithModelViewMatrix{ void setModelMatrix(Matrix4f matrix);}
     
-    public static class SimpleProgram extends Program<VertexTypes.PositionColor> implements WithProjectionMatrix, WithModelViewMatrix{
+    public static class SimpleProgram extends Program implements WithProjectionMatrix, WithModelViewMatrix{
         public final UniformMatrix4f projUniform = addUniform(new UniformMatrix4f(this, "projectionMatrix"));
         public final UniformMatrix4f modUniform = addUniform(new UniformMatrix4f(this, "modelViewMatrix"));
         public SimpleProgram() {super(VertexShaders.simple_translation, FragmentShaders.no_change, VertexTypes.POSITION_COLOR);}
