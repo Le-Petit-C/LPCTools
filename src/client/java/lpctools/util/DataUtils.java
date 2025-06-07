@@ -16,6 +16,7 @@ import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.joml.Vector4f;
 import org.lwjgl.opengl.GL30;
 
 import java.io.IOException;
@@ -151,5 +152,13 @@ public class DataUtils {
             case GL30.GL_OUT_OF_MEMORY -> "GL_OUT_OF_MEMORY";
             default -> def;
         };
+    }
+    public static Vector4f argbToVectorABGRf(int color){
+        return new Vector4f(
+            ((color >>> 16) & 0xff) / 255.0f,
+            ((color >>> 8) & 0xff) / 255.0f,
+            (color & 0xff) / 255.0f,
+            ((color >>> 24) & 0xff) / 255.0f
+        );
     }
 }

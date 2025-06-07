@@ -1,17 +1,14 @@
 package lpctools.debugs;
 
-import com.mojang.blaze3d.systems.RenderSystem;
 import lpctools.lpcfymasaapi.gl.Constants;
 import lpctools.shader.RenderBuffers;
+import lpctools.util.MathUtils;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext;
 import org.joml.Matrix4f;
-import org.joml.Matrix4fStack;
-
-import static lpctools.util.MathUtils.inverseOffsetMatrix4f;
 
 public class RenderTest2 {
-    private static final RenderBuffers.SimpleRenderBuffer buf
-        = RenderBuffers.simpleRenderBuffer(Constants.BufferMode.STATIC_DRAW);
+    private static final RenderBuffers.PositionColorBuffer buf
+        = RenderBuffers.positionColorBuffer(Constants.BufferMode.STATIC_DRAW);
     static {
         buf.putFloat(1).putFloat(1).putFloat(2).putInt(0x7fffffff)
             .putFloat(-1).putFloat(1).putFloat(2).putInt(0x7fffffff)
@@ -21,13 +18,10 @@ public class RenderTest2 {
             .putIndex(2).putIndex(3).putIndex(3).putIndex(0);
     }
     public static void render(WorldRenderContext context){
-        Matrix4fStack stack = RenderSystem.getModelViewStack();
-        stack.pushMatrix();
-        Matrix4f matrix = inverseOffsetMatrix4f(context.camera().getPos().toVector3f());
-        stack.mul(matrix);
-        buf.setModelMatrix(stack);
-        buf.setProjectionMatrix(RenderSystem.getProjectionMatrix());
+        Matrix4f finalMatrix = MathUtils.inverseOffsetMatrix4f(context.camera().getPos().toVector3f());
+        context.positionMatrix().mul(finalMatrix, finalMatrix);
+        context.projectionMatrix().mul(finalMatrix, finalMatrix);
+        buf.setFinalMatrix(finalMatrix);
         buf.renderWithIndexes(Constants.DrawMode.LINES);
-        stack.popMatrix();
     }
 }

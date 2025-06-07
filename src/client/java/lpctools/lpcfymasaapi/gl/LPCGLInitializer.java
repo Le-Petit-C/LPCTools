@@ -34,5 +34,5 @@ public class LPCGLInitializer {
                 }
             });
     }
-    static boolean initialized(){return manager != null;}
+    public static boolean initialized(){return manager != null;}
 }

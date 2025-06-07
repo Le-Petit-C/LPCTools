@@ -18,6 +18,10 @@ public class Constants {
         QUAD_STRIP(GL_QUAD_STRIP),
         POLYGON(GL_POLYGON);
         DrawMode(int value){this.value = value;}
+        public void drawElements(int count, IndexType type){
+            GL45.glDrawElements(value, count, type.value, 0);}
+        public void drawArrays(int first, int count){
+            GL45.glDrawArrays(value, first, count);}
         public final int value;
     }
     public enum DataType{
@@ -58,5 +62,11 @@ public class Constants {
         public void disable(){GL45.glDisable(value);}
         public void enable(boolean b){if(b) enable();else disable();}
         public boolean isEnabled(){return GL45.glIsEnabled(value);}
+    }
+    public enum IndexType{
+        SHORT(GL_UNSIGNED_SHORT),
+        INT(GL_UNSIGNED_INT);
+        IndexType(int value){this.value = value;}
+        public final int value;
     }
 }

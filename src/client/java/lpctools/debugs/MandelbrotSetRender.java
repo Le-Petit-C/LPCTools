@@ -4,9 +4,8 @@ import lpctools.lpcfymasaapi.configbutton.derivedConfigs.ThirdListConfig;
 import lpctools.lpcfymasaapi.configbutton.transferredConfigs.DoubleConfig;
 import lpctools.lpcfymasaapi.configbutton.transferredConfigs.IntegerConfig;
 import lpctools.lpcfymasaapi.gl.*;
-import lpctools.lpcfymasaapi.gl.furtherWarpped.RenderBuffer;
+import lpctools.lpcfymasaapi.gl.furtherWarpped.ArrayListCachedRenderBuffer;
 import lpctools.lpcfymasaapi.implementations.ILPCConfigList;
-import lpctools.lpcfymasaapi.implementations.ILPCValueChangeCallback;
 import lpctools.shader.ShaderPrograms;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents;
@@ -26,15 +25,16 @@ public class MandelbrotSetRender extends ThirdListConfig implements WorldRenderE
     public final DoubleConfig stretch;
     public MandelbrotSetRender(ILPCConfigList parent) {
         super(parent, "mandelbrotSet", false);
-        ILPCValueChangeCallback onValueChanged = () -> {
-            if (getAsBoolean()) registerWorldRenderBeforeDebugRenderCallback(this);
-            else unregisterWorldRenderBeforeDebugRenderCallback(this);
-        };
-        setValueChangeCallback(onValueChanged);
         try(ConfigListLayer ignored = new ConfigListLayer(this)){
             maxDepth = addIntegerConfig("maxDepth", 128, 0, 65536);
             stretch = addDoubleConfig("stretch", 1);
         }
+    }
+    
+    @Override public void onValueChanged() {
+        super.onValueChanged();
+        if (getAsBoolean()) registerWorldRenderBeforeDebugRenderCallback(this);
+        else unregisterWorldRenderBeforeDebugRenderCallback(this);
     }
     
     @Override public void beforeDebugRender(WorldRenderContext context) {
@@ -69,8 +69,10 @@ public class MandelbrotSetRender extends ThirdListConfig implements WorldRenderE
             buffer.putFloats(_maxX, _y, _minZ, (float)maxX / _stretch, (float)minZ / _stretch);
             buffer.putFloats(_minX, _y, _maxZ, (float)minX / _stretch, (float)maxZ / _stretch);
             buffer.putFloats(_maxX, _y, _maxZ, (float)maxX / _stretch, (float)maxZ / _stretch);
-            buffer.setModelMatrix(context.positionMatrix());
-            buffer.setProjectionMatrix(context.projectionMatrix());
+            Matrix4f finalMatrix = new Matrix4f();
+            context.positionMatrix().mul(finalMatrix, finalMatrix);
+            context.projectionMatrix().mul(finalMatrix, finalMatrix);
+            buffer.setFinalMatrix(finalMatrix);
             buffer.setOutColor(new Vector4f(1, 1, 1, 1));
             buffer.setSetColor(new Vector4f(0, 0, 0, 1));
             buffer.setMaxDepth(maxDepth.getAsInt());
@@ -83,23 +85,20 @@ public class MandelbrotSetRender extends ThirdListConfig implements WorldRenderE
     public static final MandelbrotSetRenderProgram mandelbrotSetRenderProgram = new MandelbrotSetRenderProgram();
     private static final MandelbrotSetRenderBuffer buffer = new MandelbrotSetRenderBuffer(Constants.BufferMode.DYNAMIC_DRAW);
     
-    public static class MandelbrotSetRenderProgram extends Program implements ShaderPrograms.WithProjectionMatrix, ShaderPrograms.WithModelViewMatrix {
-        public final Uniform.UniformMatrix4f projUniform = addUniform(new Uniform.UniformMatrix4f(this, "projectionMatrix"));
-        public final Uniform.UniformMatrix4f modUniform = addUniform(new Uniform.UniformMatrix4f(this, "modelViewMatrix"));
+    public static class MandelbrotSetRenderProgram extends Program implements ShaderPrograms.WithFinalMatrix {
+        public final Uniform.UniformMatrix4f matrixUniform = addUniform(new Uniform.UniformMatrix4f(this, "matrix"));
         public final Uniform.Uniform4f setColorUniform = addUniform(new Uniform.Uniform4f(this, "setColor"));
         public final Uniform.Uniform4f outColorUniform = addUniform(new Uniform.Uniform4f(this, "outColor"));
         public final Uniform.Uniform1i maxDepthUniform = addUniform(new Uniform.Uniform1i(this, "maxDepth"));
         public MandelbrotSetRenderProgram() {super(mandelbrotSetVertexShader, mandelbrotSetFragmentShader, POSITION_COMPLEX);}
-        @Override public void setProjectionMatrix(Matrix4f matrix) {projUniform.set(matrix);}
-        @Override public void setModelMatrix(Matrix4f matrix) {modUniform.set(matrix);}
+        @Override public void setFinalMatrix(Matrix4f matrix) {matrixUniform.set(matrix);}
         public void setSetColor(Vector4f color){setColorUniform.set(color);}
         public void setOutColor(Vector4f color){outColorUniform.set(color);}
         public void setMaxDepth(int depth){maxDepthUniform.setValue(depth);}
     }
-    public static class MandelbrotSetRenderBuffer extends RenderBuffer<MandelbrotSetRenderProgram> implements ShaderPrograms.WithProjectionMatrix, ShaderPrograms.WithModelViewMatrix{
+    public static class MandelbrotSetRenderBuffer extends ArrayListCachedRenderBuffer<MandelbrotSetRenderProgram> implements ShaderPrograms.WithFinalMatrix{
         public MandelbrotSetRenderBuffer(Constants.BufferMode bufferMode) {super(bufferMode, mandelbrotSetRenderProgram);}
-        @Override public void setProjectionMatrix(Matrix4f matrix) {program.setProjectionMatrix(matrix);}
-        @Override public void setModelMatrix(Matrix4f matrix) {program.setModelMatrix(matrix);}
+        @Override public void setFinalMatrix(Matrix4f matrix) {program.setFinalMatrix(matrix);}
         public void setSetColor(Vector4f color){program.setSetColor(color);}
         public void setOutColor(Vector4f color){program.setOutColor(color);}
         public void setMaxDepth(int depth){program.setMaxDepth(depth);}

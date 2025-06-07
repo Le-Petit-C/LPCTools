@@ -11,6 +11,7 @@
     "SplashTextResourceSupplierMixin",
     "SpriteContentsMixin",
     "WorldChunkMixin",
+    "events.OnScreenChanged",
     "MASAMixins.MuteMASAConfigMinMaxMixin.ConfigDoubleMixin",
     "MASAMixins.MuteMASAConfigMinMaxMixin.ConfigIntegerMixin"
   ],

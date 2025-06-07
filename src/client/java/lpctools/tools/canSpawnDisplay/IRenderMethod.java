@@ -1,6 +1,6 @@
 package lpctools.tools.canSpawnDisplay;
 
-import net.minecraft.client.gl.ShaderProgramKey;
+import lpctools.lpcfymasaapi.gl.Constants;
 import net.minecraft.util.math.BlockPos;
 
 import java.nio.ByteBuffer;
@@ -10,6 +10,6 @@ public interface IRenderMethod {
     int getVertexCountPerBlock();
     int getIndexCountPerBlock();
     String getNameKey();
-    ShaderProgramKey getShader();
+    Constants.DrawMode getDrawMode();
     void vertex(ByteBuffer indexBuffer, ByteBuffer vertexBuffer, BlockPos pos, int index, boolean xray);
 }

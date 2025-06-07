@@ -1,7 +1,5 @@
 package lpctools.tools.canSpawnDisplay;
 
-import com.mojang.blaze3d.platform.GlConst;
-import com.mojang.blaze3d.systems.RenderSystem;
 import fi.dy.masa.malilib.util.SubChunkPos;
 import fi.dy.masa.malilib.util.Color4f;
 import it.unimi.dsi.fastutil.doubles.DoubleArrayList;
@@ -11,6 +9,7 @@ import lpctools.LPCTools;
 import lpctools.compact.derived.ShapeList;
 import lpctools.generic.GenericRegistry;
 import lpctools.generic.GenericUtils;
+import lpctools.lpcfymasaapi.Registries;
 import lpctools.lpcfymasaapi.Registry;
 import lpctools.lpcfymasaapi.configbutton.derivedConfigs.ArrayOptionListConfig;
 import lpctools.lpcfymasaapi.configbutton.derivedConfigs.RangeLimitConfig;
@@ -18,6 +17,9 @@ import lpctools.lpcfymasaapi.configbutton.transferredConfigs.BooleanConfig;
 import lpctools.lpcfymasaapi.configbutton.transferredConfigs.BooleanHotkeyConfig;
 import lpctools.lpcfymasaapi.configbutton.transferredConfigs.ColorConfig;
 import lpctools.lpcfymasaapi.configbutton.transferredConfigs.DoubleConfig;
+import lpctools.lpcfymasaapi.gl.*;
+import lpctools.lpcfymasaapi.gl.furtherWarpped.RenderBuffer;
+import lpctools.shader.ShaderPrograms;
 import lpctools.util.MathUtils;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientChunkEvents;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
@@ -26,10 +28,8 @@ import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents;
 import net.minecraft.block.BlockState;
 import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.gl.*;
+import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.network.ClientPlayerEntity;
-import net.minecraft.client.render.*;
-import net.minecraft.client.render.VertexFormat;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.util.math.*;
 import net.minecraft.world.World;
@@ -55,7 +55,7 @@ import static lpctools.lpcfymasaapi.LPCConfigStatics.*;
 import static lpctools.tools.ToolUtils.*;
 import static lpctools.util.AlgorithmUtils.*;
 
-public class CanSpawnDisplay implements WorldRenderEvents.Last, WorldRenderEvents.DebugRender, WorldRenderEvents.Start, Registry.ClientWorldChunkLightUpdated, ClientChunkEvents.Unload, Registry.ClientWorldChunkSetBlockState, ClientWorldEvents.AfterClientWorldChange, ClientTickEvents.StartTick, GenericRegistry.SpawnConditionChanged {
+public class CanSpawnDisplay implements WorldRenderEvents.Last, WorldRenderEvents.DebugRender, WorldRenderEvents.Start, Registry.ClientWorldChunkLightUpdated, ClientChunkEvents.Unload, Registry.ClientWorldChunkSetBlockState, ClientWorldEvents.AfterClientWorldChange, ClientTickEvents.StartTick, GenericRegistry.SpawnConditionChanged, Registries.ScreenChangeCallback {
     public static BooleanHotkeyConfig canSpawnDisplay;
     public static ColorConfig displayColor;
     public static RangeLimitConfig rangeLimit;
@@ -79,8 +79,11 @@ public class CanSpawnDisplay implements WorldRenderEvents.Last, WorldRenderEvent
     public static CanSpawnDisplay getInstance(){return instance;}
     public void onValueChanged(boolean newValue){
         if(newValue) {
-            if(Registry.registerWorldRenderLastCallback(this))
+            if(buffer == null){
+                buffer = allocateBuffer();
                 addAllIntoWork();
+            }
+            Registry.registerWorldRenderLastCallback(this);
             Registry.registerWorldRenderBeforeDebugRenderCallback(this);
             Registry.registerWorldRenderStartCallback(this);
             Registry.registerClientWorldChunkLightUpdatedCallback(this);
@@ -88,11 +91,16 @@ public class CanSpawnDisplay implements WorldRenderEvents.Last, WorldRenderEvent
             Registry.registerClientWorldChunkSetBlockStateCallback(this);
             Registry.registerClientWorldChangeCallback(this);
             Registry.registerStartClientTickCallback(this);
+            Registries.ON_SCREEN_CHANGED.register(this);
             GenericRegistry.SPAWN_CONDITION_CHANGED.register(this);
         }
         else{
-            if(Registry.unregisterWorldRenderLastCallback(this))
+            if(buffer != null){
                 clearAll();
+                buffer.close();
+                buffer = null;
+            }
+            Registry.unregisterWorldRenderLastCallback(this);
             Registry.unregisterWorldRenderBeforeDebugRenderCallback(this);
             Registry.unregisterWorldRenderStartCallback(this);
             Registry.unregisterClientWorldChunkLightUpdatedCallback(this);
@@ -100,6 +108,7 @@ public class CanSpawnDisplay implements WorldRenderEvents.Last, WorldRenderEvent
             Registry.unregisterClientWorldChunkSetBlockStateCallback(this);
             Registry.unregisterClientWorldChangeCallback(this);
             Registry.unregisterStartClientTickCallback(this);
+            Registries.ON_SCREEN_CHANGED.unregister(this);
             GenericRegistry.SPAWN_CONDITION_CHANGED.unregister(this);
         }
     }
@@ -155,6 +164,15 @@ public class CanSpawnDisplay implements WorldRenderEvents.Last, WorldRenderEvent
     }
     @Override public void onSpawnConditionChanged() {
         clearAll();
+        addAllIntoWork();
+    }
+    
+    @Override
+    public void onScreenChanged(Screen newScreen) {
+        ShapeList list = rangeLimit.buildShapeList();
+        if(list.equals(shapeList)) return;
+        clearAll();
+        shapeList = list;
         addAllIntoWork();
     }
     
@@ -279,7 +297,6 @@ public class CanSpawnDisplay implements WorldRenderEvents.Last, WorldRenderEvent
         ByteBuffer vertexBuffer = instance.vertexBuffer = MemoryUtil.memAlloc(lastBlockCount * vertexPerBlock * sizePerVertex);
         boolean xray = renderXRays.getAsBoolean();
         Vec3d cameraPos = instance.camPos;
-        ShapeList shapeList = rangeLimit.buildShapeList();
         double squaredRenderBlockDistance = renderDistance.getAsDouble() * renderDistance.getAsDouble() * 256;
         Vec3d cameraDiv16Pos = new Vec3d(cameraPos.x / 16, cameraPos.y / 16, cameraPos.z / 16);
         for(Vec3i vec : iterateFromClosestInDistance(cameraDiv16Pos, renderDistance.getAsDouble() + 0.866025403784439)) {
@@ -294,7 +311,7 @@ public class CanSpawnDisplay implements WorldRenderEvents.Last, WorldRenderEvent
                     for(BlockPos pos : posSet){
                         double d = pos.getSquaredDistance(cameraPos);
                         if(d > squaredRenderBlockDistance) continue;
-                        if(!shapeList.testPos(pos)) continue;
+                        if(!instance.shapeList.testPos(pos)) continue;
                         list.add(pos);
                         distance.add(d);
                         indexes.add(indexes.size());
@@ -352,42 +369,30 @@ public class CanSpawnDisplay implements WorldRenderEvents.Last, WorldRenderEvent
     }
     
     public void render(WorldRenderContext context) {
-        int color = displayColor.getIntegerValue();
         renderPrepareTask.join().join();renderPrepareTask = null;
         if (thisRenderIndexCount == 0) {
             MemoryUtil.memFree(indexBuffer);indexBuffer = null;
             MemoryUtil.memFree(vertexBuffer);vertexBuffer = null;
             return;
         }
-        GpuBuffer gpuIndexBuffer = new GpuBuffer(GlBufferTarget.INDICES, GlUsage.STATIC_WRITE, indexBuffer);
-        GpuBuffer gpuVertexBuffer = new GpuBuffer(GlBufferTarget.VERTICES, GlUsage.STATIC_WRITE, vertexBuffer);
+        int count = indexBuffer.remaining() / 4;
+        buffer.dataIndex(indexBuffer);
+        buffer.dataVertex(vertexBuffer);
         MemoryUtil.memFree(indexBuffer);indexBuffer = null;
         MemoryUtil.memFree(vertexBuffer);vertexBuffer = null;
-        //Framebuffer framebuffer = MinecraftClient.getInstance().getFramebuffer();
-        Matrix4fStack stack = RenderSystem.getModelViewStack();
-        stack.pushMatrix();
-        stack.mul(MathUtils.inverseOffsetMatrix4f(camPos.toVector3f()));
-        RenderSystem.setShaderColor(
-            ColorHelper.getRed(color) / 255.0f,
-            ColorHelper.getGreen(color) / 255.0f,
-            ColorHelper.getBlue(color) / 255.0f,
-            ColorHelper.getAlpha(color) / 255.0f);
-        RenderSystem.enableBlend();
-        if(renderXRays.getAsBoolean()) RenderSystem.disableDepthTest();
-        RenderSystem.setShader(method.getShader());
-        BufferRenderer.resetCurrentVertexBuffer();
-        ShaderProgram program = MinecraftClient.getInstance().getShaderLoader().getOrCreateProgram(method.getShader());
-        if(program != null){
-            gpuIndexBuffer.bind();
-            gpuVertexBuffer.bind();
-            program.bind();
-            RenderSystem.drawElements(VertexFormat.DrawMode.LINES.glMode, thisRenderIndexCount, GlConst.GL_UNSIGNED_INT);
-            program.unbind();
-        }
-        RenderSystem.setShaderColor(1.0f, 1.0f, 1.0f, 1.0f);
-        stack.popMatrix();
-        gpuIndexBuffer.close();
-        gpuVertexBuffer.close();
+        Matrix4f finalMatrix = MathUtils.inverseOffsetMatrix4f(camPos.toVector3f());
+        context.positionMatrix().mul(finalMatrix, finalMatrix);
+        context.projectionMatrix().mul(finalMatrix, finalMatrix);
+        buffer.program.setFinalMatrix(finalMatrix);
+        buffer.program.setColor32(displayColor.getIntegerValue());
+        try(MaskLayer ignored = new MaskLayer(
+            new Constants.EnableMask[]{
+                Constants.EnableMask.BLEND,
+                Constants.EnableMask.DEPTH_TEST,
+                Constants.EnableMask.CULL_FACE
+            },
+            new boolean[]{true, !renderXRays.getAsBoolean(), false}
+        )){buffer.renderWithIndexes(method.getDrawMode(), count);}
     }
     @Override public void onLast(WorldRenderContext context) {
         if(renderXRays.getAsBoolean()) render(context);
@@ -397,5 +402,10 @@ public class CanSpawnDisplay implements WorldRenderEvents.Last, WorldRenderEvent
     }
     @Override public void onStart(WorldRenderContext context) {
         renderPrepare(context);
+    }
+    private @NotNull ShapeList shapeList = ShapeList.emptyList();
+    private RenderBuffer<ShaderPrograms.PositionStaticColorProgram> buffer = null;
+    private RenderBuffer<ShaderPrograms.PositionStaticColorProgram> allocateBuffer(){
+        return new RenderBuffer<>(Constants.BufferMode.DYNAMIC_DRAW, ShaderPrograms.POSITION_STATIC_COLOR_PROGRAM);
     }
 }

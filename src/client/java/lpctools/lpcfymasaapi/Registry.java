@@ -21,6 +21,7 @@ import org.joml.Matrix4f;
 
 import java.util.LinkedHashSet;
 
+@Deprecated
 @SuppressWarnings({"UnusedReturnValue", "unused"})
 public class Registry {
     public static boolean registerStartClientTickCallback(ClientTickEvents.StartTick callback){

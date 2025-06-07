@@ -1,17 +1,23 @@
 package lpctools.shader;
 
 import lpctools.lpcfymasaapi.gl.Constants;
-import lpctools.lpcfymasaapi.gl.furtherWarpped.RenderBuffer;
+import lpctools.lpcfymasaapi.gl.furtherWarpped.ArrayListCachedRenderBuffer;
 import org.joml.Matrix4f;
 
+@SuppressWarnings("unused")
 public class RenderBuffers {
-    public static SimpleRenderBuffer simpleRenderBuffer(Constants.BufferMode bufferMode){
-        return new SimpleRenderBuffer(bufferMode);
+    public static PositionColorBuffer positionColorBuffer(Constants.BufferMode bufferMode){
+        return new PositionColorBuffer(bufferMode);
     }
-    
-    public static class SimpleRenderBuffer extends RenderBuffer<ShaderPrograms.SimpleProgram> implements ShaderPrograms.WithProjectionMatrix, ShaderPrograms.WithModelViewMatrix{
-        public SimpleRenderBuffer(Constants.BufferMode bufferMode) {super(bufferMode, ShaderPrograms.SIMPLE_PROGRAM);}
-        @Override public void setModelMatrix(Matrix4f matrix) {program.setModelMatrix(matrix);}
-        @Override public void setProjectionMatrix(Matrix4f matrix) {program.setProjectionMatrix(matrix);}
+    public static PositionStaticColorBuffer positionStaticColorBuffer(Constants.BufferMode bufferMode){
+        return new PositionStaticColorBuffer(bufferMode);
+    }
+    public static class PositionColorBuffer extends ArrayListCachedRenderBuffer<ShaderPrograms.PositionColorProgram> implements ShaderPrograms.WithFinalMatrix{
+        public PositionColorBuffer(Constants.BufferMode bufferMode) {super(bufferMode, ShaderPrograms.POSITION_COLOR_PROGRAM);}
+        @Override public void setFinalMatrix(Matrix4f matrix) {program.setFinalMatrix(matrix);}
+    }
+    public static class PositionStaticColorBuffer extends ArrayListCachedRenderBuffer<ShaderPrograms.PositionStaticColorProgram> implements ShaderPrograms.WithFinalMatrix{
+        public PositionStaticColorBuffer(Constants.BufferMode bufferMode) {super(bufferMode, ShaderPrograms.POSITION_STATIC_COLOR_PROGRAM);}
+        @Override public void setFinalMatrix(Matrix4f matrix) {program.setFinalMatrix(matrix);}
     }
 }

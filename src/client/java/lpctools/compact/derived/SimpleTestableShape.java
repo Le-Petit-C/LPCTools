@@ -2,6 +2,7 @@ package lpctools.compact.derived;
 
 import lpctools.compact.interfaces.ITestableShape;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.Box;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -57,5 +58,18 @@ public class SimpleTestableShape implements ITestableShape {
             list.add(newOf(true, true));
             return list;
         }
+    }
+    public record InsideBox(Box box) implements ShapeTester{
+        @Override public boolean isInsideShape(BlockPos pos) {return box.contains(pos.toCenterPos());}
+        @Override public boolean equals(Object object){
+            if(object instanceof InsideBox tester)
+                return box.equals(tester.box);
+            else return false;
+        }
+    }
+    @Override public boolean equals(Object object){
+        if(object instanceof SimpleTestableShape shape)
+            return tester.equals(shape.tester) && testType.equals(shape.testType);
+        else return false;
     }
 }
