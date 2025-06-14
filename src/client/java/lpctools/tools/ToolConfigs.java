@@ -14,7 +14,7 @@ import static lpctools.lpcfymasaapi.LPCConfigStatics.*;
 public class ToolConfigs {
     static ThirdListConfig FAConfig;
     static ThirdListConfig LCConfig;
-    static ThirdListConfig SXConfig;
+    static SlightXRay SXConfig;
     static ThirdListConfig AGConfig;
     static ThirdListConfig ASConfig;
     static ThirdListConfig CSConfig;
@@ -25,8 +25,7 @@ public class ToolConfigs {
             FillingAssistant.init();
             layer.set(LCConfig = addThirdListConfig(lastList, "LC", false));
             LiquidCleaner.init();
-            layer.set(SXConfig = addThirdListConfig(lastList, "SX", false));
-            SlightXRay.init();
+            SXConfig = lastList.addConfig(new SlightXRay(lastList));
             layer.set(AGConfig = addThirdListConfig(lastList, "AG", false));
             AutoGrindstone.init();
             layer.set(ASConfig = addThirdListConfig(lastList, "AS", false));

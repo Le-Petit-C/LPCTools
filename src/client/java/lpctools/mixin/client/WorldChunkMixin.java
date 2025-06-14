@@ -11,16 +11,21 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
+import static lpctools.lpcfymasaapi.Registries.CLIENT_WORLD_CHUNK_SET_BLOCK_STATE;
+
 @Mixin(WorldChunk.class)
 public class WorldChunkMixin {
     @Inject(method = "setBlockState", at = @At("RETURN"))
     void chunkSetBlockState(BlockPos pos, BlockState state, boolean moved, CallbackInfoReturnable<BlockState> cir){
         WorldChunk castedThis = (WorldChunk)(Object)this;
         if(!(castedThis.getWorld() instanceof ClientWorld)) return;
-        if(Registry.isClientChunkSetBlockStateCallbackEmpty()) return;
         ChunkPos chunkPos = castedThis.getPos();
         int rx = (pos.getX() & 15) + chunkPos.getStartX();
         int rz = (pos.getZ() & 15) + chunkPos.getStartZ();
-        Registry.runClientWorldChunkSetBlockState(castedThis, new BlockPos(rx, pos.getY(), rz), cir.getReturnValue(), state);
+        if(!Registry.isClientChunkSetBlockStateCallbackEmpty()){
+            Registry.runClientWorldChunkSetBlockState(castedThis, new BlockPos(rx, pos.getY(), rz), cir.getReturnValue(), state);
+        }
+        if(!CLIENT_WORLD_CHUNK_SET_BLOCK_STATE.isEmpty())
+            CLIENT_WORLD_CHUNK_SET_BLOCK_STATE.run().onClientWorldChunkSetBlockState(castedThis, new BlockPos(rx, pos.getY(), rz), cir.getReturnValue(), state);
     }
 }

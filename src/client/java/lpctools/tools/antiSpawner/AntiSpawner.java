@@ -2,7 +2,6 @@ package lpctools.tools.antiSpawner;
 
 import com.google.common.collect.ImmutableList;
 import lpctools.compact.derived.ShapeList;
-import lpctools.lpcfymasaapi.Registry;
 import lpctools.lpcfymasaapi.configbutton.derivedConfigs.LimitOperationSpeedConfig;
 import lpctools.lpcfymasaapi.configbutton.derivedConfigs.RangeLimitConfig;
 import lpctools.lpcfymasaapi.configbutton.derivedConfigs.ReachDistanceConfig;
@@ -49,8 +48,8 @@ public class AntiSpawner implements ClientTickEvents.EndTick {
         rangeLimitConfig = addRangeLimitConfig(false);
     }
     private static final AntiSpawner instance = new AntiSpawner();
-    public static void start(){Registry.registerEndClientTickCallback(instance);}
-    public static void stop(){Registry.unregisterEndClientTickCallback(instance);}
+    public static void start(){lpctools.lpcfymasaapi.Registries.END_CLIENT_TICK.register(instance);}
+    public static void stop(){lpctools.lpcfymasaapi.Registries.END_CLIENT_TICK.unregister(instance);}
     public static final ImmutableList<Item> defaultPlaceableItems;
     public static final ArrayList<Item> placeableItems;
     static {

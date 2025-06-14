@@ -31,10 +31,6 @@ public class AlgorithmUtils {
     public static Iterable<BlockPos> iterateFromClosestInDistance(Vec3d center, double distance){
         return () -> new InNearstIterator3D(center, distance);
     }
-    //从近到远遍历格点
-    public static Iterable<Vector2i> iterateFromClosest(Vector2i center){
-        return () -> new NearstIterator2i(center);
-    }
     //从远到近遍历方块
     public static Iterable<BlockPos> iterateFromFurthestInDistance(Vec3d center, double distance){
         ArrayList<BlockPos> list = new ArrayList<>();
@@ -42,6 +38,21 @@ public class AlgorithmUtils {
             list.add(pos.mutableCopy());
         Collections.reverse(list);
         return list;
+    }
+    //从近到远遍历格点
+    public static Iterable<Vector2i> iterateFromClosest(Vector2i center){
+        return () -> new NearstIterator2i(center);
+    }
+    public static Iterable<Vector2i> iterateFromClosestInDistance(Vector2i center, double distance){
+        return () -> new InNearstIterator2i(center, distance);
+    }
+    //从远到近遍历格点
+    public static ArrayList<Vector2i> iterateFromFurthestInDistance(Vector2i center, double distance){
+        ArrayList<Vector2i> result = new ArrayList<>();
+        for(Vector2i pos : iterateFromClosestInDistance(center, distance))
+            result.add(pos);
+        Collections.reverse(result);
+        return result;
     }
     //数据中是否有null
     public static boolean hasNull(Object... objects){
@@ -201,5 +212,13 @@ public class AlgorithmUtils {
             new Vector2i(0, 1),
             new Vector2i(-1, 0),
             new Vector2i(0, -1)};
+    }
+    public static class InNearstIterator2i extends NearstIterator2i {
+        public final double maxSquaredDistance;
+        InNearstIterator2i(@NotNull Vector2i center, double maxDistance) {
+            super(center);
+            maxSquaredDistance = maxDistance * maxDistance;
+        }
+        @Override public boolean hasNext() {return getNextDistance() <= maxSquaredDistance;}
     }
 }

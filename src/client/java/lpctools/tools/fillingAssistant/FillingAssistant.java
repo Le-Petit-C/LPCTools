@@ -1,6 +1,7 @@
 package lpctools.tools.fillingAssistant;
 
 import fi.dy.masa.malilib.hotkeys.KeyCallbackToggleBoolean;
+import lpctools.lpcfymasaapi.Registries;
 import lpctools.lpcfymasaapi.Registry;
 import lpctools.lpcfymasaapi.configbutton.derivedConfigs.*;
 import lpctools.lpcfymasaapi.configbutton.transferredConfigs.*;
@@ -26,13 +27,13 @@ public class FillingAssistant {
         if(runner != null) return;
         runner = new PlaceBlockTick();
         fillingAssistant.setBooleanValue(true);
-        Registry.registerEndClientTickCallback(runner);
+        Registries.END_CLIENT_TICK.register(runner);
         Registry.registerInGameEndMouseCallback(runner);
         displayEnableMessage(fillingAssistant);
     }
     public static void disableTool(@Nullable String reasonKey){
         if(runner == null) return;
-        Registry.unregisterEndClientTickCallback(runner);
+        Registries.END_CLIENT_TICK.unregister(runner);
         Registry.unregisterInGameEndMouseCallback(runner);
         runner = null;
         fillingAssistant.setBooleanValue(false);

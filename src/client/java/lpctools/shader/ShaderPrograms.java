@@ -32,7 +32,7 @@ public class ShaderPrograms {
         public PositionStaticColorProgram() {super(VertexShaders.position_translation, FragmentShaders.static_color, VertexTypes.POSITION);}
         @Override public void setFinalMatrix(Matrix4f matrix) {matrixUniform.set(matrix);}
         @Override public void setColor4f(Vector4f color) {colorUniform.set(color);}
-        @Override public void setColor32(int color) {setColor4f(DataUtils.argbToVectorABGRf(color));}
+        @Override public void setColor32(int color) {setColor4f(DataUtils.argb2VectorABGRf(color));}
     }
     
     public static void init(){}

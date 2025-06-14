@@ -6,11 +6,11 @@ import lpctools.lpcfymasaapi.configbutton.derivedConfigs.ThirdListConfig;
 import lpctools.lpcfymasaapi.configbutton.transferredConfigs.BooleanConfig;
 import lpctools.lpcfymasaapi.configbutton.transferredConfigs.IntegerConfig;
 import lpctools.lpcfymasaapi.configbutton.transferredConfigs.StringListConfig;
+import lpctools.util.javaex.PriorityThreadPoolExecutor;
 import net.minecraft.block.Block;
 import net.minecraft.block.Blocks;
 
 import java.util.HashSet;
-import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
@@ -48,13 +48,14 @@ public class GenericConfigs {
     }
     
     private static void threadCountConfigCallback(){
-        if(threadPool != null)
-            threadPool.shutdown();
-        threadPool = new ThreadPoolExecutor(
+        PriorityThreadPoolExecutor newPool;
+        newPool = new PriorityThreadPoolExecutor(
             threadCountConfig.getAsInt(), threadCountConfig.getAsInt(),
-            1, TimeUnit.SECONDS,
-            new LinkedBlockingQueue<>()
+            1, TimeUnit.SECONDS
         );
+        ThreadPoolExecutor oldPool = threadPool;
+        threadPool = newPool;
+        if(oldPool != null) oldPool.close();
     }
 
     public static ConfigOpenGuiConfig configOpenGuiConfig;
@@ -72,5 +73,5 @@ public class GenericConfigs {
     );
     public static final HashSet<Block> extraSpawnBlocks = new HashSet<>(defaultExtraSpawnBlocks);
     public static final HashSet<Block> extraNoSpawnBlocks = new HashSet<>(defaultExtraNoSpawnBlocks);
-    public static ThreadPoolExecutor threadPool;
+    public static PriorityThreadPoolExecutor threadPool;
 }

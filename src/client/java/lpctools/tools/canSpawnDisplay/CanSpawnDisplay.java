@@ -90,7 +90,7 @@ public class CanSpawnDisplay implements WorldRenderEvents.Last, WorldRenderEvent
             Registry.registerClientChunkUnloadCallback(this);
             Registry.registerClientWorldChunkSetBlockStateCallback(this);
             Registry.registerClientWorldChangeCallback(this);
-            Registry.registerStartClientTickCallback(this);
+            Registries.START_CLIENT_TICK.register(this);
             Registries.ON_SCREEN_CHANGED.register(this);
             GenericRegistry.SPAWN_CONDITION_CHANGED.register(this);
         }
@@ -107,7 +107,7 @@ public class CanSpawnDisplay implements WorldRenderEvents.Last, WorldRenderEvent
             Registry.unregisterClientChunkUnloadCallback(this);
             Registry.unregisterClientWorldChunkSetBlockStateCallback(this);
             Registry.unregisterClientWorldChangeCallback(this);
-            Registry.unregisterStartClientTickCallback(this);
+            Registries.START_CLIENT_TICK.unregister(this);
             Registries.ON_SCREEN_CHANGED.unregister(this);
             GenericRegistry.SPAWN_CONDITION_CHANGED.unregister(this);
         }
