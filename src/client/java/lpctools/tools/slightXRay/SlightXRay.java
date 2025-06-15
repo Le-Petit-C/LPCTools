@@ -48,6 +48,7 @@ public class SlightXRay extends ThirdListConfig{
     public final DoubleConfig saturationDelta;
     public final DoubleConfig brightnessDelta;
     public final IntegerConfig defaultAlpha;
+    public final BooleanConfig useCullFace;
     static {
         XRayBlocks = new HashMap<>();
         for(Block block : defaultXRayBlocks)
@@ -77,6 +78,7 @@ public class SlightXRay extends ThirdListConfig{
             saturationDelta = addDoubleConfig(byTextureColor, "saturationDelta", 1, -5, 5, this::refreshXRayBlocks);
             brightnessDelta = addDoubleConfig(byTextureColor, "brightnessDelta", 1, -5, 5, this::refreshXRayBlocks);
             XRayBlocksConfig = addStringListConfig("XRayBlocks", defaultXRayBlockIds, this::refreshXRayBlocks);
+            useCullFace = addBooleanConfig("useCullFace", true);
             displayRange = addRangeLimitConfig(false);
         }
     }
@@ -138,6 +140,7 @@ public class SlightXRay extends ThirdListConfig{
             }
             else warnInvalidString(str);
         }
+        if (renderInstance != null) renderInstance.colorChanged();
         synchronized (XRayBlocks){
             if(XRayBlocks.keySet().equals(newBlocks.keySet())) {
                 for(Map.Entry<Block, MutableInt> block : newBlocks.entrySet())
@@ -159,7 +162,7 @@ public class SlightXRay extends ThirdListConfig{
     private void switchChanged() {
         if(slightXRay.getAsBoolean()){
             if(renderInstance == null)
-                renderInstance = new RenderInstance(MinecraftClient.getInstance());
+                renderInstance = new RenderInstance(this, MinecraftClient.getInstance());
         }
         else {
             if(renderInstance != null) {

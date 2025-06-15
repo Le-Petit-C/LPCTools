@@ -91,6 +91,8 @@
   "lpctools.configs.tools.SX.defaultColorMethod.byTextureColor.brightnessDelta.comment": "Modifies the brightness from the texture color by an algorithm (hyperbolic tangent based actually)",
   "lpctools.configs.tools.SX.XRayBlocks.name": "XRay Blocks",
   "lpctools.configs.tools.SX.XRayBlocks.comment": "Choose blocks to be highlight",
+  "lpctools.configs.tools.SX.useCullFace.name": "Use Cull Face",
+  "lpctools.configs.tools.SX.useCullFace.comment": "Decide whether use Cull Face when rendering",
   "lpctools.configs.tools.AG.name": "Auto Grindstone Configs",
   "lpctools.configs.tools.AG.comment": "Enable to list Auto Grindstone Configs\nThis tool helps you erase useless enchantments",
   "lpctools.configs.tools.AG.autoGrindstone.name": "Auto Grindstone",

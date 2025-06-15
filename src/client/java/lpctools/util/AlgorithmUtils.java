@@ -6,7 +6,11 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.ChunkPos;
 import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.Vec3d;
+import net.minecraft.world.World;
+import net.minecraft.world.chunk.Chunk;
+import net.minecraft.world.chunk.ChunkStatus;
 import org.jetbrains.annotations.NotNull;
+import org.joml.Vector2d;
 import org.joml.Vector2i;
 
 import java.util.*;
@@ -56,6 +60,60 @@ public class AlgorithmUtils {
             result.add(pos);
         Collections.reverse(result);
         return result;
+    }
+    //从近到远遍历已加载的区块
+    public static Iterable<Chunk> iterateLoadedChunksFromClosest(World world, Vector2d center){
+        return new Iterable<>() {
+            @Override public @NotNull Iterator<Chunk> iterator() {
+                return new Iterator<>() {
+                    private final Vector2d compareCenter = center.mul(1.0 / 16, new Vector2d());
+                    private double getSquaredDistance(ChunkPos pos){
+                        double dx = (pos.x - compareCenter.x);
+                        double dy = (pos.z - compareCenter.y);
+                        return dx * dx + dy * dy;
+                    }
+                    private final HashSet<ChunkPos> remainingPoses = new HashSet<>();
+                    private final PriorityQueue<Chunk> remainingChunks = initRemainingChunks();
+                    private PriorityQueue<Chunk> initRemainingChunks(){
+                        PriorityQueue<Chunk> ret = new PriorityQueue<>(Comparator.comparingDouble(v->getSquaredDistance(v.getPos())));
+                        ChunkPos chunkPos = new ChunkPos((int)Math.floor(compareCenter.x + 0.5), (int)Math.floor(compareCenter.y + 0.5));
+                        Chunk chunk;
+                        chunk = world.getChunk(chunkPos.x, chunkPos.z, ChunkStatus.FULL, false);
+                        if(chunk != null) {ret.add(chunk);remainingPoses.add(chunk.getPos());}
+                        chunk = world.getChunk(chunkPos.x + 1, chunkPos.z, ChunkStatus.FULL, false);
+                        if(chunk != null) {ret.add(chunk);remainingPoses.add(chunk.getPos());}
+                        chunk = world.getChunk(chunkPos.x, chunkPos.z + 1, ChunkStatus.FULL, false);
+                        if(chunk != null) {ret.add(chunk);remainingPoses.add(chunk.getPos());}
+                        chunk = world.getChunk(chunkPos.x + 1, chunkPos.z + 1, ChunkStatus.FULL, false);
+                        if(chunk != null) {ret.add(chunk);remainingPoses.add(chunk.getPos());}
+                        return ret;
+                    }
+                    @Override public boolean hasNext() {
+                        return !remainingChunks.isEmpty();
+                    }
+                    @Override public Chunk next() {
+                        Chunk chunk = remainingChunks.remove();
+                        ChunkPos pos = chunk.getPos();
+                        remainingPoses.remove(pos);
+                        double distanceSquared = getSquaredDistance(pos);
+                        ChunkPos pos1;
+                        pos1 = new ChunkPos(pos.x - 1, pos.z);
+                        if(getSquaredDistance(pos1) > distanceSquared && world.getChunk(pos1.x, pos1.z, ChunkStatus.FULL, false) instanceof Chunk chunk1 && remainingPoses.add(chunk1.getPos()))
+                            remainingChunks.add(chunk1);
+                        pos1 = new ChunkPos(pos.x + 1, pos.z);
+                        if(getSquaredDistance(pos1) > distanceSquared && world.getChunk(pos1.x, pos1.z, ChunkStatus.FULL, false) instanceof Chunk chunk1 && remainingPoses.add(chunk1.getPos()))
+                            remainingChunks.add(chunk1);
+                        pos1 = new ChunkPos(pos.x, pos.z - 1);
+                        if(getSquaredDistance(pos1) > distanceSquared && world.getChunk(pos1.x, pos1.z, ChunkStatus.FULL, false) instanceof Chunk chunk1 && remainingPoses.add(chunk1.getPos()))
+                            remainingChunks.add(chunk1);
+                        pos1 = new ChunkPos(pos.x, pos.z + 1);
+                        if(getSquaredDistance(pos1) > distanceSquared && world.getChunk(pos1.x, pos1.z, ChunkStatus.FULL, false) instanceof Chunk chunk1 && remainingPoses.add(chunk1.getPos()))
+                            remainingChunks.add(chunk1);
+                        return chunk;
+                    }
+                };
+            }
+        };
     }
     //数据中是否有null
     public static boolean hasNull(Object... objects){

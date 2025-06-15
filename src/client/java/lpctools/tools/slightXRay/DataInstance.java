@@ -24,7 +24,7 @@ import net.minecraft.world.chunk.WorldChunk;
 import org.apache.commons.lang3.mutable.MutableInt;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.joml.Vector2i;
+import org.joml.Vector2d;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -118,10 +118,12 @@ public class DataInstance implements AutoCloseable, ClientChunkEvents.Load, Clie
     }
     
     private void addAllRegionsIntoWork(ClientWorld world, ClientPlayerEntity player){
-        ChunkPos chunkPos = player.getChunkPos();
-        Vec3d playerPos = player.getPos();
-        for(Vector2i vec : AlgorithmUtils.iterateFromClosestInDistance(new Vector2i(chunkPos.x, chunkPos.z), client.options.getViewDistance().getValue()))
-            testChunkAsync(world, new ChunkPos(vec.x, vec.y), playerPos.distanceTo(new Vec3d(vec.x * 16 + 8.0, playerPos.y, vec.y * 16 + 8.0)));
+        Vec3d p1 = player.getPos();
+        Vector2d playerPos = new Vector2d(p1.x, p1.z);
+        for(Chunk chunk : AlgorithmUtils.iterateLoadedChunksFromClosest(world, playerPos)){
+            ChunkPos chunkPos = chunk.getPos();
+            testChunkAsync(world, chunkPos, playerPos.distanceSquared(chunkPos.x * 16 + 8.0, chunkPos.z * 16 + 8.0));
+        }
     }
     private void clearAll(){
         AlgorithmUtils.cancelTasks(updateFutures, v->v.future);
