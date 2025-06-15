@@ -16,6 +16,7 @@ import net.minecraft.block.BlockState;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.client.world.ClientWorld;
+import net.minecraft.util.Pair;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.ChunkPos;
 import net.minecraft.util.math.Direction;
@@ -23,6 +24,7 @@ import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.chunk.WorldChunk;
 import org.apache.commons.lang3.mutable.MutableInt;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.joml.Matrix4f;
 import org.joml.Vector2i;
 import org.lwjgl.system.MemoryUtil;
@@ -31,7 +33,8 @@ import java.nio.ByteBuffer;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 
-public class RenderInstance extends DataInstance implements DataInstance.OnXRayChunkUpdated, WorldRenderEvents.End, WorldRenderEvents.Start {
+public class RenderInstance extends DataInstance implements DataInstance.OnXRayChunkLoadedOrUnloaded, WorldRenderEvents.End, WorldRenderEvents.Start {
+    @NotNull Vec3d lastCamPos = Vec3d.ZERO;
     RenderInstance(MinecraftClient client){
         super(client);
         ON_XRAY_CHUNK_UPDATED.register(this);
@@ -47,12 +50,18 @@ public class RenderInstance extends DataInstance implements DataInstance.OnXRayC
         vertexBuffers.clear();
         super.close();
     }
-    @Override public void onXRayChunkUpdated(ChunkPos pos, HashMap<BlockPos, MutableInt> markedPoses) {
-        buildQuadBufferAsync(pos, super.markedPoses);
-        buildQuadBufferAsync(new ChunkPos(pos.x - 1, pos.z), super.markedPoses);
-        buildQuadBufferAsync(new ChunkPos(pos.x + 1, pos.z), super.markedPoses);
-        buildQuadBufferAsync(new ChunkPos(pos.x, pos.z - 1), super.markedPoses);
-        buildQuadBufferAsync(new ChunkPos(pos.x, pos.z + 1), super.markedPoses);
+    @Override public void onXRayChunkLoadedOrUnloaded(ChunkPos pos, double distanceSquare) {
+        HashMap<BlockPos, MutableInt> poses = super.markedPoses.get(pos);
+        if(poses == null){
+            QuadBuffer buffer = vertexBuffers.remove(pos);
+            if(buffer != null) buffer.close();
+            return;
+        }
+        buildQuadBufferAsync(pos, super.markedPoses, distanceSquare);
+        buildQuadBufferAsync(new ChunkPos(pos.x - 1, pos.z), super.markedPoses, distanceSquare);
+        buildQuadBufferAsync(new ChunkPos(pos.x + 1, pos.z), super.markedPoses, distanceSquare);
+        buildQuadBufferAsync(new ChunkPos(pos.x, pos.z - 1), super.markedPoses, distanceSquare);
+        buildQuadBufferAsync(new ChunkPos(pos.x, pos.z + 1), super.markedPoses, distanceSquare);
     }
     
     private void removePos(BlockPos pos){
@@ -68,13 +77,7 @@ public class RenderInstance extends DataInstance implements DataInstance.OnXRayC
         QuadBuffer currentBuffer = vertexBuffers.get(new ChunkPos(pos));
         if(currentBuffer == null) return;
         ArrayList<RenderQuad> quads = currentBuffer.quads;
-        for(int a = 0; a < quads.size(); ++a){
-            while(quads.get(a).attachedBlock.equals(pos)){
-                Collections.swap(quads, a, quads.size() - 1);
-                quads.removeLast();
-                if(a >= quads.size()) break;
-            }
-        }
+        AlgorithmUtils.fastRemove(quads, v->v.attachedBlock.equals(pos));
         currentBuffer.refreshByteBuffer();
     }
     private void addPos(BlockPos pos, MutableInt currentColor){
@@ -91,13 +94,7 @@ public class RenderInstance extends DataInstance implements DataInstance.OnXRayC
             if(buffer == null) continue;
             ArrayList<RenderQuad> nextQuads = buffer.quads;
             Direction opposite = direction.getOpposite();
-            for(int a = 0; a < nextQuads.size(); ++a){
-                RenderQuad quad = nextQuads.get(a);
-                if(!quad.attachedBlock.equals(nextPos) || !quad.direction.equals(opposite)) continue;
-                Collections.swap(nextQuads, a, nextQuads.size() - 1);
-                nextQuads.removeLast();
-                break;
-            }
+            AlgorithmUtils.fastRemove(nextQuads, v->v.attachedBlock.equals(nextPos) && v.direction.equals(opposite));
             buffer.refreshByteBuffer();
         }
         if(currentBuffer != null) currentBuffer.refreshByteBuffer();
@@ -116,15 +113,23 @@ public class RenderInstance extends DataInstance implements DataInstance.OnXRayC
         }
     }
     
+    @Override public void afterWorldChange(MinecraftClient mc, ClientWorld world) {
+        super.afterWorldChange(mc, world);
+        AlgorithmUtils.cancelTasks(asyncQuadBufferBuilders, Pair::getRight);
+        for(QuadBuffer buffer : vertexBuffers.values()) buffer.close();
+        vertexBuffers.clear();
+    }
+    
     @Override public void onStartTick(MinecraftClient mc){
         super.onStartTick(mc);
-        ArrayList<ChunkPos> completedFutures = new ArrayList<>();
-        for(Map.Entry<ChunkPos, CompletableFuture<QuadBuffer>> entry : asyncQuadBufferBuilders.entrySet()){
-            if(!entry.getValue().isDone()) continue;
-            completedFutures.add(entry.getKey());
-            vertexBuffers.put(entry.getKey(), entry.getValue().join());
+        HashSet<ChunkPos> completedFutures = new HashSet<>();
+        for(Pair<ChunkPos, CompletableFuture<QuadBuffer>> entry : asyncQuadBufferBuilders){
+            if(!entry.getRight().isDone()) continue;
+            completedFutures.add(entry.getLeft());
+            QuadBuffer old = vertexBuffers.put(entry.getLeft(), entry.getRight().join());
+            if(old != null) old.close();
         }
-        completedFutures.forEach(asyncQuadBufferBuilders::remove);
+        AlgorithmUtils.fastRemove(asyncQuadBufferBuilders, v->completedFutures.contains(v.getLeft()));
     }
     private void sort(ArrayList<RenderQuad> quads, Vec3d cam){
         quads.sort(Comparator.<RenderQuad>comparingDouble(quad -> quad.centerPos.squaredDistanceTo(cam)).reversed());
@@ -140,9 +145,9 @@ public class RenderInstance extends DataInstance implements DataInstance.OnXRayC
         ChunkPos chunkPos = new ChunkPos(BlockPos.ofFloored(camPos));
         int maxShapeCount = 0;
         ArrayList<CompletableFuture<QuadBuffer>> renderBufferBuilders = new ArrayList<>();
-        for(Vector2i vec : AlgorithmUtils.iterateFromClosestInDistance(new Vector2i(chunkPos.x, chunkPos.z), client.options.getViewDistance().getValue())){
+        for(Vector2i vec : AlgorithmUtils.iterateFromFurthestInDistance(new Vector2i(chunkPos.x, chunkPos.z), client.options.getViewDistance().getValue())){
             QuadBuffer buffer = vertexBuffers.get(new ChunkPos(vec.x, vec.y));
-            if(buffer == null) continue;
+            if(buffer == null || buffer.quads.isEmpty()) continue;
             if(buffer.quads.size() > maxShapeCount) maxShapeCount = buffer.quads.size();
             renderBufferBuilders.add(CompletableFuture.supplyAsync(()->asyncPrepareRenderChunk(buffer, camPos)));
         }
@@ -158,44 +163,46 @@ public class RenderInstance extends DataInstance implements DataInstance.OnXRayC
     @Override public void onEnd(WorldRenderContext context) {
         RenderPrepareResult result = renderTask.join();
         ensureIndexBufferSize(result.maxShapeCount);
-        try(VertexArray array = new VertexArray(); Buffer vertexBuffer = new Buffer();
-            MaskLayer ignored = new MaskLayer(
-                new Constants.EnableMask[]{
-                    Constants.EnableMask.DEPTH_TEST,
-                    Constants.EnableMask.CULL_FACE,
-                    Constants.EnableMask.BLEND},
-                new boolean[]{false, true, true}
-            )){
+        try(VertexArray array = new VertexArray();
+            MaskLayer layer = new MaskLayer()){
+            layer.enableBlend().enableCullFace().disableDepthTest();
             array.bind();
             indexBuffer.bindAsElementArray();
-            vertexBuffer.bindAsArray();
             ShaderPrograms.PositionColorProgram program = ShaderPrograms.POSITION_COLOR_PROGRAM;
-            program.attrib.attribAndEnable();
             Matrix4f mat = MathUtils.inverseOffsetMatrix4f(context.camera().getPos().toVector3f());
             context.positionMatrix().mul(mat, mat);
             context.projectionMatrix().mul(mat, mat);
             program.setFinalMatrix(mat);
             for(CompletableFuture<QuadBuffer> future : result.futures){
                 QuadBuffer quadBuffer = future.join();
-                vertexBuffer.data(quadBuffer.byteBuffer, Constants.BufferMode.STATIC_DRAW);
+                quadBuffer.dataAndBind();
+                program.attrib.attribAndEnable();
                 program.useAndUniform();
                 Constants.DrawMode.TRIANGLES.drawElements(quadBuffer.quads.size() * 6, Constants.IndexType.INT);
             }
             array.unbind();
         }
+        lastCamPos = context.camera().getPos();
     }
     private static class QuadBuffer implements AutoCloseable{
         public final ArrayList<RenderQuad> quads;
         public @NotNull ByteBuffer byteBuffer;
+        public @Nullable Buffer vertexBuffer;
         QuadBuffer(ArrayList<RenderQuad> quads){
             this.quads = quads;
             byteBuffer = MemoryUtil.memAlloc(getQuadBufferSize());
         }
         @Override public void close() {
             MemoryUtil.memFree(byteBuffer);
+            if(vertexBuffer != null) vertexBuffer.close();
         }
         public void refreshByteBuffer(){
             byteBuffer = MemoryUtil.memRealloc(byteBuffer, getQuadBufferSize());
+        }
+        public void dataAndBind(){
+            if(vertexBuffer == null) vertexBuffer = new Buffer();
+            vertexBuffer.data(byteBuffer, Constants.BufferMode.DYNAMIC_DRAW);
+            vertexBuffer.bindAsArray();
         }
         public int getQuadBufferSize(){
             //quads.size() * vertexPerQuad * sizePerVertex
@@ -220,8 +227,8 @@ public class RenderInstance extends DataInstance implements DataInstance.OnXRayC
         indexBuffer.data(buffer, Constants.BufferMode.DYNAMIC_DRAW);
     }
     
-    private final HashMap<ChunkPos, CompletableFuture<QuadBuffer>> asyncQuadBufferBuilders = new HashMap<>();
-    private void buildQuadBufferAsync(ChunkPos pos, HashMap<ChunkPos, HashMap<BlockPos, MutableInt>> markedPoses){
+    private final ArrayList<Pair<ChunkPos, CompletableFuture<QuadBuffer>>> asyncQuadBufferBuilders = new ArrayList<>();
+    private void buildQuadBufferAsync(ChunkPos pos, HashMap<ChunkPos, HashMap<BlockPos, MutableInt>> markedPoses, double priority){
         HashMap<BlockPos, MutableInt> current, west, east, north, south;
         current = markedPoses.get(pos);
         if(current == null) return;
@@ -230,8 +237,8 @@ public class RenderInstance extends DataInstance implements DataInstance.OnXRayC
         north = markedPoses.get(new ChunkPos(pos.x, pos.z - 1));
         south = markedPoses.get(new ChunkPos(pos.x, pos.z + 1));
         if(west == null || east == null || north == null || south == null) return;
-        asyncQuadBufferBuilders.put(pos, GenericUtils.supplyAsync(()->asyncBuildQuadBuffer(current,
-            Sets.union(Sets.union(west.keySet(), east.keySet()), Sets.union(north.keySet(), south.keySet())))));
+        asyncQuadBufferBuilders.add(new Pair<>(pos, GenericUtils.supplyAsync(()->asyncBuildQuadBuffer(current,
+            Sets.union(Sets.union(west.keySet(), east.keySet()), Sets.union(north.keySet(), south.keySet()))), priority)));
     }
     //nearBlocks不推荐包含current中的BlockPos
     private static QuadBuffer asyncBuildQuadBuffer(HashMap<BlockPos, MutableInt> current, Set<BlockPos> nearBlocks){

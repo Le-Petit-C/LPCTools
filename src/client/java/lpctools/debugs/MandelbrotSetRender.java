@@ -38,13 +38,8 @@ public class MandelbrotSetRender extends ThirdListConfig implements WorldRenderE
     }
     
     @Override public void beforeDebugRender(WorldRenderContext context) {
-        try(MaskLayer ignored = new MaskLayer(
-            new Constants.EnableMask[]{
-                Constants.EnableMask.BLEND,
-                Constants.EnableMask.CULL_FACE,
-                Constants.EnableMask.DEPTH_TEST
-            }, new boolean[]{true, false, true}
-        )){
+        try(MaskLayer layer = new MaskLayer()){
+            layer.enableBlend().disableCullFace().enableDepthTest();
             double y = 1;
             double stretch = this.stretch.getAsDouble();
             double a = stretch * 2;

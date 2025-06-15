@@ -55,7 +55,7 @@ import static lpctools.lpcfymasaapi.LPCConfigStatics.*;
 import static lpctools.tools.ToolUtils.*;
 import static lpctools.util.AlgorithmUtils.*;
 
-public class CanSpawnDisplay implements WorldRenderEvents.Last, WorldRenderEvents.DebugRender, WorldRenderEvents.Start, Registry.ClientWorldChunkLightUpdated, ClientChunkEvents.Unload, Registry.ClientWorldChunkSetBlockState, ClientWorldEvents.AfterClientWorldChange, ClientTickEvents.StartTick, GenericRegistry.SpawnConditionChanged, Registries.ScreenChangeCallback {
+public class CanSpawnDisplay implements WorldRenderEvents.Last, WorldRenderEvents.DebugRender, WorldRenderEvents.Start, Registry.ClientWorldChunkLightUpdated, ClientChunkEvents.Unload, Registries.ClientWorldChunkSetBlockState, ClientWorldEvents.AfterClientWorldChange, ClientTickEvents.StartTick, GenericRegistry.SpawnConditionChanged, Registries.ScreenChangeCallback {
     public static BooleanHotkeyConfig canSpawnDisplay;
     public static ColorConfig displayColor;
     public static RangeLimitConfig rangeLimit;
@@ -88,7 +88,7 @@ public class CanSpawnDisplay implements WorldRenderEvents.Last, WorldRenderEvent
             Registry.registerWorldRenderStartCallback(this);
             Registry.registerClientWorldChunkLightUpdatedCallback(this);
             Registry.registerClientChunkUnloadCallback(this);
-            Registry.registerClientWorldChunkSetBlockStateCallback(this);
+            Registries.CLIENT_WORLD_CHUNK_SET_BLOCK_STATE.register(this);
             Registry.registerClientWorldChangeCallback(this);
             Registries.START_CLIENT_TICK.register(this);
             Registries.ON_SCREEN_CHANGED.register(this);
@@ -105,7 +105,7 @@ public class CanSpawnDisplay implements WorldRenderEvents.Last, WorldRenderEvent
             Registry.unregisterWorldRenderStartCallback(this);
             Registry.unregisterClientWorldChunkLightUpdatedCallback(this);
             Registry.unregisterClientChunkUnloadCallback(this);
-            Registry.unregisterClientWorldChunkSetBlockStateCallback(this);
+            Registries.CLIENT_WORLD_CHUNK_SET_BLOCK_STATE.unregister(this);
             Registry.unregisterClientWorldChangeCallback(this);
             Registries.START_CLIENT_TICK.unregister(this);
             Registries.ON_SCREEN_CHANGED.unregister(this);
@@ -385,14 +385,10 @@ public class CanSpawnDisplay implements WorldRenderEvents.Last, WorldRenderEvent
         context.projectionMatrix().mul(finalMatrix, finalMatrix);
         buffer.program.setFinalMatrix(finalMatrix);
         buffer.program.setColor32(displayColor.getIntegerValue());
-        try(MaskLayer ignored = new MaskLayer(
-            new Constants.EnableMask[]{
-                Constants.EnableMask.BLEND,
-                Constants.EnableMask.DEPTH_TEST,
-                Constants.EnableMask.CULL_FACE
-            },
-            new boolean[]{true, !renderXRays.getAsBoolean(), false}
-        )){buffer.renderWithIndexes(method.getDrawMode(), count);}
+        try(MaskLayer layer = new MaskLayer()){
+            layer.enableBlend().disableCullFace().enableDepthTest(!renderXRays.getAsBoolean());
+            buffer.renderWithIndexes(method.getDrawMode(), count);
+        }
     }
     @Override public void onLast(WorldRenderContext context) {
         if(renderXRays.getAsBoolean()) render(context);

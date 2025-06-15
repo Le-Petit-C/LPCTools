@@ -83,12 +83,6 @@ public class Registry {
     public static boolean unregisterClientWorldChangeCallback(ClientWorldEvents.AfterClientWorldChange callback){
         return clientWorldChangeCallbacks.remove(callback);
     }
-    public static boolean registerClientWorldChunkSetBlockStateCallback(ClientWorldChunkSetBlockState callback){
-        return clientWorldChunkSetBlockStateCallback.add(callback);
-    }
-    public static boolean unregisterClientWorldChunkSetBlockStateCallback(ClientWorldChunkSetBlockState callback){
-        return clientWorldChunkSetBlockStateCallback.remove(callback);
-    }
     public static boolean registerClientWorldChunkLightUpdatedCallback(ClientWorldChunkLightUpdated callback){
         return clientWorldChunkLightUpdatedCallback.add(callback);
     }
@@ -139,10 +133,6 @@ public class Registry {
         for(ClientWorldEvents.AfterClientWorldChange callback : clientWorldChangeCallbacks)
             callback.afterWorldChange(mc, world);
     }
-    public static void runClientWorldChunkSetBlockState(WorldChunk chunk, BlockPos pos, BlockState lastState, BlockState newState){
-        for(ClientWorldChunkSetBlockState callback : clientWorldChunkSetBlockStateCallback)
-            callback.onClientWorldChunkSetBlockState(chunk, pos, lastState, newState);
-    }
     public static void runClientWorldChunkLightUpdated(WorldChunk chunk){
         for(ClientWorldChunkLightUpdated callback : clientWorldChunkLightUpdatedCallback)
             callback.onClientWorldChunkLightUpdated(chunk);
@@ -172,10 +162,8 @@ public class Registry {
     @NotNull private static final LinkedHashSet<WorldRenderEvents.End> worldRenderEndCallbacks = new LinkedHashSet<>();
     @NotNull private static final LinkedHashSet<ClientChunkEvents.Unload> clientChunkUnloadCallbacks = new LinkedHashSet<>();
     @NotNull private static final LinkedHashSet<ClientWorldEvents.AfterClientWorldChange> clientWorldChangeCallbacks = new LinkedHashSet<>();
-    @NotNull private static final LinkedHashSet<ClientWorldChunkSetBlockState> clientWorldChunkSetBlockStateCallback = new LinkedHashSet<>();
     @NotNull private static final LinkedHashSet<ClientWorldChunkLightUpdated> clientWorldChunkLightUpdatedCallback = new LinkedHashSet<>();
     
-    public static boolean isClientChunkSetBlockStateCallbackEmpty(){return clientWorldChunkSetBlockStateCallback.isEmpty();}
     public interface InGameEndMouse {
         void onInGameEndMouse(int button, int action, int mods);
     }

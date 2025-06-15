@@ -22,40 +22,47 @@ import net.minecraft.world.chunk.Chunk;
 import net.minecraft.world.chunk.ChunkStatus;
 import net.minecraft.world.chunk.WorldChunk;
 import org.apache.commons.lang3.mutable.MutableInt;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Vector2i;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Map;
+import java.util.HashSet;
 import java.util.concurrent.CompletableFuture;
 
 import static lpctools.util.AlgorithmUtils.iterateInManhattanDistance;
 import static lpctools.util.BlockUtils.isFluid;
 
 public class DataInstance implements AutoCloseable, ClientChunkEvents.Load, ClientChunkEvents.Unload, ClientWorldEvents.AfterClientWorldChange, Registries.ClientWorldChunkSetBlockState, ClientTickEvents.StartTick {
+    public @NotNull Vec3d lastPlayerEyePos = Vec3d.ZERO;
+    private void updateLastPlayerEyePos(MinecraftClient mc){
+        if(mc.player != null) lastPlayerEyePos = mc.player.getEyePos();
+    }
     public final HashMap<ChunkPos, HashMap<BlockPos, MutableInt>> markedPoses;
-    public final UnregistrableRegistry<OnXRayChunkUpdated> ON_XRAY_CHUNK_UPDATED = new UnregistrableRegistry<>(
-        callbacks->(pos, markedPoses)->callbacks.forEach(callback->callback.onXRayChunkUpdated(pos, markedPoses))
+    public final UnregistrableRegistry<OnXRayChunkLoadedOrUnloaded> ON_XRAY_CHUNK_UPDATED = new UnregistrableRegistry<>(
+        callbacks->(pos, distanceSquare)->callbacks.forEach(callback->callback.onXRayChunkLoadedOrUnloaded(pos, distanceSquare))
     );
     @Override public void onStartTick(MinecraftClient mc) {
-        ArrayList<ChunkPos> completedFutures = new ArrayList<>();
-        for(Map.Entry<ChunkPos, CompletableFuture<HashMap<BlockPos, MutableInt>>> entry : updateFutures.entrySet()){
-            if(!entry.getValue().isDone()) continue;
-            completedFutures.add(entry.getKey());
-            HashMap<BlockPos, MutableInt> result = entry.getValue().join();
-            markedPoses.put(entry.getKey(), result);
-            ON_XRAY_CHUNK_UPDATED.run().onXRayChunkUpdated(entry.getKey(), result);
+        HashSet<ChunkPos> completedFutures = new HashSet<>();
+        for(UpdateData data : updateFutures){
+            if(!data.future.isDone()) continue;
+            completedFutures.add(data.pos);
+            HashMap<BlockPos, MutableInt> result = data.future.join();
+            markedPoses.put(data.pos, result);
+            ON_XRAY_CHUNK_UPDATED.run().onXRayChunkLoadedOrUnloaded(data.pos, data.distanceSquare);
         }
-        completedFutures.forEach(updateFutures::remove);
+        AlgorithmUtils.fastRemove(updateFutures, v->completedFutures.contains(v.pos));
+        updateLastPlayerEyePos(mc);
     }
-    public interface OnXRayChunkUpdated{
-        void onXRayChunkUpdated(ChunkPos pos, HashMap<BlockPos, MutableInt> markedPoses);
+    public interface OnXRayChunkLoadedOrUnloaded {
+        void onXRayChunkLoadedOrUnloaded(ChunkPos pos, double distanceSquare);
     }
     MinecraftClient client;
     DataInstance(MinecraftClient client){
         this.client = client;
         markedPoses = new HashMap<>();
+        Registries.AFTER_CLIENT_WORLD_CHANGE.register(this);
         Registries.START_CLIENT_TICK.register(this);
         Registries.CLIENT_CHUNK_LOAD.register(this);
         Registries.CLIENT_CHUNK_UNLOAD.register(this);
@@ -63,12 +70,14 @@ public class DataInstance implements AutoCloseable, ClientChunkEvents.Load, Clie
         ClientWorld world = client.world;
         ClientPlayerEntity player = client.player;
         if(world != null && player != null) addAllRegionsIntoWork(world, player);
+        updateLastPlayerEyePos(client);
     }
     public void reset(ClientWorld world, ClientPlayerEntity player){
         clearAll();
         addAllRegionsIntoWork(world, player);
     }
     @Override public void close(){
+        Registries.AFTER_CLIENT_WORLD_CHANGE.unregister(this);
         Registries.START_CLIENT_TICK.unregister(this);
         Registries.CLIENT_CHUNK_LOAD.unregister(this);
         Registries.CLIENT_CHUNK_UNLOAD.unregister(this);
@@ -77,18 +86,23 @@ public class DataInstance implements AutoCloseable, ClientChunkEvents.Load, Clie
     }
     @Override public void onChunkLoad(ClientWorld world, WorldChunk chunk) {
         ChunkPos pos = chunk.getPos();
-        int viewDistance = client.options.getViewDistance().getValue();
-        double priority = viewDistance * viewDistance * 256.0;
-        testChunkAsync(world, pos, priority);
-        testChunkAsync(world, new ChunkPos(pos.x - 1, pos.z), priority);
-        testChunkAsync(world, new ChunkPos(pos.x + 1, pos.z), priority);
-        testChunkAsync(world, new ChunkPos(pos.x, pos.z - 1), priority);
-        testChunkAsync(world, new ChunkPos(pos.x, pos.z + 1), priority);
+        double distanceSquare = lastPlayerEyePos.distanceTo(
+            Vec3d.of(chunk.getPos().getStartPos()).add(8, lastPlayerEyePos.y, 8));
+        testChunkAsync(world, pos, distanceSquare);
+        testChunkAsync(world, new ChunkPos(pos.x - 1, pos.z), distanceSquare);
+        testChunkAsync(world, new ChunkPos(pos.x + 1, pos.z), distanceSquare);
+        testChunkAsync(world, new ChunkPos(pos.x, pos.z - 1), distanceSquare);
+        testChunkAsync(world, new ChunkPos(pos.x, pos.z + 1), distanceSquare);
     }
     @Override public void onChunkUnload(ClientWorld world, WorldChunk chunk) {
         markedPoses.remove(chunk.getPos());
+        ON_XRAY_CHUNK_UPDATED.run().onXRayChunkLoadedOrUnloaded(chunk.getPos(),
+            lastPlayerEyePos.distanceTo(Vec3d.of(chunk.getPos().getStartPos()).add(8, lastPlayerEyePos.y, 8)));
     }
-    @Override public void afterWorldChange(MinecraftClient mc, ClientWorld world) {clearAll();}
+    @Override public void afterWorldChange(MinecraftClient mc, ClientWorld world) {
+        clearAll();
+        updateLastPlayerEyePos(mc);
+    }
     @Override public void onClientWorldChunkSetBlockState(WorldChunk chunk, BlockPos pos, BlockState lastState, BlockState newState) {
         if(newState == null) newState = Blocks.AIR.getDefaultState();
         if(isFluid(newState.getBlock())) return;
@@ -110,10 +124,7 @@ public class DataInstance implements AutoCloseable, ClientChunkEvents.Load, Clie
             testChunkAsync(world, new ChunkPos(vec.x, vec.y), playerPos.distanceTo(new Vec3d(vec.x * 16 + 8.0, playerPos.y, vec.y * 16 + 8.0)));
     }
     private void clearAll(){
-        updateFutures.values().forEach(future->future.cancel(false));
-        try {CompletableFuture.allOf(updateFutures.values().toArray(new CompletableFuture<?>[0])).join();
-        }catch (Exception ignored){}
-        updateFutures.clear();
+        AlgorithmUtils.cancelTasks(updateFutures, v->v.future);
         markedPoses.clear();
     }
     private void removePos(BlockPos pos){
@@ -138,13 +149,14 @@ public class DataInstance implements AutoCloseable, ClientChunkEvents.Load, Clie
     private static boolean doShowAround(BlockState state){
         return !state.isOpaque() || state.isTransparent();
     }
-    private final HashMap<ChunkPos, CompletableFuture<HashMap<BlockPos, MutableInt>>> updateFutures = new HashMap<>();
-    private void testChunkAsync(ClientWorld world, ChunkPos pos, double priority){
+    private record UpdateData(ChunkPos pos, CompletableFuture<HashMap<BlockPos, MutableInt>> future, double distanceSquare){}
+    private final ArrayList<UpdateData> updateFutures = new ArrayList<>();
+    private void testChunkAsync(ClientWorld world, ChunkPos pos, double distanceSquare){
         ChunkTask task = ChunkTask.buildTask(world, pos);
         if(task != null) {
             HashMap<Block, MutableInt> XRayBlocks;
             synchronized (SlightXRay.XRayBlocks){XRayBlocks = new HashMap<>(SlightXRay.XRayBlocks);}
-            updateFutures.put(pos, GenericUtils.supplyAsync(()->task.testCurrentChunk(XRayBlocks), priority));
+            updateFutures.add(new UpdateData(pos, GenericUtils.supplyAsync(()->task.testCurrentChunk(XRayBlocks), distanceSquare), distanceSquare));
         }
     }
     

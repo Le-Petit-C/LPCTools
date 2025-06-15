@@ -5,7 +5,6 @@ import fi.dy.masa.malilib.hotkeys.KeyAction;
 import lpctools.lpcfymasaapi.Registry;
 import lpctools.lpcfymasaapi.configbutton.transferredConfigs.BooleanConfig;
 import lpctools.lpcfymasaapi.configbutton.transferredConfigs.HotkeyConfig;
-import lpctools.lpcfymasaapi.gl.Constants;
 import lpctools.lpcfymasaapi.gl.MaskLayer;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents;
@@ -45,13 +44,8 @@ public class DebugConfigs {
     }
     
     private static void renderDebugShapes(WorldRenderContext context){
-        try(MaskLayer ignored = new MaskLayer(
-            new Constants.EnableMask[]{
-                Constants.EnableMask.BLEND,
-                Constants.EnableMask.CULL_FACE,
-                Constants.EnableMask.DEPTH_TEST,},
-            new boolean[]{true, false, true}
-        )){
+        try(MaskLayer layer = new MaskLayer()){
+            layer.enableBlend().disableCullFace().enableDepthTest();
             RenderTest1.render(context);
             RenderTest2.render(context);
         }

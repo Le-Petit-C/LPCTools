@@ -1,5 +1,7 @@
 package lpctools.util;
 
+import lpctools.util.javaex.NamedFunction;
+import lpctools.util.javaex.NamedObject2BooleanFunction;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.ChunkPos;
 import net.minecraft.util.math.Direction;
@@ -8,6 +10,7 @@ import org.jetbrains.annotations.NotNull;
 import org.joml.Vector2i;
 
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
 
 import static lpctools.util.MathUtils.*;
 
@@ -220,5 +223,28 @@ public class AlgorithmUtils {
             maxSquaredDistance = maxDistance * maxDistance;
         }
         @Override public boolean hasNext() {return getNextDistance() <= maxSquaredDistance;}
+    }
+    //快速从ArrayList中移除内容，但是不保序
+    public static <T> void fastRemove(ArrayList<T> source, NamedObject2BooleanFunction<T> shouldRemove){
+        for(int a = 0; a < source.size(); ++a){
+            while (shouldRemove.booleanApply(source.get(a))){
+                Collections.swap(source, a, source.size() - 1);
+                source.removeLast();
+                if(a >= source.size()) break;
+            }
+        }
+    }
+    //软取消元素关联的所有任务，清空原始集合并阻塞等待剩余任务完成
+    public static <T> void cancelTasks(Collection<T> collection, NamedFunction<T, CompletableFuture<?>> futureGetter){
+        CompletableFuture<?>[] futures = new CompletableFuture<?>[collection.size()];
+        int a = 0;
+        for(T futureT : collection){
+            CompletableFuture<?> future = futureGetter.apply(futureT);
+            future.cancel(false);
+            futures[a++] = future;
+        }
+        collection.clear();
+        try{CompletableFuture.allOf(futures).join();
+        }catch (Exception ignored){}
     }
 }

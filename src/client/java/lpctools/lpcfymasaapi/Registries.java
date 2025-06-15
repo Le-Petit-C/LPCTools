@@ -2,6 +2,7 @@ package lpctools.lpcfymasaapi;
 
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientChunkEvents;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
+import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientWorldEvents;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents;
 import net.minecraft.block.BlockState;
 import net.minecraft.client.gui.screen.Screen;
@@ -9,6 +10,8 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.chunk.WorldChunk;
 
 public class Registries {
+    public static final UnregistrableRegistry<ClientWorldEvents.AfterClientWorldChange> AFTER_CLIENT_WORLD_CHANGE = new UnregistrableRegistry<>(
+        callbacks->(client, world)->callbacks.forEach(screen->screen.afterWorldChange(client, world)));
     public static final UnregistrableRegistry<ScreenChangeCallback> ON_SCREEN_CHANGED = new UnregistrableRegistry<>(
         callbacks->newScreen->callbacks.forEach(screen->screen.onScreenChanged(newScreen)));
     public static final UnregistrableRegistry<ClientTickEvents.StartTick> START_CLIENT_TICK = new UnregistrableRegistry<>(
@@ -29,6 +32,7 @@ public class Registries {
         callbacks->context->callbacks.forEach(callback->callback.onEnd(context)));
     
     static{
+        ClientWorldEvents.AFTER_CLIENT_WORLD_CHANGE.register((client, world)->AFTER_CLIENT_WORLD_CHANGE.run().afterWorldChange(client, world));
         ClientTickEvents.START_CLIENT_TICK.register(client->START_CLIENT_TICK.run().onStartTick(client));
         ClientTickEvents.END_CLIENT_TICK.register(client->END_CLIENT_TICK.run().onEndTick(client));
         ClientChunkEvents.CHUNK_LOAD.register((world, chunk)->CLIENT_CHUNK_LOAD.run().onChunkLoad(world, chunk));
