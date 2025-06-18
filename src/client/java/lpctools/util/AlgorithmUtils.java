@@ -115,6 +115,9 @@ public class AlgorithmUtils {
             }
         };
     }
+    public static Iterable<Chunk> iterateLoadedChunksFromClosest(World world, Vec3d center){
+        return iterateLoadedChunksFromClosest(world, new Vector2d(center.x, center.z));
+    }
     //数据中是否有null
     public static boolean hasNull(Object... objects){
         for(Object object : objects)

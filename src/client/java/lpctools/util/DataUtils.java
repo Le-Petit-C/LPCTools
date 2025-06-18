@@ -14,6 +14,8 @@ import net.minecraft.resource.Resource;
 import net.minecraft.resource.ResourceManager;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
+import net.minecraft.util.math.ChunkPos;
+import net.minecraft.util.math.Vec3d;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Vector4f;
@@ -164,5 +166,8 @@ public class DataUtils {
             (color & 0xff) / 255.0f,
             ((color >>> 24) & 0xff) / 255.0f
         );
+    }
+    public static double squaredDistance(Vec3d pos, ChunkPos chunkPos){
+        return pos.squaredDistanceTo(chunkPos.x * 16 + 8.0, pos.y, chunkPos.z * 16 + 8.0);
     }
 }

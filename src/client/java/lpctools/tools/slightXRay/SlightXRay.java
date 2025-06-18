@@ -20,6 +20,7 @@ import net.minecraft.client.texture.NativeImage;
 import net.minecraft.client.texture.Sprite;
 import org.apache.commons.lang3.mutable.MutableInt;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
 import java.lang.Math;
@@ -140,11 +141,11 @@ public class SlightXRay extends ThirdListConfig{
             }
             else warnInvalidString(str);
         }
-        if (renderInstance != null) renderInstance.colorChanged();
         synchronized (XRayBlocks){
             if(XRayBlocks.keySet().equals(newBlocks.keySet())) {
                 for(Map.Entry<Block, MutableInt> block : newBlocks.entrySet())
                     XRayBlocks.get(block.getKey()).setValue(block.getValue());
+                if(renderInstance != null) renderInstance.resetRender();
                 return;
             }
             XRayBlocks.clear();
@@ -152,7 +153,7 @@ public class SlightXRay extends ThirdListConfig{
             if(renderInstance != null){
                 MinecraftClient client = MinecraftClient.getInstance();
                 if(client.player != null && client.world != null)
-                    renderInstance.reset(client.world, client.player);
+                    renderInstance.reset(client.world, client.player.getEyePos());
             }
         }
     }
@@ -186,5 +187,5 @@ public class SlightXRay extends ThirdListConfig{
         }
         @NotNull DefaultColorMethod defaultColorMethod;
     }
-    private static RenderInstance renderInstance;
+    private static @Nullable RenderInstance renderInstance;
 }

@@ -9,12 +9,12 @@ import lpctools.lpcfymasaapi.gl.MaskLayer;
 import lpctools.lpcfymasaapi.gl.VertexArray;
 import lpctools.shader.ShaderPrograms;
 import lpctools.util.AlgorithmUtils;
+import lpctools.util.DataUtils;
 import lpctools.util.MathUtils;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents;
 import net.minecraft.block.BlockState;
 import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.util.Pair;
 import net.minecraft.util.math.BlockPos;
@@ -147,7 +147,7 @@ public class RenderInstance extends DataInstance implements DataInstance.OnXRayC
             quad.vertex(quadBuffer.byteBuffer);
         quadBuffer.byteBuffer.flip();
         return ()->{
-            quadBuffer.dataAndBind();
+            quadBuffer.dataAndBind(indexBuffer);
             return quadBuffer.quads.size();
         };
     }
@@ -160,10 +160,10 @@ public class RenderInstance extends DataInstance implements DataInstance.OnXRayC
             QuadBuffer buffer = vertexBuffers.get(pos);
             if(buffer == null || buffer.quads.isEmpty()) continue;
             if(buffer.quads.size() > maxShapeCount) maxShapeCount = buffer.quads.size();
-            if(buffer.shouldUpdate(camPos) || buffer.vertexBuffer == null)
+            if(buffer.shouldUpdate(camPos) || buffer.vertexArray == null)
                 renderBufferBuilders.add(CompletableFuture.supplyAsync(()->asyncPrepareRenderChunk(buffer, camPos)));
             else renderBufferBuilders.add(CompletableFuture.completedFuture(()->{
-                buffer.vertexBuffer.bindAsArray();
+                buffer.vertexArray.bind();
                 return buffer.quads.size();
             }));
         }
@@ -180,30 +180,28 @@ public class RenderInstance extends DataInstance implements DataInstance.OnXRayC
     @Override public void onEnd(WorldRenderContext context) {
         RenderPrepareResult result = renderTask.join();
         ensureIndexBufferSize(result.maxShapeCount);
-        try(VertexArray array = new VertexArray();
-            MaskLayer layer = new MaskLayer()){
+        try(MaskLayer layer = new MaskLayer()){
             layer.enableBlend().enableCullFace(parent.useCullFace.getBooleanValue()).disableDepthTest();
-            array.bind();
-            indexBuffer.bindAsElementArray();
             ShaderPrograms.PositionColorProgram program = ShaderPrograms.POSITION_COLOR_PROGRAM;
             Matrix4f mat = MathUtils.inverseOffsetMatrix4f(context.camera().getPos().toVector3f());
             context.positionMatrix().mul(mat, mat);
             context.projectionMatrix().mul(mat, mat);
             program.setFinalMatrix(mat);
+            program.useAndUniform();
             for(CompletableFuture<IntSupplier> future : result.futures){
                 int shapeCount = future.join().getAsInt();
-                program.attrib.attribAndEnable();
-                program.useAndUniform();
                 Constants.DrawMode.TRIANGLES.drawElements(shapeCount * 6, Constants.IndexType.INT);
             }
-            array.unbind();
+            VertexArray.unbindStatic();
         }
     }
     private static class QuadBuffer implements AutoCloseable{
+        public static final ShaderPrograms.PositionColorProgram program = ShaderPrograms.POSITION_COLOR_PROGRAM;
         public final ArrayList<RenderQuad> quads;
         public final ChunkPos thisPos;
         public @NotNull ByteBuffer byteBuffer;
         public @Nullable Buffer vertexBuffer;
+        public @Nullable VertexArray vertexArray;
         public @Nullable Vec3d lastUpdatePos;
         QuadBuffer(ArrayList<RenderQuad> quads, ChunkPos thisPos){
             this.quads = quads;
@@ -213,14 +211,23 @@ public class RenderInstance extends DataInstance implements DataInstance.OnXRayC
         @Override public void close() {
             MemoryUtil.memFree(byteBuffer);
             if(vertexBuffer != null) vertexBuffer.close();
+            if(vertexArray != null) vertexArray.close();
         }
         public void refreshByteBuffer(){
             byteBuffer = MemoryUtil.memRealloc(byteBuffer, getQuadBufferSize());
         }
-        public void dataAndBind(){
+        public void dataAndBind(Buffer indexBuffer){
             if(vertexBuffer == null) vertexBuffer = new Buffer();
+            if(vertexArray == null){
+                vertexArray = new VertexArray();
+                vertexArray.bind();
+                vertexBuffer.bindAsArray();
+                program.attrib.attribAndEnable();
+                indexBuffer.bindAsElementArray();
+                vertexArray.unbind();
+            }
+            vertexArray.bind();
             vertexBuffer.data(byteBuffer, Constants.BufferMode.DYNAMIC_DRAW);
-            vertexBuffer.bindAsArray();
         }
         public int getQuadBufferSize(){
             //quads.size() * vertexPerQuad * sizePerVertex
@@ -290,13 +297,16 @@ public class RenderInstance extends DataInstance implements DataInstance.OnXRayC
         }
         return new QuadBuffer(result, thisPos);
     }
-    @Override public void reset(ClientWorld world, ClientPlayerEntity player) {
-        super.reset(world, player);
+    @Override public void reset(ClientWorld world, Vec3d playerEyePos) {
+        super.reset(world, playerEyePos);
+        resetRender();
+    }
+    public void resetRender(){
+        AlgorithmUtils.cancelTasks(asyncQuadBufferBuilders, Pair::getRight);
         for(QuadBuffer quadBuffer : vertexBuffers.values())
             quadBuffer.close();
         vertexBuffers.clear();
-    }
-    public void colorChanged(){
-        vertexBuffers.values().forEach(v->v.lastUpdatePos = null);
+        for(ChunkPos pos : markedPoses.keySet())
+            buildQuadBufferAsync(pos, markedPoses, DataUtils.squaredDistance(lastPlayerEyePos, pos));
     }
 }

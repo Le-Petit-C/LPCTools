@@ -19,5 +19,6 @@ public class VertexArray implements AutoCloseable{
     }
     public void bind(){GL45.glBindVertexArray(glVertexArrayId);}
     public void unbind(){GL45.glBindVertexArray(0);}
+    public static void unbindStatic(){GL45.glBindVertexArray(0);}
     void gen(){if(glVertexArrayId == 0) glVertexArrayId = GL45.glGenVertexArrays();}
 }

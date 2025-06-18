@@ -4,6 +4,7 @@ import lpctools.generic.GenericUtils;
 import lpctools.lpcfymasaapi.Registries;
 import lpctools.lpcfymasaapi.UnregistrableRegistry;
 import lpctools.util.AlgorithmUtils;
+import lpctools.util.DataUtils;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientChunkEvents;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientWorldEvents;
@@ -24,7 +25,6 @@ import net.minecraft.world.chunk.WorldChunk;
 import org.apache.commons.lang3.mutable.MutableInt;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.joml.Vector2d;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -38,6 +38,9 @@ public class DataInstance implements AutoCloseable, ClientChunkEvents.Load, Clie
     public @NotNull Vec3d lastPlayerEyePos = Vec3d.ZERO;
     private void updateLastPlayerEyePos(MinecraftClient mc){
         if(mc.player != null) lastPlayerEyePos = mc.player.getEyePos();
+    }
+    private void updateLastPlayerEyePos(Vec3d eyePos){
+        lastPlayerEyePos = eyePos;
     }
     public final HashMap<ChunkPos, HashMap<BlockPos, MutableInt>> markedPoses;
     public final UnregistrableRegistry<OnXRayChunkLoadedOrUnloaded> ON_XRAY_CHUNK_UPDATED = new UnregistrableRegistry<>(
@@ -69,12 +72,13 @@ public class DataInstance implements AutoCloseable, ClientChunkEvents.Load, Clie
         Registries.CLIENT_WORLD_CHUNK_SET_BLOCK_STATE.register(this);
         ClientWorld world = client.world;
         ClientPlayerEntity player = client.player;
-        if(world != null && player != null) addAllRegionsIntoWork(world, player);
+        if(world != null && player != null) addAllRegionsIntoWork(world, player.getEyePos());
         updateLastPlayerEyePos(client);
     }
-    public void reset(ClientWorld world, ClientPlayerEntity player){
+    public void reset(ClientWorld world, Vec3d playerEyePos){
         clearAll();
-        addAllRegionsIntoWork(world, player);
+        addAllRegionsIntoWork(world, playerEyePos);
+        updateLastPlayerEyePos(playerEyePos);
     }
     @Override public void close(){
         Registries.AFTER_CLIENT_WORLD_CHANGE.unregister(this);
@@ -117,12 +121,10 @@ public class DataInstance implements AutoCloseable, ClientChunkEvents.Load, Clie
         return map != null ? map.get(pos) : null;
     }
     
-    private void addAllRegionsIntoWork(ClientWorld world, ClientPlayerEntity player){
-        Vec3d p1 = player.getPos();
-        Vector2d playerPos = new Vector2d(p1.x, p1.z);
+    private void addAllRegionsIntoWork(ClientWorld world, Vec3d playerPos){
         for(Chunk chunk : AlgorithmUtils.iterateLoadedChunksFromClosest(world, playerPos)){
             ChunkPos chunkPos = chunk.getPos();
-            testChunkAsync(world, chunkPos, playerPos.distanceSquared(chunkPos.x * 16 + 8.0, chunkPos.z * 16 + 8.0));
+            testChunkAsync(world, chunkPos, DataUtils.squaredDistance(playerPos, chunkPos));
         }
     }
     private void clearAll(){
