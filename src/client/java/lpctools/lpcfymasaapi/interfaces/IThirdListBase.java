@@ -1,4 +1,4 @@
-package lpctools.lpcfymasaapi.implementations;
+package lpctools.lpcfymasaapi.interfaces;
 
 import com.google.gson.JsonElement;
 import org.jetbrains.annotations.NotNull;

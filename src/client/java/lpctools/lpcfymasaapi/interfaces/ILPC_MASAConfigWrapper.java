@@ -1,4 +1,4 @@
-package lpctools.lpcfymasaapi.implementations;
+package lpctools.lpcfymasaapi.interfaces;
 
 import fi.dy.masa.malilib.config.IConfigBase;
 import fi.dy.masa.malilib.config.IConfigNotifiable;

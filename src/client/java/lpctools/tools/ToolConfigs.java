@@ -1,7 +1,7 @@
 package lpctools.tools;
 
 import lpctools.lpcfymasaapi.configbutton.derivedConfigs.ThirdListConfig;
-import lpctools.lpcfymasaapi.implementations.ILPCConfigList;
+import lpctools.lpcfymasaapi.interfaces.ILPCConfigList;
 import lpctools.tools.autoGrindstone.AutoGrindstone;
 import lpctools.tools.antiSpawner.AntiSpawner;
 import lpctools.tools.canSpawnDisplay.CanSpawnDisplay;

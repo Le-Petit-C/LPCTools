@@ -5,7 +5,7 @@ import fi.dy.masa.malilib.hotkeys.IKeybind;
 import fi.dy.masa.malilib.hotkeys.KeyAction;
 import lpctools.lpcfymasaapi.LPCConfigPage;
 import lpctools.lpcfymasaapi.configbutton.transferredConfigs.HotkeyConfig;
-import lpctools.lpcfymasaapi.implementations.ILPCConfigList;
+import lpctools.lpcfymasaapi.interfaces.ILPCConfigList;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 

@@ -1,11 +1,12 @@
 package lpctools.debugs;
 
+import lpctools.lpcfymasaapi.Registries;
 import lpctools.lpcfymasaapi.configbutton.derivedConfigs.ThirdListConfig;
 import lpctools.lpcfymasaapi.configbutton.transferredConfigs.DoubleConfig;
 import lpctools.lpcfymasaapi.configbutton.transferredConfigs.IntegerConfig;
 import lpctools.lpcfymasaapi.gl.*;
 import lpctools.lpcfymasaapi.gl.furtherWarpped.ArrayListCachedRenderBuffer;
-import lpctools.lpcfymasaapi.implementations.ILPCConfigList;
+import lpctools.lpcfymasaapi.interfaces.ILPCConfigList;
 import lpctools.shader.ShaderPrograms;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents;
@@ -15,7 +16,6 @@ import org.joml.*;
 import java.lang.Math;
 
 import static lpctools.lpcfymasaapi.LPCConfigStatics.*;
-import static lpctools.lpcfymasaapi.Registry.*;
 import static lpctools.lpcfymasaapi.gl.furtherWarpped.VertexAttribElements.*;
 import static lpctools.shader.FragmentShaders.*;
 import static lpctools.shader.VertexShaders.*;
@@ -33,8 +33,7 @@ public class MandelbrotSetRender extends ThirdListConfig implements WorldRenderE
     
     @Override public void onValueChanged() {
         super.onValueChanged();
-        if (getAsBoolean()) registerWorldRenderBeforeDebugRenderCallback(this);
-        else unregisterWorldRenderBeforeDebugRenderCallback(this);
+        Registries.WORLD_RENDER_BEFORE_DEBUG_RENDER.register(this, getAsBoolean());
     }
     
     @Override public void beforeDebugRender(WorldRenderContext context) {

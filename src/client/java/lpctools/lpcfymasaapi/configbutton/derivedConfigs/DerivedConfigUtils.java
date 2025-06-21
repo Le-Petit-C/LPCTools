@@ -1,6 +1,6 @@
 package lpctools.lpcfymasaapi.configbutton.derivedConfigs;
 
-import lpctools.lpcfymasaapi.implementations.ILPCConfigBase;
+import lpctools.lpcfymasaapi.interfaces.ILPCConfigBase;
 
 public interface DerivedConfigUtils {
     static String fullKeyByParent(ILPCConfigBase configBase){

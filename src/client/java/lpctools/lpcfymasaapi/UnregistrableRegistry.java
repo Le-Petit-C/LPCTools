@@ -1,18 +1,19 @@
 package lpctools.lpcfymasaapi;
 
+import lpctools.lpcfymasaapi.interfaces.IUnregistrableRegistry;
+import org.jetbrains.annotations.NotNull;
+
 import java.util.LinkedHashSet;
 import java.util.function.Function;
 
-public class UnregistrableRegistry<T> {
-    public final LinkedHashSet<T> callbacks = new LinkedHashSet<>();
-    public Function<Iterable<T>, T> runner;
-    public UnregistrableRegistry(Function<Iterable<T>, T> runner){this.runner = runner;}
-    public boolean register(T callback){return callbacks.add(callback);}
-    public boolean unregister(T callback){return callbacks.remove(callback);}
-    public boolean register(T callback, boolean register){
-        if(register) return register(callback);
-        else return unregister(callback);
+public class UnregistrableRegistry<T> implements IUnregistrableRegistry<T> {
+    public final @NotNull LinkedHashSet<T> callbacks = new LinkedHashSet<>();
+    public Function<IterableEx<T>, T> runner;
+    public UnregistrableRegistry(Function<IterableEx<T>, T> runner){this.runner = runner;}
+    @Override public boolean register(T callback, boolean register){
+        if(register) return callbacks.add(callback);
+        else return callbacks.remove(callback);
     }
-    public boolean isEmpty(){return callbacks.isEmpty();}
-    public T run(){return runner.apply(callbacks);}
+    @Override public boolean isEmpty(){return callbacks.isEmpty();}
+    @Override public T run(){return runner.apply(callbacks::iterator);}
 }

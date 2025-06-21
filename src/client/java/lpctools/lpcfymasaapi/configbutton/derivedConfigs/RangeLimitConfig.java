@@ -3,7 +3,7 @@ package lpctools.lpcfymasaapi.configbutton.derivedConfigs;
 import lpctools.compact.derived.ShapeList;
 import lpctools.compact.derived.SimpleTestableShape;
 import lpctools.lpcfymasaapi.configbutton.transferredConfigs.StringConfig;
-import lpctools.lpcfymasaapi.implementations.ILPCConfigList;
+import lpctools.lpcfymasaapi.interfaces.ILPCConfigList;
 import org.jetbrains.annotations.NotNull;
 
 import static lpctools.lpcfymasaapi.configbutton.derivedConfigs.DerivedConfigUtils.*;

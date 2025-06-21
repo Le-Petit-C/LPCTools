@@ -3,8 +3,8 @@ package lpctools.lpcfymasaapi.configbutton.derivedConfigs;
 import fi.dy.masa.malilib.config.IConfigOptionListEntry;
 import fi.dy.masa.malilib.util.StringUtils;
 import lpctools.lpcfymasaapi.configbutton.transferredConfigs.OptionListConfig;
-import lpctools.lpcfymasaapi.implementations.ILPCConfigList;
-import lpctools.lpcfymasaapi.implementations.ILPCValueChangeCallback;
+import lpctools.lpcfymasaapi.interfaces.ILPCConfigList;
+import lpctools.lpcfymasaapi.interfaces.ILPCValueChangeCallback;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 

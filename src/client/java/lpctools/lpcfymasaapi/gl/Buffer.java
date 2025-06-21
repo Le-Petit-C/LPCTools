@@ -5,7 +5,6 @@ import org.lwjgl.opengl.GL45;
 import java.nio.ByteBuffer;
 
 import static lpctools.lpcfymasaapi.gl.LPCGLInitializer.initialized;
-import static lpctools.lpcfymasaapi.gl.Constants.*;
 import static lpctools.lpcfymasaapi.gl.Constants.BufferType.*;
 
 @SuppressWarnings("unused")

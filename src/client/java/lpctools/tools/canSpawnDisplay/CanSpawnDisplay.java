@@ -10,7 +10,6 @@ import lpctools.compact.derived.ShapeList;
 import lpctools.generic.GenericRegistry;
 import lpctools.generic.GenericUtils;
 import lpctools.lpcfymasaapi.Registries;
-import lpctools.lpcfymasaapi.Registry;
 import lpctools.lpcfymasaapi.configbutton.derivedConfigs.ArrayOptionListConfig;
 import lpctools.lpcfymasaapi.configbutton.derivedConfigs.RangeLimitConfig;
 import lpctools.lpcfymasaapi.configbutton.transferredConfigs.BooleanConfig;
@@ -87,12 +86,12 @@ public class CanSpawnDisplay implements WorldRenderEvents.Last, WorldRenderEvent
                 addAllIntoWork();
             }
             Registries.WORLD_RENDER_LAST.register(this);
-            Registry.registerWorldRenderBeforeDebugRenderCallback(this);
+            Registries.WORLD_RENDER_BEFORE_DEBUG_RENDER.register(this);
             Registries.WORLD_RENDER_START.register(this);
             Registries.CLIENT_CHUNK_LIGHT_LOAD.register(this);
-            Registry.registerClientChunkUnloadCallback(this);
+            Registries.CLIENT_CHUNK_UNLOAD.register(this);
             Registries.CLIENT_WORLD_CHUNK_SET_BLOCK_STATE.register(this);
-            Registry.registerClientWorldChangeCallback(this);
+            Registries.AFTER_CLIENT_WORLD_CHANGE.register(this);
             Registries.START_CLIENT_TICK.register(this);
             Registries.ON_SCREEN_CHANGED.register(this);
             GenericRegistry.SPAWN_CONDITION_CHANGED.register(this);
@@ -108,12 +107,12 @@ public class CanSpawnDisplay implements WorldRenderEvents.Last, WorldRenderEvent
                 buffer = null;
             }
             Registries.WORLD_RENDER_LAST.unregister(this);
-            Registry.unregisterWorldRenderBeforeDebugRenderCallback(this);
+            Registries.WORLD_RENDER_BEFORE_DEBUG_RENDER.unregister(this);
             Registries.WORLD_RENDER_START.unregister(this);
             Registries.CLIENT_CHUNK_LIGHT_LOAD.unregister(this);
-            Registry.unregisterClientChunkUnloadCallback(this);
+            Registries.CLIENT_CHUNK_UNLOAD.unregister(this);
             Registries.CLIENT_WORLD_CHUNK_SET_BLOCK_STATE.unregister(this);
-            Registry.unregisterClientWorldChangeCallback(this);
+            Registries.AFTER_CLIENT_WORLD_CHANGE.unregister(this);
             Registries.START_CLIENT_TICK.unregister(this);
             Registries.ON_SCREEN_CHANGED.unregister(this);
             GenericRegistry.SPAWN_CONDITION_CHANGED.unregister(this);

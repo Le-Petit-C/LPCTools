@@ -3,7 +3,7 @@ package lpctools.debugs;
 import lpctools.lpcfymasaapi.Registries;
 import lpctools.lpcfymasaapi.configbutton.transferredConfigs.BooleanConfig;
 import lpctools.lpcfymasaapi.gl.*;
-import lpctools.lpcfymasaapi.implementations.ILPCConfigList;
+import lpctools.lpcfymasaapi.interfaces.ILPCConfigList;
 import lpctools.shader.FragmentShaders;
 import lpctools.shader.ShaderPrograms;
 import lpctools.shader.VertexShaders;

@@ -2,7 +2,6 @@ package lpctools.mixin.client;
 
 import com.llamalad7.mixinextras.sugar.Local;
 import lpctools.lpcfymasaapi.Registries;
-import lpctools.lpcfymasaapi.Registry;
 import net.minecraft.client.network.ClientPlayNetworkHandler;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.network.packet.s2c.play.ChunkDataS2CPacket;

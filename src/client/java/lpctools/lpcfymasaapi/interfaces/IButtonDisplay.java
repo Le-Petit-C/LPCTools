@@ -1,4 +1,4 @@
-package lpctools.lpcfymasaapi.implementations;
+package lpctools.lpcfymasaapi.interfaces;
 
 import org.jetbrains.annotations.NotNull;
 

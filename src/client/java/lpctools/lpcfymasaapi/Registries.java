@@ -28,12 +28,26 @@ public class Registries {
         callbacks->context->callbacks.forEach(callback->callback.onStart(context)));
     public static final UnregistrableRegistry<WorldRenderEvents.AfterSetup> WORLD_RENDER_AFTER_SETUP = new UnregistrableRegistry<>(
         callbacks->context->callbacks.forEach(callback->callback.afterSetup(context)));
+    public static final UnregistrableRegistry<WorldRenderEvents.BeforeEntities> WORLD_RENDER_BEFORE_ENTITIES = new UnregistrableRegistry<>(
+        callbacks->context->callbacks.forEach(callback->callback.beforeEntities(context)));
+    public static final UnregistrableRegistry<WorldRenderEvents.AfterEntities> WORLD_RENDER_AFTER_ENTITIES = new UnregistrableRegistry<>(
+        callbacks->context->callbacks.forEach(callback->callback.afterEntities(context)));
+    public static final UnregistrableRegistry<WorldRenderEvents.BeforeBlockOutline> WORLD_RENDER_BEFORE_BLOCK_OUTLINE = new UnregistrableRegistry<>(
+        callbacks->(context, hitResult)->callbacks.combineResults(true, (lastBoolean, callback)->callback.beforeBlockOutline(context,hitResult) ? lastBoolean : false));
+    public static final UnregistrableRegistry<WorldRenderEvents.BlockOutline> WORLD_RENDER_BLOCK_OUTLINE = new UnregistrableRegistry<>(
+        callbacks->(context, hitResult)->callbacks.combineResults(true, (lastBoolean, callback)->callback.onBlockOutline(context,hitResult) ? lastBoolean : false));
+    public static final UnregistrableRegistry<WorldRenderEvents.DebugRender> WORLD_RENDER_BEFORE_DEBUG_RENDER = new UnregistrableRegistry<>(
+        callbacks->context->callbacks.forEach(callback->callback.beforeDebugRender(context)));
+    public static final UnregistrableRegistry<WorldRenderEvents.AfterTranslucent> WORLD_RENDER_AFTER_TRANSLUCENT = new UnregistrableRegistry<>(
+        callbacks->context->callbacks.forEach(callback->callback.afterTranslucent(context)));
     public static final UnregistrableRegistry<WorldRenderEvents.Last> WORLD_RENDER_LAST = new UnregistrableRegistry<>(
         callbacks->context->callbacks.forEach(callback->callback.onLast(context)));
     public static final UnregistrableRegistry<WorldRenderEvents.End> WORLD_RENDER_END = new UnregistrableRegistry<>(
         callbacks->context->callbacks.forEach(callback->callback.onEnd(context)));
     public static final UnregistrableRegistry<ClientWorldChunkLightUpdated> CLIENT_CHUNK_LIGHT_LOAD = new UnregistrableRegistry<>(
         callbacks->chunk->callbacks.forEach(callback->callback.onClientWorldChunkLightUpdated(chunk)));
+    public static final UnregistrableRegistry<InGameEndMouse> IN_GAME_END_MOUSE = new UnregistrableRegistry<>(
+        callbacks->(button, action, mods)->callbacks.forEach(callback->callback.onInGameEndMouse(button, action, mods)));
     
     static{
         ClientWorldEvents.AFTER_CLIENT_WORLD_CHANGE.register(AFTER_CLIENT_WORLD_CHANGE.run());
@@ -43,6 +57,12 @@ public class Registries {
         ClientChunkEvents.CHUNK_UNLOAD.register(CLIENT_CHUNK_UNLOAD.run());
         WorldRenderEvents.START.register(WORLD_RENDER_START.run());
         WorldRenderEvents.AFTER_SETUP.register(WORLD_RENDER_AFTER_SETUP.run());
+        WorldRenderEvents.BEFORE_ENTITIES.register(WORLD_RENDER_BEFORE_ENTITIES.run());
+        WorldRenderEvents.AFTER_ENTITIES.register(WORLD_RENDER_AFTER_ENTITIES.run());
+        WorldRenderEvents.BEFORE_BLOCK_OUTLINE.register(WORLD_RENDER_BEFORE_BLOCK_OUTLINE.run());
+        WorldRenderEvents.BLOCK_OUTLINE.register(WORLD_RENDER_BLOCK_OUTLINE.run());
+        WorldRenderEvents.BEFORE_DEBUG_RENDER.register(WORLD_RENDER_BEFORE_DEBUG_RENDER.run());
+        WorldRenderEvents.AFTER_TRANSLUCENT.register(WORLD_RENDER_AFTER_TRANSLUCENT.run());
         WorldRenderEvents.LAST.register(WORLD_RENDER_LAST.run());
         WorldRenderEvents.END.register(WORLD_RENDER_END.run());
     }
@@ -55,5 +75,8 @@ public class Registries {
     }
     public interface ClientWorldChunkLightUpdated{
         void onClientWorldChunkLightUpdated(WorldChunk chunk);
+    }
+    public interface InGameEndMouse {
+        void onInGameEndMouse(int button, int action, int mods);
     }
 }

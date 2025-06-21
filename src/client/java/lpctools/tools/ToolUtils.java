@@ -3,7 +3,7 @@ package lpctools.tools;
 import fi.dy.masa.malilib.util.InfoUtils;
 import fi.dy.masa.malilib.util.StringUtils;
 import lpctools.lpcfymasaapi.configbutton.transferredConfigs.BooleanHotkeyConfig;
-import lpctools.lpcfymasaapi.implementations.ILPCConfig;
+import lpctools.lpcfymasaapi.interfaces.ILPCConfig;
 import net.minecraft.text.Text;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;

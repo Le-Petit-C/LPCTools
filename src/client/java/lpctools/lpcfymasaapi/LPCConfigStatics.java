@@ -6,9 +6,9 @@ import fi.dy.masa.malilib.hotkeys.IHotkeyCallback;
 import fi.dy.masa.malilib.util.Color4f;
 import lpctools.lpcfymasaapi.configbutton.derivedConfigs.*;
 import lpctools.lpcfymasaapi.configbutton.transferredConfigs.*;
-import lpctools.lpcfymasaapi.implementations.ILPCConfig;
-import lpctools.lpcfymasaapi.implementations.ILPCConfigList;
-import lpctools.lpcfymasaapi.implementations.ILPCValueChangeCallback;
+import lpctools.lpcfymasaapi.interfaces.ILPCConfig;
+import lpctools.lpcfymasaapi.interfaces.ILPCConfigList;
+import lpctools.lpcfymasaapi.interfaces.ILPCValueChangeCallback;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 

@@ -1,6 +1,6 @@
-package lpctools.lpcfymasaapi.implementations.data;
+package lpctools.lpcfymasaapi.interfaces.data;
 
-import lpctools.lpcfymasaapi.implementations.ILPCConfigList;
+import lpctools.lpcfymasaapi.interfaces.ILPCConfigList;
 import org.jetbrains.annotations.NotNull;
 
 public class LPCConfigData {

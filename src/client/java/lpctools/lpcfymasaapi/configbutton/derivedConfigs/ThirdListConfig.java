@@ -5,9 +5,9 @@ import com.google.gson.JsonObject;
 import fi.dy.masa.malilib.gui.GuiConfigsBase;
 import lpctools.lpcfymasaapi.LPCConfigList;
 import lpctools.lpcfymasaapi.configbutton.transferredConfigs.BooleanConfig;
-import lpctools.lpcfymasaapi.implementations.ILPCConfig;
-import lpctools.lpcfymasaapi.implementations.ILPCConfigList;
-import lpctools.lpcfymasaapi.implementations.IThirdListBase;
+import lpctools.lpcfymasaapi.interfaces.ILPCConfig;
+import lpctools.lpcfymasaapi.interfaces.ILPCConfigList;
+import lpctools.lpcfymasaapi.interfaces.IThirdListBase;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
