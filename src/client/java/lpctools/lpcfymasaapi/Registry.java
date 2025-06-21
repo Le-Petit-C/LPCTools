@@ -5,10 +5,8 @@ import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientWorldEvents;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents;
-import net.minecraft.block.BlockState;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.world.ClientWorld;
-import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.chunk.WorldChunk;
 import org.jetbrains.annotations.NotNull;
 
@@ -59,12 +57,6 @@ public class Registry {
     public static boolean unregisterWorldRenderAfterTranslucentCallback(WorldRenderEvents.AfterTranslucent callback){
         return worldRenderAfterTranslucentCallbacks.remove(callback);
     }
-    public static boolean registerWorldRenderLastCallback(WorldRenderEvents.Last callback){
-        return worldRenderLastCallbacks.add(callback);
-    }
-    public static boolean unregisterWorldRenderLastCallback(WorldRenderEvents.Last callback){
-        return worldRenderLastCallbacks.remove(callback);
-    }
     public static boolean registerWorldRenderEndCallback(WorldRenderEvents.End callback){
         return worldRenderEndCallbacks.add(callback);
     }
@@ -82,12 +74,6 @@ public class Registry {
     }
     public static boolean unregisterClientWorldChangeCallback(ClientWorldEvents.AfterClientWorldChange callback){
         return clientWorldChangeCallbacks.remove(callback);
-    }
-    public static boolean registerClientWorldChunkLightUpdatedCallback(ClientWorldChunkLightUpdated callback){
-        return clientWorldChunkLightUpdatedCallback.add(callback);
-    }
-    public static boolean unregisterClientWorldChunkLightUpdatedCallback(ClientWorldChunkLightUpdated callback){
-        return clientWorldChunkLightUpdatedCallback.remove(callback);
     }
     public static void runInGameEndMouseCallbacks(int button, int action, int mods){
         for(InGameEndMouse callback : inGameEndMouseCallbacks)
@@ -133,10 +119,6 @@ public class Registry {
         for(ClientWorldEvents.AfterClientWorldChange callback : clientWorldChangeCallbacks)
             callback.afterWorldChange(mc, world);
     }
-    public static void runClientWorldChunkLightUpdated(WorldChunk chunk){
-        for(ClientWorldChunkLightUpdated callback : clientWorldChunkLightUpdatedCallback)
-            callback.onClientWorldChunkLightUpdated(chunk);
-    }
     static void init(){
         WorldRenderEvents.START.register(Registry::runWorldRenderStartCallbacks);
         WorldRenderEvents.AFTER_SETUP.register(Registry::runWorldRenderAfterSetupCallbacks);
@@ -162,15 +144,8 @@ public class Registry {
     @NotNull private static final LinkedHashSet<WorldRenderEvents.End> worldRenderEndCallbacks = new LinkedHashSet<>();
     @NotNull private static final LinkedHashSet<ClientChunkEvents.Unload> clientChunkUnloadCallbacks = new LinkedHashSet<>();
     @NotNull private static final LinkedHashSet<ClientWorldEvents.AfterClientWorldChange> clientWorldChangeCallbacks = new LinkedHashSet<>();
-    @NotNull private static final LinkedHashSet<ClientWorldChunkLightUpdated> clientWorldChunkLightUpdatedCallback = new LinkedHashSet<>();
     
     public interface InGameEndMouse {
         void onInGameEndMouse(int button, int action, int mods);
-    }
-    public interface ClientWorldChunkSetBlockState {//at RETURN
-        void onClientWorldChunkSetBlockState(WorldChunk chunk, BlockPos pos, BlockState lastState, BlockState newState);
-    }
-    public interface ClientWorldChunkLightUpdated{
-        void onClientWorldChunkLightUpdated(WorldChunk chunk);
     }
 }

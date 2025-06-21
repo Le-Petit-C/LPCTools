@@ -5,7 +5,10 @@ import org.lwjgl.opengl.GL45;
 import java.nio.ByteBuffer;
 
 import static lpctools.lpcfymasaapi.gl.LPCGLInitializer.initialized;
+import static lpctools.lpcfymasaapi.gl.Constants.*;
+import static lpctools.lpcfymasaapi.gl.Constants.BufferType.*;
 
+@SuppressWarnings("unused")
 public class Buffer implements AutoCloseable{
     private int glBufferId = 0;
     @SuppressWarnings("unused")
@@ -22,13 +25,14 @@ public class Buffer implements AutoCloseable{
     //usage:STATIC_DRAW,STATIC_READ,etc.
     public void data(ByteBuffer data, Constants.BufferMode usage){
         GL45.glNamedBufferData(glBufferId, data, usage.value);}
-    public void bind(int target){GL45.glBindBuffer(target, glBufferId);}
-    public void unbind(int target){GL45.glBindBuffer(target, 0);}
-    public void bindAsArray(){bind(GL45.GL_ARRAY_BUFFER);}
-    @SuppressWarnings("unused")
-    public void unbindAsArray(){unbind(GL45.GL_ARRAY_BUFFER);}
-    public void bindAsElementArray(){bind(GL45.GL_ELEMENT_ARRAY_BUFFER);}
-    @SuppressWarnings("unused")
-    public void unbindAsElementArray(){unbind(GL45.GL_ELEMENT_ARRAY_BUFFER);}
+    public void bindAsArray(){ARRAY_BUFFER.bind(this);}
+    public void unbindAsArray(){ARRAY_BUFFER.unbind();}
+    public static void unbindAsArrayStatic(){ARRAY_BUFFER.unbind();}
+    public void bindAsElementArray(){ELEMENT_ARRAY_BUFFER.bind(this);}
+    public void unbindAsElementArray(){ELEMENT_ARRAY_BUFFER.unbind();}
+    public static void unbindAsElementArrayStatic(){ELEMENT_ARRAY_BUFFER.unbind();}
+    public void bindAsTexture(){TEXTURE_BUFFER.bind(this);}
+    public void unbindAsTexture(){TEXTURE_BUFFER.unbind();}
+    public static void unbindAsTextureStatic(){TEXTURE_BUFFER.unbind();}
     void gen(){if(glBufferId == 0) glBufferId = GL45.glCreateBuffers();}
 }

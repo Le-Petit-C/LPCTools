@@ -2,7 +2,7 @@ package lpctools.debugs;
 
 import fi.dy.masa.malilib.hotkeys.IKeybind;
 import fi.dy.masa.malilib.hotkeys.KeyAction;
-import lpctools.lpcfymasaapi.Registry;
+import lpctools.lpcfymasaapi.Registries;
 import lpctools.lpcfymasaapi.configbutton.transferredConfigs.BooleanConfig;
 import lpctools.lpcfymasaapi.configbutton.transferredConfigs.HotkeyConfig;
 import lpctools.lpcfymasaapi.gl.MaskLayer;
@@ -21,6 +21,7 @@ import static lpctools.lpcfymasaapi.LPCConfigStatics.*;
 public class DebugConfigs {
     public static BooleanConfig renderDebugShapes;
     public static BooleanConfig displayClickSlotArguments;
+    public static InstancedRenderTest instancedRenderTest;
     public static HotkeyConfig keyActDebug;
     public static BooleanConfig showExecuteTime;
     public static HotkeyConfig getBlockStateHotkey;
@@ -30,6 +31,7 @@ public class DebugConfigs {
         renderDebugShapes = addBooleanConfig(
                 "renderDebugShapes", false, DebugConfigs::renderDebugShapesValueRefreshCallback);
         displayClickSlotArguments = addBooleanConfig("displayClickSlotArguments", false);
+        instancedRenderTest = addConfig(new InstancedRenderTest(peekConfigList()));
         keyActDebug = addHotkeyConfig("keyActDebug", "", (action, bind)->{
             ClientPlayerEntity player = MinecraftClient.getInstance().player;
             if(player == null) return false;
@@ -52,9 +54,7 @@ public class DebugConfigs {
     }
     private static final WorldRenderEvents.Last debugShapesRenderer = DebugConfigs::renderDebugShapes;
     private static void renderDebugShapesValueRefreshCallback(){
-        if(renderDebugShapes.getAsBoolean())
-            Registry.registerWorldRenderLastCallback(debugShapesRenderer);
-        else Registry.unregisterWorldRenderLastCallback(debugShapesRenderer);
+        Registries.WORLD_RENDER_LAST.register(debugShapesRenderer, renderDebugShapes.getAsBoolean());
     }
     private static boolean getBlockStateHotkeyCallback(KeyAction action, IKeybind keybind){
         MinecraftClient client = MinecraftClient.getInstance();

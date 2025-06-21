@@ -28,18 +28,23 @@ public class Registries {
         callbacks->context->callbacks.forEach(callback->callback.onStart(context)));
     public static final UnregistrableRegistry<WorldRenderEvents.AfterSetup> WORLD_RENDER_AFTER_SETUP = new UnregistrableRegistry<>(
         callbacks->context->callbacks.forEach(callback->callback.afterSetup(context)));
+    public static final UnregistrableRegistry<WorldRenderEvents.Last> WORLD_RENDER_LAST = new UnregistrableRegistry<>(
+        callbacks->context->callbacks.forEach(callback->callback.onLast(context)));
     public static final UnregistrableRegistry<WorldRenderEvents.End> WORLD_RENDER_END = new UnregistrableRegistry<>(
         callbacks->context->callbacks.forEach(callback->callback.onEnd(context)));
+    public static final UnregistrableRegistry<ClientWorldChunkLightUpdated> CLIENT_CHUNK_LIGHT_LOAD = new UnregistrableRegistry<>(
+        callbacks->chunk->callbacks.forEach(callback->callback.onClientWorldChunkLightUpdated(chunk)));
     
     static{
-        ClientWorldEvents.AFTER_CLIENT_WORLD_CHANGE.register((client, world)->AFTER_CLIENT_WORLD_CHANGE.run().afterWorldChange(client, world));
-        ClientTickEvents.START_CLIENT_TICK.register(client->START_CLIENT_TICK.run().onStartTick(client));
-        ClientTickEvents.END_CLIENT_TICK.register(client->END_CLIENT_TICK.run().onEndTick(client));
-        ClientChunkEvents.CHUNK_LOAD.register((world, chunk)->CLIENT_CHUNK_LOAD.run().onChunkLoad(world, chunk));
-        ClientChunkEvents.CHUNK_UNLOAD.register((world, chunk)->CLIENT_CHUNK_UNLOAD.run().onChunkUnload(world, chunk));
-        WorldRenderEvents.START.register(context->WORLD_RENDER_START.run().onStart(context));
-        WorldRenderEvents.AFTER_SETUP.register(context->WORLD_RENDER_AFTER_SETUP.run().afterSetup(context));
-        WorldRenderEvents.END.register(context->WORLD_RENDER_END.run().onEnd(context));
+        ClientWorldEvents.AFTER_CLIENT_WORLD_CHANGE.register(AFTER_CLIENT_WORLD_CHANGE.run());
+        ClientTickEvents.START_CLIENT_TICK.register(START_CLIENT_TICK.run());
+        ClientTickEvents.END_CLIENT_TICK.register(END_CLIENT_TICK.run());
+        ClientChunkEvents.CHUNK_LOAD.register(CLIENT_CHUNK_LOAD.run());
+        ClientChunkEvents.CHUNK_UNLOAD.register(CLIENT_CHUNK_UNLOAD.run());
+        WorldRenderEvents.START.register(WORLD_RENDER_START.run());
+        WorldRenderEvents.AFTER_SETUP.register(WORLD_RENDER_AFTER_SETUP.run());
+        WorldRenderEvents.LAST.register(WORLD_RENDER_LAST.run());
+        WorldRenderEvents.END.register(WORLD_RENDER_END.run());
     }
     
     public interface ClientWorldChunkSetBlockState {//at RETURN
@@ -47,5 +52,8 @@ public class Registries {
     }
     public interface ScreenChangeCallback{
         void onScreenChanged(Screen newScreen);
+    }
+    public interface ClientWorldChunkLightUpdated{
+        void onClientWorldChunkLightUpdated(WorldChunk chunk);
     }
 }

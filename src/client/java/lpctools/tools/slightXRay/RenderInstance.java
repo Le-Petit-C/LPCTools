@@ -34,6 +34,10 @@ import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.IntSupplier;
 
+//TODO:不使用形状索引而是合并重合顶点的索引（比如相邻矩形）以节省空间
+//TODO:顶点缓冲改为相对于区块原点的坐标，减小距离现象影响
+//TODO:限制显示范围
+
 public class RenderInstance extends DataInstance implements DataInstance.OnXRayChunkLoadedOrUnloaded, WorldRenderEvents.End, WorldRenderEvents.Start {
     public final SlightXRay parent;
     RenderInstance(SlightXRay parent, MinecraftClient client){

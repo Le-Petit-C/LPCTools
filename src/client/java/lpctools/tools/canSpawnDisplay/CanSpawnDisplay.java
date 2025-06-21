@@ -55,7 +55,7 @@ import static lpctools.lpcfymasaapi.LPCConfigStatics.*;
 import static lpctools.tools.ToolUtils.*;
 import static lpctools.util.AlgorithmUtils.*;
 
-public class CanSpawnDisplay implements WorldRenderEvents.Last, WorldRenderEvents.DebugRender, WorldRenderEvents.Start, Registry.ClientWorldChunkLightUpdated, ClientChunkEvents.Unload, Registries.ClientWorldChunkSetBlockState, ClientWorldEvents.AfterClientWorldChange, ClientTickEvents.StartTick, GenericRegistry.SpawnConditionChanged, Registries.ScreenChangeCallback {
+public class CanSpawnDisplay implements WorldRenderEvents.Last, WorldRenderEvents.DebugRender, WorldRenderEvents.Start, Registries.ClientWorldChunkLightUpdated, ClientChunkEvents.Unload, Registries.ClientWorldChunkSetBlockState, ClientWorldEvents.AfterClientWorldChange, ClientTickEvents.StartTick, GenericRegistry.SpawnConditionChanged, Registries.ScreenChangeCallback {
     public static BooleanHotkeyConfig canSpawnDisplay;
     public static ColorConfig displayColor;
     public static RangeLimitConfig rangeLimit;
@@ -79,14 +79,17 @@ public class CanSpawnDisplay implements WorldRenderEvents.Last, WorldRenderEvent
     public static CanSpawnDisplay getInstance(){return instance;}
     public void onValueChanged(boolean newValue){
         if(newValue) {
+            MinecraftClient mc = MinecraftClient.getInstance();
+            if(dataInstance == null && mc.world != null && mc.player != null)
+                dataInstance = new DataInstance(mc.world, mc.player.getPos());
             if(buffer == null){
                 buffer = allocateBuffer();
                 addAllIntoWork();
             }
-            Registry.registerWorldRenderLastCallback(this);
+            Registries.WORLD_RENDER_LAST.register(this);
             Registry.registerWorldRenderBeforeDebugRenderCallback(this);
-            Registry.registerWorldRenderStartCallback(this);
-            Registry.registerClientWorldChunkLightUpdatedCallback(this);
+            Registries.WORLD_RENDER_START.register(this);
+            Registries.CLIENT_CHUNK_LIGHT_LOAD.register(this);
             Registry.registerClientChunkUnloadCallback(this);
             Registries.CLIENT_WORLD_CHUNK_SET_BLOCK_STATE.register(this);
             Registry.registerClientWorldChangeCallback(this);
@@ -95,15 +98,19 @@ public class CanSpawnDisplay implements WorldRenderEvents.Last, WorldRenderEvent
             GenericRegistry.SPAWN_CONDITION_CHANGED.register(this);
         }
         else{
+            if(dataInstance != null){
+                dataInstance.close();
+                dataInstance = null;
+            }
             if(buffer != null){
                 clearAll();
                 buffer.close();
                 buffer = null;
             }
-            Registry.unregisterWorldRenderLastCallback(this);
+            Registries.WORLD_RENDER_LAST.unregister(this);
             Registry.unregisterWorldRenderBeforeDebugRenderCallback(this);
-            Registry.unregisterWorldRenderStartCallback(this);
-            Registry.unregisterClientWorldChunkLightUpdatedCallback(this);
+            Registries.WORLD_RENDER_START.unregister(this);
+            Registries.CLIENT_CHUNK_LIGHT_LOAD.unregister(this);
             Registry.unregisterClientChunkUnloadCallback(this);
             Registries.CLIENT_WORLD_CHUNK_SET_BLOCK_STATE.unregister(this);
             Registry.unregisterClientWorldChangeCallback(this);
@@ -285,6 +292,7 @@ public class CanSpawnDisplay implements WorldRenderEvents.Last, WorldRenderEvent
     int thisRenderIndexCount;
     int lastBlockCount = 0;
     
+    private static DataInstance dataInstance;
     private static final Function<CanSpawnDisplay, CompletableFuture<Void>> renderPrepareSupplier = instance->{
         CompletableFuture<MutableInt> finalTask = CompletableFuture.completedFuture(new MutableInt(0));
         int lastBlockCount = instance.lastBlockCount;
@@ -301,7 +309,7 @@ public class CanSpawnDisplay implements WorldRenderEvents.Last, WorldRenderEvent
         Vec3d cameraDiv16Pos = new Vec3d(cameraPos.x / 16, cameraPos.y / 16, cameraPos.z / 16);
         for(Vec3i vec : iterateFromClosestInDistance(cameraDiv16Pos, renderDistance.getAsDouble() + 0.866025403784439)) {
             SubChunkPos chunkPos = new SubChunkPos(vec.getX(), vec.getY(), vec.getZ());
-            HashSet<BlockPos> posSet = instance.canSpawnPoses.get(chunkPos);
+            ArrayList<BlockPos> posSet = dataInstance.canSpawnPoses.get(chunkPos);
             if(posSet == null) continue;
             CompletableFuture<ArrayList<BlockPos>> chunkTask = CompletableFuture.supplyAsync(
                 ()->{

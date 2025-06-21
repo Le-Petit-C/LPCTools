@@ -17,18 +17,6 @@ import java.time.Clock;
 
 public class RenderTest1 {
     public static void render(WorldRenderContext context) {
-        /*Tessellator tessellator = Tessellator.getInstance();
-        BufferBuilder buffer = tessellator.begin(VertexFormat.DrawMode.TRIANGLES, VertexFormats.POSITION_COLOR);
-        Matrix4f matrix = inverseOffsetMatrix4f(context.camera().getPos().toVector3f());
-        float theta = Clock.systemUTC().millis() % 6283 / 1000.0f;
-        float alpha = MathHelper.PI * 2 / 3;
-        buffer.vertex(matrix, MathHelper.cos(theta), 0, MathHelper.sin(theta)).color(0xFFFF0000);
-        buffer.vertex(matrix, MathHelper.cos(theta + alpha), 0, MathHelper.sin(theta + alpha)).color(0xFF00FF00);
-        buffer.vertex(matrix, MathHelper.cos(theta - alpha), 0, MathHelper.sin(theta - alpha)).color(0xFF0000FF);
-        RenderSystem.disableCull();
-        RenderSystem.enableDepthTest();
-        RenderSystem.setShader(ShaderProgramKeys.POSITION_COLOR);
-        BufferRenderer.drawWithGlobalProgram(buffer.end());*/
         ShaderProgram shaderProgram = MinecraftClient.getInstance().getShaderLoader().getOrCreateProgram(ShaderProgramKeys.POSITION_COLOR);
         assert shaderProgram != null;
         VertexFormat.DrawMode drawMode = VertexFormat.DrawMode.TRIANGLES;

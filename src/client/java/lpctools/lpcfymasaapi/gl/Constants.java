@@ -1,9 +1,6 @@
 package lpctools.lpcfymasaapi.gl;
 
-import org.lwjgl.opengl.GL45;
-
-import static org.lwjgl.opengl.GL11.*;
-import static org.lwjgl.opengl.GL15.*;
+import static org.lwjgl.opengl.GL45.*;
 
 public class Constants {
     public enum DrawMode{
@@ -19,9 +16,13 @@ public class Constants {
         POLYGON(GL_POLYGON);
         DrawMode(int value){this.value = value;}
         public void drawElements(int count, IndexType type){
-            GL45.glDrawElements(value, count, type.value, 0);}
+            glDrawElements(value, count, type.value, 0);}
         public void drawArrays(int first, int count){
-            GL45.glDrawArrays(value, first, count);}
+            glDrawArrays(value, first, count);}
+        public void drawArraysInstanced(int first, int count, int primCount){
+            glDrawArraysInstanced(value, first, count, primCount);}
+        public void drawElementsInstanced(int count, IndexType type, int instanceCount){
+            glDrawElementsInstanced(value, count, type.value, 0, instanceCount);}
         public final int value;
     }
     public enum DataType{
@@ -58,15 +59,25 @@ public class Constants {
         DEPTH_TEST(GL_DEPTH_TEST);
         EnableMask(int value){this.value = value;}
         public final int value;
-        public void enable(){GL45.glEnable(value);}
-        public void disable(){GL45.glDisable(value);}
+        public void enable(){glEnable(value);}
+        public void disable(){glDisable(value);}
         public void enable(boolean b){if(b) enable();else disable();}
-        public boolean isEnabled(){return GL45.glIsEnabled(value);}
+        public boolean isEnabled(){return glIsEnabled(value);}
     }
     public enum IndexType{
         SHORT(GL_UNSIGNED_SHORT),
         INT(GL_UNSIGNED_INT);
         IndexType(int value){this.value = value;}
         public final int value;
+    }
+    public enum BufferType{
+        ARRAY_BUFFER(GL_ARRAY_BUFFER),
+        ELEMENT_ARRAY_BUFFER(GL_ELEMENT_ARRAY_BUFFER),
+        TEXTURE_BUFFER(GL_TEXTURE_BUFFER),
+        SHADER_STORAGE_BUFFER(GL_SHADER_STORAGE_BUFFER);
+        BufferType(int value){this.value = value;}
+        public final int value;
+        public void bind(Buffer buffer){glBindBuffer(value, buffer.getGlBufferId());}
+        public void unbind(){glBindBuffer(value, 0);}
     }
 }

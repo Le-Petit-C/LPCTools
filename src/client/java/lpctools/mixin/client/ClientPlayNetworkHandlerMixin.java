@@ -1,6 +1,7 @@
 package lpctools.mixin.client;
 
 import com.llamalad7.mixinextras.sugar.Local;
+import lpctools.lpcfymasaapi.Registries;
 import lpctools.lpcfymasaapi.Registry;
 import net.minecraft.client.network.ClientPlayNetworkHandler;
 import net.minecraft.client.world.ClientWorld;
@@ -21,7 +22,8 @@ public class ClientPlayNetworkHandlerMixin {
         return ()->{
             updater.run();
             WorldChunk worldChunk = world.getChunkManager().getWorldChunk(i, j, false);
-            if (worldChunk != null) Registry.runClientWorldChunkLightUpdated(worldChunk);
+            if (worldChunk != null)
+                Registries.CLIENT_CHUNK_LIGHT_LOAD.run().onClientWorldChunkLightUpdated(worldChunk);
         };
     }
 }
