@@ -2,6 +2,7 @@ package lpctools.lpcfymasaapi.gl;
 
 import static org.lwjgl.opengl.GL45.*;
 
+@SuppressWarnings("unused")
 public class Constants {
     public enum DrawMode{
         POINTS(GL_POINTS),
@@ -65,6 +66,7 @@ public class Constants {
         public boolean isEnabled(){return glIsEnabled(value);}
     }
     public enum IndexType{
+        BYTE(GL_UNSIGNED_BYTE),
         SHORT(GL_UNSIGNED_SHORT),
         INT(GL_UNSIGNED_INT);
         IndexType(int value){this.value = value;}

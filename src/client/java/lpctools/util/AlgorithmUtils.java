@@ -15,6 +15,7 @@ import org.joml.Vector2i;
 
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.Consumer;
 
 import static lpctools.util.MathUtils.*;
 
@@ -307,5 +308,24 @@ public class AlgorithmUtils {
         collection.clear();
         try{CompletableFuture.allOf(futures).join();
         }catch (Exception ignored){}
+    }
+    //处理并移除所有已完成的任务
+    public static <T> void consumeCompletedTasks(Collection<CompletableFuture<T>> tasks, Consumer<T> consumer){
+        ArrayList<CompletableFuture<T>> completedTasks = new ArrayList<>();
+        for(CompletableFuture<T> task : tasks){
+            if(!task.isDone()) continue;
+            completedTasks.add(task);
+            consumer.accept(task.join());
+        }
+        completedTasks.forEach(tasks::remove);
+    }
+    public static <T> void consumeCompletedTasks(ArrayList<CompletableFuture<T>> tasks, Consumer<T> consumer){
+        HashSet<CompletableFuture<T>> completedTasks = new HashSet<>();
+        for(CompletableFuture<T> task : tasks){
+            if(!task.isDone()) continue;
+            completedTasks.add(task);
+            consumer.accept(task.join());
+        }
+        fastRemove(tasks, completedTasks::contains);
     }
 }

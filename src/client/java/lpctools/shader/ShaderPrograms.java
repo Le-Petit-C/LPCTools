@@ -3,6 +3,7 @@ package lpctools.shader;
 import lpctools.lpcfymasaapi.gl.Program;
 import lpctools.lpcfymasaapi.gl.furtherWarpped.VertexTypes;
 import lpctools.util.DataUtils;
+import org.jetbrains.annotations.Contract;
 import org.joml.Matrix4f;
 import org.joml.Vector4f;
 
@@ -19,6 +20,30 @@ public class ShaderPrograms {
     public interface WithStaticColor {
         void setColor4f(Vector4f color);
         void setColor32(int color);
+        @Contract(pure = true)
+        static int color4f2color32(Vector4f color){
+            return normalizeToByte(color.x)
+                | (normalizeToByte(color.y) << 8)
+                | (normalizeToByte(color.z) << 16)
+                | (normalizeToByte(color.w) << 24);
+        }
+        @Contract(pure = true)
+        static Vector4f color322color4f(int color){
+            return new Vector4f(
+                normalizeFromByte((byte) (color & 0xff)),
+                normalizeFromByte((byte) ((color >>> 8) & 0xff)),
+                normalizeFromByte((byte) ((color >>> 16) & 0xff)),
+                normalizeFromByte((byte) ((color >>> 24) & 0xff))
+            );
+        }
+        @Contract(pure = true)
+        static byte normalizeToByte(float value){
+            return (byte)Math.clamp(value * 255, 0, 255);
+        }
+        @Contract(pure = true)
+        static float normalizeFromByte(byte value){
+            return Byte.toUnsignedInt(value) / 255.0f;
+        }
     }
     
     public static class PositionColorProgram extends Program implements WithFinalMatrix{

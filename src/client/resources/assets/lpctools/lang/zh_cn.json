@@ -114,7 +114,7 @@
   "lpctools.configs.tools.CS.displayColor.name": "显示颜色",
   "lpctools.configs.tools.CS.displayColor.comment": "可刷怪位置显示形状的颜色",
   "lpctools.configs.tools.CS.renderDistance.name": "渲染距离",
-  "lpctools.configs.tools.CS.renderDistance.comment": "此工具的渲染距离，单位为子区块",
+  "lpctools.configs.tools.CS.renderDistance.comment": "此工具的渲染距离，单位为方块",
   "lpctools.configs.tools.CS.renderMethod.name": "渲染方式",
   "lpctools.configs.tools.CS.renderMethod.comment": "此工具的渲染方式，决定了显示的形状",
   "lpctools.configs.tools.CS.renderMethod.minihudStyle": "Minihud光照信息风格",

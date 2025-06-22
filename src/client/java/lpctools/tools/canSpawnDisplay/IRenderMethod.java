@@ -1,15 +1,15 @@
 package lpctools.tools.canSpawnDisplay;
 
 import lpctools.lpcfymasaapi.gl.Constants;
-import net.minecraft.util.math.BlockPos;
 
 import java.nio.ByteBuffer;
 
+//索引使用GL_UNSIGNED_BYTE
 public interface IRenderMethod {
-    int getVertexBufferSizePerVertex();
-    int getVertexCountPerBlock();
-    int getIndexCountPerBlock();
+    int getVertexBufferSize();
+    int getIndexCount();
     String getNameKey();
     Constants.DrawMode getDrawMode();
-    void vertex(ByteBuffer indexBuffer, ByteBuffer vertexBuffer, BlockPos pos, int index, boolean xray);
+    //vertex但是不flip
+    void vertex(ByteBuffer vertexBuffer, ByteBuffer indexBuffer);
 }

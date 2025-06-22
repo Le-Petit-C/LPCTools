@@ -2,6 +2,7 @@ package lpctools.util;
 
 import com.google.common.collect.ImmutableList;
 import it.unimi.dsi.fastutil.objects.Object2DoubleOpenHashMap;
+import lpctools.LPCTools;
 import lpctools.lpcfymasaapi.LPCAPIInit;
 import net.minecraft.block.Block;
 import net.minecraft.block.Blocks;
@@ -14,8 +15,6 @@ import net.minecraft.resource.Resource;
 import net.minecraft.resource.ResourceManager;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
-import net.minecraft.util.math.ChunkPos;
-import net.minecraft.util.math.Vec3d;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Vector4f;
@@ -135,7 +134,9 @@ public class DataUtils {
         int err = GL30.glGetError();
         String info = ofGLError(err, null);
         if(info == null) return err;
-        notifyPlayer(Text.of(String.format("%s:%x:%s", pos, err, info)), false);
+        String formatted = String.format("%s:%x:%s", pos, err, info);
+        notifyPlayer(Text.of(formatted), false);
+        LPCTools.LOGGER.info(formatted);
         return err;
     }
     public static int putGlError(String pos, double time){
@@ -166,8 +167,5 @@ public class DataUtils {
             (color & 0xff) / 255.0f,
             ((color >>> 24) & 0xff) / 255.0f
         );
-    }
-    public static double squaredDistance(Vec3d pos, ChunkPos chunkPos){
-        return pos.squaredDistanceTo(chunkPos.x * 16 + 8.0, pos.y, chunkPos.z * 16 + 8.0);
     }
 }

@@ -4,7 +4,7 @@ import lpctools.generic.GenericUtils;
 import lpctools.lpcfymasaapi.Registries;
 import lpctools.lpcfymasaapi.UnregistrableRegistry;
 import lpctools.util.AlgorithmUtils;
-import lpctools.util.DataUtils;
+import lpctools.util.MathUtils;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientChunkEvents;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientWorldEvents;
@@ -124,7 +124,7 @@ public class DataInstance implements AutoCloseable, ClientChunkEvents.Load, Clie
     private void addAllRegionsIntoWork(ClientWorld world, Vec3d playerPos){
         for(Chunk chunk : AlgorithmUtils.iterateLoadedChunksFromClosest(world, playerPos)){
             ChunkPos chunkPos = chunk.getPos();
-            testChunkAsync(world, chunkPos, DataUtils.squaredDistance(playerPos, chunkPos));
+            testChunkAsync(world, chunkPos, MathUtils.squaredDistance(playerPos, chunkPos));
         }
     }
     private void clearAll(){

@@ -114,7 +114,7 @@
   "lpctools.configs.tools.CS.displayColor.name": "Display Color",
   "lpctools.configs.tools.CS.displayColor.comment": "Color used to render the display shapes",
   "lpctools.configs.tools.CS.renderDistance.name": "Render Distance",
-  "lpctools.configs.tools.CS.renderDistance.comment": "Render distance for this tool, 16 blocks per unit",
+  "lpctools.configs.tools.CS.renderDistance.comment": "Render distance for this tool, based on block",
   "lpctools.configs.tools.CS.renderMethod.name": "Render Method",
   "lpctools.configs.tools.CS.renderMethod.comment": "Render method for this tool, decides the display shape",
   "lpctools.configs.tools.CS.renderMethod.minihudStyle": "Minihud Style",

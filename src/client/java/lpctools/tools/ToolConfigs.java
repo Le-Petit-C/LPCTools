@@ -8,6 +8,7 @@ import lpctools.tools.canSpawnDisplay.CanSpawnDisplay;
 import lpctools.tools.slightXRay.SlightXRay;
 import lpctools.tools.fillingAssistant.FillingAssistant;
 import lpctools.tools.liquidCleaner.LiquidCleaner;
+import net.minecraft.client.MinecraftClient;
 
 import static lpctools.lpcfymasaapi.LPCConfigStatics.*;
 
@@ -17,7 +18,7 @@ public class ToolConfigs {
     static SlightXRay SXConfig;
     static ThirdListConfig AGConfig;
     static ThirdListConfig ASConfig;
-    static ThirdListConfig CSConfig;
+    static CanSpawnDisplay CSConfig;
     public static void init(){
         ILPCConfigList lastList = peekConfigList();
         try(ConfigListLayer layer = new ConfigListLayer()){
@@ -30,8 +31,7 @@ public class ToolConfigs {
             AutoGrindstone.init();
             layer.set(ASConfig = addThirdListConfig(lastList, "AS", false));
             AntiSpawner.init();
-            layer.set(CSConfig = addThirdListConfig(lastList, "CS", false));
-            CanSpawnDisplay.init();
+            CSConfig = lastList.addConfig(new CanSpawnDisplay(lastList, MinecraftClient.getInstance()));
         }
     }
 }

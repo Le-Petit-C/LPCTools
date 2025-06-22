@@ -9,7 +9,6 @@ import lpctools.lpcfymasaapi.gl.MaskLayer;
 import lpctools.lpcfymasaapi.gl.VertexArray;
 import lpctools.shader.ShaderPrograms;
 import lpctools.util.AlgorithmUtils;
-import lpctools.util.DataUtils;
 import lpctools.util.MathUtils;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents;
@@ -37,6 +36,7 @@ import java.util.function.IntSupplier;
 //TODO:不使用形状索引而是合并重合顶点的索引（比如相邻矩形）以节省空间
 //TODO:顶点缓冲改为相对于区块原点的坐标，减小距离现象影响
 //TODO:限制显示范围
+//TODO:OnScreenChanged update (update shapeList)
 
 public class RenderInstance extends DataInstance implements DataInstance.OnXRayChunkLoadedOrUnloaded, WorldRenderEvents.End, WorldRenderEvents.Start {
     public final SlightXRay parent;
@@ -311,6 +311,6 @@ public class RenderInstance extends DataInstance implements DataInstance.OnXRayC
             quadBuffer.close();
         vertexBuffers.clear();
         for(ChunkPos pos : markedPoses.keySet())
-            buildQuadBufferAsync(pos, markedPoses, DataUtils.squaredDistance(lastPlayerEyePos, pos));
+            buildQuadBufferAsync(pos, markedPoses, MathUtils.squaredDistance(lastPlayerEyePos, pos));
     }
 }

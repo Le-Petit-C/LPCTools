@@ -1,21 +1,42 @@
 package lpctools.lpcfymasaapi.gl;
 
+import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
+import org.apache.commons.lang3.mutable.MutableInt;
+import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.NotNull;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Iterator;
 
 @SuppressWarnings("unused")
-public class VertexAttrib {
+public class VertexAttrib implements IterableElement{
     private final VertexAttribElement[] elements;
     private final int[] defaultOffsets;
     private final int defaultStride;
-    public VertexAttrib(VertexAttribElement... elements){
-        this.elements = elements.clone();
-        defaultOffsets = new int[elements.length];
-        int vertexSize = 0;
-        for(int a = 0; a < elements.length; ++a){
-            defaultOffsets[a] = vertexSize;
-            vertexSize += elements[a].getSize();
+    public VertexAttrib(IterableElement... elements){
+        ArrayList<VertexAttribElement> elementArrayList = new ArrayList<>();
+        IntArrayList defaultOffsetsArrayList = new IntArrayList();
+        MutableInt vertexSize = new MutableInt(0);
+        for(Iterable<VertexAttribElement> attrib : elements)
+            attrib.forEach(element->{
+                elementArrayList.add(element);
+                defaultOffsetsArrayList.add(vertexSize.intValue());
+                vertexSize.add(element.getSize());
+            });
+        this.defaultOffsets = defaultOffsetsArrayList.toArray(new int[0]);
+        this.elements = elementArrayList.toArray(new VertexAttribElement[0]);
+        this.defaultStride = vertexSize.intValue();
+    }
+    //有可能前面几个attrib被占据了，从给定索引开始attribAndEnable，具体功能看实现
+    public void attribAndEnableShifted(int start){
+        int offset = 0;
+        for(int index = 0; index < elements.length; ++index){
+            VertexAttribElement element = elements[index];
+            element.vertexAttribAndEnable(index + start, defaultStride, offset);
+            offset += element.getSize();
         }
-        this.defaultStride = vertexSize;
     }
     public void attribAndEnable(){
         int offset = 0;
@@ -56,5 +77,12 @@ public class VertexAttrib {
             offsets.put(buffer, e.getSize() + offsets.getOrDefault(buffer, 0));
         }
     }
+    @Contract(pure = true)
     public int getSize(){return defaultStride;}
+    @Contract(pure = true)
+    public int getCount(){return elements.length;}
+    
+    @Override public @NotNull Iterator<VertexAttribElement> iterator() {
+        return Arrays.stream(elements).iterator();
+    }
 }

@@ -1,5 +1,6 @@
 package lpctools.lpcfymasaapi.gl;
 
+import org.jetbrains.annotations.Contract;
 import org.lwjgl.opengl.GL45;
 
 import java.nio.ByteBuffer;
@@ -22,8 +23,9 @@ public class Buffer implements AutoCloseable{
         glBufferId = 0;
     }
     //usage:STATIC_DRAW,STATIC_READ,etc.
-    public void data(ByteBuffer data, Constants.BufferMode usage){
-        GL45.glNamedBufferData(glBufferId, data, usage.value);}
+    @Contract("_, _ -> this")
+    public Buffer data(ByteBuffer data, Constants.BufferMode usage){
+        GL45.glNamedBufferData(glBufferId, data, usage.value); return this;}
     public void bindAsArray(){ARRAY_BUFFER.bind(this);}
     public void unbindAsArray(){ARRAY_BUFFER.unbind();}
     public static void unbindAsArrayStatic(){ARRAY_BUFFER.unbind();}

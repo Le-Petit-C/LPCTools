@@ -6,6 +6,7 @@ import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientWorldEvents;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents;
 import net.minecraft.block.BlockState;
 import net.minecraft.client.gui.screen.Screen;
+import net.minecraft.client.world.ClientWorld;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.chunk.WorldChunk;
 
@@ -45,7 +46,7 @@ public class Registries {
     public static final UnregistrableRegistry<WorldRenderEvents.End> WORLD_RENDER_END = new UnregistrableRegistry<>(
         callbacks->context->callbacks.forEach(callback->callback.onEnd(context)));
     public static final UnregistrableRegistry<ClientWorldChunkLightUpdated> CLIENT_CHUNK_LIGHT_LOAD = new UnregistrableRegistry<>(
-        callbacks->chunk->callbacks.forEach(callback->callback.onClientWorldChunkLightUpdated(chunk)));
+        callbacks->(world, chunk)->callbacks.forEach(callback->callback.onClientWorldChunkLightUpdated(world, chunk)));
     public static final UnregistrableRegistry<InGameEndMouse> IN_GAME_END_MOUSE = new UnregistrableRegistry<>(
         callbacks->(button, action, mods)->callbacks.forEach(callback->callback.onInGameEndMouse(button, action, mods)));
     
@@ -74,7 +75,7 @@ public class Registries {
         void onScreenChanged(Screen newScreen);
     }
     public interface ClientWorldChunkLightUpdated{
-        void onClientWorldChunkLightUpdated(WorldChunk chunk);
+        void onClientWorldChunkLightUpdated(ClientWorld world, WorldChunk chunk);
     }
     public interface InGameEndMouse {
         void onInGameEndMouse(int button, int action, int mods);
