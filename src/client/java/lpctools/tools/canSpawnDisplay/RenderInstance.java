@@ -16,7 +16,6 @@ import net.minecraft.world.chunk.Chunk;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Matrix4f;
-import org.joml.Vector3i;
 import org.lwjgl.system.MemoryUtil;
 
 import java.nio.ByteBuffer;
@@ -25,7 +24,6 @@ import java.util.HashMap;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.BooleanSupplier;
 import java.util.function.DoubleSupplier;
-import java.util.function.Function;
 import java.util.function.IntSupplier;
 
 //TODO:渲染范围限制
@@ -50,7 +48,7 @@ public class RenderInstance extends DataInstance implements WorldRenderEvents.La
     @Override public void close(){
         super.close();
         AlgorithmUtils.cancelTasks(renderBufferBuilders, v->v);
-        bufferCache.forEach((key, value)->value.forEach((k, v)->v.close()));
+        bufferCache.forEach((key, value)->value.close());
         bufferCache.clear();
         if (sharedBufferData != null) sharedBufferData.releaseNoexcept();
     }
@@ -77,35 +75,47 @@ public class RenderInstance extends DataInstance implements WorldRenderEvents.La
         }
     }
     private void convertAsyncResult(AsyncBuiltResult result){
-        HashMap<Vector3i, RenderBuffer> map = bufferCache.get(result.data.pos);
-        if(map != null) map.values().forEach(RenderBuffer::close);
-        bufferCache.put(result.data.pos, result.buildRenderBuffer());
+        RenderBuffer buffer = bufferCache.get(result.data.pos);
+        if(buffer != null) buffer.close();
+        bufferCache.put(result.data.pos, result.build());
     }
     private final ArrayList<CompletableFuture<AsyncBuiltResult>> renderBufferBuilders = new ArrayList<>();
     private final @NotNull BooleanSupplier renderXRays;
     private final @NotNull DoubleSupplier renderDistance;
     private final @NotNull IntSupplier renderColor;
     private @NotNull IRenderMethod renderMethod;
-    private final HashMap<ChunkPos, HashMap<Vector3i, RenderBuffer>> bufferCache = new HashMap<>();
+    private final HashMap<ChunkPos, RenderBuffer> bufferCache = new HashMap<>();
     private void render(WorldRenderContext context){
         double distanceSquared = MathUtils.square(renderDistance.getAsDouble());
-        double distanceLimit = MathUtils.square(renderDistance.getAsDouble() + Math.sqrt(3) * 8);
+        double distanceLimit = MathUtils.square(renderDistance.getAsDouble() + Math.sqrt(2) * 8);
         Vec3d camPos = context.camera().getPos();
         Iterable<Chunk> poses = AlgorithmUtils.iterateLoadedChunksFromClosest(context.world(), camPos);
+        ArrayList<RenderBuffer> buffersToRender = new ArrayList<>();
+        ArrayList<Matrix4f> modelMatrixList = new ArrayList<>();
+        ArrayList<Matrix4f> finalMatrixList = new ArrayList<>();
+        for(Chunk chunk : poses){
+            ChunkPos pos = chunk.getPos();
+            if(MathUtils.squaredDistance(camPos, pos) >= distanceLimit) continue;
+            RenderBuffer buffer = bufferCache.get(pos);
+            if(buffer == null) continue;
+            Matrix4f modelMatrix = MathUtils.inverseOffsetMatrix4f(camPos.subtract(pos.x * 16, 0, pos.z * 16).toVector3f());
+            context.positionMatrix().mul(modelMatrix, modelMatrix);
+            Matrix4f finalMatrix = context.projectionMatrix().mul(modelMatrix, new Matrix4f());
+            buffersToRender.add(buffer);
+            modelMatrixList.add(modelMatrix);
+            finalMatrixList.add(finalMatrix);
+        }
         try(MaskLayer layer = new MaskLayer()){
             layer.enableBlend().disableCullFace().enableDepthTest(!renderXRays.getAsBoolean());
-            for(Chunk chunk : poses){
-                ChunkPos pos = chunk.getPos();
-                if(MathUtils.squaredDistance(camPos, pos) >= distanceLimit) continue;
-                HashMap<Vector3i, RenderBuffer> buffers = bufferCache.get(pos);
-                if(buffers == null) continue;
-                Matrix4f modelMatrix = MathUtils.inverseOffsetMatrix4f(camPos.subtract(pos.x * 16, 0, pos.z * 16).toVector3f());
-                context.positionMatrix().mul(modelMatrix, modelMatrix);
-                Matrix4f finalMatrix = context.projectionMatrix().mul(modelMatrix, new Matrix4f());
-                buffers.forEach((key, value)->{
-                    if(camPos.squaredDistanceTo(key.x * 16.0 + 8.0, key.y * 16.0 + 8.0, key.z * 16.0 + 8.0) >= distanceLimit) return;
-                    value.render(finalMatrix, modelMatrix, renderColor.getAsInt(), distanceSquared);
-                });
+            try(MaskLayer furtherLayer = new MaskLayer()){
+                furtherLayer.disableDepthWrite();
+                for(int a = 0; a < buffersToRender.size(); ++a)
+                    buffersToRender.get(a).render(finalMatrixList.get(a), modelMatrixList.get(a), renderColor.getAsInt(), distanceSquared);
+            }
+            try(MaskLayer furtherLayer = new MaskLayer()){
+                furtherLayer.disableColorWrite();
+                for(int a = 0; a < buffersToRender.size(); ++a)
+                    buffersToRender.get(a).render(finalMatrixList.get(a), modelMatrixList.get(a), renderColor.getAsInt(), distanceSquared);
             }
         }
     }
@@ -115,28 +125,14 @@ public class RenderInstance extends DataInstance implements WorldRenderEvents.La
         ArrayList<BlockPos> poses = canSpawnPoses.get(pos);
         renderBufferBuilders.add(GenericUtils.supplyAsync(()->asyncBufferBuilder(data, poses), distanceSquared));
     }
-    private static AsyncBuiltResult asyncBufferBuilder(AsyncRecordData data, ArrayList<BlockPos> canSpawnPoses){
-        HashMap<Vector3i, ArrayList<BlockPos>> separated = new HashMap<>();
-        Function<Vector3i, ArrayList<BlockPos>> allocator = k->new ArrayList<>();
-        canSpawnPoses.forEach(p->separated.computeIfAbsent(MathUtils.getSubChunkPos(p).add(data.pos.x, 0, data.pos.z), allocator).add(p.toImmutable()));
-        AsyncBuiltResult result = new AsyncBuiltResult(data, new HashMap<>());
-        separated.forEach((key, value)->result.buffer.put(key, asyncBufferBuilder(value)));
-        return result;
-    }
-    private static AsyncBuiltBuffer asyncBufferBuilder(ArrayList<BlockPos> poses){
+    private static AsyncBuiltResult asyncBufferBuilder(AsyncRecordData data, ArrayList<BlockPos> poses){
         ByteBuffer result = MemoryUtil.memAlloc(poses.size() * 12);
         poses.forEach(pos->result.putFloat(pos.getX() + 0.5f).putFloat(pos.getY() + 0.5f).putFloat(pos.getZ() + 0.5f));
-        return new AsyncBuiltBuffer(result.flip(), poses.size());
+        return new AsyncBuiltResult(data, result.flip(), poses.size());
     }
     private record AsyncRecordData(ChunkPos pos, IRenderMethod renderMethod, SharedPtr<SharedBufferData> shared){}
-    private record AsyncBuiltBuffer(ByteBuffer buffer, int instanceCount){}
-    private record AsyncBuiltResult(AsyncRecordData data, HashMap<Vector3i, AsyncBuiltBuffer> buffer){
-        public HashMap<Vector3i, RenderBuffer> buildRenderBuffer(){
-            HashMap<Vector3i, RenderBuffer> res = new HashMap<>();
-            buffer.forEach((key, value)->res.put(key, new RenderBuffer(value.buffer, value.instanceCount, data)));
-            VertexArray.unbindStatic();
-            return res;
-        }
+    private record AsyncBuiltResult(AsyncRecordData data, ByteBuffer buffer, int instanceCount){
+        public RenderBuffer build(){return new RenderBuffer(buffer, instanceCount, data);}
     }
     private static class RenderBuffer implements AutoCloseable{
         private static final RenderProgram program = RenderProgram.program;
