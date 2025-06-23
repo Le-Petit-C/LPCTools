@@ -9,6 +9,7 @@ import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.chunk.WorldChunk;
+import org.jetbrains.annotations.NotNull;
 
 public class Registries {
     public static final UnregistrableRegistry<ClientWorldEvents.AfterClientWorldChange> AFTER_CLIENT_WORLD_CHANGE = new UnregistrableRegistry<>(
@@ -75,7 +76,7 @@ public class Registries {
         void onScreenChanged(Screen newScreen);
     }
     public interface ClientWorldChunkLightUpdated{
-        void onClientWorldChunkLightUpdated(ClientWorld world, WorldChunk chunk);
+        void onClientWorldChunkLightUpdated(@NotNull ClientWorld world, @NotNull WorldChunk chunk);
     }
     public interface InGameEndMouse {
         void onInGameEndMouse(int button, int action, int mods);

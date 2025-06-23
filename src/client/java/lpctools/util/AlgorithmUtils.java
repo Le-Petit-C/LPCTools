@@ -10,11 +10,13 @@ import net.minecraft.world.World;
 import net.minecraft.world.chunk.Chunk;
 import net.minecraft.world.chunk.ChunkStatus;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.joml.Vector2d;
 import org.joml.Vector2i;
 
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
 import static lpctools.util.MathUtils.*;
@@ -296,6 +298,13 @@ public class AlgorithmUtils {
             }
         }
     }
+    //软取消任务并阻塞等待剩余任务完成
+    public static void cancelTask(@Nullable CompletableFuture<?> task){
+        if(task == null) return;
+        task.cancel(false);
+        try{task.join();
+        }catch (Exception ignored){}
+    }
     //软取消元素关联的所有任务，清空原始集合并阻塞等待剩余任务完成
     public static <T> void cancelTasks(Collection<T> collection, NamedFunction<T, CompletableFuture<?>> futureGetter){
         CompletableFuture<?>[] futures = new CompletableFuture<?>[collection.size()];
@@ -327,5 +336,17 @@ public class AlgorithmUtils {
             consumer.accept(task.join());
         }
         fastRemove(tasks, completedTasks::contains);
+    }
+    public static <T, U> void consumeCompletedTasks(Map<T, CompletableFuture<U>> tasks, BiConsumer<T, U> consumer){
+        ArrayList<T> completedTasks = new ArrayList<>();
+        tasks.forEach((t, task)->{
+            if(!task.isDone()) return;
+            completedTasks.add(t);
+            consumer.accept(t, task.join());
+        });
+        completedTasks.forEach(tasks::remove);
+    }
+    public static void closeNoExcept(@Nullable AutoCloseable closeable){
+        if(closeable != null) try{closeable.close();}catch(Exception ignored){}
     }
 }

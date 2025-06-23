@@ -4,6 +4,8 @@ import com.google.common.collect.ImmutableList;
 import it.unimi.dsi.fastutil.objects.Object2DoubleOpenHashMap;
 import lpctools.LPCTools;
 import lpctools.lpcfymasaapi.LPCAPIInit;
+import lpctools.util.javaex.NamedFunction;
+import lpctools.util.javaex.NamedObject2BooleanFunction;
 import net.minecraft.block.Block;
 import net.minecraft.block.Blocks;
 import net.minecraft.client.MinecraftClient;
@@ -41,6 +43,9 @@ public class DataUtils {
     public static void notifyPlayer(Text message, boolean overlay){
         ClientPlayerEntity player = MinecraftClient.getInstance().player;
         if(player != null) player.sendMessage(message, overlay);
+    }
+    public static <T> void notifyPlayerIf(T value, NamedFunction<T, String> converter, NamedObject2BooleanFunction<T> condition, boolean overlay){
+        if(condition.booleanApply(value)) notifyPlayer(converter.apply(value), overlay);
     }
     public static String getItemId(Item item){return Registries.ITEM.getEntry(item).getIdAsString();}
     public static String getBlockId(Block block){return Registries.BLOCK.getEntry(block).getIdAsString();}

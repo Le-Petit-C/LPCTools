@@ -1,5 +1,6 @@
 package lpctools.tools.canSpawnDisplay;
 
+import lpctools.compact.derived.ShapeList;
 import lpctools.generic.GenericUtils;
 import lpctools.lpcfymasaapi.Registries;
 import lpctools.lpcfymasaapi.gl.*;
@@ -9,10 +10,14 @@ import lpctools.util.javaex.SharedPtr;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents;
 import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.gui.screen.Screen;
+import net.minecraft.client.world.ClientWorld;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.ChunkPos;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.chunk.Chunk;
+import net.minecraft.world.chunk.WorldChunk;
+import org.apache.commons.lang3.mutable.MutableInt;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Matrix4f;
@@ -22,23 +27,32 @@ import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.concurrent.CompletableFuture;
-import java.util.function.BooleanSupplier;
-import java.util.function.DoubleSupplier;
-import java.util.function.IntSupplier;
 
-//TODO:渲染范围限制
+//TODO:Litematica渲染层改动导致的ShapeList变化
 
-public class RenderInstance extends DataInstance implements WorldRenderEvents.Last, WorldRenderEvents.DebugRender{
-    public RenderInstance(MinecraftClient client, @NotNull BooleanSupplier renderXRays, @NotNull DoubleSupplier renderDistance, @NotNull IRenderMethod renderMethod, @NotNull IntSupplier renderColor) {
+public class RenderInstance extends DataInstance implements WorldRenderEvents.Last, WorldRenderEvents.DebugRender, Registries.ScreenChangeCallback {
+    public final CanSpawnDisplay parent;
+    public RenderInstance(MinecraftClient client, CanSpawnDisplay parent) {
         super(client);
-        this.renderXRays = renderXRays;
-        this.renderDistance = renderDistance;
-        this.renderMethod = renderMethod;
-        this.renderColor = renderColor;
+        this.parent = parent;
+        renderMethod = parent.renderMethod.get();
+        shapeList = parent.rangeLimit.buildShapeList();
     }
     public void setRenderMethod(@NotNull IRenderMethod renderMethod) {
         this.renderMethod = renderMethod;
-        //TODO...
+        if(client.player != null) rebuildRender(client.player.getEyePos());
+    }
+    public void rebuildRender(Vec3d playerPos){
+        clearRenderBuffer();
+        for(ChunkPos pos : canSpawnPoses.keySet())
+            buildBufferAsync(pos, MathUtils.squaredDistance(playerPos, pos));
+    }
+    public void clearRenderBuffer(){
+        AlgorithmUtils.cancelTasks(renderBufferBuilders.values(), v->v);
+        bufferCache.forEach((key, value)->value.close());
+        bufferCache.clear();
+        if (sharedBufferData != null) sharedBufferData.releaseNoexcept();
+        sharedBufferData = null;
     }
     @Override protected void registerAll(boolean b){
         super.registerAll(b);
@@ -47,19 +61,32 @@ public class RenderInstance extends DataInstance implements WorldRenderEvents.La
     }
     @Override public void close(){
         super.close();
-        AlgorithmUtils.cancelTasks(renderBufferBuilders, v->v);
-        bufferCache.forEach((key, value)->value.close());
-        bufferCache.clear();
-        if (sharedBufferData != null) sharedBufferData.releaseNoexcept();
+        clearRenderBuffer();
     }
-    @Override public void onLast(WorldRenderContext context) {if(renderXRays.getAsBoolean()) render(context);}
-    @Override public void beforeDebugRender(WorldRenderContext context) {if(!renderXRays.getAsBoolean()) render(context);}
+    
+    @Override public void onChunkUnload(ClientWorld world, WorldChunk chunk) {
+        super.onChunkUnload(world, chunk);
+        ChunkPos pos = chunk.getPos();
+        AlgorithmUtils.cancelTask(renderBufferBuilders.remove(pos));
+        AlgorithmUtils.closeNoExcept(bufferCache.remove(pos));
+    }
+    
+    @Override public void onLast(WorldRenderContext context) {if(parent.renderXRays.getAsBoolean()) render(context);}
+    @Override public void beforeDebugRender(WorldRenderContext context) {if(!parent.renderXRays.getAsBoolean()) render(context);}
     @Override protected void onChunkDataLoaded(ChunkPos pos, double distanceSquared) {buildBufferAsync(pos, distanceSquared);}
     @Override public void onStartTick(MinecraftClient mc) {
         super.onStartTick(mc);
         AlgorithmUtils.consumeCompletedTasks(renderBufferBuilders, this::convertAsyncResult);
     }
     @Nullable SharedPtr<SharedBufferData> sharedBufferData;
+    
+    @Override public void onScreenChanged(Screen newScreen) {
+        ShapeList newList = parent.rangeLimit.buildShapeList();
+        if(newList.equals(shapeList)) return;
+        shapeList = newList;
+        if(client.player != null) rebuildRender(client.player.getEyePos());
+    }
+    
     private record SharedBufferData(Buffer vertexBuffer, Buffer indexBuffer) implements AutoCloseable{
         @Override public void close() {
             vertexBuffer.close();
@@ -74,20 +101,18 @@ public class RenderInstance extends DataInstance implements WorldRenderEvents.La
             return new SharedBufferData(vertexBuffer, indexBuffer);
         }
     }
-    private void convertAsyncResult(AsyncBuiltResult result){
-        RenderBuffer buffer = bufferCache.get(result.data.pos);
-        if(buffer != null) buffer.close();
-        bufferCache.put(result.data.pos, result.build());
+    private void convertAsyncResult(ChunkPos pos, AsyncBuiltResult result){
+        AlgorithmUtils.closeNoExcept(bufferCache.remove(pos));
+        //if(result.buffer.remaining() == 0) return;
+        bufferCache.put(pos, result.build());
     }
-    private final ArrayList<CompletableFuture<AsyncBuiltResult>> renderBufferBuilders = new ArrayList<>();
-    private final @NotNull BooleanSupplier renderXRays;
-    private final @NotNull DoubleSupplier renderDistance;
-    private final @NotNull IntSupplier renderColor;
+    private @NotNull ShapeList shapeList;
+    private final HashMap<ChunkPos, CompletableFuture<AsyncBuiltResult>> renderBufferBuilders = new HashMap<>();
     private @NotNull IRenderMethod renderMethod;
     private final HashMap<ChunkPos, RenderBuffer> bufferCache = new HashMap<>();
     private void render(WorldRenderContext context){
-        double distanceSquared = MathUtils.square(renderDistance.getAsDouble());
-        double distanceLimit = MathUtils.square(renderDistance.getAsDouble() + Math.sqrt(2) * 8);
+        double distanceSquared = MathUtils.square(parent.renderDistance.getAsDouble());
+        double distanceLimit = MathUtils.square(parent.renderDistance.getAsDouble() + Math.sqrt(2) * 8);
         Vec3d camPos = context.camera().getPos();
         Iterable<Chunk> poses = AlgorithmUtils.iterateLoadedChunksFromClosest(context.world(), camPos);
         ArrayList<RenderBuffer> buffersToRender = new ArrayList<>();
@@ -106,31 +131,41 @@ public class RenderInstance extends DataInstance implements WorldRenderEvents.La
             finalMatrixList.add(finalMatrix);
         }
         try(MaskLayer layer = new MaskLayer()){
-            layer.enableBlend().disableCullFace().enableDepthTest(!renderXRays.getAsBoolean());
+            layer.enableBlend().disableCullFace().enableDepthTest(!parent.renderXRays.getAsBoolean());
             try(MaskLayer furtherLayer = new MaskLayer()){
                 furtherLayer.disableDepthWrite();
                 for(int a = 0; a < buffersToRender.size(); ++a)
-                    buffersToRender.get(a).render(finalMatrixList.get(a), modelMatrixList.get(a), renderColor.getAsInt(), distanceSquared);
+                    buffersToRender.get(a).render(finalMatrixList.get(a), modelMatrixList.get(a), parent.displayColor.getIntegerValue(), distanceSquared);
             }
             try(MaskLayer furtherLayer = new MaskLayer()){
                 furtherLayer.disableColorWrite();
                 for(int a = 0; a < buffersToRender.size(); ++a)
-                    buffersToRender.get(a).render(finalMatrixList.get(a), modelMatrixList.get(a), renderColor.getAsInt(), distanceSquared);
+                    buffersToRender.get(a).render(finalMatrixList.get(a), modelMatrixList.get(a), parent.displayColor.getIntegerValue(), distanceSquared);
             }
         }
     }
     private void buildBufferAsync(ChunkPos pos, double distanceSquared){
+        AlgorithmUtils.cancelTask(renderBufferBuilders.remove(pos));
         if(sharedBufferData == null) sharedBufferData = new SharedPtr<>(SharedBufferData.build(renderMethod)).take();
-        AsyncRecordData data = new AsyncRecordData(pos, renderMethod, sharedBufferData);
+        AsyncRecordData data = new AsyncRecordData(renderMethod, sharedBufferData, pos);
         ArrayList<BlockPos> poses = canSpawnPoses.get(pos);
-        renderBufferBuilders.add(GenericUtils.supplyAsync(()->asyncBufferBuilder(data, poses), distanceSquared));
+        ShapeList finalShapeList = shapeList;
+        renderBufferBuilders.put(pos, GenericUtils.supplyAsync(()->asyncBufferBuilder(data, poses, finalShapeList), distanceSquared));
     }
-    private static AsyncBuiltResult asyncBufferBuilder(AsyncRecordData data, ArrayList<BlockPos> poses){
+    private static AsyncBuiltResult asyncBufferBuilder(AsyncRecordData data, ArrayList<BlockPos> poses, ShapeList shapeList){
         ByteBuffer result = MemoryUtil.memAlloc(poses.size() * 12);
-        poses.forEach(pos->result.putFloat(pos.getX() + 0.5f).putFloat(pos.getY() + 0.5f).putFloat(pos.getZ() + 0.5f));
-        return new AsyncBuiltResult(data, result.flip(), poses.size());
+        BlockPos.Mutable _pos = new BlockPos.Mutable();
+        int x = data.pos.x << 4, z = data.pos.z << 4;
+        MutableInt count = new MutableInt(0);
+        poses.forEach(pos->{
+            _pos.set(pos.getX() + x, pos.getY(), pos.getZ() + z);
+            if(!shapeList.testPos(_pos)) return;
+            result.putFloat(pos.getX() + 0.5f).putFloat(pos.getY() + 0.5f).putFloat(pos.getZ() + 0.5f);
+            count.add(1);
+        });
+        return new AsyncBuiltResult(data, result.flip(), count.intValue());
     }
-    private record AsyncRecordData(ChunkPos pos, IRenderMethod renderMethod, SharedPtr<SharedBufferData> shared){}
+    private record AsyncRecordData(IRenderMethod renderMethod, SharedPtr<SharedBufferData> shared, ChunkPos pos){}
     private record AsyncBuiltResult(AsyncRecordData data, ByteBuffer buffer, int instanceCount){
         public RenderBuffer build(){return new RenderBuffer(buffer, instanceCount, data);}
     }

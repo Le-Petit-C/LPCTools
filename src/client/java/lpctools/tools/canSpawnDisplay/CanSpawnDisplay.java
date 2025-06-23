@@ -40,7 +40,7 @@ public class CanSpawnDisplay extends ThirdListConfig{
         @Override public void onValueChanged() {
             super.onValueChanged();
             boolean currentValue = getBooleanValue();
-            if(currentValue) renderInstance = new RenderInstance(client, renderXRays, renderDistance, renderMethod.get(), displayColor::getIntegerValue);
+            if(currentValue) renderInstance = new RenderInstance(client, CanSpawnDisplay.this);
             else{
                 if(renderInstance != null){
                     renderInstance.close();
