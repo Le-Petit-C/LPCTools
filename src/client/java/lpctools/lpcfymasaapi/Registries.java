@@ -1,5 +1,6 @@
 package lpctools.lpcfymasaapi;
 
+import fi.dy.masa.malilib.interfaces.IRangeChangeListener;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientChunkEvents;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientWorldEvents;
@@ -50,6 +51,17 @@ public class Registries {
         callbacks->(world, chunk)->callbacks.forEach(callback->callback.onClientWorldChunkLightUpdated(world, chunk)));
     public static final UnregistrableRegistry<InGameEndMouse> IN_GAME_END_MOUSE = new UnregistrableRegistry<>(
         callbacks->(button, action, mods)->callbacks.forEach(callback->callback.onInGameEndMouse(button, action, mods)));
+    public static final UnregistrableRegistry<IRangeChangeListener> LITEMATICA_RANGE_CHANGED = new UnregistrableRegistry<>(
+        callbacks->new IRangeChangeListener() {
+            @Override public void updateAll() {
+                callbacks.forEach(IRangeChangeListener::updateAll);}
+            @Override public void updateBetweenX(int minX, int maxX) {
+                callbacks.forEach(callback->callback.updateBetweenX(minX, maxX));}
+            @Override public void updateBetweenY(int minY, int maxY) {
+                callbacks.forEach(callback->callback.updateBetweenY(minY, maxY));}
+            @Override public void updateBetweenZ(int minZ, int maxZ) {
+                callbacks.forEach(callback->callback.updateBetweenX(minZ, maxZ));}
+        });
     
     static{
         ClientWorldEvents.AFTER_CLIENT_WORLD_CHANGE.register(AFTER_CLIENT_WORLD_CHANGE.run());

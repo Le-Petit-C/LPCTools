@@ -50,13 +50,15 @@ public class DataInstance implements AutoCloseable, Registries.ClientWorldChunkL
         canSpawnPoses.clear();
     }
     public void retestData(@NotNull World world, @NotNull Vec3d playerPos){
-        clearData();
         for(Chunk chunk : AlgorithmUtils.iterateLoadedChunksFromClosest(world, playerPos))
             testChunkAsync(chunk, world.getLightingProvider(), chunk.getPos(), MathUtils.squaredDistance(playerPos, chunk.getPos()));
     }
     @Override public void onClientWorldChunkLightUpdated(@NotNull ClientWorld world, @NotNull WorldChunk chunk) {
         ChunkPos curr = chunk.getPos();
-        testChunkAsync(chunk, world.getLightingProvider(), new ChunkPos(curr.x, curr.z), MathUtils.square(client.options.getViewDistance().getValue() * 16));
+        double distanceSquared;
+        if(client.player == null) distanceSquared = MathUtils.square(client.options.getViewDistance().getValue() * 16);
+        else distanceSquared = MathUtils.squaredDistance(client.player.getEyePos(), curr);
+        testChunkAsync(chunk, world.getLightingProvider(), new ChunkPos(curr.x, curr.z), distanceSquared);
     }
     @Override public void close() {
         clearData();

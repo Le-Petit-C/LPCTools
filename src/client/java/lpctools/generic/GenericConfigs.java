@@ -19,6 +19,10 @@ import static lpctools.generic.GenericRegistry.*;
 import static lpctools.lpcfymasaapi.LPCConfigStatics.*;
 import static lpctools.util.DataUtils.*;
 
+//TODO:生成条件：不检测脚下方块（蝙蝠）
+//TODO:生成条件：天空光照/方块光照切换
+//TODO:Shadow Config
+
 public class GenericConfigs {
     private static final ILPCValueChangeCallback runSpawnConditionChanged = SPAWN_CONDITION_CHANGED.run()::onSpawnConditionChanged;
     public static void init(){

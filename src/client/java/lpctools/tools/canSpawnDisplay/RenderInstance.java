@@ -3,6 +3,7 @@ package lpctools.tools.canSpawnDisplay;
 import lpctools.compact.derived.ShapeList;
 import lpctools.generic.GenericUtils;
 import lpctools.lpcfymasaapi.Registries;
+import lpctools.lpcfymasaapi.configbutton.derivedConfigs.RangeLimitConfig;
 import lpctools.lpcfymasaapi.gl.*;
 import lpctools.util.AlgorithmUtils;
 import lpctools.util.MathUtils;
@@ -10,7 +11,6 @@ import lpctools.util.javaex.SharedPtr;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents;
 import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.ChunkPos;
@@ -30,7 +30,7 @@ import java.util.concurrent.CompletableFuture;
 
 //TODO:Litematica渲染层改动导致的ShapeList变化
 
-public class RenderInstance extends DataInstance implements WorldRenderEvents.Last, WorldRenderEvents.DebugRender, Registries.ScreenChangeCallback {
+public class RenderInstance extends DataInstance implements WorldRenderEvents.Last, WorldRenderEvents.DebugRender{
     public final CanSpawnDisplay parent;
     public RenderInstance(MinecraftClient client, CanSpawnDisplay parent) {
         super(client);
@@ -43,7 +43,6 @@ public class RenderInstance extends DataInstance implements WorldRenderEvents.La
         if(client.player != null) rebuildRender(client.player.getEyePos());
     }
     public void rebuildRender(Vec3d playerPos){
-        clearRenderBuffer();
         for(ChunkPos pos : canSpawnPoses.keySet())
             buildBufferAsync(pos, MathUtils.squaredDistance(playerPos, pos));
     }
@@ -54,6 +53,12 @@ public class RenderInstance extends DataInstance implements WorldRenderEvents.La
         if (sharedBufferData != null) sharedBufferData.releaseNoexcept();
         sharedBufferData = null;
     }
+    public void onRenderRangeChanged(RangeLimitConfig rangeLimit){
+        ShapeList newList = rangeLimit.buildShapeList();
+        if(newList.equals(shapeList)) return;
+        shapeList = newList;
+        if(client.player != null) rebuildRender(client.player.getEyePos());
+    }
     @Override protected void registerAll(boolean b){
         super.registerAll(b);
         Registries.WORLD_RENDER_LAST.register(this, b);
@@ -63,7 +68,6 @@ public class RenderInstance extends DataInstance implements WorldRenderEvents.La
         super.close();
         clearRenderBuffer();
     }
-    
     @Override public void onChunkUnload(ClientWorld world, WorldChunk chunk) {
         super.onChunkUnload(world, chunk);
         ChunkPos pos = chunk.getPos();
@@ -79,13 +83,6 @@ public class RenderInstance extends DataInstance implements WorldRenderEvents.La
         AlgorithmUtils.consumeCompletedTasks(renderBufferBuilders, this::convertAsyncResult);
     }
     @Nullable SharedPtr<SharedBufferData> sharedBufferData;
-    
-    @Override public void onScreenChanged(Screen newScreen) {
-        ShapeList newList = parent.rangeLimit.buildShapeList();
-        if(newList.equals(shapeList)) return;
-        shapeList = newList;
-        if(client.player != null) rebuildRender(client.player.getEyePos());
-    }
     
     private record SharedBufferData(Buffer vertexBuffer, Buffer indexBuffer) implements AutoCloseable{
         @Override public void close() {

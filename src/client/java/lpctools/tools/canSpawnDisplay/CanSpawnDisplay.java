@@ -14,7 +14,7 @@ import net.minecraft.client.MinecraftClient;
 import static lpctools.lpcfymasaapi.LPCConfigStatics.*;
 import static lpctools.tools.ToolUtils.*;
 
-public class CanSpawnDisplay extends ThirdListConfig{
+public class CanSpawnDisplay extends ThirdListConfig implements AutoCloseable{
     public final CanSpawnDisplaySwitch canSpawnDisplay;
     public final ColorConfig displayColor;
     public final RangeLimitConfig rangeLimit;
@@ -22,6 +22,7 @@ public class CanSpawnDisplay extends ThirdListConfig{
     public final RenderMethodConfig renderMethod;
     public final BooleanConfig renderXRays;
     public final MinecraftClient client;
+    @Override public void close() throws Exception {rangeLimit.close();}
     public class RenderMethodConfig extends ArrayOptionListConfig<IRenderMethod>{
         public RenderMethodConfig() {
             super(CanSpawnDisplay.this, "renderMethod");
@@ -33,7 +34,7 @@ public class CanSpawnDisplay extends ThirdListConfig{
             if(renderInstance != null) renderInstance.setRenderMethod(get());
         }
     }
-    public  class CanSpawnDisplaySwitch extends BooleanHotkeyConfig{
+    public class CanSpawnDisplaySwitch extends BooleanHotkeyConfig{
         public CanSpawnDisplaySwitch() {
             super(CanSpawnDisplay.this, "canSpawnDisplay", false, null);
         }
@@ -58,6 +59,7 @@ public class CanSpawnDisplay extends ThirdListConfig{
             //noinspection deprecation
             displayColor = addColorConfig("displayColor", Color4f.fromColor(0x7fffffff));
             rangeLimit = addRangeLimitConfig(false);
+            rangeLimit.setValueChangeCallback(()->{if(renderInstance != null) renderInstance.onRenderRangeChanged(rangeLimit);});
             renderDistance = addDoubleConfig("renderDistance", 32, 16, 512);
             renderMethod = addConfig(new RenderMethodConfig());
             renderXRays = addBooleanConfig("renderXRays", true);
