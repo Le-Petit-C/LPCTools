@@ -306,11 +306,24 @@ public class AlgorithmUtils {
         }catch (Exception ignored){}
     }
     //软取消元素关联的所有任务，清空原始集合并阻塞等待剩余任务完成
-    public static <T> void cancelTasks(Collection<T> collection, NamedFunction<T, CompletableFuture<?>> futureGetter){
+    public static <T> void cancelTasks(Collection<T> collection, NamedFunction<T, @Nullable CompletableFuture<?>> futureGetter){
         CompletableFuture<?>[] futures = new CompletableFuture<?>[collection.size()];
         int a = 0;
         for(T futureT : collection){
             CompletableFuture<?> future = futureGetter.apply(futureT);
+            if(future == null) continue;
+            future.cancel(false);
+            futures[a++] = future;
+        }
+        collection.clear();
+        try{CompletableFuture.allOf(futures).join();
+        }catch (Exception ignored){}
+    }
+    public static <T> void cancelTasks(Collection<@Nullable CompletableFuture<T>> collection){
+        CompletableFuture<?>[] futures = new CompletableFuture<?>[collection.size()];
+        int a = 0;
+        for(CompletableFuture<?> future : collection){
+            if(future == null) continue;
             future.cancel(false);
             futures[a++] = future;
         }
@@ -345,6 +358,10 @@ public class AlgorithmUtils {
             consumer.accept(t, task.join());
         });
         completedTasks.forEach(tasks::remove);
+    }
+    public static <T extends AutoCloseable> void closeNoExcept(@NotNull Collection<T> closeableCollection){
+        closeableCollection.forEach(AlgorithmUtils::closeNoExcept);
+        closeableCollection.clear();
     }
     public static void closeNoExcept(@Nullable AutoCloseable closeable){
         if(closeable != null) try{closeable.close();}catch(Exception ignored){}

@@ -19,10 +19,10 @@ public class RenderQuad{
         this.color = color;
         this.centerPos = attachedBlock.toCenterPos().offset(direction, 0.5);
     }
-    public void vertex(ByteBuffer vertexBuffer){
-        float minX = attachedBlock.getX(), maxX = minX + 1;
+    public void vertex(ByteBuffer vertexBuffer, int offsetX, int offsetZ){
+        float minX = attachedBlock.getX() + offsetX, maxX = minX + 1;
         float minY = attachedBlock.getY(), maxY = minY + 1;
-        float minZ = attachedBlock.getZ(), maxZ = minZ + 1;
+        float minZ = attachedBlock.getZ() + offsetZ, maxZ = minZ + 1;
         int color = this.color.intValue();
         switch (direction){
             case WEST -> {

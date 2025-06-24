@@ -33,7 +33,7 @@
 		"fabricloader": ">=0.16.2",
 		"minecraft": "1.21.4",
 		"java": ">=21",
-		"malilib": "*",
+		"malilib": "0.23.4",
 		"fabric-api": "*"
 	},
 	"suggests": {

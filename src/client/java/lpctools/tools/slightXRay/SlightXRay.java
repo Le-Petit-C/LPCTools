@@ -81,6 +81,7 @@ public class SlightXRay extends ThirdListConfig{
             XRayBlocksConfig = addStringListConfig("XRayBlocks", defaultXRayBlockIds, this::refreshXRayBlocks);
             useCullFace = addBooleanConfig("useCullFace", true);
             displayRange = addRangeLimitConfig(false);
+            displayRange.setValueChangeCallback(()->{if(renderInstance != null) renderInstance.onRenderRangeChanged(displayRange);});
         }
     }
     private int getColorByDefaultColor(Block block){
@@ -150,11 +151,7 @@ public class SlightXRay extends ThirdListConfig{
             }
             XRayBlocks.clear();
             XRayBlocks.putAll(newBlocks);
-            if(renderInstance != null){
-                MinecraftClient client = MinecraftClient.getInstance();
-                if(client.player != null && client.world != null)
-                    renderInstance.reset(client.world, client.player.getEyePos());
-            }
+            if(renderInstance != null) renderInstance.resetData();
         }
     }
     private static void warnInvalidString(String str){

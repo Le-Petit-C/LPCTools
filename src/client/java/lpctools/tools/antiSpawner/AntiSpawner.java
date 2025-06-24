@@ -27,8 +27,7 @@ import static lpctools.tools.ToolUtils.setLPCToolsToggleText;
 import static lpctools.util.BlockUtils.*;
 import static lpctools.util.DataUtils.*;
 
-//TODO:
-// 未抑制方块显示
+//TODO:非下蹲状态忽略可交互方块
 public class AntiSpawner implements ClientTickEvents.EndTick {
     public static BooleanHotkeyConfig antiSpawnerConfig;
     public static StringListConfig placeableItemIds;

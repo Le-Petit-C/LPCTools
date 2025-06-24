@@ -1,8 +1,10 @@
 package lpctools.tools.slightXRay;
 
 import com.google.common.collect.Sets;
+import lpctools.compact.derived.ShapeList;
 import lpctools.generic.GenericUtils;
 import lpctools.lpcfymasaapi.Registries;
+import lpctools.lpcfymasaapi.configbutton.derivedConfigs.RangeLimitConfig;
 import lpctools.lpcfymasaapi.gl.Buffer;
 import lpctools.lpcfymasaapi.gl.Constants;
 import lpctools.lpcfymasaapi.gl.MaskLayer;
@@ -15,76 +17,82 @@ import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents;
 import net.minecraft.block.BlockState;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.world.ClientWorld;
-import net.minecraft.util.Pair;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.ChunkPos;
 import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.Vec3d;
+import net.minecraft.world.World;
+import net.minecraft.world.chunk.Chunk;
 import net.minecraft.world.chunk.WorldChunk;
 import org.apache.commons.lang3.mutable.MutableInt;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Matrix4f;
-import org.joml.Vector2i;
 import org.lwjgl.system.MemoryUtil;
 
 import java.nio.ByteBuffer;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
-import java.util.function.IntSupplier;
 
 //TODO:不使用形状索引而是合并重合顶点的索引（比如相邻矩形）以节省空间
-//TODO:顶点缓冲改为相对于区块原点的坐标，减小距离现象影响
-//TODO:限制显示范围
-//TODO:OnScreenChanged update (update shapeList)
 
-public class RenderInstance extends DataInstance implements DataInstance.OnXRayChunkLoadedOrUnloaded, WorldRenderEvents.End, WorldRenderEvents.Start {
+public class RenderInstance extends DataInstance implements WorldRenderEvents.End, WorldRenderEvents.Start {
     public final SlightXRay parent;
     RenderInstance(SlightXRay parent, MinecraftClient client){
         super(client);
         this.parent = parent;
-        ON_XRAY_CHUNK_UPDATED.register(this);
         Registries.WORLD_RENDER_END.register(this);
         Registries.WORLD_RENDER_START.register(this);
+        shapeList = parent.displayRange.buildShapeList();
     }
     @Override public void close(){
         Registries.WORLD_RENDER_START.unregister(this);
         Registries.WORLD_RENDER_END.unregister(this);
-        ON_XRAY_CHUNK_UPDATED.unregister(this);
         for(QuadBuffer buffer : vertexBuffers.values())
             buffer.close();
         vertexBuffers.clear();
         super.close();
     }
-    @Override public void onXRayChunkLoadedOrUnloaded(ChunkPos pos, double distanceSquare) {
+    public void onRenderRangeChanged(RangeLimitConfig rangeLimit){
+        ShapeList newList = rangeLimit.buildShapeList();
+        if(newList.equals(shapeList)) return;
+        shapeList = newList;
+        resetRender();
+    }
+    @Override protected void onXRayChunkUpdated(ChunkPos pos, double distanceSquare) {
         HashMap<BlockPos, MutableInt> poses = super.markedPoses.get(pos);
         if(poses == null){
-            QuadBuffer buffer = vertexBuffers.remove(pos);
-            if(buffer != null) buffer.close();
+            AlgorithmUtils.closeNoExcept(vertexBuffers.remove(pos));
             return;
         }
-        buildQuadBufferAsync(pos, super.markedPoses, distanceSquare);
-        buildQuadBufferAsync(new ChunkPos(pos.x - 1, pos.z), super.markedPoses, distanceSquare);
-        buildQuadBufferAsync(new ChunkPos(pos.x + 1, pos.z), super.markedPoses, distanceSquare);
-        buildQuadBufferAsync(new ChunkPos(pos.x, pos.z - 1), super.markedPoses, distanceSquare);
-        buildQuadBufferAsync(new ChunkPos(pos.x, pos.z + 1), super.markedPoses, distanceSquare);
+        buildQuadBufferAsync(pos, super.markedPoses, distanceSquare, shapeList);
+        buildQuadBufferAsync(new ChunkPos(pos.x - 1, pos.z), super.markedPoses, distanceSquare, shapeList);
+        buildQuadBufferAsync(new ChunkPos(pos.x + 1, pos.z), super.markedPoses, distanceSquare, shapeList);
+        buildQuadBufferAsync(new ChunkPos(pos.x, pos.z - 1), super.markedPoses, distanceSquare, shapeList);
+        buildQuadBufferAsync(new ChunkPos(pos.x, pos.z + 1), super.markedPoses, distanceSquare, shapeList);
     }
     
+    private MutableInt getWithShapeList(BlockPos pos){
+        if(!shapeList.testPos(pos)) return null;
+        else return get(pos);
+    }
     private void removePos(BlockPos pos){
         for(Direction direction : Direction.values()){
             BlockPos nextPos = pos.offset(direction);
-            MutableInt nextColor = get(nextPos);
+            MutableInt nextColor = getWithShapeList(nextPos);
             if(nextColor == null) continue;
             QuadBuffer buffer = vertexBuffers.get(new ChunkPos(nextPos));
             if(buffer == null) continue;
             buffer.quads.add(new RenderQuad(nextPos.toImmutable(), direction.getOpposite(), nextColor));
             buffer.refreshByteBuffer();
+            buffer.markUnsorted();
         }
         QuadBuffer currentBuffer = vertexBuffers.get(new ChunkPos(pos));
         if(currentBuffer == null) return;
         ArrayList<RenderQuad> quads = currentBuffer.quads;
         AlgorithmUtils.fastRemove(quads, v->v.attachedBlock.equals(pos));
         currentBuffer.refreshByteBuffer();
+        currentBuffer.markUnsorted();
     }
     private void addPos(BlockPos pos, MutableInt currentColor){
         QuadBuffer currentBuffer = vertexBuffers.get(new ChunkPos(pos));
@@ -92,7 +100,7 @@ public class RenderInstance extends DataInstance implements DataInstance.OnXRayC
         if(quads != null) AlgorithmUtils.fastRemove(quads, v->v.attachedBlock.equals(pos));
         for(Direction direction : Direction.values()){
             BlockPos nextPos = pos.offset(direction);
-            MutableInt nextColor = get(nextPos);
+            MutableInt nextColor = getWithShapeList(nextPos);
             if(nextColor == null && quads != null) {
                 quads.add(new RenderQuad(pos.toImmutable(), direction, currentColor));
                 continue;
@@ -103,83 +111,82 @@ public class RenderInstance extends DataInstance implements DataInstance.OnXRayC
             Direction opposite = direction.getOpposite();
             AlgorithmUtils.fastRemove(nextQuads, v->v.attachedBlock.equals(nextPos) && v.direction.equals(opposite));
             buffer.refreshByteBuffer();
+            buffer.markUnsorted();
         }
-        if(currentBuffer != null) currentBuffer.refreshByteBuffer();
+        if(currentBuffer == null)  return;
+        currentBuffer.refreshByteBuffer();
+        currentBuffer.markUnsorted();
     }
     
     @Override public void onClientWorldChunkSetBlockState(WorldChunk chunk, BlockPos pos, BlockState lastState, BlockState newState) {
         HashMap<BlockPos, MutableInt> lastContained = new HashMap<>();
         for(BlockPos pos1 : AlgorithmUtils.iterateInManhattanDistance(pos, 2)){
-            MutableInt color = get(pos1);
+            MutableInt color = getWithShapeList(pos1);
             if(color != null) lastContained.put(pos1.toImmutable(), color);
         }
         super.onClientWorldChunkSetBlockState(chunk, pos, lastState, newState);
         for(BlockPos pos1 : AlgorithmUtils.iterateInManhattanDistance(pos, 2)){
-            MutableInt currentColor = get(pos1);
+            MutableInt currentColor = getWithShapeList(pos1);
             if(Objects.equals(lastContained.get(pos1), currentColor)) continue;
             if(currentColor == null) removePos(pos1);
             else addPos(pos1, currentColor);
             QuadBuffer quadBuffer = vertexBuffers.get(new ChunkPos(pos1));
-            if(quadBuffer != null) quadBuffer.lastUpdatePos = null;
+            if(quadBuffer != null) quadBuffer.markUnsorted();
         }
     }
-    
     @Override public void afterWorldChange(MinecraftClient mc, ClientWorld world) {
         super.afterWorldChange(mc, world);
-        AlgorithmUtils.cancelTasks(asyncQuadBufferBuilders, Pair::getRight);
-        for(QuadBuffer buffer : vertexBuffers.values()) buffer.close();
-        vertexBuffers.clear();
+        clearRender();
     }
-    
     @Override public void onStartTick(MinecraftClient mc){
         super.onStartTick(mc);
-        HashSet<ChunkPos> completedFutures = new HashSet<>();
-        for(Pair<ChunkPos, CompletableFuture<QuadBuffer>> entry : asyncQuadBufferBuilders){
-            if(!entry.getRight().isDone()) continue;
-            completedFutures.add(entry.getLeft());
-            QuadBuffer old = vertexBuffers.put(entry.getLeft(), entry.getRight().join());
-            if(old != null) old.close();
-        }
-        AlgorithmUtils.fastRemove(asyncQuadBufferBuilders, v->completedFutures.contains(v.getLeft()));
+        AlgorithmUtils.consumeCompletedTasks(asyncQuadBufferBuilders, (pos, buffer)->AlgorithmUtils.closeNoExcept(vertexBuffers.put(pos, buffer)));
     }
     private void sort(ArrayList<RenderQuad> quads, Vec3d cam){
         quads.sort(Comparator.<RenderQuad>comparingDouble(quad -> quad.centerPos.squaredDistanceTo(cam)).reversed());
     }
-    private IntSupplier asyncPrepareRenderChunk(QuadBuffer quadBuffer, Vec3d camPos){
+    private ChunkRenderPrepareResult asyncPrepareRenderChunk(QuadBuffer quadBuffer, Vec3d camPos, Matrix4f projection_view_matrix){
         sort(quadBuffer.quads, camPos);
+        int offX = -quadBuffer.thisPos.x << 4, offZ = -quadBuffer.thisPos.z << 4;
         for(RenderQuad quad : quadBuffer.quads)
-            quad.vertex(quadBuffer.byteBuffer);
+            quad.vertex(quadBuffer.byteBuffer, offX, offZ);
         quadBuffer.byteBuffer.flip();
-        return ()->{
-            quadBuffer.dataAndBind(indexBuffer);
-            return quadBuffer.quads.size();
-        };
+        return new ChunkRenderPrepareResult(quadBuffer.quads.size(), ()->quadBuffer.dataAndBind(indexBuffer),
+            camPos, quadBuffer.thisPos, projection_view_matrix);
     }
-    private RenderPrepareResult asyncPrepareRenderMain(Vec3d camPos){
+    private RenderPrepareResult asyncPrepareRenderMain(World world, Vec3d camPos, Matrix4f projection_view_matrix){
         int maxShapeCount = 0;
-        ChunkPos chunkPos = new ChunkPos(BlockPos.ofFloored(camPos));
-        ArrayList<CompletableFuture<IntSupplier>> renderBufferBuilders = new ArrayList<>();
-        for(Vector2i vec : AlgorithmUtils.iterateFromFurthestInDistance(new Vector2i(chunkPos.x, chunkPos.z), client.options.getViewDistance().getValue())){
-            ChunkPos pos = new ChunkPos(vec.x, vec.y);
+        ArrayList<CompletableFuture<ChunkRenderPrepareResult>> renderBufferBuilders = new ArrayList<>();
+        for(Chunk chunk : AlgorithmUtils.iterateLoadedChunksFromClosest(world, camPos)){
+            ChunkPos pos = chunk.getPos();
             QuadBuffer buffer = vertexBuffers.get(pos);
             if(buffer == null || buffer.quads.isEmpty()) continue;
             if(buffer.quads.size() > maxShapeCount) maxShapeCount = buffer.quads.size();
             if(buffer.shouldUpdate(camPos) || buffer.vertexArray == null)
-                renderBufferBuilders.add(CompletableFuture.supplyAsync(()->asyncPrepareRenderChunk(buffer, camPos)));
-            else renderBufferBuilders.add(CompletableFuture.completedFuture(()->{
-                buffer.vertexArray.bind();
-                return buffer.quads.size();
-            }));
+                renderBufferBuilders.add(CompletableFuture.supplyAsync(()->asyncPrepareRenderChunk(buffer, camPos, projection_view_matrix)));
+            else renderBufferBuilders.add(CompletableFuture.completedFuture(new ChunkRenderPrepareResult(buffer.quads.size(), ()->buffer.vertexArray.bind(),
+                camPos, pos, projection_view_matrix)));
         }
         return new RenderPrepareResult(renderBufferBuilders, maxShapeCount);
     }
-    //futures中的IntSupplier应执行的操作为绑定buffer并返回shapeCount
-    private record RenderPrepareResult(ArrayList<CompletableFuture<IntSupplier>> futures, int maxShapeCount){}
+    private record ChunkRenderPrepareResult(int shapeCount, Matrix4f finalMatrix, Runnable bindOperation){
+        ChunkRenderPrepareResult(int size, Runnable bindOperation, Vec3d camPos, ChunkPos pos, Matrix4f projection_view_matrix){
+            this(size, getFinalMatrix(camPos, pos, projection_view_matrix), bindOperation);
+        }
+        private static Matrix4f getFinalMatrix(Vec3d camPos, ChunkPos pos, Matrix4f projection_view_matrix){
+            Matrix4f finalMatrix = MathUtils.inverseOffsetMatrix4f(camPos.subtract(pos.x << 4, 0, pos.z << 4).toVector3f());
+            return projection_view_matrix.mul(finalMatrix, finalMatrix);
+        }
+    }
+    private record RenderPrepareResult(ArrayList<CompletableFuture<ChunkRenderPrepareResult>> futures, int maxShapeCount){}
     //返回值是最大形状数量
     CompletableFuture<RenderPrepareResult> renderTask;
     @Override public void onStart(WorldRenderContext context){
         Vec3d camPos = context.camera().getPos();
-        renderTask = CompletableFuture.supplyAsync(()->asyncPrepareRenderMain(camPos));
+        Matrix4f matrix = new Matrix4f(context.positionMatrix());
+        context.projectionMatrix().mul(matrix, matrix);
+        World world = context.world();
+        renderTask = CompletableFuture.supplyAsync(()->asyncPrepareRenderMain(world, camPos, matrix));
     }
     @Override public void onEnd(WorldRenderContext context) {
         RenderPrepareResult result = renderTask.join();
@@ -187,14 +194,12 @@ public class RenderInstance extends DataInstance implements DataInstance.OnXRayC
         try(MaskLayer layer = new MaskLayer()){
             layer.enableBlend().enableCullFace(parent.useCullFace.getBooleanValue()).disableDepthTest();
             ShaderPrograms.PositionColorProgram program = ShaderPrograms.POSITION_COLOR_PROGRAM;
-            Matrix4f mat = MathUtils.inverseOffsetMatrix4f(context.camera().getPos().toVector3f());
-            context.positionMatrix().mul(mat, mat);
-            context.projectionMatrix().mul(mat, mat);
-            program.setFinalMatrix(mat);
-            program.useAndUniform();
-            for(CompletableFuture<IntSupplier> future : result.futures){
-                int shapeCount = future.join().getAsInt();
-                Constants.DrawMode.TRIANGLES.drawElements(shapeCount * 6, Constants.IndexType.INT);
+            for(CompletableFuture<ChunkRenderPrepareResult> future : result.futures){
+                ChunkRenderPrepareResult chunkResult = future.join();
+                chunkResult.bindOperation.run();
+                program.setFinalMatrix(chunkResult.finalMatrix);
+                program.useAndUniform();
+                Constants.DrawMode.TRIANGLES.drawElements(chunkResult.shapeCount * 6, Constants.IndexType.INT);
             }
             VertexArray.unbindStatic();
         }
@@ -217,9 +222,8 @@ public class RenderInstance extends DataInstance implements DataInstance.OnXRayC
             if(vertexBuffer != null) vertexBuffer.close();
             if(vertexArray != null) vertexArray.close();
         }
-        public void refreshByteBuffer(){
-            byteBuffer = MemoryUtil.memRealloc(byteBuffer, getQuadBufferSize());
-        }
+        public void refreshByteBuffer(){byteBuffer = MemoryUtil.memRealloc(byteBuffer, getQuadBufferSize());}
+        public void markUnsorted(){lastUpdatePos = null;}
         public void dataAndBind(Buffer indexBuffer){
             if(vertexBuffer == null) vertexBuffer = new Buffer();
             if(vertexArray == null){
@@ -276,8 +280,8 @@ public class RenderInstance extends DataInstance implements DataInstance.OnXRayC
         indexBuffer.data(buffer, Constants.BufferMode.DYNAMIC_DRAW);
     }
     
-    private final ArrayList<Pair<ChunkPos, CompletableFuture<QuadBuffer>>> asyncQuadBufferBuilders = new ArrayList<>();
-    private void buildQuadBufferAsync(ChunkPos pos, HashMap<ChunkPos, HashMap<BlockPos, MutableInt>> markedPoses, double priority){
+    private final HashMap<ChunkPos, CompletableFuture<QuadBuffer>> asyncQuadBufferBuilders = new HashMap<>();
+    private void buildQuadBufferAsync(ChunkPos pos, HashMap<ChunkPos, HashMap<BlockPos, MutableInt>> markedPoses, double priority, ShapeList shapeList){
         HashMap<BlockPos, MutableInt> current, west, east, north, south;
         current = markedPoses.get(pos);
         if(current == null) return;
@@ -286,31 +290,37 @@ public class RenderInstance extends DataInstance implements DataInstance.OnXRayC
         north = markedPoses.get(new ChunkPos(pos.x, pos.z - 1));
         south = markedPoses.get(new ChunkPos(pos.x, pos.z + 1));
         if(west == null || east == null || north == null || south == null) return;
-        asyncQuadBufferBuilders.add(new Pair<>(pos, GenericUtils.supplyAsync(()->asyncBuildQuadBuffer(current,
-            Sets.union(Sets.union(west.keySet(), east.keySet()), Sets.union(north.keySet(), south.keySet())), pos), priority)));
+        AlgorithmUtils.cancelTask(asyncQuadBufferBuilders.remove(pos));
+        asyncQuadBufferBuilders.put(pos, GenericUtils.supplyAsync(()->asyncBuildQuadBuffer(current,
+            Sets.union(Sets.union(west.keySet(), east.keySet()), Sets.union(north.keySet(), south.keySet())), pos, shapeList), priority));
     }
     //nearBlocks不推荐包含current中的BlockPos
-    private static QuadBuffer asyncBuildQuadBuffer(HashMap<BlockPos, MutableInt> current, Set<BlockPos> nearBlocks, ChunkPos thisPos){
+    private static QuadBuffer asyncBuildQuadBuffer(HashMap<BlockPos, MutableInt> current, Set<BlockPos> nearBlocks, ChunkPos thisPos, ShapeList shapeList){
         Set<BlockPos> fullBlocks = Sets.union(current.keySet(), nearBlocks);
         ArrayList<RenderQuad> result = new ArrayList<>();
         for(Map.Entry<BlockPos, MutableInt> marked : current.entrySet()){
+            if(!shapeList.testPos(marked.getKey())) continue;
             for(Direction direction : Direction.values()){
-                if(fullBlocks.contains(marked.getKey().offset(direction))) continue;
+                BlockPos offset = marked.getKey().offset(direction);
+                if(shapeList.testPos(offset) && fullBlocks.contains(offset)) continue;
                 result.add(new RenderQuad(marked.getKey(), direction, marked.getValue()));
             }
         }
         return new QuadBuffer(result, thisPos);
     }
-    @Override public void reset(ClientWorld world, Vec3d playerEyePos) {
-        super.reset(world, playerEyePos);
+    @Override public void resetData() {
+        super.resetData();
         resetRender();
     }
-    public void resetRender(){
-        AlgorithmUtils.cancelTasks(asyncQuadBufferBuilders, Pair::getRight);
-        for(QuadBuffer quadBuffer : vertexBuffers.values())
-            quadBuffer.close();
-        vertexBuffers.clear();
-        for(ChunkPos pos : markedPoses.keySet())
-            buildQuadBufferAsync(pos, markedPoses, MathUtils.squaredDistance(lastPlayerEyePos, pos));
+    public void clearRender(){
+        AlgorithmUtils.cancelTasks(asyncQuadBufferBuilders.values());
+        AlgorithmUtils.closeNoExcept(vertexBuffers.values());
     }
+    public void resetRender(){
+        if(client.player == null) return;
+        Vec3d playerEyePos = client.player.getEyePos();
+        for(ChunkPos pos : markedPoses.keySet())
+            buildQuadBufferAsync(pos, markedPoses, MathUtils.squaredDistance(playerEyePos, pos), shapeList);
+    }
+    private @NotNull ShapeList shapeList;
 }

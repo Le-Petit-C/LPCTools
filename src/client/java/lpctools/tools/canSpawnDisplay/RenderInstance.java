@@ -28,8 +28,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.concurrent.CompletableFuture;
 
-//TODO:Litematica渲染层改动导致的ShapeList变化
-
 public class RenderInstance extends DataInstance implements WorldRenderEvents.Last, WorldRenderEvents.DebugRender{
     public final CanSpawnDisplay parent;
     public RenderInstance(MinecraftClient client, CanSpawnDisplay parent) {
