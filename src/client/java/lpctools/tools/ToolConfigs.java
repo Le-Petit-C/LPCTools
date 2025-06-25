@@ -17,7 +17,7 @@ public class ToolConfigs {
     static ThirdListConfig LCConfig;
     static SlightXRay SXConfig;
     static ThirdListConfig AGConfig;
-    static ThirdListConfig ASConfig;
+    static AntiSpawner ASConfig;
     static CanSpawnDisplay CSConfig;
     public static void init(){
         ILPCConfigList lastList = peekConfigList();
@@ -29,8 +29,7 @@ public class ToolConfigs {
             SXConfig = lastList.addConfig(new SlightXRay(lastList));
             layer.set(AGConfig = addThirdListConfig(lastList, "AG", false));
             AutoGrindstone.init();
-            layer.set(ASConfig = addThirdListConfig(lastList, "AS", false));
-            AntiSpawner.init();
+            ASConfig = lastList.addConfig(new AntiSpawner(lastList));
             CSConfig = lastList.addConfig(new CanSpawnDisplay(lastList, MinecraftClient.getInstance()));
         }
     }

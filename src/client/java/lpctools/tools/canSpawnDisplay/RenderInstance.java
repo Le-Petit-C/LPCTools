@@ -38,11 +38,17 @@ public class RenderInstance extends DataInstance implements WorldRenderEvents.La
     }
     public void setRenderMethod(@NotNull IRenderMethod renderMethod) {
         this.renderMethod = renderMethod;
-        if(client.player != null) rebuildRender(client.player.getEyePos());
+        if (sharedBufferData != null) {
+            sharedBufferData.releaseNoexcept();
+            sharedBufferData = null;
+        }
+        clearRenderBuffer();
+        resetRender();
     }
-    public void rebuildRender(Vec3d playerPos){
+    public void resetRender(){
+        if(client.player == null) return;
         for(ChunkPos pos : canSpawnPoses.keySet())
-            buildBufferAsync(pos, MathUtils.squaredDistance(playerPos, pos));
+            buildBufferAsync(pos, MathUtils.squaredDistance(client.player.getEyePos(), pos));
     }
     public void clearRenderBuffer(){
         AlgorithmUtils.cancelTasks(renderBufferBuilders.values(), v->v);
@@ -55,7 +61,7 @@ public class RenderInstance extends DataInstance implements WorldRenderEvents.La
         ShapeList newList = rangeLimit.buildShapeList();
         if(newList.equals(shapeList)) return;
         shapeList = newList;
-        if(client.player != null) rebuildRender(client.player.getEyePos());
+        resetRender();
     }
     @Override protected void registerAll(boolean b){
         super.registerAll(b);
@@ -126,16 +132,24 @@ public class RenderInstance extends DataInstance implements WorldRenderEvents.La
             finalMatrixList.add(finalMatrix);
         }
         try(MaskLayer layer = new MaskLayer()){
-            layer.enableBlend().disableCullFace().enableDepthTest(!parent.renderXRays.getAsBoolean());
-            try(MaskLayer furtherLayer = new MaskLayer()){
-                furtherLayer.disableDepthWrite();
+            int color = parent.displayColor.getIntegerValue();
+            boolean hasAlpha = (color >>> 24) != 0xff;
+            layer.enableBlend(hasAlpha).disableCullFace().enableDepthTest(!parent.renderXRays.getAsBoolean());
+            if(parent.renderXRays.getAsBoolean() || !hasAlpha){
                 for(int a = 0; a < buffersToRender.size(); ++a)
-                    buffersToRender.get(a).render(finalMatrixList.get(a), modelMatrixList.get(a), parent.displayColor.getIntegerValue(), distanceSquared);
+                    buffersToRender.get(a).render(finalMatrixList.get(a), modelMatrixList.get(a), color, distanceSquared);
             }
-            try(MaskLayer furtherLayer = new MaskLayer()){
-                furtherLayer.disableColorWrite();
-                for(int a = 0; a < buffersToRender.size(); ++a)
-                    buffersToRender.get(a).render(finalMatrixList.get(a), modelMatrixList.get(a), parent.displayColor.getIntegerValue(), distanceSquared);
+            else{
+                try(MaskLayer furtherLayer = new MaskLayer()){
+                    furtherLayer.disableDepthWrite();
+                    for(int a = 0; a < buffersToRender.size(); ++a)
+                        buffersToRender.get(a).render(finalMatrixList.get(a), modelMatrixList.get(a), color, distanceSquared);
+                }
+                try(MaskLayer furtherLayer = new MaskLayer()){
+                    furtherLayer.disableColorWrite();
+                    for(int a = 0; a < buffersToRender.size(); ++a)
+                        buffersToRender.get(a).render(finalMatrixList.get(a), modelMatrixList.get(a), color, distanceSquared);
+                }
             }
         }
     }

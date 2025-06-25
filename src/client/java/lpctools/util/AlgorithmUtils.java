@@ -1,5 +1,6 @@
 package lpctools.util;
 
+import com.google.common.collect.ImmutableList;
 import lpctools.util.javaex.NamedFunction;
 import lpctools.util.javaex.NamedObject2BooleanFunction;
 import net.minecraft.util.math.BlockPos;
@@ -365,5 +366,16 @@ public class AlgorithmUtils {
     }
     public static void closeNoExcept(@Nullable AutoCloseable closeable){
         if(closeable != null) try{closeable.close();}catch(Exception ignored){}
+    }
+    //转换集合内元素
+    public static <T, U, V extends Collection<U>> @NotNull V convert(@NotNull V collection, @Nullable Iterable<T> values, NamedFunction<T, U> converter){
+        if(values != null) values.forEach(value->collection.add(converter.apply(value)));
+        return collection;
+    }
+    public static <T, U> @NotNull ImmutableList<U> convertToImmutableList(@Nullable Iterable<T> values, NamedFunction<T, U> converter){
+        return ImmutableList.copyOf(convert(new ArrayList<>(), values, converter));
+    }
+    public static <T, U> @NotNull HashSet<U> convertToHashSet(@Nullable Iterable<T> values, NamedFunction<T, U> converter){
+        return convert(new HashSet<>(), values, converter);
     }
 }

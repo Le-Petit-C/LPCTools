@@ -7,12 +7,13 @@ import lpctools.lpcfymasaapi.LPCAPIInit;
 import lpctools.util.javaex.NamedFunction;
 import lpctools.util.javaex.NamedObject2BooleanFunction;
 import net.minecraft.block.Block;
-import net.minecraft.block.Blocks;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ClientPlayerEntity;
+import net.minecraft.item.BlockItem;
 import net.minecraft.item.Item;
-import net.minecraft.item.Items;
 import net.minecraft.registry.Registries;
+import net.minecraft.registry.Registry;
+import net.minecraft.registry.entry.RegistryEntry;
 import net.minecraft.resource.Resource;
 import net.minecraft.resource.ResourceManager;
 import net.minecraft.text.Text;
@@ -23,10 +24,7 @@ import org.joml.Vector4f;
 import org.lwjgl.opengl.GL30;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Optional;
+import java.util.*;
 
 @SuppressWarnings("unused")
 public class DataUtils {
@@ -63,57 +61,39 @@ public class DataUtils {
                 ret.add(getItemId(item));
         return ImmutableList.copyOf(ret);
     }
-    public static @Nullable Block getBlockFromId(@NotNull String id, boolean notifies){
+    public interface ClassCaster<T, U>{U cast(T v) throws ClassCastException;}
+    public static @Nullable <T, U> U getObjectFromId(@NotNull String loggerInfo, @NotNull String id, Registry<T> registry, @NotNull ClassCaster<T, U> caster, boolean notifies){
         try{
-            Block block = Registries.BLOCK.get(Identifier.of(id));
+            T ret = registry.get(Identifier.of(id));
+            Optional<RegistryEntry.Reference<T>> defOpt = registry.getDefaultEntry();
+            RegistryEntry.Reference<T> defRef = defOpt.orElse(null);
+            T def = defRef != null ? defRef.value() : null;
             break1:
-            if(block == Blocks.AIR){
-                String[] processedIds = id.split(":");
-                if(processedIds.length == 2){
-                    if(processedIds[0].trim().equals("minecraft")
-                        && processedIds[1].trim().equals("air"))
-                        break break1;
-                }
-                else if(processedIds.length == 1){
-                    if(processedIds[0].trim().equals("air"))
-                        break break1;
-                }
-                throw new Exception();
+            if(Objects.equals(def, ret)){
+                if(defRef == null) throw new Exception();
+                String defId = defRef.getIdAsString();
+                if(id.equals(defId)) break break1;
+                if(id.contains(":")) throw new Exception();
+                String[] splitDef = defId.split(":");
+                if(!id.trim().equals(splitDef[0].trim())) throw new Exception();
             }
-            return block;
+            return caster.cast(ret);
         }catch (Exception e){
             if(notifies){
-                notifyPlayer(String.format("§egetBlockFromId(%s) failed.", id), false);
-                LPCAPIInit.LOGGER.warn("getBlockFromId(\"{}\"): {}", id, e.getMessage());
+                notifyPlayer(String.format("§e%s(%s) failed.", loggerInfo, id), false);
+                LPCAPIInit.LOGGER.warn("{}(\"{}\"): {}", loggerInfo, id, e.getMessage());
             }
             return null;
         }
     }
+    public static @Nullable Block getBlockFromId(@NotNull String id, boolean notifies){
+        return getObjectFromId("getBlockFromId", id, Registries.BLOCK, v->v, notifies);
+    }
     public static @Nullable Item getItemFromId(@NotNull String id, boolean notifies){
-        try{
-            Item item = Registries.ITEM.get(Identifier.of(id));
-            break1:
-            if(item == Items.AIR){
-                String[] processedIds = id.split(":");
-                if(processedIds.length == 2){
-                    if(processedIds[0].trim().equals("minecraft")
-                        && processedIds[1].trim().equals("air"))
-                        break break1;
-                }
-                else if(processedIds.length == 1){
-                    if(processedIds[0].trim().equals("air"))
-                        break break1;
-                }
-                throw new Exception();
-            }
-            return item;
-        }catch (Exception e){
-            if(notifies){
-                notifyPlayer(String.format("§egetItemFromId(%s) failed.", id), false);
-                LPCAPIInit.LOGGER.warn("getItemFromId(\"{}\"): {}", id, e.getMessage());
-            }
-            return null;
-        }
+        return getObjectFromId("getItemFromId", id, Registries.ITEM, v->v, notifies);
+    }
+    public static @Nullable BlockItem getBlockItemFromId(@NotNull String id, boolean notifies){
+        return getObjectFromId("getItemFromId", id, Registries.ITEM, v->(BlockItem)v, notifies);
     }
     public static @NotNull HashSet<@NotNull Block> blockSetFromIds(Iterable<String> ids){
         HashSet<Block> ret = new HashSet<>();

@@ -62,6 +62,7 @@ public class CanSpawnDisplay extends ThirdListConfig implements AutoCloseable{
             rangeLimit.setValueChangeCallback(()->{if(renderInstance != null) renderInstance.onRenderRangeChanged(rangeLimit);});
             renderDistance = addDoubleConfig("renderDistance", 32, 16, 512);
             renderMethod = addConfig(new RenderMethodConfig());
+            renderMethod.setValueChangeCallback(()->{if(renderInstance != null) renderInstance.resetRender();});
             renderXRays = addBooleanConfig("renderXRays", true);
         }
     }
