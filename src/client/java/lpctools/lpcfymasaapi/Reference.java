@@ -7,7 +7,7 @@ public class Reference {
     public final String modName;
     public final String modId;
 
-    public static String getMCVersion(){return MinecraftVersion.CURRENT.getName();}
+    public static String getMCVersion(){return MinecraftVersion.CURRENT.name();}
     public static String getModType(){return "fabric";}
     public Reference(String modName){
         this(modName, modName.toLowerCase());
@@ -20,5 +20,6 @@ public class Reference {
         //return StringUtils.getModVersionString(modId);
         return FabricLoader.getInstance().getModContainer(modId).orElseThrow().getMetadata().getVersion().getFriendlyString();
     }
+    @SuppressWarnings("unused")
     public String getModString(){return modId + "-" + getModType() + "-" + getMCVersion() + "-" + getModVersion();}
 }
