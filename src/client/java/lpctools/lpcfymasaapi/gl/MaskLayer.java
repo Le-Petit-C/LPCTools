@@ -1,17 +1,22 @@
 package lpctools.lpcfymasaapi.gl;
 
-import it.unimi.dsi.fastutil.booleans.BooleanArrayList;
+import it.unimi.dsi.fastutil.bytes.ByteArrayList;
 
 import java.util.ArrayList;
 
 @SuppressWarnings({"unused", "UnusedReturnValue"})
 public class MaskLayer implements AutoCloseable{
-    private final BooleanArrayList booleanArrayList = new BooleanArrayList();
-    private final ArrayList<Constants.EnableOption> masks;
+    private final ByteArrayList byteArrayList = new ByteArrayList();
+    private final ArrayList<Constants.RestorableOption> masks;
     public MaskLayer(){masks = new ArrayList<>();}
-    public MaskLayer enable(Constants.EnableOption option, boolean value){
+    public MaskLayer restore(Constants.RestorableOption option){
         masks.add(option);
-        option.push(booleanArrayList);
+        option.push(byteArrayList);
+        return this;
+    }
+    @SuppressWarnings("resource")
+    public MaskLayer enable(Constants.EnableOption option, boolean value){
+        restore(option);
         option.enable(value);
         return this;
     }
@@ -33,7 +38,6 @@ public class MaskLayer implements AutoCloseable{
     public MaskLayer enableColorWrite(){return enableColorWrite(true);}
     public MaskLayer disableColorWrite(){return enableColorWrite(false);}
     @Override public void close() {
-        for(Constants.EnableOption option : masks)
-            option.pop(booleanArrayList);
+        while (!masks.isEmpty()) masks.removeLast().pop(byteArrayList);
     }
 }

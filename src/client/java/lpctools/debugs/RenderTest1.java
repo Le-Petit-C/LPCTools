@@ -1,60 +1,52 @@
 package lpctools.debugs;
 
-import com.mojang.blaze3d.systems.RenderSystem;
+import lpctools.lpcfymasaapi.gl.Buffer;
+import lpctools.lpcfymasaapi.gl.Constants;
+import lpctools.lpcfymasaapi.gl.VertexArray;
+import lpctools.util.MathUtils;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.gl.*;
-import net.minecraft.client.render.VertexFormat;
-import net.minecraft.client.render.VertexFormats;
 import net.minecraft.util.math.MathHelper;
 import org.joml.Matrix4f;
-import org.joml.Vector3f;
-import org.lwjgl.opengl.GL30;
 import org.lwjgl.system.MemoryUtil;
 
 import java.nio.ByteBuffer;
-import java.time.Clock;
+
+import static lpctools.shader.ShaderPrograms.*;
 
 public class RenderTest1 {
-    public static void render(WorldRenderContext context) {
-        ShaderProgram shaderProgram = MinecraftClient.getInstance().getShaderLoader().getOrCreateProgram(ShaderProgramKeys.POSITION_COLOR);
-        assert shaderProgram != null;
-        VertexFormat.DrawMode drawMode = VertexFormat.DrawMode.TRIANGLES;
-        VertexFormat.IndexType indexType = VertexFormat.IndexType.SHORT;
-        VertexFormat vertexFormat = VertexFormats.POSITION_COLOR;
-        float theta = Clock.systemUTC().millis() % 6283 / 1000.0f;
-        float alpha = MathHelper.PI * 2 / 3;
-        RenderSystem.disableCull();
-        GlUsage usage = GlUsage.STATIC_WRITE;
-        GpuBuffer vertexBuffer_indexBuffer;
-        ByteBuffer vertexBuffer1 = MemoryUtil.memAlloc(48);
-        ByteBuffer buf = MemoryUtil.memAlloc(6);
-        Vector3f p = context.camera().getPos().toVector3f();
-        vertexBuffer1.putFloat(MathHelper.cos(theta) - p.x).putFloat(-p.y).putFloat(MathHelper.sin(theta) - p.z).putInt(0xFFFF0000);
-        vertexBuffer1.putFloat(MathHelper.cos(theta + alpha) - p.x).putFloat(-p.y).putFloat(MathHelper.sin(theta + alpha) - p.z).putInt(0xFF00FF00);
-        vertexBuffer1.putFloat(MathHelper.cos(theta - alpha) - p.x).putFloat(-p.y).putFloat(MathHelper.sin(theta - alpha) - p.z).putInt(0xFF0000FF);
-        buf.putShort((short) 0).putShort((short) 1).putShort((short) 2);
-        vertexBuffer1.flip();
-        buf.flip();
-        GpuBuffer vertexBuffer_vertexBuffer = new GpuBuffer(GlBufferTarget.VERTICES, usage, vertexBuffer1);
-        vertexBuffer_indexBuffer = new GpuBuffer(GlBufferTarget.INDICES, usage, buf);
-        MemoryUtil.memFree(vertexBuffer1);
-        MemoryUtil.memFree(buf);
-        
-        Matrix4f viewMatrix = RenderSystem.getModelViewMatrix();
-        Matrix4f projectionMatrix = RenderSystem.getProjectionMatrix();
-        int vertexArrayId = GL30.glGenVertexArrays();
-        GL30.glBindVertexArray(vertexArrayId);
-        vertexFormat.setupState();
-        shaderProgram.initializeUniforms(drawMode, viewMatrix, projectionMatrix, MinecraftClient.getInstance().getWindow());
-        vertexBuffer_vertexBuffer.bind();
-        vertexBuffer_indexBuffer.bind();
-        shaderProgram.bind();
-        GL30.glDrawElements(drawMode.glMode, 3, indexType.glType, 0);
-        shaderProgram.unbind();
-        vertexBuffer_vertexBuffer.close();
-        vertexBuffer_indexBuffer.close();
-        GL30.glDeleteVertexArrays(vertexArrayId);
-        RenderSystem.enableCull();
+    public static void render(WorldRenderContext context){
+        init();
+        Matrix4f finalMatrix = MathUtils.inverseOffsetMatrix4f(context.camera().getPos().toVector3f());
+        context.positionMatrix().mul(finalMatrix, finalMatrix);
+        context.projectionMatrix().mul(finalMatrix, finalMatrix);
+        float angle = (System.currentTimeMillis() % 6283) / 1000.0f;
+        buffer.clear();
+        for(int a = 0; a < 3; ++a){
+            buffer.putFloat(MathHelper.cos(angle))
+                .putFloat(0)
+                .putFloat(MathHelper.sin(angle))
+                .putInt(colors[a]);
+            angle += dangle;
+        }
+        buffer.flip();
+        array.bind();
+        vertexBuffer.data(buffer, Constants.BufferMode.DYNAMIC_DRAW);
+        program.setFinalMatrix(finalMatrix);
+        program.useAndUniform();
+        Constants.DrawMode.TRIANGLES.drawArrays(0, 3);
+    }
+    private static final float dangle = 2.094398f;
+    private static final PositionColorProgram program = POSITION_COLOR_PROGRAM;
+    private static final int[] colors = {0xffff0000, 0xff00ff00, 0xff0000ff};
+    private static final VertexArray array = new VertexArray();
+    private static final Buffer vertexBuffer = new Buffer();
+    private static final ByteBuffer buffer = MemoryUtil.memAlloc(48);
+    private static boolean initialized = false;
+    private static void init(){
+        if(initialized) return;
+        array.bind();
+        vertexBuffer.bindAsArray();
+        program.attrib.attribAndEnable();
+        initialized = true;
     }
 }

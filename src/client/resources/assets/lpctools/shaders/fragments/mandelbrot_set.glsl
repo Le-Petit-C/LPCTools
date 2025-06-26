@@ -16,10 +16,14 @@ void main() {
         if(x2 + y2 > 4) break;
         z = vec2(x2 - y2, 2 * z.x * z.y) + complex;
     }
-    if(a >= maxDepth) FragColor = setColor;
+    if(a >= maxDepth) {
+        FragColor = setColor;
+        gl_FragDepth = gl_FragCoord.z;
+    }
     else {
         FragColor = outColor;
         FragColor.a *= log(float(a + 1)) / log(float(maxDepth));
         if(FragColor.a == 0) gl_FragDepth = 1;
+        else gl_FragDepth = gl_FragCoord.z;
     }
 }
