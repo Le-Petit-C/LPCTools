@@ -2,6 +2,7 @@ package lpctools.lpcfymasaapi.gl;
 
 import com.mojang.blaze3d.systems.RenderPass;
 import com.mojang.blaze3d.systems.RenderSystem;
+import com.mojang.blaze3d.textures.GpuTexture;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gl.Framebuffer;
 import org.jetbrains.annotations.Nullable;
@@ -11,12 +12,10 @@ import java.util.OptionalInt;
 
 public interface GlStatics {
     static RenderPass bindFrameBuffer(Framebuffer framebuffer){
+        GpuTexture colorTexture = framebuffer.getColorAttachment();
+        GpuTexture depthTexture = framebuffer.getDepthAttachment();
         return RenderSystem.getDevice().createCommandEncoder()
-            .createRenderPass(() -> "LPCTools RenderPass",
-                framebuffer.getColorAttachmentView(),
-                OptionalInt.empty(),
-                framebuffer.useDepthAttachment ? framebuffer.getDepthAttachmentView() : null,
-                OptionalDouble.empty());
+            .createRenderPass(colorTexture, OptionalInt.empty(), depthTexture, OptionalDouble.empty());
     }
     static RenderPass bindDefaultFrameBuffer(){
         return bindFrameBuffer(MinecraftClient.getInstance().getFramebuffer());
