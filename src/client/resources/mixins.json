@@ -7,10 +7,14 @@
     "BlockReplaceAction",
     "ClientPlayNetworkHandlerMixin",
     "DisplayClickSlotArguments",
+    "MinecraftWindowMixin",
+    "MinecraftWindowMixin$GLFWVersionRecord",
     "OnMouseButtonReturnMixin",
     "SplashTextResourceSupplierMixin",
     "SpriteContentsMixin",
     "WorldChunkMixin",
+    "events.OnScreenChanged",
+    "MASAMixins.litematicaMixin.DataManagerMixin",
     "MASAMixins.MuteMASAConfigMinMaxMixin.ConfigDoubleMixin",
     "MASAMixins.MuteMASAConfigMinMaxMixin.ConfigIntegerMixin"
   ],
@@ -18,5 +22,6 @@
     "defaultRequire": 1
   },
   "mixins": [
+    "MASAMixins.LayerRangeMixin"
   ]
 }

@@ -5,9 +5,9 @@ import com.google.gson.JsonObject;
 import fi.dy.masa.malilib.gui.GuiConfigsBase;
 import lpctools.lpcfymasaapi.LPCConfigList;
 import lpctools.lpcfymasaapi.configbutton.transferredConfigs.BooleanConfig;
-import lpctools.lpcfymasaapi.implementations.ILPCConfig;
-import lpctools.lpcfymasaapi.implementations.ILPCConfigList;
-import lpctools.lpcfymasaapi.implementations.IThirdListBase;
+import lpctools.lpcfymasaapi.interfaces.ILPCConfig;
+import lpctools.lpcfymasaapi.interfaces.ILPCConfigList;
+import lpctools.lpcfymasaapi.interfaces.IThirdListBase;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -20,16 +20,17 @@ public class ThirdListConfig extends BooleanConfig implements IThirdListBase {
     public ThirdListConfig(ILPCConfigList parent, String nameKey, boolean defaultBoolean) {
         super(parent, nameKey, defaultBoolean);
         lastValue = defaultBoolean;
-        setValueChangeCallback(()->{
-            if (lastValue != getAsBoolean()){
-                //if(GuiUtils.isInTextOrGui())
-                getPage().showPage();
-                lastValue = getAsBoolean();
-            }
-        });
         subConfigs = new LPCConfigList(parent, nameKey);
     }
-
+    
+    @Override public void onValueChanged() {
+        super.onValueChanged();
+        if (lastValue != getAsBoolean()){
+            getPage().showPage();
+            lastValue = getAsBoolean();
+        }
+    }
+    
     @Override public @NotNull Collection<ILPCConfig> getConfigs() {return subConfigs.getConfigs();}
     @Override public ArrayList<GuiConfigsBase.ConfigOptionWrapper> buildConfigWrappers(ArrayList<GuiConfigsBase.ConfigOptionWrapper> wrapperList) {
         if(getAsBoolean()) return subConfigs.buildConfigWrappers(wrapperList);

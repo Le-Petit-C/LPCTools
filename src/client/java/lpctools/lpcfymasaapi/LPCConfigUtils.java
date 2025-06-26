@@ -3,7 +3,7 @@ package lpctools.lpcfymasaapi;
 import com.google.gson.JsonElement;
 import fi.dy.masa.malilib.config.options.ConfigDouble;
 import fi.dy.masa.malilib.config.options.ConfigInteger;
-import lpctools.lpcfymasaapi.implementations.ILPCConfigBase;
+import lpctools.lpcfymasaapi.interfaces.ILPCConfigBase;
 import org.jetbrains.annotations.NotNull;
 
 import static lpctools.mixinInterfaces.MASAMixins.MuteMASAConfigMinMaxMixin.*;

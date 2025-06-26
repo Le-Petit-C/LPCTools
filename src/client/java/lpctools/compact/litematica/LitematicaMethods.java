@@ -7,6 +7,7 @@ import lpctools.compact.derived.SimpleTestableShape;
 import lpctools.compact.interfaces.ITestableShape;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Box;
+import net.minecraft.util.math.Direction;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
@@ -20,16 +21,26 @@ public class LitematicaMethods {
                 Box box1 = toMinecraftBox(box);
                 if(box1 == null) continue;
                 Box finalBox = box1.offset(placement.getOrigin());
-                list.add(ITestableShape.byTester(pos -> finalBox.contains(pos.toCenterPos()),testType));
+                list.add(ITestableShape.byTester(new SimpleTestableShape.InsideBox(finalBox),testType));
             }
         }
     }
     public void addRenderRangeShape(Collection<ITestableShape> list, SimpleTestableShape.TestType testType){
-        list.add(ITestableShape.byTester(pos -> {
-            LayerRange range = DataManager.getRenderLayerRange();
-            int component = range.getAxis().choose(pos.getX(), pos.getY(), pos.getZ());
-            return component >= range.getLayerMin() && component <= range.getLayerMax();
-            }, testType));
+        LayerRange currentRange = DataManager.getRenderLayerRange();
+        list.add(ITestableShape.byTester(
+            new LayerRangeTester(currentRange.getAxis(), currentRange.getLayerMin(), currentRange.getLayerMax())
+            , testType));
+    }
+    private record LayerRangeTester(Direction.Axis axis, int layerMin, int layerMax) implements SimpleTestableShape.ShapeTester {
+        @Override public boolean isInsideShape(BlockPos pos) {
+            int component = axis.choose(pos.getX(), pos.getY(), pos.getZ());
+            return component >= layerMin && component <= layerMax;
+        }
+        @Override public boolean equals(Object object){
+            if(object instanceof LayerRangeTester tester)
+                return axis.equals(tester.axis) && layerMin == tester.layerMin && layerMax == tester.layerMax;
+            else return false;
+        }
     }
     //因为投影里用的Box不带这个方法，所以需要自己实现
     @Nullable private static Box toMinecraftBox(fi.dy.masa.litematica.selection.Box box){
