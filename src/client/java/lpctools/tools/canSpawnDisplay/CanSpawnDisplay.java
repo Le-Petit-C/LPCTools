@@ -1,6 +1,6 @@
 package lpctools.tools.canSpawnDisplay;
 
-import fi.dy.masa.malilib.util.Color4f;
+import fi.dy.masa.malilib.util.data.Color4f;
 import lpctools.lpcfymasaapi.configbutton.derivedConfigs.ArrayOptionListConfig;
 import lpctools.lpcfymasaapi.configbutton.derivedConfigs.RangeLimitConfig;
 import lpctools.lpcfymasaapi.configbutton.derivedConfigs.ThirdListConfig;
@@ -56,7 +56,6 @@ public class CanSpawnDisplay extends ThirdListConfig implements AutoCloseable{
         try(ConfigListLayer ignored = new ConfigListLayer(this)){
             canSpawnDisplay = addConfig(new CanSpawnDisplaySwitch());
             setLPCToolsToggleText(canSpawnDisplay);
-            //noinspection deprecation
             displayColor = addColorConfig("displayColor", Color4f.fromColor(0x7fffffff));
             rangeLimit = addRangeLimitConfig(false);
             rangeLimit.setValueChangeCallback(()->{if(renderInstance != null) renderInstance.onRenderRangeChanged(rangeLimit);});

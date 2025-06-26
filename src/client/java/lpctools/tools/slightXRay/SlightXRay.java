@@ -2,7 +2,7 @@ package lpctools.tools.slightXRay;
 
 import com.google.common.collect.ImmutableList;
 import com.google.gson.JsonElement;
-import fi.dy.masa.malilib.util.Color4f;
+import fi.dy.masa.malilib.util.data.Color4f;
 import lpctools.lpcfymasaapi.LPCConfigList;
 import lpctools.lpcfymasaapi.configbutton.derivedConfigs.ConfigListOptionListConfigEx;
 import lpctools.lpcfymasaapi.configbutton.derivedConfigs.ThirdListConfig;
@@ -15,7 +15,7 @@ import lpctools.util.DataUtils;
 import net.minecraft.block.Block;
 import net.minecraft.block.Blocks;
 import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.render.model.BakedModel;
+import net.minecraft.client.render.model.BlockStateModel;
 import net.minecraft.client.texture.NativeImage;
 import net.minecraft.client.texture.Sprite;
 import org.apache.commons.lang3.mutable.MutableInt;
@@ -30,7 +30,6 @@ import static lpctools.lpcfymasaapi.LPCConfigStatics.*;
 import static lpctools.tools.ToolUtils.*;
 import static lpctools.util.DataUtils.*;
 
-@SuppressWarnings("deprecation")
 public class SlightXRay extends ThirdListConfig{
     static final @NotNull ImmutableList<Block> defaultXRayBlocks = ImmutableList.of(
         Blocks.DIAMOND_ORE, Blocks.DEEPSLATE_DIAMOND_ORE,
@@ -89,9 +88,9 @@ public class SlightXRay extends ThirdListConfig{
     }
     private int getColorByTextureColor(Block block) {
         try{
-            BakedModel model = MinecraftClient.getInstance().getBlockRenderManager()
+            BlockStateModel model = MinecraftClient.getInstance().getBlockRenderManager()
                 .getModel(block.getDefaultState());
-            Sprite particleSprite = model.getParticleSprite();
+            Sprite particleSprite = model.particleSprite();
             float r = 0, g = 0, b = 0;
             float t = 0;
             for(NativeImage image : ((SpriteContentsMixin)particleSprite.getContents()).getMipmapLevelsImages()){

@@ -1,5 +1,6 @@
 package lpctools.debugs;
 
+import com.mojang.blaze3d.systems.RenderPass;
 import lpctools.lpcfymasaapi.Registries;
 import lpctools.lpcfymasaapi.configbutton.derivedConfigs.ThirdListConfig;
 import lpctools.lpcfymasaapi.configbutton.transferredConfigs.DoubleConfig;
@@ -10,6 +11,7 @@ import lpctools.lpcfymasaapi.interfaces.ILPCConfigList;
 import lpctools.shader.ShaderPrograms;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents;
+import net.minecraft.client.MinecraftClient;
 import net.minecraft.util.math.Vec3d;
 import org.joml.*;
 
@@ -20,7 +22,7 @@ import static lpctools.lpcfymasaapi.gl.furtherWarpped.VertexAttribElements.*;
 import static lpctools.shader.FragmentShaders.*;
 import static lpctools.shader.VertexShaders.*;
 
-public class MandelbrotSetRender extends ThirdListConfig implements WorldRenderEvents.DebugRender {
+public class MandelbrotSetRender extends ThirdListConfig implements WorldRenderEvents.AfterTranslucent {
     public final IntegerConfig maxDepth;
     public final DoubleConfig stretch;
     public MandelbrotSetRender(ILPCConfigList parent) {
@@ -33,11 +35,12 @@ public class MandelbrotSetRender extends ThirdListConfig implements WorldRenderE
     
     @Override public void onValueChanged() {
         super.onValueChanged();
-        Registries.WORLD_RENDER_BEFORE_DEBUG_RENDER.register(this, getAsBoolean());
+        Registries.WORLD_RENDER_AFTER_TRANSLUCENT.register(this, getAsBoolean());
     }
     
-    @Override public void beforeDebugRender(WorldRenderContext context) {
-        try(MaskLayer layer = new MaskLayer()){
+    @Override public void afterTranslucent(WorldRenderContext context) {
+        try(RenderPass ignored = GlStatics.bindFrameBufferOrDefault(MinecraftClient.getInstance().worldRenderer.getTranslucentFramebuffer());
+            MaskLayer layer = new MaskLayer()){
             layer.enableBlend().disableCullFace().enableDepthTest();
             double y = 1;
             double stretch = this.stretch.getAsDouble();

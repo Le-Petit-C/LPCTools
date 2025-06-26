@@ -1,5 +1,6 @@
 package lpctools.tools.canSpawnDisplay;
 
+import com.mojang.blaze3d.systems.RenderPass;
 import lpctools.compact.derived.ShapeList;
 import lpctools.generic.GenericUtils;
 import lpctools.lpcfymasaapi.Registries;
@@ -27,6 +28,8 @@ import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.concurrent.CompletableFuture;
+
+import static lpctools.util.DataUtils.putGlError;
 
 public class RenderInstance extends DataInstance implements WorldRenderEvents.Last, WorldRenderEvents.DebugRender{
     public final CanSpawnDisplay parent;
@@ -131,10 +134,12 @@ public class RenderInstance extends DataInstance implements WorldRenderEvents.La
             modelMatrixList.add(modelMatrix);
             finalMatrixList.add(finalMatrix);
         }
-        try(MaskLayer layer = new MaskLayer()){
+        try(RenderPass ignored = GlStatics.bindDefaultFrameBuffer();
+            MaskLayer layer = new MaskLayer()){
             int color = parent.displayColor.getIntegerValue();
             boolean hasAlpha = (color >>> 24) != 0xff;
             layer.enableBlend(hasAlpha).disableCullFace().enableDepthTest(!parent.renderXRays.getAsBoolean());
+            putGlError("1", 1);
             if(parent.renderXRays.getAsBoolean() || !hasAlpha){
                 for(int a = 0; a < buffersToRender.size(); ++a)
                     buffersToRender.get(a).render(finalMatrixList.get(a), modelMatrixList.get(a), color, distanceSquared);
@@ -151,6 +156,7 @@ public class RenderInstance extends DataInstance implements WorldRenderEvents.La
                         buffersToRender.get(a).render(finalMatrixList.get(a), modelMatrixList.get(a), color, distanceSquared);
                 }
             }
+            putGlError("2", 1);
         }
     }
     private void buildBufferAsync(ChunkPos pos, double distanceSquared){

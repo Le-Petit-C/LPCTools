@@ -1,5 +1,6 @@
 package lpctools.debugs;
 
+import com.mojang.blaze3d.systems.RenderPass;
 import lpctools.lpcfymasaapi.Registries;
 import lpctools.lpcfymasaapi.configbutton.transferredConfigs.BooleanConfig;
 import lpctools.lpcfymasaapi.gl.*;
@@ -48,17 +49,17 @@ public class InstancedRenderTest extends BooleanConfig{
         public void setTimeAngle(float timeAngle){this.timeAngle.setValue(timeAngle);}
     }
     private @Nullable RenderInstance renderInstance;
-    private static class RenderInstance implements AutoCloseable, WorldRenderEvents.End{
+    private static class RenderInstance implements AutoCloseable, WorldRenderEvents.Last{
         public static final int triangleCount = 100;
         public final VertexArray vertexArray = new VertexArray();
         public final Buffer triangleInstanceBuffer = new Buffer();
         private boolean initialized = false;
         public @Override void close(){
-            Registries.WORLD_RENDER_END.unregister(this);
+            Registries.WORLD_RENDER_LAST.unregister(this);
             vertexArray.close();
             triangleInstanceBuffer.close();
         }
-        public RenderInstance(){Registries.WORLD_RENDER_END.register(this);}
+        public RenderInstance(){Registries.WORLD_RENDER_LAST.register(this);}
         private void init(){
             if(initialized) return;
             vertexArray.bind();
@@ -83,9 +84,10 @@ public class InstancedRenderTest extends BooleanConfig{
             vertexArray.unbind();
             initialized = true;
         }
-        @Override public void onEnd(WorldRenderContext context) {
+        @Override public void onLast(WorldRenderContext context) {
             init();
-            try(MaskLayer layer = new MaskLayer()){
+            try(RenderPass ignored = GlStatics.bindDefaultFrameBuffer();
+                MaskLayer layer = new MaskLayer()){
                 layer.disableCullFace().enableDepthTest().disableBlend();
                 vertexArray.bind();
                 Matrix4f matrix = MathUtils.inverseOffsetMatrix4f(context.camera().getPos().toVector3f());

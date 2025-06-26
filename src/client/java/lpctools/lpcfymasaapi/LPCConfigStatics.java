@@ -3,7 +3,7 @@ package lpctools.lpcfymasaapi;
 import com.google.common.collect.ImmutableList;
 import fi.dy.masa.malilib.config.IConfigOptionListEntry;
 import fi.dy.masa.malilib.hotkeys.IHotkeyCallback;
-import fi.dy.masa.malilib.util.Color4f;
+import fi.dy.masa.malilib.util.data.Color4f;
 import lpctools.lpcfymasaapi.configbutton.derivedConfigs.*;
 import lpctools.lpcfymasaapi.configbutton.transferredConfigs.*;
 import lpctools.lpcfymasaapi.interfaces.ILPCConfig;
@@ -24,7 +24,7 @@ import java.util.function.Supplier;
 
 import static lpctools.lpcfymasaapi.configbutton.derivedConfigs.ObjectListConfig.*;
 
-@SuppressWarnings({"unused", "UnusedReturnValue", "deprecation"})
+@SuppressWarnings({"unused", "UnusedReturnValue"})
 public interface LPCConfigStatics {
     //加入的配置无法删除
     //加入的配置不会立刻从文件中加载已有的设定，直到loadFromConfigPageJson被调用（一般来自LPCConfigPage中的load()），

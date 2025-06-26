@@ -15,7 +15,7 @@ import static lpctools.lpcfymasaapi.Registries.CLIENT_WORLD_CHUNK_SET_BLOCK_STAT
 @Mixin(WorldChunk.class)
 public class WorldChunkMixin {
     @Inject(method = "setBlockState", at = @At("RETURN"))
-    void chunkSetBlockState(BlockPos pos, BlockState state, boolean moved, CallbackInfoReturnable<BlockState> cir){
+    void chunkSetBlockState(BlockPos pos, BlockState state, int flags, CallbackInfoReturnable<BlockState> cir){
         if(CLIENT_WORLD_CHUNK_SET_BLOCK_STATE.isEmpty()) return;
         WorldChunk castedThis = (WorldChunk)(Object)this;
         if(!(castedThis.getWorld() instanceof ClientWorld)) return;

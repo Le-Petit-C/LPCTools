@@ -33,8 +33,8 @@ public class ItemUtils {
         if(itm == null) return;
         ClientPlayerEntity player = MinecraftClient.getInstance().player;
         if(player == null) return;
-        if(slot == -1) slot = player.getInventory().selectedSlot;
-        if(button == -1) button = player.getInventory().selectedSlot;
+        if(slot == -1) slot = player.getInventory().getSelectedSlot();
+        if(button == -1) button = player.getInventory().getSelectedSlot();
         if(slot < 9) slot += 36;
         itm.clickSlot(player.currentScreenHandler.syncId, slot, button, type, player);
     }

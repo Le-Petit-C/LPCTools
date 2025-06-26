@@ -2,8 +2,7 @@ package lpctools.lpcfymasaapi.configbutton.transferredConfigs;
 
 import com.google.gson.JsonElement;
 import fi.dy.masa.malilib.config.options.ConfigColor;
-import fi.dy.masa.malilib.config.options.ConfigInteger;
-import fi.dy.masa.malilib.util.Color4f;
+import fi.dy.masa.malilib.util.data.Color4f;
 import lpctools.lpcfymasaapi.interfaces.ILPCConfigList;
 import lpctools.lpcfymasaapi.interfaces.ILPCValueChangeCallback;
 import lpctools.lpcfymasaapi.interfaces.ILPC_MASAConfigWrapper;
@@ -14,8 +13,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
-@SuppressWarnings("deprecation")
-public class ColorConfig extends ConfigColor implements ILPC_MASAConfigWrapper<ConfigInteger>, Supplier<Color4f>, Consumer<Color4f> {
+public class ColorConfig extends ConfigColor implements ILPC_MASAConfigWrapper<ConfigColor>, Supplier<Color4f>, Consumer<Color4f> {
     public ColorConfig(@NotNull ILPCConfigList parent, @NotNull String nameKey, Color4f defaultColor){
         this(parent, nameKey, defaultColor, null);
     }

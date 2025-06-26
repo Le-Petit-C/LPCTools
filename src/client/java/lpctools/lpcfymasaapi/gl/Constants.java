@@ -1,6 +1,6 @@
 package lpctools.lpcfymasaapi.gl;
 
-import it.unimi.dsi.fastutil.booleans.BooleanArrayList;
+import it.unimi.dsi.fastutil.bytes.ByteArrayList;
 import org.jetbrains.annotations.NotNull;
 import org.lwjgl.system.MemoryStack;
 
@@ -92,15 +92,17 @@ public class Constants {
     }
     public interface SimpleEnableOption extends EnableOption{
         boolean isEnabled();
-        @Override default void push(@NotNull BooleanArrayList list){list.add(isEnabled());}
-        @Override default void pop(@NotNull BooleanArrayList list){enable(list.removeLast());}
+        @Override default void push(@NotNull ByteArrayList list){list.add((byte)(isEnabled() ? 1 : 0));}
+        @Override default void pop(@NotNull ByteArrayList list){enable(list.removeLast() != 0);}
     }
-    public interface EnableOption{
+    public interface EnableOption extends RestorableOption {
         void enable(boolean b);
         default void enable(){enable(true);}
         default void disable(){enable(false);}
-        void push(@NotNull BooleanArrayList list);
-        void pop(@NotNull BooleanArrayList list);
+    }
+    public interface RestorableOption {
+        void push(@NotNull ByteArrayList list);
+        void pop(@NotNull ByteArrayList list);
     }
     public interface EnableOptions{
         EnableOption DEPTH_WRITE = new SimpleEnableOption() {
@@ -109,20 +111,20 @@ public class Constants {
         };
         EnableOption COLOR_WRITE = new EnableOption() {
             @Override public void enable(boolean b) {glColorMask(b, b, b, b);}
-            @Override public void push(@NotNull BooleanArrayList list) {
+            @Override public void push(@NotNull ByteArrayList list) {
                 try(MemoryStack stack = stackGet()){
                     stack.push();
                     int stackPointer = stack.getPointer();
                     ByteBuffer params = stack.calloc(4);
                     nglGetBooleanv(GL_COLOR_WRITEMASK, memAddress(params));
-                    list.add(params.get(3) != 0);
-                    list.add(params.get(2) != 0);
-                    list.add(params.get(1) != 0);
-                    list.add(params.get(0) != 0);
+                    list.add(params.get(3));
+                    list.add(params.get(2));
+                    list.add(params.get(1));
+                    list.add(params.get(0));
                 }
             }
-            @Override public void pop(@NotNull BooleanArrayList list) {
-                glColorMask(list.removeLast(), list.removeLast(), list.removeLast(), list.removeLast());
+            @Override public void pop(@NotNull ByteArrayList list) {
+                glColorMask(list.removeLast() != 0, list.removeLast() != 0, list.removeLast() != 0, list.removeLast() != 0);
             }
         };
     }

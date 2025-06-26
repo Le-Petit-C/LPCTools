@@ -1,14 +1,12 @@
 package lpctools.tools.slightXRay;
 
 import com.google.common.collect.Sets;
+import com.mojang.blaze3d.systems.RenderPass;
 import lpctools.compact.derived.ShapeList;
 import lpctools.generic.GenericUtils;
 import lpctools.lpcfymasaapi.Registries;
 import lpctools.lpcfymasaapi.configbutton.derivedConfigs.RangeLimitConfig;
-import lpctools.lpcfymasaapi.gl.Buffer;
-import lpctools.lpcfymasaapi.gl.Constants;
-import lpctools.lpcfymasaapi.gl.MaskLayer;
-import lpctools.lpcfymasaapi.gl.VertexArray;
+import lpctools.lpcfymasaapi.gl.*;
 import lpctools.shader.ShaderPrograms;
 import lpctools.util.AlgorithmUtils;
 import lpctools.util.MathUtils;
@@ -191,7 +189,8 @@ public class RenderInstance extends DataInstance implements WorldRenderEvents.En
     @Override public void onEnd(WorldRenderContext context) {
         RenderPrepareResult result = renderTask.join();
         ensureIndexBufferSize(result.maxShapeCount);
-        try(MaskLayer layer = new MaskLayer()){
+        try(RenderPass ignored = GlStatics.bindDefaultFrameBuffer();
+            MaskLayer layer = new MaskLayer()){
             layer.enableBlend().enableCullFace(parent.useCullFace.getBooleanValue()).disableDepthTest();
             ShaderPrograms.PositionColorProgram program = ShaderPrograms.POSITION_COLOR_PROGRAM;
             for(CompletableFuture<ChunkRenderPrepareResult> future : result.futures){
