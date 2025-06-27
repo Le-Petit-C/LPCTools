@@ -151,6 +151,7 @@ public class RenderInstance extends DataInstance implements WorldRenderEvents.La
                         buffersToRender.get(a).render(finalMatrixList.get(a), modelMatrixList.get(a), color, distanceSquared);
                 }
             }
+            VertexArray.unbindStatic();
         }
     }
     private void buildBufferAsync(ChunkPos pos, double distanceSquared){
