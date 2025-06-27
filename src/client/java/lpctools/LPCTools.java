@@ -5,6 +5,7 @@ import lpctools.generic.GenericConfigs;
 import lpctools.lpcfymasaapi.LPCConfigList;
 import lpctools.lpcfymasaapi.LPCConfigPage;
 import lpctools.lpcfymasaapi.Reference;
+import lpctools.shader.LPCShaderInitializer;
 import lpctools.tools.ToolConfigs;
 import lpctools.slightTools.SlightToolConfigs;
 import lpctools.tweaks.TweakConfigs;
@@ -26,6 +27,7 @@ public class LPCTools implements ClientModInitializer {
     @Override public void onInitializeClient() {
 		if(page != null) return;
 		LOGGER.info("Initializing");
+		LPCShaderInitializer.init();
 		page = new LPCConfigPage(new Reference("LPCTools"));
 		try(ConfigListLayer layer = new ConfigListLayer()){
 			layer.set(generic = page.addList("generic"));

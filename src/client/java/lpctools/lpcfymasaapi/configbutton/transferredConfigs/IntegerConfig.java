@@ -3,10 +3,10 @@ package lpctools.lpcfymasaapi.configbutton.transferredConfigs;
 import com.google.gson.JsonElement;
 import fi.dy.masa.malilib.config.options.ConfigInteger;
 import lpctools.lpcfymasaapi.LPCConfigUtils;
-import lpctools.lpcfymasaapi.implementations.ILPCConfigList;
-import lpctools.lpcfymasaapi.implementations.ILPCValueChangeCallback;
-import lpctools.lpcfymasaapi.implementations.ILPC_MASAConfigWrapper;
-import lpctools.lpcfymasaapi.implementations.data.LPCConfigData;
+import lpctools.lpcfymasaapi.interfaces.ILPCConfigList;
+import lpctools.lpcfymasaapi.interfaces.ILPCValueChangeCallback;
+import lpctools.lpcfymasaapi.interfaces.ILPC_MASAConfigWrapper;
+import lpctools.lpcfymasaapi.interfaces.data.LPCConfigData;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.function.IntConsumer;

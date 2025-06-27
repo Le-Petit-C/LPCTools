@@ -2,7 +2,6 @@ package lpctools.tools.liquidCleaner;
 
 import com.google.common.collect.ImmutableList;
 import fi.dy.masa.malilib.hotkeys.KeyCallbackToggleBoolean;
-import lpctools.lpcfymasaapi.Registry;
 import lpctools.lpcfymasaapi.configbutton.derivedConfigs.LimitOperationSpeedConfig;
 import lpctools.lpcfymasaapi.configbutton.derivedConfigs.ReachDistanceConfig;
 import lpctools.lpcfymasaapi.configbutton.transferredConfigs.*;
@@ -40,11 +39,11 @@ public class LiquidCleaner {
         if(isEnabled()) return;
         displayEnableMessage(liquidCleaner);
         onEndTick = new OnEndTick();
-        Registry.registerEndClientTickCallback(onEndTick);
+        lpctools.lpcfymasaapi.Registries.END_CLIENT_TICK.register(onEndTick);
     }
     public static void disableTool(@Nullable String reasonKey){
         if(!isEnabled()) return;
-        Registry.unregisterEndClientTickCallback(onEndTick);
+        lpctools.lpcfymasaapi.Registries.END_CLIENT_TICK.unregister(onEndTick);
         onEndTick = null;
         displayDisableReason(liquidCleaner, reasonKey);
     }

@@ -1,9 +1,9 @@
 package lpctools.generic;
 
-import lpctools.lpcfymasaapi.utils.RegistryEx;
+import lpctools.lpcfymasaapi.UnregistrableRegistry;
 
 public class GenericRegistry {
-    public static void runSpawnConditionChanged(){SPAWN_CONDITION_CHANGED.run(SpawnConditionChanged::onSpawnConditionChanged);}
-    public static RegistryEx<SpawnConditionChanged> SPAWN_CONDITION_CHANGED = new RegistryEx<>();
+    public static UnregistrableRegistry<SpawnConditionChanged> SPAWN_CONDITION_CHANGED = new UnregistrableRegistry<>(
+        callbacks->()->callbacks.forEach(SpawnConditionChanged::onSpawnConditionChanged));
     public interface SpawnConditionChanged{ void onSpawnConditionChanged();}
 }

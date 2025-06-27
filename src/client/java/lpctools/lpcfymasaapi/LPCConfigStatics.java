@@ -6,9 +6,13 @@ import fi.dy.masa.malilib.hotkeys.IHotkeyCallback;
 import fi.dy.masa.malilib.util.Color4f;
 import lpctools.lpcfymasaapi.configbutton.derivedConfigs.*;
 import lpctools.lpcfymasaapi.configbutton.transferredConfigs.*;
-import lpctools.lpcfymasaapi.implementations.ILPCConfig;
-import lpctools.lpcfymasaapi.implementations.ILPCConfigList;
-import lpctools.lpcfymasaapi.implementations.ILPCValueChangeCallback;
+import lpctools.lpcfymasaapi.interfaces.ILPCConfig;
+import lpctools.lpcfymasaapi.interfaces.ILPCConfigList;
+import lpctools.lpcfymasaapi.interfaces.ILPCValueChangeCallback;
+import lpctools.util.javaex.NamedFunction;
+import net.minecraft.block.Block;
+import net.minecraft.item.BlockItem;
+import net.minecraft.item.Item;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -17,6 +21,8 @@ import java.util.function.Consumer;
 import java.util.function.IntConsumer;
 import java.util.function.IntSupplier;
 import java.util.function.Supplier;
+
+import static lpctools.lpcfymasaapi.configbutton.derivedConfigs.ObjectListConfig.*;
 
 @SuppressWarnings({"unused", "UnusedReturnValue", "deprecation"})
 public interface LPCConfigStatics {
@@ -133,6 +139,36 @@ public interface LPCConfigStatics {
     }
     static <T extends ILPCConfigList> ConfigListOptionListConfigEx<T> addConfigListOptionListConfigEx(ILPCConfigList list, @NotNull String nameKey, @Nullable ILPCValueChangeCallback callback){
         return list.addConfig(new ConfigListOptionListConfigEx<>(list, nameKey, callback));
+    }
+    static <T> ObjectListConfig<T> addObjectListConfig(ILPCConfigList list, String nameKey, @Nullable ImmutableList<String> defaultValue, NamedFunction<String, T> converter, @Nullable ILPCValueChangeCallback callback){
+        return list.addConfig(new ObjectListConfig<>(list, nameKey, defaultValue, converter, callback));
+    }
+    static <T> ObjectListConfig<T> addObjectListConfig(ILPCConfigList list, String nameKey, @Nullable Iterable<T> defaultValue, NamedFunction<String, T> converter, NamedFunction<T, String> backConverter, @Nullable ILPCValueChangeCallback callback){
+        return list.addConfig(new ObjectListConfig<>(list, nameKey, defaultValue, converter, backConverter, callback));
+    }
+    static <T> ObjectListConfig<T> addObjectListConfig(ILPCConfigList list, String nameKey, @Nullable ImmutableList<String> defaultValue, NamedFunction<String, T> converter){
+        return list.addConfig(new ObjectListConfig<>(list, nameKey, defaultValue, converter));
+    }
+    static <T> ObjectListConfig<T> addObjectListConfig(ILPCConfigList list, String nameKey, @Nullable Iterable<T> defaultValue, NamedFunction<String, T> converter, NamedFunction<T, String> backConverter){
+        return list.addConfig(new ObjectListConfig<>(list, nameKey, defaultValue, converter, backConverter));
+    }
+    static ItemListConfig addItemListConfig(ILPCConfigList list, String nameKey, @Nullable Iterable<Item> defaultValue, ILPCValueChangeCallback callback){
+        return list.addConfig(new ItemListConfig(list, nameKey, defaultValue, callback));
+    }
+    static ItemListConfig addItemListConfig(ILPCConfigList list, String nameKey, @Nullable Iterable<Item> defaultValue){
+        return list.addConfig(new ItemListConfig(list, nameKey, defaultValue));
+    }
+    static BlockListConfig addBlockListConfig(ILPCConfigList list, String nameKey, @Nullable Iterable<Block> defaultValue, ILPCValueChangeCallback callback){
+        return list.addConfig(new BlockListConfig(list, nameKey, defaultValue, callback));
+    }
+    static BlockListConfig addBlockListConfig(ILPCConfigList list, String nameKey, @Nullable Iterable<Block> defaultValue){
+        return list.addConfig(new BlockListConfig(list, nameKey, defaultValue));
+    }
+    static BlockItemListConfig addBlockItemListConfig(ILPCConfigList list, String nameKey, @Nullable Iterable<BlockItem> defaultValue, ILPCValueChangeCallback callback){
+        return list.addConfig(new BlockItemListConfig(list, nameKey, defaultValue, callback));
+    }
+    static BlockItemListConfig addBlockItemListConfig(ILPCConfigList list, String nameKey, @Nullable Iterable<BlockItem> defaultValue){
+        return list.addConfig(new BlockItemListConfig(list, nameKey, defaultValue));
     }
 
     //不带List版本的，使用栈存储当前list，方便操作
@@ -269,5 +305,35 @@ public interface LPCConfigStatics {
     }
     static <T extends ILPCConfigList> ConfigListOptionListConfigEx<T> addConfigListOptionListConfigEx(@NotNull String nameKey, @Nullable ILPCValueChangeCallback callback){
         return addConfigListOptionListConfigEx(peekConfigList(), nameKey, callback);
+    }
+    static <T> ObjectListConfig<T> addObjectListConfig(String nameKey, @Nullable ImmutableList<String> defaultValue, NamedFunction<String, T> converter, @Nullable ILPCValueChangeCallback callback){
+        return addObjectListConfig(peekConfigList(), nameKey, defaultValue, converter, callback);
+    }
+    static <T> ObjectListConfig<T> addObjectListConfig(String nameKey, @Nullable Iterable<T> defaultValue, NamedFunction<String, T> converter, NamedFunction<T, String> backConverter, @Nullable ILPCValueChangeCallback callback){
+        return addObjectListConfig(peekConfigList(), nameKey, defaultValue, converter, backConverter, callback);
+    }
+    static <T> ObjectListConfig<T> addObjectListConfig(String nameKey, @Nullable ImmutableList<String> defaultValue, NamedFunction<String, T> converter){
+        return addObjectListConfig(peekConfigList(), nameKey, defaultValue, converter);
+    }
+    static <T> ObjectListConfig<T> addObjectListConfig(String nameKey, @Nullable Iterable<T> defaultValue, NamedFunction<String, T> converter, NamedFunction<T, String> backConverter){
+        return addObjectListConfig(peekConfigList(), nameKey, defaultValue, converter, backConverter);
+    }
+    static ItemListConfig addItemListConfig(String nameKey, @Nullable Iterable<Item> defaultValue, ILPCValueChangeCallback callback){
+        return addItemListConfig(peekConfigList(), nameKey, defaultValue, callback);
+    }
+    static ItemListConfig addItemListConfig(String nameKey, @Nullable Iterable<Item> defaultValue){
+        return addItemListConfig(peekConfigList(), nameKey, defaultValue);
+    }
+    static BlockListConfig addBlockListConfig(String nameKey, @Nullable Iterable<Block> defaultValue, ILPCValueChangeCallback callback){
+        return addBlockListConfig(peekConfigList(), nameKey, defaultValue, callback);
+    }
+    static BlockListConfig addBlockListConfig(String nameKey, @Nullable Iterable<Block> defaultValue){
+        return addBlockListConfig(peekConfigList(), nameKey, defaultValue);
+    }
+    static BlockItemListConfig addBlockItemListConfig(String nameKey, @Nullable Iterable<BlockItem> defaultValue, ILPCValueChangeCallback callback){
+        return addBlockItemListConfig(peekConfigList(), nameKey, defaultValue, callback);
+    }
+    static BlockItemListConfig addBlockItemListConfig(String nameKey, @Nullable Iterable<BlockItem> defaultValue){
+        return addBlockItemListConfig(peekConfigList(), nameKey, defaultValue);
     }
 }

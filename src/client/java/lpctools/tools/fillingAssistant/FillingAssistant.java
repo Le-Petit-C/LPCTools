@@ -1,10 +1,10 @@
 package lpctools.tools.fillingAssistant;
 
 import fi.dy.masa.malilib.hotkeys.KeyCallbackToggleBoolean;
-import lpctools.lpcfymasaapi.Registry;
+import lpctools.lpcfymasaapi.Registries;
 import lpctools.lpcfymasaapi.configbutton.derivedConfigs.*;
 import lpctools.lpcfymasaapi.configbutton.transferredConfigs.*;
-import lpctools.lpcfymasaapi.implementations.ILPCValueChangeCallback;
+import lpctools.lpcfymasaapi.interfaces.ILPCValueChangeCallback;
 import net.minecraft.block.Block;
 import net.minecraft.block.Blocks;
 import net.minecraft.client.MinecraftClient;
@@ -26,14 +26,14 @@ public class FillingAssistant {
         if(runner != null) return;
         runner = new PlaceBlockTick();
         fillingAssistant.setBooleanValue(true);
-        Registry.registerEndClientTickCallback(runner);
-        Registry.registerInGameEndMouseCallback(runner);
+        Registries.END_CLIENT_TICK.register(runner);
+        Registries.IN_GAME_END_MOUSE.register(runner);
         displayEnableMessage(fillingAssistant);
     }
     public static void disableTool(@Nullable String reasonKey){
         if(runner == null) return;
-        Registry.unregisterEndClientTickCallback(runner);
-        Registry.unregisterInGameEndMouseCallback(runner);
+        Registries.END_CLIENT_TICK.unregister(runner);
+        Registries.IN_GAME_END_MOUSE.unregister(runner);
         runner = null;
         fillingAssistant.setBooleanValue(false);
         displayDisableReason(fillingAssistant, reasonKey);

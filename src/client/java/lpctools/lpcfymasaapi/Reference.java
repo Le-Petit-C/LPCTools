@@ -20,5 +20,6 @@ public class Reference {
         //return StringUtils.getModVersionString(modId);
         return FabricLoader.getInstance().getModContainer(modId).orElseThrow().getMetadata().getVersion().getFriendlyString();
     }
+    @SuppressWarnings("unused")
     public String getModString(){return modId + "-" + getModType() + "-" + getMCVersion() + "-" + getModVersion();}
 }

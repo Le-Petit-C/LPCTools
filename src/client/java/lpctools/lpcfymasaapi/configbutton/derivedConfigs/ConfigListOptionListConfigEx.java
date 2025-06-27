@@ -2,10 +2,10 @@ package lpctools.lpcfymasaapi.configbutton.derivedConfigs;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import lpctools.lpcfymasaapi.implementations.ILPCConfig;
-import lpctools.lpcfymasaapi.implementations.ILPCConfigList;
-import lpctools.lpcfymasaapi.implementations.ILPCValueChangeCallback;
-import lpctools.lpcfymasaapi.implementations.IThirdListBase;
+import lpctools.lpcfymasaapi.interfaces.ILPCConfig;
+import lpctools.lpcfymasaapi.interfaces.ILPCConfigList;
+import lpctools.lpcfymasaapi.interfaces.ILPCValueChangeCallback;
+import lpctools.lpcfymasaapi.interfaces.IThirdListBase;
 import net.minecraft.client.MinecraftClient;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
