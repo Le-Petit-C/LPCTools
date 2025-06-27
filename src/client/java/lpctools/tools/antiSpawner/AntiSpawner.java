@@ -2,20 +2,20 @@ package lpctools.tools.antiSpawner;
 
 import com.google.common.collect.ImmutableList;
 import lpctools.compact.derived.ShapeList;
-import lpctools.lpcfymasaapi.Registry;
-import lpctools.lpcfymasaapi.configbutton.derivedConfigs.LimitOperationSpeedConfig;
-import lpctools.lpcfymasaapi.configbutton.derivedConfigs.RangeLimitConfig;
-import lpctools.lpcfymasaapi.configbutton.derivedConfigs.ReachDistanceConfig;
+import lpctools.lpcfymasaapi.configbutton.derivedConfigs.*;
 import lpctools.lpcfymasaapi.configbutton.transferredConfigs.BooleanHotkeyConfig;
-import lpctools.lpcfymasaapi.configbutton.transferredConfigs.StringListConfig;
+import lpctools.lpcfymasaapi.interfaces.ILPCConfigList;
 import lpctools.util.HandRestock;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.minecraft.block.Block;
+import net.minecraft.block.BlockState;
 import net.minecraft.client.MinecraftClient;
-import net.minecraft.item.Item;
+import net.minecraft.item.BlockItem;
 import net.minecraft.registry.Registries;
+import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
 import net.minecraft.util.hit.BlockHitResult;
+import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
 
 import java.util.ArrayList;
@@ -27,37 +27,41 @@ import static lpctools.tools.ToolUtils.setLPCToolsToggleText;
 import static lpctools.util.BlockUtils.*;
 import static lpctools.util.DataUtils.*;
 
-//TODO:
-// 未抑制方块显示
-public class AntiSpawner implements ClientTickEvents.EndTick {
-    public static BooleanHotkeyConfig antiSpawnerConfig;
-    public static StringListConfig placeableItemIds;
-    public static ReachDistanceConfig reachDistanceConfig;
-    public static RangeLimitConfig rangeLimitConfig;
-    public static LimitOperationSpeedConfig limitOperationSpeedConfig;
-    public static void init() {
-        antiSpawnerConfig = addBooleanHotkeyConfig("antiSpawner", false, null, ()->{
-            if(antiSpawnerConfig.getBooleanValue()) start();
+//TODO:非下蹲状态忽略可交互方块
+public class AntiSpawner extends ThirdListConfig implements ClientTickEvents.EndTick {
+    public final AntiSpawnerSwitch antiSpawnerConfig = addConfig(new AntiSpawnerSwitch());
+    public final ObjectListConfig.BlockItemListConfig placeableItems;
+    public final ReachDistanceConfig reachDistanceConfig;
+    public final RangeLimitConfig rangeLimitConfig;
+    public final LimitOperationSpeedConfig limitOperationSpeedConfig;
+    public class AntiSpawnerSwitch extends BooleanHotkeyConfig{
+        public AntiSpawnerSwitch() {super(AntiSpawner.this, "antiSpawner", false, null);}
+        @Override public void onValueChanged() {
+            super.onValueChanged();
+            if(getBooleanValue()) start();
             else stop();
-        });
-        setLPCToolsToggleText(antiSpawnerConfig);
-        limitOperationSpeedConfig = addLimitOperationSpeedConfig(false, 1);
-        reachDistanceConfig = addReachDistanceConfig();
-        placeableItemIds = addStringListConfig("placeableItems", idListFromItemList(defaultPlaceableItems),
-            ()->itemSetFromIds(placeableItemIds.get(), placeableItems, true));
-        rangeLimitConfig = addRangeLimitConfig(false);
+        }
     }
-    private static final AntiSpawner instance = new AntiSpawner();
-    public static void start(){Registry.registerEndClientTickCallback(instance);}
-    public static void stop(){Registry.unregisterEndClientTickCallback(instance);}
-    public static final ImmutableList<Item> defaultPlaceableItems;
-    public static final ArrayList<Item> placeableItems;
+    public AntiSpawner(ILPCConfigList parent) {
+        super(parent, "AS", false);
+        try(ConfigListLayer ignored = new ConfigListLayer(this)){
+            setLPCToolsToggleText(antiSpawnerConfig);
+            limitOperationSpeedConfig = addLimitOperationSpeedConfig(false, 1);
+            reachDistanceConfig = addReachDistanceConfig();
+            placeableItems = addBlockItemListConfig(this, "placeableItems", defaultPlaceableItems);
+            rangeLimitConfig = addRangeLimitConfig(false);
+            restockTest = item -> item.getItem() instanceof BlockItem blockItem && placeableItems.set.contains(blockItem);
+        }
+    }
+    public void start(){lpctools.lpcfymasaapi.Registries.END_CLIENT_TICK.register(this);}
+    public void stop(){lpctools.lpcfymasaapi.Registries.END_CLIENT_TICK.unregister(this);}
+    public static final ImmutableList<BlockItem> defaultPlaceableItems;
     static {
-        placeableItems = new ArrayList<>();
+        ArrayList<BlockItem> placeableItems = new ArrayList<>();
         for(Block block : Registries.BLOCK){
-            Item item;
-            try{item = block.asItem();}
-            catch (Throwable ignored){continue;}
+            BlockItem item;
+            try{item = (BlockItem) block.asItem();}
+            catch (Exception ignored){continue;}
             if(canBeReplacedByFluid(block)) continue;
             if(block.getDefaultState().isBurnable()) continue;
             String idPath = getBlockId(block);
@@ -82,12 +86,24 @@ public class AntiSpawner implements ClientTickEvents.EndTick {
                 if(!shapeList.testPos(pos)) return NO_OPERATION;
                 if(!mayMobSpawnAt(mc.world, mc.world.getLightingProvider(), pos)) return NO_OPERATION;
                 if(!mc.world.getBlockState(pos).isReplaceable()) return NO_OPERATION;
+                BlockPos downPos = pos.down();
+                BlockPos hitPos;
+                if(mc.world.getBlockState(pos.down()).isReplaceable()) hitPos = pos;
+                else hitPos = downPos;
+                BlockHitResult hitResult = new BlockHitResult(
+                    pos.toBottomCenterPos(), Direction.UP, hitPos, false);
+                if(!mc.player.isSneaking()){
+                    BlockState below = mc.world.getBlockState(pos.down());
+                    ActionResult result = below.onUse(mc.world, mc.player, hitResult);
+                    if(result == ActionResult.SUCCESS) {
+                        notifyPlayer(String.format("onUse at %s", pos.down().toString()), false);
+                        return NO_OPERATION;
+                    }
+                }
                 limitOperationSpeedConfig.limitWithRestock(restockTest, 0);
-                mc.interactionManager.interactBlock(mc.player, Hand.MAIN_HAND, new BlockHitResult(
-                    pos.toBottomCenterPos(), Direction.UP, pos.offset(Direction.DOWN), false
-                ));
+                mc.interactionManager.interactBlock(mc.player, Hand.MAIN_HAND, hitResult);
                 return OPERATED;
             });
     }
-    private static final HandRestock.IRestockTest restockTest = item -> placeableItems.contains(item.getItem());
+    private final HandRestock.IRestockTest restockTest;
 }

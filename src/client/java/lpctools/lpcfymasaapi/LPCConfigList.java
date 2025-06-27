@@ -1,8 +1,8 @@
 package lpctools.lpcfymasaapi;
 
-import lpctools.lpcfymasaapi.implementations.ILPCConfig;
-import lpctools.lpcfymasaapi.implementations.ILPCConfigBase;
-import lpctools.lpcfymasaapi.implementations.ILPCConfigList;
+import lpctools.lpcfymasaapi.interfaces.ILPCConfig;
+import lpctools.lpcfymasaapi.interfaces.ILPCConfigBase;
+import lpctools.lpcfymasaapi.interfaces.ILPCConfigList;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;

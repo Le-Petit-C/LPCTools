@@ -1,7 +1,7 @@
 package lpctools.tools.fillingAssistant;
 
 import lpctools.compact.derived.ShapeList;
-import lpctools.lpcfymasaapi.Registry;
+import lpctools.lpcfymasaapi.Registries;
 import lpctools.util.GuiUtils;
 import lpctools.util.HandRestock;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
@@ -26,7 +26,7 @@ import static lpctools.lpcfymasaapi.configbutton.derivedConfigs.LimitOperationSp
 import static lpctools.tools.fillingAssistant.FillingAssistant.*;
 import static lpctools.util.BlockUtils.*;
 
-public class PlaceBlockTick implements ClientTickEvents.EndTick, Registry.InGameEndMouse {
+public class PlaceBlockTick implements ClientTickEvents.EndTick, Registries.InGameEndMouse {
     public PlaceBlockTick(){
         setTestDistance(testDistanceConfig.getAsInt());
     }

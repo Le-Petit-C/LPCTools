@@ -1,8 +1,8 @@
 package lpctools.lpcfymasaapi.configbutton.derivedConfigs;
 
 import lpctools.lpcfymasaapi.LPCConfigList;
-import lpctools.lpcfymasaapi.implementations.ILPCConfigList;
-import lpctools.lpcfymasaapi.implementations.ILPCValueChangeCallback;
+import lpctools.lpcfymasaapi.interfaces.ILPCConfigList;
+import lpctools.lpcfymasaapi.interfaces.ILPCValueChangeCallback;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 

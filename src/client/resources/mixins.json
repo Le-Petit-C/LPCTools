@@ -7,18 +7,22 @@
     "BlockReplaceAction",
     "ClientPlayNetworkHandlerMixin",
     "DisplayClickSlotArguments",
+    "events.AfterClientWorldChange",
+    "MinecraftWindowMixin",
+    "MinecraftWindowMixin$GLFWVersionRecord",
     "OnMouseButtonReturnMixin",
     "SplashTextResourceSupplierMixin",
     "SpriteContentsMixin",
     "WorldChunkMixin",
+    "events.OnScreenChanged",
+    "MASAMixins.litematicaMixin.DataManagerMixin",
     "MASAMixins.MuteMASAConfigMinMaxMixin.ConfigDoubleMixin",
-    "MASAMixins.MuteMASAConfigMinMaxMixin.ConfigIntegerMixin",
-    "RegistryMixins$afterClientWorldChangeEvent",
-    "SplashTextResourceSupplierMixin"
+    "MASAMixins.MuteMASAConfigMinMaxMixin.ConfigIntegerMixin"
   ],
   "injectors": {
     "defaultRequire": 1
   },
   "mixins": [
+    "MASAMixins.LayerRangeMixin"
   ]
 }
