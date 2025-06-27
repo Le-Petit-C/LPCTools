@@ -7,7 +7,6 @@ import lpctools.util.AlgorithmUtils;
 import lpctools.util.MathUtils;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientChunkEvents;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
-import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientWorldEvents;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
 import net.minecraft.client.MinecraftClient;
@@ -26,7 +25,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.concurrent.CompletableFuture;
 
-public class DataInstance implements AutoCloseable, Registries.ClientWorldChunkLightUpdated, ClientTickEvents.StartTick, ClientChunkEvents.Unload, Registries.ClientWorldChunkSetBlockState, GenericRegistry.SpawnConditionChanged, ClientWorldEvents.AfterClientWorldChange {
+public class DataInstance implements AutoCloseable, Registries.ClientWorldChunkLightUpdated, ClientTickEvents.StartTick, ClientChunkEvents.Unload, Registries.ClientWorldChunkSetBlockState, GenericRegistry.SpawnConditionChanged, Registries.AfterClientWorldChange {
     public final HashMap<ChunkPos, ArrayList<BlockPos>> canSpawnPoses = new HashMap<>();
     public final @NotNull MinecraftClient client;
     protected void onChunkDataLoaded(ChunkPos pos, double distanceSquared){}

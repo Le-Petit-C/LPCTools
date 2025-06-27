@@ -7,6 +7,7 @@
     "BlockReplaceAction",
     "ClientPlayNetworkHandlerMixin",
     "DisplayClickSlotArguments",
+    "events.AfterClientWorldChange",
     "MinecraftWindowMixin",
     "MinecraftWindowMixin$GLFWVersionRecord",
     "OnMouseButtonReturnMixin",
@@ -16,9 +17,7 @@
     "events.OnScreenChanged",
     "MASAMixins.litematicaMixin.DataManagerMixin",
     "MASAMixins.MuteMASAConfigMinMaxMixin.ConfigDoubleMixin",
-    "MASAMixins.MuteMASAConfigMinMaxMixin.ConfigIntegerMixin",
-    "RegistryMixins$afterClientWorldChangeEvent",
-    "SplashTextResourceSupplierMixin"
+    "MASAMixins.MuteMASAConfigMinMaxMixin.ConfigIntegerMixin"
   ],
   "injectors": {
     "defaultRequire": 1

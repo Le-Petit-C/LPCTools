@@ -3,9 +3,9 @@ package lpctools.lpcfymasaapi;
 import fi.dy.masa.malilib.interfaces.IRangeChangeListener;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientChunkEvents;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
-import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientWorldEvents;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents;
 import net.minecraft.block.BlockState;
+import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.util.math.BlockPos;
@@ -13,7 +13,7 @@ import net.minecraft.world.chunk.WorldChunk;
 import org.jetbrains.annotations.NotNull;
 
 public class Registries {
-    public static final UnregistrableRegistry<ClientWorldEvents.AfterClientWorldChange> AFTER_CLIENT_WORLD_CHANGE = new UnregistrableRegistry<>(
+    public static final UnregistrableRegistry<AfterClientWorldChange> AFTER_CLIENT_WORLD_CHANGE = new UnregistrableRegistry<>(
         callbacks->(client, world)->callbacks.forEach(screen->screen.afterWorldChange(client, world)));
     public static final UnregistrableRegistry<ScreenChangeCallback> ON_SCREEN_CHANGED = new UnregistrableRegistry<>(
         callbacks->newScreen->callbacks.forEach(screen->screen.onScreenChanged(newScreen)));
@@ -64,7 +64,6 @@ public class Registries {
         });
     
     static{
-        ClientWorldEvents.AFTER_CLIENT_WORLD_CHANGE.register(AFTER_CLIENT_WORLD_CHANGE.run());
         ClientTickEvents.START_CLIENT_TICK.register(START_CLIENT_TICK.run());
         ClientTickEvents.END_CLIENT_TICK.register(END_CLIENT_TICK.run());
         ClientChunkEvents.CHUNK_LOAD.register(CLIENT_CHUNK_LOAD.run());
@@ -92,5 +91,8 @@ public class Registries {
     }
     public interface InGameEndMouse {
         void onInGameEndMouse(int button, int action, int mods);
+    }
+    public interface AfterClientWorldChange{
+        void afterWorldChange(MinecraftClient client, ClientWorld world);
     }
 }

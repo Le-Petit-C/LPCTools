@@ -6,7 +6,6 @@ import lpctools.util.AlgorithmUtils;
 import lpctools.util.MathUtils;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientChunkEvents;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
-import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientWorldEvents;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
@@ -32,7 +31,7 @@ import java.util.concurrent.CompletableFuture;
 import static lpctools.util.AlgorithmUtils.iterateInManhattanDistance;
 import static lpctools.util.BlockUtils.isFluid;
 
-public class DataInstance implements AutoCloseable, ClientChunkEvents.Load, ClientChunkEvents.Unload, ClientWorldEvents.AfterClientWorldChange, Registries.ClientWorldChunkSetBlockState, ClientTickEvents.StartTick {
+public class DataInstance implements AutoCloseable, ClientChunkEvents.Load, ClientChunkEvents.Unload, Registries.AfterClientWorldChange, Registries.ClientWorldChunkSetBlockState, ClientTickEvents.StartTick {
     public final HashMap<ChunkPos, HashMap<BlockPos, MutableInt>> markedPoses;
     protected void onXRayChunkUpdated(ChunkPos pos, double distanceSquare){}
     @Override public void onStartTick(MinecraftClient mc) {
