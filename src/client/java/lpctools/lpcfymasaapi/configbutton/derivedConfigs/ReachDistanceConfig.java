@@ -7,6 +7,7 @@ import lpctools.lpcfymasaapi.interfaces.ILPCValueChangeCallback;
 import lpctools.util.AlgorithmUtils;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ClientPlayerEntity;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
 import org.jetbrains.annotations.NotNull;
@@ -27,7 +28,7 @@ public class ReachDistanceConfig extends DoubleConfig {
         ClientPlayerEntity player = MinecraftClient.getInstance().player;
         if(GenericConfigs.reachDistanceAlwaysUnlimited.getAsBoolean() || player == null)
             setMax(Double.MAX_VALUE);
-        else setMax(player.getBlockInteractionRange());
+        else setMax(PlayerEntity.getReachDistance(player.isCreative()));
         super.refreshName(align);
     }
     @Override public @NotNull String getFullTranslationKey() {

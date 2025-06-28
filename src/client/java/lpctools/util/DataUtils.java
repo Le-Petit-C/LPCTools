@@ -45,8 +45,8 @@ public class DataUtils {
     public static <T> void notifyPlayerIf(T value, NamedFunction<T, String> converter, NamedObject2BooleanFunction<T> condition, boolean overlay){
         if(condition.booleanApply(value)) notifyPlayer(converter.apply(value), overlay);
     }
-    public static String getItemId(Item item){return Registries.ITEM.getEntry(item).getIdAsString();}
-    public static String getBlockId(Block block){return Registries.BLOCK.getEntry(block).getIdAsString();}
+    public static String getItemId(Item item){return Registries.ITEM.getId(item).toString();}
+    public static String getBlockId(Block block){return Registries.BLOCK.getId(block).toString();}
     public static @NotNull ImmutableList<String> idListFromBlockList(@Nullable Iterable<Block> list){
         ArrayList<String> ret = new ArrayList<>();
         if(list != null)
@@ -71,7 +71,7 @@ public class DataUtils {
             break1:
             if(Objects.equals(def, ret)){
                 if(defRef == null) throw new Exception();
-                String defId = defRef.getIdAsString();
+                String defId = defRef.registryKey().getRegistry().toString();
                 if(id.equals(defId)) break break1;
                 if(id.contains(":")) throw new Exception();
                 String[] splitDef = defId.split(":");

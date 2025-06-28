@@ -5,14 +5,14 @@ import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.screen.ingame.GrindstoneScreen;
 import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.client.network.ClientPlayerInteractionManager;
-import net.minecraft.component.type.ItemEnchantmentsComponent;
 import net.minecraft.enchantment.Enchantment;
 import net.minecraft.enchantment.EnchantmentHelper;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.item.ItemStack;
-import net.minecraft.registry.entry.RegistryEntry;
+import net.minecraft.registry.Registries;
 import net.minecraft.screen.slot.SlotActionType;
 import net.minecraft.text.Text;
+import net.minecraft.util.Identifier;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
@@ -20,6 +20,7 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import java.util.List;
+import java.util.Map;
 
 @Mixin(GrindstoneScreen.class)
 public class AutoGrindstone {
@@ -55,11 +56,13 @@ public class AutoGrindstone {
         List<ItemStack> mainStacks = inventory.main;
         for(int n = 0; n < mainStacks.size(); ++n){
             ItemStack stack = mainStacks.get(n);
-            ItemEnchantmentsComponent enchantments = EnchantmentHelper.getEnchantments(stack);
+            Map<Enchantment, Integer> enchantments = EnchantmentHelper.get(stack);
             if(enchantments.isEmpty()) continue;
             boolean canErase = true;
-            for(RegistryEntry<Enchantment> enchantment : enchantments.getEnchantments()){
-                String enchantmentId = enchantment.getIdAsString();
+            for(Map.Entry<Enchantment, Integer> enchantment : enchantments.entrySet()){
+                Identifier id = Registries.ENCHANTMENT.getId(enchantment.getKey());
+                if(id == null) continue;
+                String enchantmentId = id.toString();
                 int enchantmentLevelLimit;
                 if(enchantmentIds.containsKey(enchantmentId))
                     enchantmentLevelLimit = enchantmentIds.getInt(enchantmentId);
@@ -73,7 +76,7 @@ public class AutoGrindstone {
                     }
                     enchantmentLevelLimit = enchantmentIds.getInt(enchantmentIdTail);
                 }
-                if(enchantmentLevelLimit < enchantments.getLevel(enchantment.value())){
+                if(enchantmentLevelLimit < enchantment.getValue()){
                     canErase = false;
                     break;
                 }

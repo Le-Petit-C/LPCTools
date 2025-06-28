@@ -183,7 +183,7 @@ public class RenderInstance extends DataInstance implements WorldRenderEvents.En
     CompletableFuture<RenderPrepareResult> renderTask;
     @Override public void onStart(WorldRenderContext context){
         Vec3d camPos = context.camera().getPos();
-        Matrix4f matrix = new Matrix4f(context.positionMatrix());
+        Matrix4f matrix = new Matrix4f(context.matrixStack().peek().getPositionMatrix());
         context.projectionMatrix().mul(matrix, matrix);
         World world = context.world();
         renderTask = CompletableFuture.supplyAsync(()->asyncPrepareRenderMain(world, camPos, matrix));

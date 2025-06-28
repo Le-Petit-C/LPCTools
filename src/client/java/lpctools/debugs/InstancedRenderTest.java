@@ -89,7 +89,7 @@ public class InstancedRenderTest extends BooleanConfig{
                 layer.disableCullFace().enableDepthTest().disableBlend();
                 vertexArray.bind();
                 Matrix4f matrix = MathUtils.inverseOffsetMatrix4f(context.camera().getPos().toVector3f());
-                context.positionMatrix().mul(matrix, matrix);
+                context.matrixStack().peek().getPositionMatrix().mul(matrix, matrix);
                 context.projectionMatrix().mul(matrix, matrix);
                 program.setFinalMatrix(matrix);
                 program.setTimeAngle((Clock.systemUTC().millis() % 6283 - 3141) / 1000.0f);

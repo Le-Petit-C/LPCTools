@@ -19,7 +19,7 @@ public class RenderTest2 {
     }
     public static void render(WorldRenderContext context){
         Matrix4f finalMatrix = MathUtils.inverseOffsetMatrix4f(context.camera().getPos().toVector3f());
-        context.positionMatrix().mul(finalMatrix, finalMatrix);
+        context.matrixStack().peek().getPositionMatrix().mul(finalMatrix, finalMatrix);
         context.projectionMatrix().mul(finalMatrix, finalMatrix);
         buf.setFinalMatrix(finalMatrix);
         buf.renderWithIndexes(Constants.DrawMode.LINES);

@@ -17,7 +17,7 @@ public class RenderTest1 {
     public static void render(WorldRenderContext context){
         init();
         Matrix4f finalMatrix = MathUtils.inverseOffsetMatrix4f(context.camera().getPos().toVector3f());
-        context.positionMatrix().mul(finalMatrix, finalMatrix);
+        context.matrixStack().peek().getPositionMatrix().mul(finalMatrix, finalMatrix);
         context.projectionMatrix().mul(finalMatrix, finalMatrix);
         float angle = (System.currentTimeMillis() % 6283) / 1000.0f;
         buffer.clear();

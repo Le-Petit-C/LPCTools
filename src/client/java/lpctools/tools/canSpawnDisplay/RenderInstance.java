@@ -125,7 +125,7 @@ public class RenderInstance extends DataInstance implements WorldRenderEvents.La
             RenderBuffer buffer = bufferCache.get(pos);
             if(buffer == null) continue;
             Matrix4f modelMatrix = MathUtils.inverseOffsetMatrix4f(camPos.subtract(pos.x * 16, 0, pos.z * 16).toVector3f());
-            context.positionMatrix().mul(modelMatrix, modelMatrix);
+            context.matrixStack().peek().getPositionMatrix().mul(modelMatrix, modelMatrix);
             Matrix4f finalMatrix = context.projectionMatrix().mul(modelMatrix, new Matrix4f());
             buffersToRender.add(buffer);
             modelMatrixList.add(modelMatrix);

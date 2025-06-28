@@ -64,7 +64,7 @@ public class MandelbrotSetRender extends ThirdListConfig implements WorldRenderE
             buffer.putFloats(_minX, _y, _maxZ, (float)minX / _stretch, (float)maxZ / _stretch);
             buffer.putFloats(_maxX, _y, _maxZ, (float)maxX / _stretch, (float)maxZ / _stretch);
             Matrix4f finalMatrix = new Matrix4f();
-            context.positionMatrix().mul(finalMatrix, finalMatrix);
+            context.matrixStack().peek().getPositionMatrix().mul(finalMatrix, finalMatrix);
             context.projectionMatrix().mul(finalMatrix, finalMatrix);
             buffer.setFinalMatrix(finalMatrix);
             buffer.setOutColor(new Vector4f(1, 1, 1, 1));
