@@ -16,8 +16,8 @@ public class ClientPlayNetworkHandlerMixin {
     @Shadow private ClientWorld world;
     @ModifyArg(method = "onChunkData", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/world/ClientWorld;enqueueChunkUpdate(Ljava/lang/Runnable;)V"))
     Runnable inject(Runnable updater, @Local(argsOnly = true) ChunkDataS2CPacket packet){
-        int i = packet.getChunkX();
-        int j = packet.getChunkZ();
+        int i = packet.getX();
+        int j = packet.getZ();
         return ()->{
             updater.run();
             WorldChunk worldChunk = world.getChunkManager().getWorldChunk(i, j, false);
