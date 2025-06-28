@@ -5,24 +5,18 @@ import net.minecraft.block.Block;
 import net.minecraft.block.Blocks;
 import net.minecraft.item.Item;
 import net.minecraft.item.Items;
-import net.minecraft.registry.Registries;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
-import java.util.List;
+import static lpctools.util.DataUtils.*;
 
 public class Data {
-    @NotNull public static final ImmutableList<Item> defaultPlaceableItemList = initDefaultPlaceableItemList();
-    @NotNull public static final ImmutableList<String> defaultPlaceableItemIdList = idListFromItemList(defaultPlaceableItemList);
-    @NotNull public static final ImmutableList<Block> defaultPassableBlockList = ImmutableList.of();
-    @NotNull public static final ImmutableList<String> defaultPassableBlockIdList = idListFromBlockList(defaultPassableBlockList);
-    @NotNull public static final ImmutableList<Block> defaultRequiredBlockWhiteList = initDefaultRequiredBlockWhiteList();
-    @NotNull public static final ImmutableList<String> defaultRequiredBlockIdList = idListFromBlockList(defaultRequiredBlockWhiteList);
-
-    public static String getItemId(Item item){return Registries.ITEM.getId(item).toString();}
-    public static String getBlockId(Block block){return Registries.BLOCK.getId(block).toString();}
-    @NotNull private static ImmutableList<Item> initDefaultPlaceableItemList(){
+    public static final @NotNull ImmutableList<Item> defaultPlaceableItemList = initDefaultPlaceableItemList();
+    public static final @NotNull ImmutableList<String> defaultPlaceableItemIdList = idListFromItemList(defaultPlaceableItemList);
+    public static final @NotNull ImmutableList<Block> defaultPassableBlockList = ImmutableList.of();
+    public static final @NotNull ImmutableList<String> defaultPassableBlockIdList = idListFromBlockList(defaultPassableBlockList);
+    public static final @NotNull ImmutableList<Block> defaultRequiredBlockWhiteList = initDefaultRequiredBlockWhiteList();
+    public static final @NotNull ImmutableList<String> defaultRequiredBlockIdList = idListFromBlockList(defaultRequiredBlockWhiteList);
+    private static @NotNull ImmutableList<Item> initDefaultPlaceableItemList(){
         return ImmutableList.of(
                 Items.STONE,
                 Items.COBBLESTONE,
@@ -48,7 +42,7 @@ public class Data {
                 Items.BLACKSTONE
         );
     }
-    @NotNull private static ImmutableList<Block> initDefaultRequiredBlockWhiteList(){
+    private static @NotNull ImmutableList<Block> initDefaultRequiredBlockWhiteList(){
         return ImmutableList.of(
                 Blocks.COAL_ORE,
                 Blocks.DEEPSLATE_COAL_ORE,
@@ -71,19 +65,5 @@ public class Data {
                 Blocks.ANCIENT_DEBRIS,
                 Blocks.BUDDING_AMETHYST
         );
-    }
-    @NotNull private static ImmutableList<String> idListFromBlockList(@Nullable List<Block> list){
-        ArrayList<String> ret = new ArrayList<>();
-        if(list != null)
-            for(Block block : list)
-                ret.add(getBlockId(block));
-        return ImmutableList.copyOf(ret);
-    }
-    @NotNull private static ImmutableList<String> idListFromItemList(@Nullable List<Item> list){
-        ArrayList<String> ret = new ArrayList<>();
-        if(list != null)
-            for(Item item : list)
-                ret.add(getItemId(item));
-        return ImmutableList.copyOf(ret);
     }
 }

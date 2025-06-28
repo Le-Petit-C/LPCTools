@@ -1,32 +1,36 @@
 package lpctools.tools;
 
-import fi.dy.masa.malilib.util.StringUtils;
-import lpctools.lpcfymasaapi.LPCConfigList;
-import lpctools.lpcfymasaapi.LPCConfigPage;
-import lpctools.lpcfymasaapi.configbutton.ThirdListConfig;
+import lpctools.lpcfymasaapi.configbutton.derivedConfigs.ThirdListConfig;
+import lpctools.lpcfymasaapi.interfaces.ILPCConfigList;
+import lpctools.tools.autoGrindstone.AutoGrindstone;
+import lpctools.tools.antiSpawner.AntiSpawner;
+import lpctools.tools.canSpawnDisplay.CanSpawnDisplay;
+import lpctools.tools.slightXRay.SlightXRay;
 import lpctools.tools.fillingAssistant.FillingAssistant;
-import lpctools.tools.liquidcleaner.LiquidCleaner;
+import lpctools.tools.liquidCleaner.LiquidCleaner;
 import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.network.ClientPlayerEntity;
-import net.minecraft.text.Text;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+
+import static lpctools.lpcfymasaapi.LPCConfigStatics.*;
 
 public class ToolConfigs {
-    public static LPCConfigList tools;
     static ThirdListConfig FAConfig;
     static ThirdListConfig LCConfig;
-    public static void init(@NotNull LPCConfigPage page){
-        tools = page.addList("tools");
-        FillingAssistant.init(FAConfig = tools.addThirdListConfig("FA", false));
-        LiquidCleaner.init(LCConfig = tools.addThirdListConfig("LC", false));
-    }
-    public static void displayDisableReason(@NotNull String toolDisableKey, @Nullable String reasonKey){
-        ClientPlayerEntity player = MinecraftClient.getInstance().player;
-        if(player == null) return;
-        String reason = StringUtils.translate("lpctools.tools." + toolDisableKey);
-        if(reasonKey != null)
-            reason += " : " + StringUtils.translate("lpctools.tools.disableReason." + reasonKey);
-        player.sendMessage(Text.of(reason), true);
+    static SlightXRay SXConfig;
+    static ThirdListConfig AGConfig;
+    static AntiSpawner ASConfig;
+    static CanSpawnDisplay CSConfig;
+    public static void init(){
+        ILPCConfigList lastList = peekConfigList();
+        try(ConfigListLayer layer = new ConfigListLayer()){
+            layer.set(FAConfig = addThirdListConfig(lastList, "FA", false));
+            FillingAssistant.init();
+            layer.set(LCConfig = addThirdListConfig(lastList, "LC", false));
+            LiquidCleaner.init();
+            SXConfig = lastList.addConfig(new SlightXRay(lastList));
+            layer.set(AGConfig = addThirdListConfig(lastList, "AG", false));
+            AutoGrindstone.init();
+            ASConfig = lastList.addConfig(new AntiSpawner(lastList));
+            CSConfig = lastList.addConfig(new CanSpawnDisplay(lastList, MinecraftClient.getInstance()));
+        }
     }
 }

@@ -1,6 +1,7 @@
 package lpctools.tools.fillingAssistant;
 
-import lpctools.lpcfymasaapi.Registry;
+import lpctools.compact.derived.ShapeList;
+import lpctools.lpcfymasaapi.Registries;
 import lpctools.util.GuiUtils;
 import lpctools.util.HandRestock;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
@@ -21,10 +22,11 @@ import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.Queue;
 
+import static lpctools.lpcfymasaapi.configbutton.derivedConfigs.LimitOperationSpeedConfig.OperationResult.*;
 import static lpctools.tools.fillingAssistant.FillingAssistant.*;
 import static lpctools.util.BlockUtils.*;
 
-public class PlaceBlockTick implements ClientTickEvents.EndTick, Registry.InGameEndMouse {
+public class PlaceBlockTick implements ClientTickEvents.EndTick, Registries.InGameEndMouse {
     public PlaceBlockTick(){
         setTestDistance(testDistanceConfig.getAsInt());
     }
@@ -64,67 +66,36 @@ public class PlaceBlockTick implements ClientTickEvents.EndTick, Registry.InGame
         }
         Vec3d eyePos = client.player.getEyePos();
         BlockPos eyeBlockPos = new BlockPos((int)Math.floor(eyePos.getX()), (int)Math.floor(eyePos.getY()), (int)Math.floor(eyePos.getZ()));
-        boolean blockSetted;
-        if(limitPlaceSpeedConfig.getAsBoolean()){
-            if(canSetBlockCount > 1) canSetBlockCount = 0;
-            canSetBlockCount += maxBlockPerTickConfig.getAsDouble();
-        }
-        else canSetBlockCount = Double.MAX_VALUE;
-        initializeMap(eyeBlockPos);
-        do {
-            blockSetted = false;
-            int r = (int) Math.ceil(reachDistanceConfig.getAsDouble());
-            int minX = eyeBlockPos.getX() - r;
-            int maxX = eyeBlockPos.getX() + r;
-            int minY = eyeBlockPos.getY() - r;
-            int maxY = eyeBlockPos.getY() + r;
-            int minZ = eyeBlockPos.getZ() - r;
-            int maxZ = eyeBlockPos.getZ() + r;
-            if(limitFillingRange.getAsBoolean()){
-                if(minX < minXConfig.getAsInt()) minX = minXConfig.getAsInt();
-                if(maxX > maxXConfig.getAsInt()) maxX = maxXConfig.getAsInt();
-                if(minY < minYConfig.getAsInt()) minY = minYConfig.getAsInt();
-                if(maxY > maxYConfig.getAsInt()) maxY = maxYConfig.getAsInt();
-                if(minZ < minZConfig.getAsInt()) minZ = minZConfig.getAsInt();
-                if(maxZ > maxZConfig.getAsInt()) maxZ = maxZConfig.getAsInt();
-            }
-            DimensionType dimensionType = client.world.getDimension();
-            if(minY < dimensionType.minY()) minY = dimensionType.minY();
-            if(maxY > dimensionType.minY() + dimensionType.height() - 1) maxY = dimensionType.minY() + dimensionType.height() - 1;
-            for (int y = minY; y <= maxY; ++y) {
-                for (int x = minX; x <= maxX; ++x) {
-                    for (int z = minZ; z <= maxZ; ++z) {
-                        BlockPos pos = new BlockPos(x, y, z);
-                        Vec3d posD = pos.toCenterPos();
-                        if (posD.distanceTo(eyePos) >= reachDistanceConfig.getAsDouble()) continue;
-                        if(tryPut(pos, restockTest)){
-                            if(isUnpassable(pos)){
-                                setMapVec3i(pos.subtract(currentPosition), true);
-                                blockSetted = true;
-                                --canSetBlockCount;
-                            }
-                        }
-                        if(canSetBlockCount < 1) return;
-                        if(!enabled()) return;
-                    }
-                }
-            }
-        }while(blockSetted);
+        ShapeList shapeList = limitFillingRange.buildShapeList();
+        initializeMap(shapeList, eyeBlockPos);
+        DimensionType dimensionType = client.world.getDimension();
+        int bottom = dimensionType.minY();
+        int ceiling = bottom + dimensionType.height();
+        limitPlaceSpeedConfig.resetOperationTimes();
+        limitPlaceSpeedConfig.iterableOperate(reachDistanceConfig.iterateFromFurthest(eyePos), pos-> {
+             if(pos.getY() < bottom) return NO_OPERATION;
+             if(pos.getY() >= ceiling) return NO_OPERATION;
+             if(!shapeList.testPos(pos)) return NO_OPERATION;
+             if(tryPut(pos, restockTest)){
+                 if(isUnpassable(pos)){
+                     setMapVec3i(pos.subtract(currentPosition), true);
+                     return OPERATED;
+                 }
+             }
+             if(!fillingAssistant.getAsBoolean()) return SHOULD_BREAK;
+             return NO_OPERATION;
+        });
     }
     @Override public void onInGameEndMouse(int button, int action, int mods) {
         if(disableOnLeftDownConfig.getAsBoolean() && button == 0 && action == 1)
             disableTool("mouseLeftDown");
     }
 
-    private boolean put(BlockPos blockpos, HandRestock.IRestockTest restockTest){
+    private boolean put(BlockPos blockPos, HandRestock.IRestockTest restockTest){
         MinecraftClient client = MinecraftClient.getInstance();
         if(client.interactionManager == null) return false;
-        if(!HandRestock.restock(restockTest, offhandFillingConfig.getAsBoolean() ? -1 : 0)){
-            disableTool("placeableItemRanOut");
-            return false;
-        }
-        Vec3d pos = new Vec3d(blockpos.getX() + 0.5, blockpos.getY() + 0.5, blockpos.getZ() + 0.5);
-        BlockHitResult hit = new BlockHitResult(pos, Direction.UP, blockpos, false);
+        limitPlaceSpeedConfig.limitWithRestock(restockTest, offhandFillingConfig.getAsBoolean() ? -1 : 0);
+        BlockHitResult hit = new BlockHitResult(blockPos.toCenterPos(), Direction.UP, blockPos.mutableCopy(), false);
         return client.interactionManager.interactBlock(
                 client.player,
                 offhandFillingConfig.getAsBoolean() ? Hand.OFF_HAND : Hand.MAIN_HAND,
@@ -136,7 +107,6 @@ public class PlaceBlockTick implements ClientTickEvents.EndTick, Registry.InGame
     private int testSize;
     private boolean@NotNull [] @NotNull [] @NotNull [] map = new boolean[0][][];
     private boolean@NotNull [] @NotNull [] @NotNull [] testBuffer = new boolean[0][][];
-    private double canSetBlockCount = 0;
     private void resetTestBuffer(){
         for (boolean[][] bufferX : testBuffer) {
             for (boolean[] bufferXY : bufferX) {
@@ -162,13 +132,14 @@ public class PlaceBlockTick implements ClientTickEvents.EndTick, Registry.InGame
         if(pos.getZ() < 0 || pos.getZ() >= testSize) return true;
         return testBuffer[pos.getX()][pos.getY()][pos.getZ()];
     }
+    @SuppressWarnings("SameParameterValue")
     private void setTestBufferVec3i(@NotNull Vec3i pos, boolean value){
         if(pos.getX() < 0 || pos.getX() >= testSize) return;
         if(pos.getY() < 0 || pos.getY() >= testSize) return;
         if(pos.getZ() < 0 || pos.getZ() >= testSize) return;
         testBuffer[pos.getX()][pos.getY()][pos.getZ()] = value;
     }
-    private void initializeMap(@NotNull BlockPos eyeBlockPos){
+    private void initializeMap(@NotNull ShapeList shapeList, @NotNull BlockPos eyeBlockPos){
         currentPosition = eyeBlockPos.add(-testDistance, -testDistance, -testDistance);
         BlockPos pos1 = new BlockPos(currentPosition);
         for (boolean[][] mapX : map) {
@@ -176,7 +147,9 @@ public class PlaceBlockTick implements ClientTickEvents.EndTick, Registry.InGame
             for (boolean[] mapXY : mapX) {
                 BlockPos pos3 = pos2;
                 for (int z = 0; z < mapXY.length; ++z) {
-                    mapXY[z] = isUnpassable(pos3);
+                    if(shapeList.testPos(pos3))
+                        mapXY[z] = isUnpassable(pos3);
+                    else mapXY[z] = outerRangeBlockMethod.get().isUnpassable(pos3);
                     pos3 = pos3.south();
                 }
                 pos2 = pos2.up();
