@@ -1,11 +1,28 @@
 {
-	"required": true,
-	"package": "lpctools.lpcfymasaapi.mixins",
-	"compatibilityLevel": "JAVA_21",
-	"client": [
-      	"OnMouseButtonReturnMixin"
-	],
-	"injectors": {
-		"defaultRequire": 1
-	}
+  "required": true,
+  "package": "lpctools.mixin.client",
+  "compatibilityLevel": "JAVA_21",
+  "client": [
+    "AutoGrindstone",
+    "BlockReplaceAction",
+    "ClientPlayNetworkHandlerMixin",
+    "DisplayClickSlotArguments",
+    "events.AfterClientWorldChange",
+    "MinecraftWindowMixin",
+    "MinecraftWindowMixin$GLFWVersionRecord",
+    "OnMouseButtonReturnMixin",
+    "SplashTextResourceSupplierMixin",
+    "SpriteContentsMixin",
+    "WorldChunkMixin",
+    "events.OnScreenChanged",
+    "MASAMixins.litematicaMixin.DataManagerMixin",
+    "MASAMixins.MuteMASAConfigMinMaxMixin.ConfigDoubleMixin",
+    "MASAMixins.MuteMASAConfigMinMaxMixin.ConfigIntegerMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  },
+  "mixins": [
+    "MASAMixins.LayerRangeMixin"
+  ]
 }
