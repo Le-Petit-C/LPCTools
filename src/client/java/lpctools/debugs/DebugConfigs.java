@@ -1,12 +1,10 @@
 package lpctools.debugs;
 
-import com.mojang.blaze3d.systems.RenderPass;
 import fi.dy.masa.malilib.hotkeys.IKeybind;
 import fi.dy.masa.malilib.hotkeys.KeyAction;
 import lpctools.lpcfymasaapi.Registries;
 import lpctools.lpcfymasaapi.configbutton.transferredConfigs.BooleanConfig;
 import lpctools.lpcfymasaapi.configbutton.transferredConfigs.HotkeyConfig;
-import lpctools.lpcfymasaapi.gl.GlStatics;
 import lpctools.lpcfymasaapi.gl.MaskLayer;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents;
@@ -48,11 +46,10 @@ public class DebugConfigs {
     }
     
     private static void renderDebugShapes(WorldRenderContext context){
-        try(RenderPass ignored = GlStatics.bindDefaultFrameBuffer();
-            MaskLayer layer = new MaskLayer()){
+        try(MaskLayer layer = new MaskLayer()){
             layer.enableBlend().disableCullFace().enableDepthTest();
-            RenderTest1.render(context);
-            RenderTest2.render(context);
+            RenderTest1.render(context, layer);
+            RenderTest2.render(context, layer);
         }
     }
     private static final WorldRenderEvents.Last debugShapesRenderer = DebugConfigs::renderDebugShapes;

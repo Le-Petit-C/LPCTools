@@ -1,6 +1,5 @@
 package lpctools.debugs;
 
-import com.mojang.blaze3d.systems.RenderPass;
 import lpctools.lpcfymasaapi.Registries;
 import lpctools.lpcfymasaapi.configbutton.derivedConfigs.ThirdListConfig;
 import lpctools.lpcfymasaapi.configbutton.transferredConfigs.DoubleConfig;
@@ -39,8 +38,7 @@ public class MandelbrotSetRender extends ThirdListConfig implements WorldRenderE
     }
     
     @Override public void afterTranslucent(WorldRenderContext context) {
-        try(RenderPass ignored = GlStatics.bindFrameBufferOrDefault(MinecraftClient.getInstance().worldRenderer.getTranslucentFramebuffer());
-            MaskLayer layer = new MaskLayer()){
+        try(MaskLayer layer = new MaskLayer(MinecraftClient.getInstance().worldRenderer.getTranslucentFramebuffer())){
             layer.enableBlend().disableCullFace().enableDepthTest();
             double y = 1;
             double stretch = this.stretch.getAsDouble();
@@ -73,7 +71,7 @@ public class MandelbrotSetRender extends ThirdListConfig implements WorldRenderE
             buffer.setOutColor(new Vector4f(1, 1, 1, 1));
             buffer.setSetColor(new Vector4f(0, 0, 0, 1));
             buffer.setMaxDepth(maxDepth.getAsInt());
-            buffer.render(Constants.DrawMode.TRIANGLE_STRIP);
+            buffer.render(Constants.DrawMode.TRIANGLE_STRIP, layer);
         }
     }
     public static final VertexAttrib POSITION_COMPLEX = new VertexAttrib(VEC3F, VEC2F);
