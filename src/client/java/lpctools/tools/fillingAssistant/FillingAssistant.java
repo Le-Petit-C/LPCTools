@@ -1,4 +1,4 @@
-package lpctools.tools.fillingassistant;
+package lpctools.tools.fillingAssistant;
 
 import fi.dy.masa.malilib.hotkeys.IHotkeyCallback;
 import fi.dy.masa.malilib.hotkeys.IKeybind;
@@ -22,7 +22,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.HashSet;
 import java.util.List;
 
-import static lpctools.tools.fillingassistant.Data.*;
+import static lpctools.tools.fillingAssistant.Data.*;
 
 public class FillingAssistant {
     public static void enableTool(){

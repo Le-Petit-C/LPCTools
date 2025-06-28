@@ -4,7 +4,7 @@ import fi.dy.masa.malilib.util.StringUtils;
 import lpctools.lpcfymasaapi.LPCConfigList;
 import lpctools.lpcfymasaapi.LPCConfigPage;
 import lpctools.lpcfymasaapi.configbutton.ThirdListConfig;
-import lpctools.tools.fillingassistant.FillingAssistant;
+import lpctools.tools.fillingAssistant.FillingAssistant;
 import lpctools.tools.liquidcleaner.LiquidCleaner;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ClientPlayerEntity;

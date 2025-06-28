@@ -1,4 +1,4 @@
-package lpctools.tools.fillingassistant;
+package lpctools.tools.fillingAssistant;
 
 import com.google.common.collect.ImmutableList;
 import net.minecraft.block.Block;
