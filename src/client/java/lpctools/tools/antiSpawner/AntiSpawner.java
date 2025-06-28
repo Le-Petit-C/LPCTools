@@ -91,7 +91,7 @@ public class AntiSpawner extends ThirdListConfig implements ClientTickEvents.End
                 if(mc.world.getBlockState(pos.down()).isReplaceable()) hitPos = pos;
                 else hitPos = downPos;
                 BlockHitResult hitResult = new BlockHitResult(
-                    pos.toBottomCenterPos(), Direction.UP, hitPos, false);
+                    pos.toCenterPos().add(0, -0.5, 0), Direction.UP, hitPos, false);
                 if(!mc.player.isSneaking()){
                     BlockState below = mc.world.getBlockState(pos.down());
                     ActionResult result = below.onUse(mc.world, mc.player, hitResult);

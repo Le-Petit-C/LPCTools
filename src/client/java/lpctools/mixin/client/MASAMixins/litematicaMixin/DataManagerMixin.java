@@ -14,6 +14,8 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
+import static lpctools.mixinInterfaces.MASAMixins.MuteLayerRangeRefresherMixin.setRefresher;
+
 @Pseudo @Mixin(value = DataManager.class, remap = false)
 public class DataManagerMixin{
     @Shadow private LayerRange renderRange;
@@ -22,8 +24,8 @@ public class DataManagerMixin{
     void onRenderRangeModified(JsonObject obj, CallbackInfo ci){
         IRangeChangeListener refresher = ((LayerRangeMixin)renderRange).getRefresher();
         IRangeChangeListener myRefresher = Registries.LITEMATICA_RANGE_CHANGED.run();
-        if(refresher == null) renderRange.setRefresher(myRefresher);
-        else renderRange.setRefresher(new IRangeChangeListener() {
+        if(refresher == null) setRefresher(renderRange, myRefresher);
+        else setRefresher(renderRange, new IRangeChangeListener() {
             @Override public void updateAll() {
                 refresher.updateAll();
                 myRefresher.updateAll();

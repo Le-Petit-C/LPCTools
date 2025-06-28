@@ -16,7 +16,7 @@ public class OptionListConfig extends ConfigOptionList implements ILPC_MASAConfi
         this(parent, nameKey, defaultValue, null);
     }
     public OptionListConfig(@NotNull ILPCConfigList parent, @NotNull String nameKey, @NotNull IConfigOptionListEntry defaultValue, @Nullable ILPCValueChangeCallback callback) {
-        super(nameKey, defaultValue);
+        super(nameKey, defaultValue, "");
         data = new LPCConfigData(parent, false);
         ILPC_MASAConfigWrapperDefaultInit(callback);
     }

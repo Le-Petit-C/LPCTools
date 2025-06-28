@@ -14,13 +14,12 @@ import org.jetbrains.annotations.Nullable;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
-@SuppressWarnings("deprecation")
 public class ColorConfig extends ConfigColor implements ILPC_MASAConfigWrapper<ConfigInteger>, Supplier<Color4f>, Consumer<Color4f> {
     public ColorConfig(@NotNull ILPCConfigList parent, @NotNull String nameKey, Color4f defaultColor){
         this(parent, nameKey, defaultColor, null);
     }
     public ColorConfig(@NotNull ILPCConfigList parent, @NotNull String nameKey, Color4f defaultColor, @Nullable ILPCValueChangeCallback callback){
-        super(nameKey, defaultColor.toString());
+        super(nameKey, defaultColor.toString(), "");
         data = new LPCConfigData(parent, false);
         ILPC_MASAConfigWrapperDefaultInit(callback);
     }

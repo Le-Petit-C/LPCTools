@@ -70,7 +70,7 @@ public class LiquidCleaner {
         blacklistItems.clear();
         List<String> blacklist = blockBlackListConfig.getStrings();
         for(String str : blacklist){
-            Block block = Registries.BLOCK.get(Identifier.of(str));
+            Block block = Registries.BLOCK.get(new Identifier(str));
             blacklistBlocks.add(block);
             blacklistItems.add(block.asItem());
         }

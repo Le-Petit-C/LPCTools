@@ -24,7 +24,7 @@ public class IntegerConfig extends ConfigInteger implements ILPC_MASAConfigWrapp
         this(parent, nameKey, defaultInteger, minValue, maxValue, null);
     }
     public IntegerConfig(ILPCConfigList parent, String nameKey, int defaultInteger, int minValue, int maxValue, ILPCValueChangeCallback callback){
-        super(nameKey, defaultInteger, minValue, maxValue);
+        super(nameKey, defaultInteger, minValue, maxValue, "");
         data = new LPCConfigData(parent, false);
         ILPC_MASAConfigWrapperDefaultInit(callback);
     }

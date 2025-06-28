@@ -24,7 +24,7 @@ public class DoubleConfig extends ConfigDouble implements ILPC_MASAConfigWrapper
         this(parent, nameKey, defaultDouble, minValue, maxValue, null);
     }
     public DoubleConfig(ILPCConfigList parent, String nameKey, double defaultDouble, double minValue, double maxValue, ILPCValueChangeCallback callback){
-        super(nameKey, defaultDouble, minValue, maxValue);
+        super(nameKey, defaultDouble, minValue, maxValue, "");
         data = new LPCConfigData(parent, false);
         ILPC_MASAConfigWrapperDefaultInit(callback);
     }

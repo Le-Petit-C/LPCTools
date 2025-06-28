@@ -20,7 +20,7 @@ public class StringListConfig extends ConfigStringList implements ILPC_MASAConfi
         this(parent, nameKey, defaultValue, null);
     }
     public StringListConfig(@NotNull ILPCConfigList parent, String nameKey, @Nullable ImmutableList<String> defaultValue, ILPCValueChangeCallback callback){
-        super(nameKey, defaultValue);
+        super(nameKey, defaultValue, "");
         data = new LPCConfigData(parent, false);
         ILPC_MASAConfigWrapperDefaultInit(callback);
     }

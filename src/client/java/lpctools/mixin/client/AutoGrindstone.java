@@ -1,6 +1,5 @@
 package lpctools.mixin.client;
 
-import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.screen.ingame.GrindstoneScreen;
@@ -59,8 +58,8 @@ public class AutoGrindstone {
             ItemEnchantmentsComponent enchantments = EnchantmentHelper.getEnchantments(stack);
             if(enchantments.isEmpty()) continue;
             boolean canErase = true;
-            for(Object2IntMap.Entry<RegistryEntry<Enchantment>> enchantment : enchantments.getEnchantmentEntries()){
-                String enchantmentId = enchantment.getKey().getIdAsString();
+            for(RegistryEntry<Enchantment> enchantment : enchantments.getEnchantments()){
+                String enchantmentId = enchantment.getIdAsString();
                 int enchantmentLevelLimit;
                 if(enchantmentIds.containsKey(enchantmentId))
                     enchantmentLevelLimit = enchantmentIds.getInt(enchantmentId);
@@ -74,7 +73,7 @@ public class AutoGrindstone {
                     }
                     enchantmentLevelLimit = enchantmentIds.getInt(enchantmentIdTail);
                 }
-                if(enchantmentLevelLimit < enchantment.getIntValue()){
+                if(enchantmentLevelLimit < enchantments.getLevel(enchantment.value())){
                     canErase = false;
                     break;
                 }
