@@ -97,9 +97,9 @@ public class SlightXRay extends ThirdListConfig{
             for(NativeImage image : ((SpriteContentsMixin)particleSprite.getContents()).getMipmapLevelsImages()){
                 for(int color : image.copyPixelsRgba()){
                     float k = (color >>> 24) / 255.0f;
-                    r += (color & 0xff) * k;
+                    r += ((color >>> 16) & 0xff) * k;
                     g += ((color >>> 8) & 0xff) * k;
-                    b += ((color >>> 16) & 0xff) * k;
+                    b += (color & 0xff) * k;
                     t += k;
                 }
             }

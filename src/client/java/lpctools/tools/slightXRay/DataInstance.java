@@ -16,6 +16,7 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.ChunkPos;
 import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.Vec3d;
+import net.minecraft.world.BlockView;
 import net.minecraft.world.World;
 import net.minecraft.world.chunk.Chunk;
 import net.minecraft.world.chunk.ChunkStatus;
@@ -98,7 +99,7 @@ public class DataInstance implements AutoCloseable, ClientChunkEvents.Load, Clie
     @Override public void onClientWorldChunkSetBlockState(WorldChunk chunk, BlockPos pos, BlockState lastState, BlockState newState) {
         if(newState == null) newState = Blocks.AIR.getDefaultState();
         if(isFluid(newState.getBlock())) return;
-        if(doShowAround(newState)){
+        if(doShowAround(chunk, pos, newState)){
             for(BlockPos pos1 : iterateInManhattanDistance(pos, 2))
                 testPos(chunk.getWorld(), pos1);
         }
@@ -124,15 +125,15 @@ public class DataInstance implements AutoCloseable, ClientChunkEvents.Load, Clie
         MutableInt color = SlightXRay.XRayBlocks.get(state.getBlock());
         if(color == null){removePos(pos); return;}
         for(BlockPos pos1 : iterateInManhattanDistance(pos, 2)) {
-            if(doShowAround(world.getBlockState(pos1))){
+            if(doShowAround(world, pos, world.getBlockState(pos1))){
                 putPos(pos, color);
                 return;
             }
         }
         removePos(pos);
     }
-    private static boolean doShowAround(BlockState state){
-        return !state.isOpaque() || state.isTransparent();
+    private static boolean doShowAround(BlockView world, BlockPos pos, BlockState state){
+        return !state.isOpaque() || state.isTransparent(world, pos);
     }
     private record UpdateData(ChunkPos pos, CompletableFuture<HashMap<BlockPos, MutableInt>> future, double distanceSquare){}
     private final ArrayList<UpdateData> updateFutures = new ArrayList<>();
@@ -162,15 +163,15 @@ public class DataInstance implements AutoCloseable, ClientChunkEvents.Load, Clie
             int bottom = current.getBottomY(), height = current.getHeight(), top = bottom + height;
             TestData displaysNear = new TestData(bottom, height);
             for(BlockPos pos1 : AlgorithmUtils.iterateInBox(0, bottom, 0, 15, top - 1, 15))
-                displaysNear.set(pos1, doShowAround(current.getBlockState(pos1)));
+                displaysNear.set(pos1, doShowAround(current, pos1, current.getBlockState(pos1)));
             for(BlockPos pos1 : AlgorithmUtils.iterateInBox(-1, bottom, 0, -1, top - 1, 15))
-                displaysNear.set(pos1, doShowAround(west.getBlockState(pos1)));
+                displaysNear.set(pos1, doShowAround(west, pos1, west.getBlockState(pos1)));
             for(BlockPos pos1 : AlgorithmUtils.iterateInBox(16, bottom, 0, 16, top - 1, 15))
-                displaysNear.set(pos1, doShowAround(east.getBlockState(pos1)));
+                displaysNear.set(pos1, doShowAround(east, pos1, east.getBlockState(pos1)));
             for(BlockPos pos1 : AlgorithmUtils.iterateInBox(0, bottom, -1, 15, top - 1, -1))
-                displaysNear.set(pos1, doShowAround(north.getBlockState(pos1)));
+                displaysNear.set(pos1, doShowAround(north, pos1, north.getBlockState(pos1)));
             for(BlockPos pos1 : AlgorithmUtils.iterateInBox(0, bottom, 16, 15, top - 1, 16))
-                displaysNear.set(pos1, doShowAround(south.getBlockState(pos1)));
+                displaysNear.set(pos1, doShowAround(south, pos1, south.getBlockState(pos1)));
             for(BlockPos pos1 : AlgorithmUtils.iterateInBox(0, bottom - 1, 0, 15, bottom - 1, 15))
                 displaysNear.set(pos1, true);
             for(BlockPos pos1 : AlgorithmUtils.iterateInBox(0, top, 0, 15, top, 15))
