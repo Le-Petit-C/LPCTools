@@ -48,8 +48,8 @@ public class DebugConfigs {
     private static void renderDebugShapes(WorldRenderContext context){
         try(MaskLayer layer = new MaskLayer()){
             layer.enableBlend().disableCullFace().enableDepthTest();
-            RenderTest1.render(context);
-            RenderTest2.render(context);
+            RenderTest1.render(context, layer);
+            RenderTest2.render(context, layer);
         }
     }
     private static final WorldRenderEvents.Last debugShapesRenderer = DebugConfigs::renderDebugShapes;
