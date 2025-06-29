@@ -5,7 +5,9 @@ import lpctools.generic.GenericUtils;
 import lpctools.lpcfymasaapi.Registries;
 import lpctools.lpcfymasaapi.configbutton.derivedConfigs.RangeLimitConfig;
 import lpctools.lpcfymasaapi.gl.*;
+import lpctools.lpcfymasaapi.gl.furtherWarpped.BlendPresets;
 import lpctools.util.AlgorithmUtils;
+import lpctools.util.DataUtils;
 import lpctools.util.MathUtils;
 import lpctools.util.javaex.SharedPtr;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext;
@@ -84,7 +86,9 @@ public class RenderInstance extends DataInstance implements WorldRenderEvents.La
     @Override protected void onChunkDataLoaded(ChunkPos pos, double distanceSquared) {buildBufferAsync(pos, distanceSquared);}
     @Override public void onStartTick(MinecraftClient mc) {
         super.onStartTick(mc);
-        AlgorithmUtils.consumeCompletedTasks(renderBufferBuilders, this::convertAsyncResult);
+        try(MaskLayer layer = new MaskLayer()){
+            AlgorithmUtils.consumeCompletedTasks(renderBufferBuilders, (pos, result)->convertAsyncResult(pos, result, layer));
+        }
     }
     @Nullable SharedPtr<SharedBufferData> sharedBufferData;
     
@@ -102,10 +106,10 @@ public class RenderInstance extends DataInstance implements WorldRenderEvents.La
             return new SharedBufferData(vertexBuffer, indexBuffer);
         }
     }
-    private void convertAsyncResult(ChunkPos pos, AsyncBuiltResult result){
+    private void convertAsyncResult(ChunkPos pos, AsyncBuiltResult result, MaskLayer layer){
         AlgorithmUtils.closeNoExcept(bufferCache.remove(pos));
         //if(result.buffer.remaining() == 0) return;
-        bufferCache.put(pos, result.build());
+        bufferCache.put(pos, result.build(layer));
     }
     private @NotNull ShapeList shapeList;
     private final HashMap<ChunkPos, CompletableFuture<AsyncBuiltResult>> renderBufferBuilders = new HashMap<>();
@@ -132,24 +136,23 @@ public class RenderInstance extends DataInstance implements WorldRenderEvents.La
             finalMatrixList.add(finalMatrix);
         }
         try(MaskLayer layer = new MaskLayer()){
-            int color = parent.displayColor.getIntegerValue();
+            int color = DataUtils.argb2agbr(parent.displayColor.getIntegerValue());
             boolean hasAlpha = (color >>> 24) != 0xff;
             layer.enableBlend(hasAlpha).disableCullFace().enableDepthTest(!parent.renderXRays.getAsBoolean());
+            layer.blendState(BlendPresets.STANDARD_ALPHA);
             if(parent.renderXRays.getAsBoolean() || !hasAlpha){
                 for(int a = 0; a < buffersToRender.size(); ++a)
-                    buffersToRender.get(a).render(finalMatrixList.get(a), modelMatrixList.get(a), color, distanceSquared);
+                    buffersToRender.get(a).render(finalMatrixList.get(a), modelMatrixList.get(a), color, distanceSquared, layer);
             }
             else{
-                try(MaskLayer furtherLayer = new MaskLayer()){
-                    furtherLayer.disableDepthWrite();
-                    for(int a = 0; a < buffersToRender.size(); ++a)
-                        buffersToRender.get(a).render(finalMatrixList.get(a), modelMatrixList.get(a), color, distanceSquared);
-                }
-                try(MaskLayer furtherLayer = new MaskLayer()){
-                    furtherLayer.disableColorWrite();
-                    for(int a = 0; a < buffersToRender.size(); ++a)
-                        buffersToRender.get(a).render(finalMatrixList.get(a), modelMatrixList.get(a), color, distanceSquared);
-                }
+                layer.disableDepthWrite();
+                for(int a = 0; a < buffersToRender.size(); ++a)
+                    buffersToRender.get(a).render(finalMatrixList.get(a), modelMatrixList.get(a), color, distanceSquared, layer);
+                layer.pop();
+                layer.disableColorWrite();
+                for(int a = 0; a < buffersToRender.size(); ++a)
+                    buffersToRender.get(a).render(finalMatrixList.get(a), modelMatrixList.get(a), color, distanceSquared, layer);
+                layer.pop();
             }
         }
     }
@@ -176,23 +179,23 @@ public class RenderInstance extends DataInstance implements WorldRenderEvents.La
     }
     private record AsyncRecordData(IRenderMethod renderMethod, SharedPtr<SharedBufferData> shared, ChunkPos pos){}
     private record AsyncBuiltResult(AsyncRecordData data, ByteBuffer buffer, int instanceCount){
-        public RenderBuffer build(){return new RenderBuffer(buffer, instanceCount, data);}
+        public RenderBuffer build(MaskLayer layer){return new RenderBuffer(buffer, instanceCount, data, layer);}
     }
     private static class RenderBuffer implements AutoCloseable{
         private static final RenderProgram program = RenderProgram.program;
-        public RenderBuffer(ByteBuffer buffer, int instanceCount, AsyncRecordData data){
+        public RenderBuffer(ByteBuffer buffer, int instanceCount, AsyncRecordData data, MaskLayer layer){
             this.renderMethod = data.renderMethod;
             this.instanceCount = instanceCount;
             this.sharedBufferData = data.shared.take();
             SharedBufferData sharedData = data.shared.get();
             instanceBuffer.data(buffer, Constants.BufferMode.STATIC_DRAW);
             MemoryUtil.memFree(buffer);
-            vertexArray.bind();
+            layer.bindArray(vertexArray);
             program.attribAndEnable(instanceBuffer, sharedData.vertexBuffer);
             sharedData.indexBuffer.bindAsElementArray();
         }
-        public void render(Matrix4f finalMatrix, Matrix4f modelMatrix, int color, double distanceSquared){
-            vertexArray.bind();
+        public void render(Matrix4f finalMatrix, Matrix4f modelMatrix, int color, double distanceSquared, MaskLayer layer){
+            layer.bindArray(vertexArray);
             program.setUniformCache(finalMatrix, modelMatrix, color, distanceSquared);
             program.useAndUniform();
             renderMethod.getDrawMode().drawElementsInstanced(renderMethod.getIndexCount(), Constants.IndexType.BYTE, instanceCount);
