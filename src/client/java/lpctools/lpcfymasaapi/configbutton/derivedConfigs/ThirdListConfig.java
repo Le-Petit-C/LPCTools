@@ -19,16 +19,12 @@ import static lpctools.lpcfymasaapi.LPCConfigUtils.*;
 public class ThirdListConfig extends BooleanConfig implements IThirdListBase {
     public ThirdListConfig(ILPCConfigList parent, String nameKey, boolean defaultBoolean) {
         super(parent, nameKey, defaultBoolean);
-        lastValue = defaultBoolean;
         subConfigs = new LPCConfigList(parent, nameKey);
     }
     
     @Override public void onValueChanged() {
         super.onValueChanged();
-        if (lastValue != getAsBoolean()){
-            getPage().showPage();
-            lastValue = getAsBoolean();
-        }
+        getPage().updateIfCurrent();
     }
     
     @Override public @NotNull Collection<ILPCConfig> getConfigs() {return subConfigs.getConfigs();}
@@ -54,6 +50,5 @@ public class ThirdListConfig extends BooleanConfig implements IThirdListBase {
         }
         else warnFailedLoadingConfig(this, element);
     }
-    private boolean lastValue;
     private final LPCConfigList subConfigs;
 }
