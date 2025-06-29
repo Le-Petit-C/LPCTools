@@ -2,6 +2,7 @@ package lpctools.debugs;
 
 import lpctools.lpcfymasaapi.gl.Buffer;
 import lpctools.lpcfymasaapi.gl.Constants;
+import lpctools.lpcfymasaapi.gl.MaskLayer;
 import lpctools.lpcfymasaapi.gl.VertexArray;
 import lpctools.util.MathUtils;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext;
@@ -14,8 +15,8 @@ import java.nio.ByteBuffer;
 import static lpctools.shader.ShaderPrograms.*;
 
 public class RenderTest1 {
-    public static void render(WorldRenderContext context){
-        init();
+    public static void render(WorldRenderContext context, MaskLayer layer){
+        init(layer);
         Matrix4f finalMatrix = MathUtils.inverseOffsetMatrix4f(context.camera().getPos().toVector3f());
         context.positionMatrix().mul(finalMatrix, finalMatrix);
         context.projectionMatrix().mul(finalMatrix, finalMatrix);
@@ -29,7 +30,7 @@ public class RenderTest1 {
             angle += dangle;
         }
         buffer.flip();
-        array.bind();
+        layer.bindArray(array);
         vertexBuffer.data(buffer, Constants.BufferMode.DYNAMIC_DRAW);
         program.setFinalMatrix(finalMatrix);
         program.useAndUniform();
@@ -42,9 +43,9 @@ public class RenderTest1 {
     private static final Buffer vertexBuffer = new Buffer();
     private static final ByteBuffer buffer = MemoryUtil.memAlloc(48);
     private static boolean initialized = false;
-    private static void init(){
+    private static void init(MaskLayer layer){
         if(initialized) return;
-        array.bind();
+        layer.bindArray(array);
         vertexBuffer.bindAsArray();
         program.attrib.attribAndEnable();
         initialized = true;
