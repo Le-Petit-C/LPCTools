@@ -1,6 +1,5 @@
 package lpctools.debugs;
 
-import com.mojang.blaze3d.systems.RenderPass;
 import lpctools.lpcfymasaapi.Registries;
 import lpctools.lpcfymasaapi.configbutton.transferredConfigs.BooleanConfig;
 import lpctools.lpcfymasaapi.gl.*;
@@ -60,9 +59,9 @@ public class InstancedRenderTest extends BooleanConfig{
             triangleInstanceBuffer.close();
         }
         public RenderInstance(){Registries.WORLD_RENDER_LAST.register(this);}
-        private void init(){
+        private void init(MaskLayer layer){
             if(initialized) return;
-            vertexArray.bind();
+            layer.bindArray(vertexArray);
             ByteBuffer buffer = MemoryUtil.memAlloc(triangleCount * 20);
             Random random = Random.create();
             for(int a = 0; a < triangleCount; ++a){
@@ -79,17 +78,14 @@ public class InstancedRenderTest extends BooleanConfig{
             GL45.glVertexAttribDivisor(0, 1);
             GL45.glVertexAttribDivisor(1, 1);
             GL45.glVertexAttribDivisor(2, 1);
-            
             MemoryUtil.memFree(buffer);
-            vertexArray.unbind();
             initialized = true;
         }
         @Override public void onLast(WorldRenderContext context) {
-            init();
-            try(RenderPass ignored = GlStatics.bindDefaultFrameBuffer();
-                MaskLayer layer = new MaskLayer()){
+            try(MaskLayer layer = new MaskLayer()){
+                init(layer);
                 layer.disableCullFace().enableDepthTest().disableBlend();
-                vertexArray.bind();
+                layer.bindArray(vertexArray);
                 Matrix4f matrix = MathUtils.inverseOffsetMatrix4f(context.camera().getPos().toVector3f());
                 context.positionMatrix().mul(matrix, matrix);
                 context.projectionMatrix().mul(matrix, matrix);
@@ -97,7 +93,6 @@ public class InstancedRenderTest extends BooleanConfig{
                 program.setTimeAngle((Clock.systemUTC().millis() % 6283 - 3141) / 1000.0f);
                 program.useAndUniform();
                 Constants.DrawMode.TRIANGLES.drawArraysInstanced(0, 3, triangleCount);
-                vertexArray.unbind();
             }
         }
     }

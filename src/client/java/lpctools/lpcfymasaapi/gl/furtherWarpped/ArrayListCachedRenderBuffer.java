@@ -3,6 +3,7 @@ package lpctools.lpcfymasaapi.gl.furtherWarpped;
 import it.unimi.dsi.fastutil.bytes.ByteArrayList;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import lpctools.lpcfymasaapi.gl.Constants;
+import lpctools.lpcfymasaapi.gl.MaskLayer;
 import lpctools.lpcfymasaapi.gl.Program;
 import org.lwjgl.system.MemoryUtil;
 
@@ -19,16 +20,16 @@ public class ArrayListCachedRenderBuffer<T extends Program> extends RenderBuffer
         indexArrayBuffer.clear();
         vertexArrayBuffer.clear();
     }
-    public void renderWithIndexes(Constants.DrawMode drawMode){
-        if(dirty) refresh();
-        super.renderWithIndexes(drawMode, indexArrayBuffer.size());
+    public void renderWithIndexes(Constants.DrawMode drawMode, MaskLayer layer){
+        if(dirty) refresh(layer);
+        super.renderWithIndexes(drawMode, indexArrayBuffer.size(), layer);
     }
-    public void render(Constants.DrawMode drawMode){
-        if(dirty) refresh();
-        super.render(drawMode, vertexArrayBuffer.size() / program.attrib.getSize());
+    public void render(Constants.DrawMode drawMode, MaskLayer layer){
+        if(dirty) refresh(layer);
+        super.render(drawMode, vertexArrayBuffer.size() / program.attrib.getSize(), layer);
     }
-    public void refresh(){
-        initialize();
+    public void refresh(MaskLayer layer){
+        initialize(layer);
         int size = Math.max(indexArrayBuffer.size() * 4, vertexArrayBuffer.size());
         ByteBuffer buffer = MemoryUtil.memAlloc(size);
         for(int index : indexArrayBuffer) buffer.putInt(index);

@@ -67,16 +67,16 @@ public class SlightXRay extends ThirdListConfig{
                         onValueChanged();
                     }
                 });
-            ILPCConfigList byDefaultColor = defaultColorMethod.addList(
-                new ConfigListWithColorBase(defaultColorMethod, "byDefaultColor", this::getColorByDefaultColor) {}
-            );
-            defaultColor = addColorConfig(byDefaultColor, "defaultColor", new Color4f(0.5f, 0.5f, 1.0f, 0.5f), this::refreshXRayBlocks);
             ILPCConfigList byTextureColor = defaultColorMethod.addList(
                 new ConfigListWithColorBase(defaultColorMethod, "byTextureColor", this::getColorByTextureColor)
             );
             defaultAlpha = addIntegerConfig(byTextureColor, "defaultAlpha", 127, 0, 255, this::refreshXRayBlocks);
             saturationDelta = addDoubleConfig(byTextureColor, "saturationDelta", 1, -5, 5, this::refreshXRayBlocks);
             brightnessDelta = addDoubleConfig(byTextureColor, "brightnessDelta", 1, -5, 5, this::refreshXRayBlocks);
+            ILPCConfigList byDefaultColor = defaultColorMethod.addList(
+                new ConfigListWithColorBase(defaultColorMethod, "byDefaultColor", this::getColorByDefaultColor) {}
+            );
+            defaultColor = addColorConfig(byDefaultColor, "defaultColor", new Color4f(0.5f, 0.5f, 1.0f, 0.5f), this::refreshXRayBlocks);
             XRayBlocksConfig = addStringListConfig("XRayBlocks", defaultXRayBlockIds, this::refreshXRayBlocks);
             useCullFace = addBooleanConfig("useCullFace", true);
             displayRange = addRangeLimitConfig(false);
@@ -87,6 +87,7 @@ public class SlightXRay extends ThirdListConfig{
         return DataUtils.argb2agbr(defaultColor.getIntegerValue());
     }
     private int getColorByTextureColor(Block block) {
+        int alphaMask = defaultAlpha.getAsInt() << 24;
         try{
             BlockStateModel model = MinecraftClient.getInstance().getBlockRenderManager()
                 .getModel(block.getDefaultState());
@@ -102,16 +103,16 @@ public class SlightXRay extends ThirdListConfig{
                     t += k;
                 }
             }
-            if(t == 0) return 0x7f000000;
+            if(t == 0) return alphaMask;
             int ri = Math.round(r / t);
             int gi = Math.round(g / t);
             int bi = Math.round(b / t);
             float[] hsb = Color.RGBtoHSB(ri, gi, bi, new float[3]);
             hsb[1] = (float) Math.tanh(atanh(hsb[1] * 2 - 1) + saturationDelta.getAsDouble()) * 0.5f + 0.5f;
             hsb[2] = (float) Math.tanh(atanh(hsb[2] * 2 - 1) + brightnessDelta.getAsDouble()) * 0.5f + 0.5f;
-            return (Color.HSBtoRGB(hsb[0], hsb[1], hsb[2]) & 0x00ffffff) | (defaultAlpha.getAsInt() << 24);
+            return (Color.HSBtoRGB(hsb[0], hsb[1], hsb[2]) & 0x00ffffff) | alphaMask;
         }
-        catch (Exception e){return 0x7f000000;}
+        catch (Exception e){return alphaMask;}
     }
     
     public static double atanh(double x) {

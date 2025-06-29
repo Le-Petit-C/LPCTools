@@ -12,19 +12,17 @@ public class RenderBuffer<T extends Program> implements AutoCloseable{
         this.bufferMode = bufferMode;
         this.program = program;
     }
-    public void renderWithIndexes(Constants.DrawMode drawMode, int count){
-        initialize();
-        vertexArray.bind();
+    public void renderWithIndexes(Constants.DrawMode drawMode, int count, MaskLayer layer){
+        initialize(layer);
+        layer.bindArray(vertexArray);
         program.useAndUniform();
         drawMode.drawElements(count, Constants.IndexType.INT);
-        vertexArray.unbind();
     }
-    public void render(Constants.DrawMode drawMode, int count){
-        initialize();
-        vertexArray.bind();
+    public void render(Constants.DrawMode drawMode, int count, MaskLayer layer){
+        initialize(layer);
+        layer.bindArray(vertexArray);
         program.useAndUniform();
         drawMode.drawArrays(0, count);
-        vertexArray.unbind();
     }
     @Override public void close() {
         vertexArray.close();
@@ -37,13 +35,12 @@ public class RenderBuffer<T extends Program> implements AutoCloseable{
     public void dataVertex(ByteBuffer buffer){
         vertexBuffer.data(buffer, bufferMode);
     }
-    protected void initialize(){
-        if(initialized) return;
-        vertexArray.bind();
+    protected void initialize(MaskLayer layer) {
+        if (initialized) return;
+        layer.bindArray(vertexArray);
         indexBuffer.bindAsElementArray();
         vertexBuffer.bindAsArray();
         program.attrib.attribAndEnable();
-        vertexArray.unbind();
         initialized = true;
     }
     private boolean initialized = false;
