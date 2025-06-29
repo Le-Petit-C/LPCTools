@@ -1,18 +1,11 @@
 package lpctools.lpcfymasaapi.gl;
 
-import it.unimi.dsi.fastutil.bytes.ByteArrayList;
-import org.jetbrains.annotations.NotNull;
-import org.lwjgl.system.MemoryStack;
-
-import java.nio.ByteBuffer;
-
-import static org.lwjgl.opengl.GL45.*;
-import static org.lwjgl.system.MemoryStack.stackGet;
-import static org.lwjgl.system.MemoryUtil.memAddress;
+import static org.lwjgl.opengl.GL33.*;
+import static lpctools.lpcfymasaapi.gl.furtherWarpped.RestorableOption.*;
 
 @SuppressWarnings("unused")
-public class Constants {
-    public enum DrawMode{
+public interface Constants {
+    enum DrawMode{
         POINTS(GL_POINTS),
         LINES(GL_LINES),
         LINE_LOOP(GL_LINE_LOOP),
@@ -34,7 +27,7 @@ public class Constants {
             glDrawElementsInstanced(value, count, type.value, 0, instanceCount);}
         public final int value;
     }
-    public enum DataType{
+    enum DataType{
         BYTE(GL_BYTE, 1),
         UNSIGNED_BYTE(GL_UNSIGNED_BYTE, 1),
         SHORT(GL_SHORT, 2),
@@ -49,7 +42,7 @@ public class Constants {
         DataType(int value, int size){this.value = value;this.size = size;}
         public final int value, size;
     }
-    public enum BufferMode{
+    enum BufferMode{
         STREAM_DRAW(GL_STREAM_DRAW),
         STREAM_READ(GL_STREAM_READ),
         STREAM_COPY(GL_STREAM_COPY),
@@ -62,7 +55,7 @@ public class Constants {
         BufferMode(int value){this.value = value;}
         public final int value;
     }
-    public enum EnableMask implements SimpleEnableOption {
+    enum EnableMask implements SimpleEnableOption {
         BLEND(GL_BLEND),
         CULL_FACE(GL_CULL_FACE),
         DEPTH_TEST(GL_DEPTH_TEST);
@@ -73,59 +66,48 @@ public class Constants {
         @Override public void enable(boolean b){if(b) enable();else disable();}
         @Override public boolean isEnabled(){return glIsEnabled(value);}
     }
-    public enum IndexType{
+    enum IndexType{
         BYTE(GL_UNSIGNED_BYTE),
         SHORT(GL_UNSIGNED_SHORT),
         INT(GL_UNSIGNED_INT);
         IndexType(int value){this.value = value;}
         public final int value;
     }
-    public enum BufferType{
+    enum BufferType{
         ARRAY_BUFFER(GL_ARRAY_BUFFER),
         ELEMENT_ARRAY_BUFFER(GL_ELEMENT_ARRAY_BUFFER),
-        TEXTURE_BUFFER(GL_TEXTURE_BUFFER),
-        SHADER_STORAGE_BUFFER(GL_SHADER_STORAGE_BUFFER);
+        TEXTURE_BUFFER(GL_TEXTURE_BUFFER);
         BufferType(int value){this.value = value;}
         public final int value;
         public void bind(Buffer buffer){glBindBuffer(value, buffer.getGlBufferId());}
         public void unbind(){glBindBuffer(value, 0);}
     }
-    public interface SimpleEnableOption extends EnableOption{
-        boolean isEnabled();
-        @Override default void push(@NotNull ByteArrayList list){list.add((byte)(isEnabled() ? 1 : 0));}
-        @Override default void pop(@NotNull ByteArrayList list){enable(list.removeLast() != 0);}
+    enum BlendFactor{
+        ZERO(GL_ZERO), ONE(GL_ONE),
+        SRC_COLOR(GL_SRC_COLOR), DST_COLOR(GL_DST_COLOR),
+        ONE_MINUS_SRC_COLOR(GL_ONE_MINUS_SRC_COLOR),
+        ONE_MINUS_DST_COLOR(GL_ONE_MINUS_DST_COLOR),
+        SRC_ALPHA(GL_SRC_ALPHA), DST_ALPHA(GL_DST_ALPHA),
+        ONE_MINUS_SRC_ALPHA(GL_ONE_MINUS_SRC_ALPHA),
+        ONE_MINUS_DST_ALPHA(GL_ONE_MINUS_DST_ALPHA),
+        CONSTANT_COLOR(GL_CONSTANT_COLOR),
+        ONE_MINUS_CONSTANT_COLOR(GL_ONE_MINUS_CONSTANT_COLOR),
+        CONSTANT_ALPHA(GL_CONSTANT_ALPHA),
+        ONE_MINUS_CONSTANT_ALPHA(GL_ONE_MINUS_CONSTANT_ALPHA);
+        public final int value;
+        BlendFactor(int value) { this.value = value; }
+        public static void blendFuncSeparate(BlendFactor srcRGB, BlendFactor dstRGB, BlendFactor srcA, BlendFactor dstA){
+            glBlendFuncSeparate(srcRGB.value, dstRGB.value, srcA.value, dstA.value);
+        }
     }
-    public interface EnableOption extends RestorableOption {
-        void enable(boolean b);
-        default void enable(){enable(true);}
-        default void disable(){enable(false);}
-    }
-    public interface RestorableOption {
-        void push(@NotNull ByteArrayList list);
-        void pop(@NotNull ByteArrayList list);
-    }
-    public interface EnableOptions{
-        EnableOption DEPTH_WRITE = new SimpleEnableOption() {
-            @Override public void enable(boolean b) {glDepthMask(b);}
-            @Override public boolean isEnabled() {return glGetBoolean(GL_DEPTH_WRITEMASK);}
-        };
-        EnableOption COLOR_WRITE = new EnableOption() {
-            @Override public void enable(boolean b) {glColorMask(b, b, b, b);}
-            @Override public void push(@NotNull ByteArrayList list) {
-                try(MemoryStack stack = stackGet()){
-                    stack.push();
-                    int stackPointer = stack.getPointer();
-                    ByteBuffer params = stack.calloc(4);
-                    nglGetBooleanv(GL_COLOR_WRITEMASK, memAddress(params));
-                    list.add(params.get(3));
-                    list.add(params.get(2));
-                    list.add(params.get(1));
-                    list.add(params.get(0));
-                }
-            }
-            @Override public void pop(@NotNull ByteArrayList list) {
-                glColorMask(list.removeLast() != 0, list.removeLast() != 0, list.removeLast() != 0, list.removeLast() != 0);
-            }
-        };
+    enum BlendEquation {
+        ADD(GL_FUNC_ADD),
+        SUBTRACT(GL_FUNC_SUBTRACT),
+        REVERSE_SUBTRACT(GL_FUNC_REVERSE_SUBTRACT);
+        public final int value;
+        BlendEquation(int value) { this.value = value; }
+        public static void blendEquationSeparate(BlendEquation eqRGB, BlendEquation eqA){
+            glBlendEquationSeparate(eqRGB.value, eqA.value);
+        }
     }
 }
