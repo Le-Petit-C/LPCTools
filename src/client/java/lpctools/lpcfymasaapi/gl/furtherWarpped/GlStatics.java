@@ -1,29 +1,26 @@
 package lpctools.lpcfymasaapi.gl.furtherWarpped;
 
-import com.mojang.blaze3d.systems.RenderPass;
-import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.blaze3d.textures.GpuTexture;
+import com.mojang.blaze3d.platform.GlConst;
+import com.mojang.blaze3d.platform.GlStateManager;
 import lpctools.lpcfymasaapi.gl.Constants;
+import lpctools.util.javaex.AutoCloseableNoExcept;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gl.Framebuffer;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.OptionalDouble;
-import java.util.OptionalInt;
+import org.lwjgl.opengl.GL33;
 
 import static org.lwjgl.opengl.GL20.glBlendEquationSeparate;
 
 public interface GlStatics {
-    static RenderPass bindFrameBuffer(Framebuffer framebuffer){
-        GpuTexture colorTexture = framebuffer.getColorAttachment();
-        GpuTexture depthTexture = framebuffer.getDepthAttachment();
-        return RenderSystem.getDevice().createCommandEncoder()
-            .createRenderPass(colorTexture, OptionalInt.empty(), depthTexture, OptionalDouble.empty());
+    static AutoCloseableNoExcept bindFrameBuffer(Framebuffer framebuffer){
+        int lastFbo = GL33.glGetInteger(GL33.GL_FRAMEBUFFER_BINDING);
+        GlStateManager._glBindFramebuffer(GlConst.GL_FRAMEBUFFER, framebuffer.fbo);
+        return ()->GL33.glBindFramebuffer(GlConst.GL_FRAMEBUFFER, lastFbo);
     }
-    static RenderPass bindDefaultFrameBuffer(){
+    static AutoCloseableNoExcept bindDefaultFrameBuffer(){
         return bindFrameBuffer(MinecraftClient.getInstance().getFramebuffer());
     }
-    static RenderPass bindFrameBufferOrDefault(@Nullable Framebuffer framebuffer){
+    static AutoCloseableNoExcept bindFrameBufferOrDefault(@Nullable Framebuffer framebuffer){
         if(framebuffer == null) return bindDefaultFrameBuffer();
         else return bindFrameBuffer(framebuffer);
     }

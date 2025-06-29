@@ -1,10 +1,10 @@
 package lpctools.lpcfymasaapi.gl;
 
-import com.mojang.blaze3d.systems.RenderPass;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import lpctools.lpcfymasaapi.gl.furtherWarpped.BlendPresets;
 import lpctools.lpcfymasaapi.gl.furtherWarpped.GlStatics;
 import lpctools.lpcfymasaapi.gl.furtherWarpped.RestorableOption;
+import lpctools.util.javaex.AutoCloseableNoExcept;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gl.Framebuffer;
 import org.jetbrains.annotations.Nullable;
@@ -23,7 +23,7 @@ public class MaskLayer implements AutoCloseable{
     private final int lastProgram;
     private final int lastVertexArray;
     private final int lastArrayBuffer;
-    private final RenderPass renderPass;
+    private final AutoCloseableNoExcept renderPass;
     private boolean restoredBlendState = false;
     public MaskLayer(){
         this(MinecraftClient.getInstance().getFramebuffer());

@@ -10,6 +10,7 @@ import lpctools.lpcfymasaapi.interfaces.ILPCConfigList;
 import lpctools.shader.ShaderPrograms;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents;
+import net.minecraft.client.MinecraftClient;
 import net.minecraft.util.math.Vec3d;
 import org.joml.*;
 
