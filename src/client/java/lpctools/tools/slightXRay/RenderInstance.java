@@ -33,6 +33,7 @@ import org.lwjgl.system.MemoryUtil;
 import java.nio.ByteBuffer;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.Consumer;
 
 //TODO:不使用形状索引而是合并重合顶点的索引（比如相邻矩形）以节省空间
 
@@ -151,7 +152,7 @@ public class RenderInstance extends DataInstance implements WorldRenderEvents.En
         for(RenderQuad quad : quadBuffer.quads)
             quad.vertex(quadBuffer.byteBuffer, offX, offZ);
         quadBuffer.byteBuffer.flip();
-        return new ChunkRenderPrepareResult(quadBuffer.quads.size(), ()->quadBuffer.dataAndBind(indexBuffer),
+        return new ChunkRenderPrepareResult(quadBuffer.quads.size(), layer->quadBuffer.dataAndBind(indexBuffer, layer),
             camPos, quadBuffer.thisPos, projection_view_matrix);
     }
     private RenderPrepareResult asyncPrepareRenderMain(World world, Vec3d camPos, Matrix4f projection_view_matrix){
@@ -164,13 +165,13 @@ public class RenderInstance extends DataInstance implements WorldRenderEvents.En
             if(buffer.quads.size() > maxShapeCount) maxShapeCount = buffer.quads.size();
             if(buffer.shouldUpdate(camPos) || buffer.vertexArray == null)
                 renderBufferBuilders.add(CompletableFuture.supplyAsync(()->asyncPrepareRenderChunk(buffer, camPos, projection_view_matrix)));
-            else renderBufferBuilders.add(CompletableFuture.completedFuture(new ChunkRenderPrepareResult(buffer.quads.size(), ()->buffer.vertexArray.bind(),
+            else renderBufferBuilders.add(CompletableFuture.completedFuture(new ChunkRenderPrepareResult(buffer.quads.size(), layer->layer.bindArray(buffer.vertexArray),
                 camPos, pos, projection_view_matrix)));
         }
         return new RenderPrepareResult(renderBufferBuilders, maxShapeCount);
     }
-    private record ChunkRenderPrepareResult(int shapeCount, Matrix4f finalMatrix, Runnable bindOperation){
-        ChunkRenderPrepareResult(int size, Runnable bindOperation, Vec3d camPos, ChunkPos pos, Matrix4f projection_view_matrix){
+    private record ChunkRenderPrepareResult(int shapeCount, Matrix4f finalMatrix, Consumer<MaskLayer> bindOperation){
+        ChunkRenderPrepareResult(int size, Consumer<MaskLayer> bindOperation, Vec3d camPos, ChunkPos pos, Matrix4f projection_view_matrix){
             this(size, getFinalMatrix(camPos, pos, projection_view_matrix), bindOperation);
         }
         private static Matrix4f getFinalMatrix(Vec3d camPos, ChunkPos pos, Matrix4f projection_view_matrix){
@@ -196,12 +197,11 @@ public class RenderInstance extends DataInstance implements WorldRenderEvents.En
             ShaderPrograms.PositionColorProgram program = ShaderPrograms.POSITION_COLOR_PROGRAM;
             for(CompletableFuture<ChunkRenderPrepareResult> future : result.futures){
                 ChunkRenderPrepareResult chunkResult = future.join();
-                chunkResult.bindOperation.run();
+                chunkResult.bindOperation.accept(layer);
                 program.setFinalMatrix(chunkResult.finalMatrix);
                 program.useAndUniform();
                 Constants.DrawMode.TRIANGLES.drawElements(chunkResult.shapeCount * 6, Constants.IndexType.INT);
             }
-            VertexArray.unbindStatic();
         }
     }
     private static class QuadBuffer implements AutoCloseable{
@@ -224,17 +224,16 @@ public class RenderInstance extends DataInstance implements WorldRenderEvents.En
         }
         public void refreshByteBuffer(){byteBuffer = MemoryUtil.memRealloc(byteBuffer, getQuadBufferSize());}
         public void markUnsorted(){lastUpdatePos = null;}
-        public void dataAndBind(Buffer indexBuffer){
+        public void dataAndBind(Buffer indexBuffer, MaskLayer layer){
             if(vertexBuffer == null) vertexBuffer = new Buffer();
             if(vertexArray == null){
                 vertexArray = new VertexArray();
-                vertexArray.bind();
+                layer.bindArray(vertexArray);
                 vertexBuffer.bindAsArray();
                 program.attrib.attribAndEnable();
                 indexBuffer.bindAsElementArray();
-                vertexArray.unbind();
             }
-            vertexArray.bind();
+            else layer.bindArray(vertexArray);
             vertexBuffer.data(byteBuffer, Constants.BufferMode.DYNAMIC_DRAW);
         }
         public int getQuadBufferSize(){
