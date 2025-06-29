@@ -20,7 +20,7 @@ import static lpctools.lpcfymasaapi.gl.furtherWarpped.VertexAttribElements.*;
 import static lpctools.shader.FragmentShaders.*;
 import static lpctools.shader.VertexShaders.*;
 
-public class MandelbrotSetRender extends ThirdListConfig implements WorldRenderEvents.DebugRender {
+public class MandelbrotSetRender extends ThirdListConfig implements WorldRenderEvents.AfterTranslucent {
     public final IntegerConfig maxDepth;
     public final DoubleConfig stretch;
     public MandelbrotSetRender(ILPCConfigList parent) {
@@ -33,11 +33,11 @@ public class MandelbrotSetRender extends ThirdListConfig implements WorldRenderE
     
     @Override public void onValueChanged() {
         super.onValueChanged();
-        Registries.WORLD_RENDER_BEFORE_DEBUG_RENDER.register(this, getAsBoolean());
+        Registries.WORLD_RENDER_AFTER_TRANSLUCENT.register(this, getAsBoolean());
     }
     
-    @Override public void beforeDebugRender(WorldRenderContext context) {
-        try(MaskLayer layer = new MaskLayer()){
+    @Override public void afterTranslucent(WorldRenderContext context) {
+        try(MaskLayer layer = new MaskLayer(MinecraftClient.getInstance().worldRenderer.getTranslucentFramebuffer())){
             layer.enableBlend().disableCullFace().enableDepthTest();
             double y = 1;
             double stretch = this.stretch.getAsDouble();
@@ -70,7 +70,7 @@ public class MandelbrotSetRender extends ThirdListConfig implements WorldRenderE
             buffer.setOutColor(new Vector4f(1, 1, 1, 1));
             buffer.setSetColor(new Vector4f(0, 0, 0, 1));
             buffer.setMaxDepth(maxDepth.getAsInt());
-            buffer.render(Constants.DrawMode.TRIANGLE_STRIP);
+            buffer.render(Constants.DrawMode.TRIANGLE_STRIP, layer);
         }
     }
     public static final VertexAttrib POSITION_COMPLEX = new VertexAttrib(VEC3F, VEC2F);

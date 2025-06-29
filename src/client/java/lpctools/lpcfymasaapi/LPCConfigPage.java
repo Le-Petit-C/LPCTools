@@ -18,6 +18,7 @@ import fi.dy.masa.malilib.gui.button.ButtonGeneric;
 import lpctools.lpcfymasaapi.interfaces.ILPCConfigBase;
 import net.minecraft.client.MinecraftClient;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -56,6 +57,11 @@ public class LPCConfigPage implements IConfigHandler, Supplier<GuiBase>, ILPCCon
         else pageInstance = new ConfigPageInstance(this);
         if(MinecraftClient.getInstance().currentScreen != pageInstance)
             GuiBase.openGui(pageInstance);
+    }
+    //如果当前页面正在展示中，刷新当前页面
+    public void updateIfCurrent(){
+        if(pageInstance != null && MinecraftClient.getInstance().currentScreen == pageInstance)
+            pageInstance.initGui();
     }
     //获取当前列
     public LPCConfigList getList(){return lists.get(selectedIndex);}
@@ -118,7 +124,7 @@ public class LPCConfigPage implements IConfigHandler, Supplier<GuiBase>, ILPCCon
     private final @NotNull ArrayList<LPCConfigList> lists = new ArrayList<>();
     private final @NotNull ArrayList<Integer> widgetPosition = new ArrayList<>();
     private int selectedIndex = 0;
-    private ConfigPageInstance pageInstance;
+    private @Nullable ConfigPageInstance pageInstance;
     private void afterInit(){
         ConfigManager.getInstance().registerConfigHandler(modReference.modId, this);
         Registry.CONFIG_SCREEN.registerConfigScreenFactory(new ModInfo(modReference.modId, modReference.modName, this));
