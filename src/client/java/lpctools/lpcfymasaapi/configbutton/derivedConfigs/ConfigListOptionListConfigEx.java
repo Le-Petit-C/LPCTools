@@ -6,7 +6,6 @@ import lpctools.lpcfymasaapi.interfaces.ILPCConfig;
 import lpctools.lpcfymasaapi.interfaces.ILPCConfigList;
 import lpctools.lpcfymasaapi.interfaces.ILPCValueChangeCallback;
 import lpctools.lpcfymasaapi.interfaces.IThirdListBase;
-import net.minecraft.client.MinecraftClient;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -53,9 +52,7 @@ public class ConfigListOptionListConfigEx<T extends ILPCConfigList> extends Arra
     }
     @Override public void onValueChanged() {
         super.onValueChanged();
-        MinecraftClient mc = MinecraftClient.getInstance();
-        if(mc.currentScreen != null && getPage().get() == mc.currentScreen)
-            getPage().showPage();
+        getPage().updateIfCurrent();
     }
     public T addList(T list){
         addOption(list.getTitleFullTranslationKey(), list);

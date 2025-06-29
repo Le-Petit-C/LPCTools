@@ -3,8 +3,8 @@ package lpctools.util;
 import org.lwjgl.glfw.GLFW;
 
 public class GlVersionMixinHandler {
-    private static final int TARGET_MAJOR = 4;
-    private static final int TARGET_MINOR = 6;
+    private static final int TARGET_MAJOR = 3;
+    private static final int TARGET_MINOR = 3;
     private static int recordedMajor = 0;
     private static int recordedMinor = 0;
     public static void resetRequiredGlVersion() {
