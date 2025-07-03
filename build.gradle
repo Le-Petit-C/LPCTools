@@ -13,6 +13,7 @@ base {
 repositories {
 	maven { url = 'https://jitpack.io' }
 	maven { url = 'https://maven.terraformersmc.com/releases/' }
+	maven { url = "https://api.modrinth.com/maven" }
 	// Add repositories to retrieve artifacts from in here.
 	// You should only use this when depending on other mods because
 	// Loom adds the essential maven repositories to download Minecraft and libraries from automatically.
@@ -40,8 +41,8 @@ dependencies {
 	modImplementation "com.github.sakura-ryoko:malilib:${project.malilib_version}"
 
 	//Suggested mods
-	modCompileOnly "com.github.sakura-ryoko:minihud:${project.minihud_version}"
-	modRuntimeOnly "com.github.sakura-ryoko:minihud:${project.minihud_version}"
+	modCompileOnly "maven.modrinth:minihud:${project.minihud_version}"
+	modRuntimeOnly "maven.modrinth:minihud:${project.minihud_version}"
 	modCompileOnly "com.github.sakura-ryoko:litematica:${project.litematica_version}"
 	modRuntimeOnly "com.github.sakura-ryoko:litematica:${project.litematica_version}"
 	modCompileOnly "com.terraformersmc:modmenu:${project.mod_menu_version}"
