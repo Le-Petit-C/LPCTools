@@ -14,9 +14,11 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.util.math.Vec3i;
+import net.minecraft.world.BlockView;
 import net.minecraft.world.GameMode;
 import net.minecraft.world.dimension.DimensionType;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Arrays;
 import java.util.LinkedList;
@@ -67,7 +69,7 @@ public class PlaceBlockTick implements ClientTickEvents.EndTick, Registries.InGa
         Vec3d eyePos = client.player.getEyePos();
         BlockPos eyeBlockPos = new BlockPos((int)Math.floor(eyePos.getX()), (int)Math.floor(eyePos.getY()), (int)Math.floor(eyePos.getZ()));
         ShapeList shapeList = limitFillingRange.buildShapeList();
-        initializeMap(shapeList, eyeBlockPos);
+        initializeMap(shapeList, eyeBlockPos, client.world);
         DimensionType dimensionType = client.world.getDimension();
         int bottom = dimensionType.minY();
         int ceiling = bottom + dimensionType.height();
@@ -139,7 +141,7 @@ public class PlaceBlockTick implements ClientTickEvents.EndTick, Registries.InGa
         if(pos.getZ() < 0 || pos.getZ() >= testSize) return;
         testBuffer[pos.getX()][pos.getY()][pos.getZ()] = value;
     }
-    private void initializeMap(@NotNull ShapeList shapeList, @NotNull BlockPos eyeBlockPos){
+    private void initializeMap(@NotNull ShapeList shapeList, @NotNull BlockPos eyeBlockPos, @Nullable BlockView world){
         currentPosition = eyeBlockPos.add(-testDistance, -testDistance, -testDistance);
         BlockPos pos1 = new BlockPos(currentPosition);
         for (boolean[][] mapX : map) {
@@ -149,7 +151,7 @@ public class PlaceBlockTick implements ClientTickEvents.EndTick, Registries.InGa
                 for (int z = 0; z < mapXY.length; ++z) {
                     if(shapeList.testPos(pos3))
                         mapXY[z] = isUnpassable(pos3);
-                    else mapXY[z] = outerRangeBlockMethod.get().isUnpassable(pos3);
+                    else mapXY[z] = outerRangeBlockMethod.get().isUnpassable(pos3, world);
                     pos3 = pos3.south();
                 }
                 pos2 = pos2.up();

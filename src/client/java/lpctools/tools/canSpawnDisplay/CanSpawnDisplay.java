@@ -8,67 +8,51 @@ import lpctools.lpcfymasaapi.configbutton.transferredConfigs.BooleanConfig;
 import lpctools.lpcfymasaapi.configbutton.transferredConfigs.BooleanHotkeyConfig;
 import lpctools.lpcfymasaapi.configbutton.transferredConfigs.ColorConfig;
 import lpctools.lpcfymasaapi.configbutton.transferredConfigs.DoubleConfig;
-import lpctools.lpcfymasaapi.interfaces.ILPCConfigList;
+import lpctools.tools.ToolConfigs;
 import net.minecraft.client.MinecraftClient;
 
 import static lpctools.lpcfymasaapi.LPCConfigStatics.*;
 import static lpctools.tools.ToolUtils.*;
+import static lpctools.tools.canSpawnDisplay.CanSpawnDisplayData.*;
 
-public class CanSpawnDisplay extends ThirdListConfig implements AutoCloseable{
-    public final CanSpawnDisplaySwitch canSpawnDisplay;
-    public final ColorConfig displayColor;
-    public final RangeLimitConfig rangeLimit;
-    public final DoubleConfig renderDistance;
-    public final RenderMethodConfig renderMethod;
-    public final BooleanConfig renderXRays;
-    public final MinecraftClient client;
-    @Override public void close() throws Exception {rangeLimit.close();}
-    public class RenderMethodConfig extends ArrayOptionListConfig<IRenderMethod>{
+public class CanSpawnDisplay{
+    public static final ThirdListConfig CSConfig = new ThirdListConfig(ToolConfigs.toolConfigs, "CS", false);
+    static {listStack.push(CSConfig);}
+    public static final CanSpawnDisplaySwitch canSpawnDisplay = addConfig(new CanSpawnDisplaySwitch());
+    static {setLPCToolsToggleText(canSpawnDisplay);}
+    public static final ColorConfig displayColor = addColorConfig("displayColor", Color4f.fromColor(0x7fffffff));
+    public static final RangeLimitConfig rangeLimit = addRangeLimitConfig(false);
+    static {rangeLimit.setValueChangeCallback(CanSpawnDisplay::onRenderRangeChanged);}
+    public static final DoubleConfig renderDistance = addDoubleConfig("renderDistance", 32, 16, 512);
+    public static final RenderMethodConfig renderMethod = addConfig(new RenderMethodConfig());
+    public static final BooleanConfig renderXRays = addBooleanConfig("renderXRays", true);
+    static {listStack.pop();}
+    private static void onRenderRangeChanged(){if(renderInstance != null) renderInstance.onRenderRangeChanged(rangeLimit);}
+    
+    public static class RenderMethodConfig extends ArrayOptionListConfig<IRenderMethod>{
         public RenderMethodConfig() {
-            super(CanSpawnDisplay.this, "renderMethod");
+            super(CSConfig, "renderMethod");
             for(IRenderMethod method : renderMethods)
                 addOption(getFullTranslationKey() + '.' + method.getNameKey(), method);
         }
         @Override public void onValueChanged() {
             super.onValueChanged();
             if(renderInstance != null) renderInstance.setRenderMethod(get());
+            if(renderInstance != null) renderInstance.resetRender();
         }
     }
-    public class CanSpawnDisplaySwitch extends BooleanHotkeyConfig{
+    public static class CanSpawnDisplaySwitch extends BooleanHotkeyConfig{
         public CanSpawnDisplaySwitch() {
-            super(CanSpawnDisplay.this, "canSpawnDisplay", false, null);
+            super(CSConfig, "canSpawnDisplay", false, null);
         }
         @Override public void onValueChanged() {
             super.onValueChanged();
             boolean currentValue = getBooleanValue();
-            if(currentValue) renderInstance = new RenderInstance(client, CanSpawnDisplay.this);
-            else{
-                if(renderInstance != null){
-                    renderInstance.close();
-                    renderInstance = null;
-                }
+            if(currentValue) renderInstance = new RenderInstance(MinecraftClient.getInstance());
+            else if(renderInstance != null){
+                renderInstance.close();
+                renderInstance = null;
             }
         }
     }
-    public CanSpawnDisplay(ILPCConfigList parent, MinecraftClient client){
-        super(parent, "CS", false);
-        this.client = client;
-        try(ConfigListLayer ignored = new ConfigListLayer(this)){
-            canSpawnDisplay = addConfig(new CanSpawnDisplaySwitch());
-            setLPCToolsToggleText(canSpawnDisplay);
-            displayColor = addColorConfig("displayColor", Color4f.fromColor(0x7fffffff));
-            rangeLimit = addRangeLimitConfig(false);
-            rangeLimit.setValueChangeCallback(()->{if(renderInstance != null) renderInstance.onRenderRangeChanged(rangeLimit);});
-            renderDistance = addDoubleConfig("renderDistance", 32, 16, 512);
-            renderMethod = addConfig(new RenderMethodConfig());
-            renderMethod.setValueChangeCallback(()->{if(renderInstance != null) renderInstance.resetRender();});
-            renderXRays = addBooleanConfig("renderXRays", true);
-        }
-    }
-    private static final IRenderMethod[] renderMethods = {
-        new MinihudStyleRenderMethod(),
-        new FullSurfaceRenderMethod(),
-        new LineCubeRenderMethod()
-    };
-    private RenderInstance renderInstance;
 }

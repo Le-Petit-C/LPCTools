@@ -13,8 +13,6 @@ import net.minecraft.fluid.FluidState;
 import net.minecraft.item.BlockItem;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
-import net.minecraft.state.property.Properties;
-import net.minecraft.state.property.Property;
 import net.minecraft.util.Hand;
 import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.math.BlockPos;
@@ -22,8 +20,6 @@ import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.GameMode;
 import org.jetbrains.annotations.NotNull;
-
-import java.util.Collection;
 
 import static lpctools.lpcfymasaapi.configbutton.derivedConfigs.LimitOperationSpeedConfig.OperationResult.NO_OPERATION;
 import static lpctools.lpcfymasaapi.configbutton.derivedConfigs.LimitOperationSpeedConfig.OperationResult.OPERATED;
@@ -108,7 +104,7 @@ public class OnEndTick implements ClientTickEvents.EndTick {
             if(!isNear) return false;
             else if(!isContainingLiquid(state)) return false;
         }
-        if(blacklistBlocks.contains(state.getBlock())) return false;
+        if(blockBlackListConfig.contains(state.getBlock())) return false;
         if(!isZeroHardBlock(state)) return false;
         if(state.isAir()) return false;
         if(!isReplaceable(state) && isContainingLiquid(state)) return true;
@@ -121,7 +117,7 @@ public class OnEndTick implements ClientTickEvents.EndTick {
     }
     private boolean isStackOk(ItemStack stack){
         Item item = stack.getItem();
-        if(blacklistItems.contains(item)) return false;
+        if(item instanceof BlockItem blockItem && blockBlackListConfig.contains(blockItem.getBlock())) return false;
         if (!(item instanceof BlockItem blockItem)) return false;
         Block block = blockItem.getBlock();
         if (block.getHardness() != 0) return false;
@@ -129,15 +125,9 @@ public class OnEndTick implements ClientTickEvents.EndTick {
         if (canBeReplacedByFluid(state)) return false;
         FluidState fluidState = state.getFluidState();
         if (fluidState.getLevel() != 0) return false;
-        Collection<Property<?>> properties = state.getProperties();
-        if (properties.contains(Properties.WATERLOGGED)) return false;
-        if (properties.contains(Properties.AGE_1)) return false;
-        if (properties.contains(Properties.AGE_2)) return false;
-        if (properties.contains(Properties.AGE_3)) return false;
-        if (properties.contains(Properties.AGE_4)) return false;
-        if (properties.contains(Properties.AGE_5)) return false;
-        if (properties.contains(Properties.AGE_7)) return false;
-        if (properties.contains(Properties.AGE_15)) return false;
-        return !properties.contains(Properties.AGE_25);
+        if (block instanceof Waterloggable) return false;
+        //noinspection RedundantIfStatement
+        if (block instanceof PlantBlock) return false;
+        return true;
     }
 }

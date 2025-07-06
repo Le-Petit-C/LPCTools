@@ -21,6 +21,9 @@ public interface ILPCConfigList extends ILPCConfigBase{
         getConfigs().add(config);
         return config;
     }
+    default void addConfigs(ILPCConfig... configs){
+        for(ILPCConfig config : configs) addConfig(config);
+    }
 
     default String getTitleFullTranslationKey(){return getFullTranslationKey() + ".title";}
     default String getTitleDisplayName(){return StringUtils.translate(getTitleFullTranslationKey());}

@@ -16,6 +16,7 @@ import java.util.function.Supplier;
 
 import static lpctools.debugs.DebugConfigs.*;
 import static lpctools.generic.GenericConfigs.*;
+import static lpctools.generic.GenericData.*;
 import static lpctools.util.DataUtils.*;
 
 @SuppressWarnings("unused")

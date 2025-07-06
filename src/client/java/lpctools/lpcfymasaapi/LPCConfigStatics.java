@@ -16,6 +16,7 @@ import net.minecraft.item.Item;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Map;
 import java.util.Stack;
 import java.util.function.Consumer;
 import java.util.function.IntConsumer;
@@ -59,8 +60,11 @@ public interface LPCConfigStatics {
     static DoubleConfig addDoubleConfig(ILPCConfigList list, @NotNull String nameKey, double defaultDouble, double minValue, double maxValue, @Nullable ILPCValueChangeCallback callback){
         return list.addConfig(new DoubleConfig(list, nameKey, defaultDouble, minValue, maxValue, callback));
     }
-    static HotkeyConfig addHotkeyConfig(ILPCConfigList list, @NotNull String nameKey, @Nullable String defaultStorageString, @NotNull IHotkeyCallback callBack){
+    static HotkeyConfig addHotkeyConfig(ILPCConfigList list, @NotNull String nameKey, @Nullable String defaultStorageString, @Nullable IHotkeyCallback callBack){
         return list.addConfig(new HotkeyConfig(list, nameKey, defaultStorageString, callBack));
+    }
+    static HotkeyConfig addHotkeyConfig(ILPCConfigList list, @NotNull String nameKey, @Nullable String defaultStorageString){
+        return list.addConfig(new HotkeyConfig(list, nameKey, defaultStorageString));
     }
     static BooleanHotkeyConfig addBooleanHotkeyConfig(ILPCConfigList list, @NotNull String nameKey, boolean defaultBoolean, @Nullable String defaultStorageString){
         return list.addConfig(new BooleanHotkeyConfig(list, nameKey, defaultBoolean, defaultStorageString));
@@ -119,6 +123,12 @@ public interface LPCConfigStatics {
     static <T> ArrayOptionListConfig<T> addArrayOptionListConfig(ILPCConfigList list, @NotNull String nameKey, ILPCValueChangeCallback callback){
         return list.addConfig(new ArrayOptionListConfig<>(list, nameKey, callback));
     }
+    static <T> ArrayOptionListConfig<T> addArrayOptionListConfig(ILPCConfigList list, @NotNull String nameKey, Map<? extends String, ? extends T> values){
+        return list.addConfig(new ArrayOptionListConfig<>(list, nameKey, values));
+    }
+    static <T> ArrayOptionListConfig<T> addArrayOptionListConfig(ILPCConfigList list, @NotNull String nameKey, Map<? extends String, ? extends T> values, ILPCValueChangeCallback callback){
+        return list.addConfig(new ArrayOptionListConfig<>(list, nameKey, values, callback));
+    }
     static ConfigListOptionListConfig addConfigListOptionListConfig(ILPCConfigList list, @NotNull String nameKey){
         return list.addConfig(new ConfigListOptionListConfig(list, nameKey));
     }
@@ -158,10 +168,10 @@ public interface LPCConfigStatics {
     static ItemListConfig addItemListConfig(ILPCConfigList list, String nameKey, @Nullable Iterable<Item> defaultValue){
         return list.addConfig(new ItemListConfig(list, nameKey, defaultValue));
     }
-    static BlockListConfig addBlockListConfig(ILPCConfigList list, String nameKey, @Nullable Iterable<Block> defaultValue, ILPCValueChangeCallback callback){
+    static BlockListConfig addBlockListConfig(ILPCConfigList list, String nameKey, @Nullable Iterable<? extends Block> defaultValue, ILPCValueChangeCallback callback){
         return list.addConfig(new BlockListConfig(list, nameKey, defaultValue, callback));
     }
-    static BlockListConfig addBlockListConfig(ILPCConfigList list, String nameKey, @Nullable Iterable<Block> defaultValue){
+    static BlockListConfig addBlockListConfig(ILPCConfigList list, String nameKey, @Nullable Iterable<? extends Block> defaultValue){
         return list.addConfig(new BlockListConfig(list, nameKey, defaultValue));
     }
     static BlockItemListConfig addBlockItemListConfig(ILPCConfigList list, String nameKey, @Nullable Iterable<BlockItem> defaultValue, ILPCValueChangeCallback callback){
@@ -225,6 +235,9 @@ public interface LPCConfigStatics {
     static HotkeyConfig addHotkeyConfig(@NotNull String nameKey, @Nullable String defaultStorageString, @NotNull IHotkeyCallback callBack){
         return addHotkeyConfig(peekConfigList(), nameKey, defaultStorageString, callBack);
     }
+    static HotkeyConfig addHotkeyConfig(@NotNull String nameKey, @Nullable String defaultStorageString){
+        return addHotkeyConfig(peekConfigList(), nameKey, defaultStorageString);
+    }
     static BooleanHotkeyConfig addBooleanHotkeyConfig(@NotNull String nameKey, boolean defaultBoolean, @Nullable String defaultStorageString){
         return addBooleanHotkeyConfig(peekConfigList(), nameKey, defaultBoolean, defaultStorageString);
     }
@@ -285,6 +298,12 @@ public interface LPCConfigStatics {
     static <T> ArrayOptionListConfig<T> addArrayOptionListConfig(@NotNull String nameKey, ILPCValueChangeCallback callback){
         return addArrayOptionListConfig(peekConfigList(), nameKey, callback);
     }
+    static <T> ArrayOptionListConfig<T> addArrayOptionListConfig(@NotNull String nameKey, Map<? extends String, ? extends T> values){
+        return addArrayOptionListConfig(peekConfigList(), nameKey, values);
+    }
+    static <T> ArrayOptionListConfig<T> addArrayOptionListConfig(@NotNull String nameKey, Map<? extends String, ? extends T> values, ILPCValueChangeCallback callback){
+        return addArrayOptionListConfig(peekConfigList(), nameKey, values, callback);
+    }
     static ConfigListOptionListConfig addConfigListOptionListConfig(@NotNull String nameKey){
         return addConfigListOptionListConfig(peekConfigList(), nameKey);
     }
@@ -324,10 +343,10 @@ public interface LPCConfigStatics {
     static ItemListConfig addItemListConfig(String nameKey, @Nullable Iterable<Item> defaultValue){
         return addItemListConfig(peekConfigList(), nameKey, defaultValue);
     }
-    static BlockListConfig addBlockListConfig(String nameKey, @Nullable Iterable<Block> defaultValue, ILPCValueChangeCallback callback){
+    static BlockListConfig addBlockListConfig(String nameKey, @Nullable Iterable<? extends Block> defaultValue, ILPCValueChangeCallback callback){
         return addBlockListConfig(peekConfigList(), nameKey, defaultValue, callback);
     }
-    static BlockListConfig addBlockListConfig(String nameKey, @Nullable Iterable<Block> defaultValue){
+    static BlockListConfig addBlockListConfig(String nameKey, @Nullable Iterable<? extends Block> defaultValue){
         return addBlockListConfig(peekConfigList(), nameKey, defaultValue);
     }
     static BlockItemListConfig addBlockItemListConfig(String nameKey, @Nullable Iterable<BlockItem> defaultValue, ILPCValueChangeCallback callback){

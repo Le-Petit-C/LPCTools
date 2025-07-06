@@ -4,13 +4,14 @@ import fi.dy.masa.malilib.hotkeys.KeyCallbackToggleBoolean;
 import lpctools.lpcfymasaapi.Registries;
 import lpctools.lpcfymasaapi.configbutton.derivedConfigs.*;
 import lpctools.lpcfymasaapi.configbutton.transferredConfigs.*;
-import lpctools.lpcfymasaapi.interfaces.ILPCValueChangeCallback;
+import lpctools.tools.ToolConfigs;
 import net.minecraft.block.Block;
 import net.minecraft.block.Blocks;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.world.ClientWorld;
-import net.minecraft.item.Item;
+import net.minecraft.item.BlockItem;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.world.BlockView;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -18,10 +19,35 @@ import java.util.HashSet;
 
 import static lpctools.lpcfymasaapi.LPCConfigStatics.*;
 import static lpctools.tools.ToolUtils.*;
-import static lpctools.tools.fillingAssistant.Data.*;
-import static lpctools.util.DataUtils.*;
+import static lpctools.tools.fillingAssistant.FillingAssistantData.*;
 
 public class FillingAssistant {
+    public static final ThirdListConfig FAConfig = new ThirdListConfig(ToolConfigs.toolConfigs, "FA", false);
+    static {listStack.push(FAConfig);}
+    public static final BooleanHotkeyConfig fillingAssistant = addBooleanHotkeyConfig("fillingAssistant", false, null, FillingAssistant::fillingAssistantConfigCallback);
+    static {fillingAssistant.getKeybind().setCallback(new KeyCallbackToggleBoolean(fillingAssistant));}
+    public static final LimitOperationSpeedConfig limitPlaceSpeedConfig = addLimitOperationSpeedConfig(false, 1);
+    public static final ReachDistanceConfig reachDistanceConfig = addReachDistanceConfig(FillingAssistant::reachDistanceConfigCallback);
+    public static final IntegerConfig testDistanceConfig = addIntegerConfig("testDistance", 6, 6, 64, FillingAssistant::testDistanceChangeCallback);
+    public static final BooleanConfig disableOnLeftDownConfig = addBooleanConfig("disableOnLeftDown", true);
+    public static final BooleanConfig disableOnGUIOpened = addBooleanConfig("disableOnGUIOpened", false);
+    public static final ObjectListConfig.BlockItemListConfig placeableItemsConfig = addBlockItemListConfig("placeableItems", defaultPlaceableItemList);
+    public static final ObjectListConfig.BlockListConfig passableBlocksConfig = addBlockListConfig("passableBlocks", defaultPassableBlockList);
+    public static final BooleanConfig transparentAsPassableConfig = addBooleanConfig("transparentAsPassable", true);
+    public static final BooleanConfig notOpaqueAsPassableConfig = addBooleanConfig("notOpaqueAsPassable", true);
+    public static final ObjectListConfig.BlockListConfig requiredBlocksConfig = addBlockListConfig("requiredBlocks", defaultRequiredBlockWhiteList);
+    public static final BooleanConfig offhandFillingConfig = addBooleanConfig("offhandFilling", false);
+    public static final RangeLimitConfig limitFillingRange = addRangeLimitConfig(false);
+    public static final ArrayOptionListConfig<OuterRangeBlockMethod> outerRangeBlockMethod = addArrayOptionListConfig(limitFillingRange, "outerRangeBlockMethod", outerRangeBlockMethods);
+    static {listStack.pop();}
+    
+    private static void fillingAssistantConfigCallback() {
+        if(fillingAssistant.getBooleanValue()) enableTool();
+        else disableTool(null);
+    }
+    private static void reachDistanceConfigCallback(){testDistanceConfig.setMin((int)reachDistanceConfig.getAsDouble() + 1);}
+    private static void testDistanceChangeCallback(){if(runner != null) runner.setTestDistance(testDistanceConfig.getAsInt());}
+    
     public static void enableTool(){
         if(runner != null) return;
         runner = new PlaceBlockTick();
@@ -38,8 +64,8 @@ public class FillingAssistant {
         fillingAssistant.setBooleanValue(false);
         displayDisableReason(fillingAssistant, reasonKey);
     }
-    public static @NotNull HashSet<Item> getPlaceableItems(){return placeableItems;}
-    public static @NotNull HashSet<Block> getPassableBlocks(){return passableBlocks;}
+    public static @NotNull HashSet<BlockItem> getPlaceableItems(){return placeableItemsConfig.set;}
+    public static @NotNull HashSet<Block> getPassableBlocks(){return passableBlocksConfig.set;}
     public static boolean isBlockUnpassable(Block block){
         if(transparentAsPassableConfig.getAsBoolean() && block.getDefaultState().isTransparent()) return false;
         if(notOpaqueAsPassableConfig.getAsBoolean() && !block.getDefaultState().isOpaque()) return false;
@@ -53,82 +79,20 @@ public class FillingAssistant {
         }
         else return true;
     }
-    public static @NotNull HashSet<Block> getRequiredBlocks(){return requiredBlocks;}
+    public static @NotNull HashSet<Block> getRequiredBlocks(){return requiredBlocksConfig.set;}
     public static boolean required(Block block){return getRequiredBlocks().contains(block);}
     public static boolean required(BlockPos pos){
         ClientWorld world = MinecraftClient.getInstance().world;
         if (world != null) return required(world.getBlockState(pos).getBlock());
         else return false;
     }
-    public static void init(){
-        fillingAssistant = addBooleanHotkeyConfig("fillingAssistant", false, null, ()->onMainValueChanged(fillingAssistant.getBooleanValue()));
-        fillingAssistant.getKeybind().setCallback(new KeyCallbackToggleBoolean(fillingAssistant));
-        limitPlaceSpeedConfig = addLimitOperationSpeedConfig(false, 1);
-        reachDistanceConfig = addReachDistanceConfig(
-            ()->testDistanceConfig.setMin((int)reachDistanceConfig.getAsDouble() + 1)
-        );
-        testDistanceConfig = addIntegerConfig("testDistance", 6, 6, 64, new TestDistanceChangeCallback());
-        disableOnLeftDownConfig = addBooleanConfig("disableOnLeftDown", true);
-        disableOnGUIOpened = addBooleanConfig("disableOnGUIOpened", false);
-        placeableItemsConfig = addStringListConfig("placeableItems", defaultPlaceableItemIdList, () -> placeableItems = itemSetFromIds(placeableItemsConfig.getStrings()));
-        passableBlocksConfig = addStringListConfig("passableBlocks", defaultPassableBlockIdList, () -> passableBlocks = blockSetFromIds(passableBlocksConfig.getStrings()));
-        transparentAsPassableConfig = addBooleanConfig("transparentAsPassable", true);
-        notOpaqueAsPassableConfig = addBooleanConfig("notOpaqueAsPassable", true);
-        requiredBlocksConfig = addStringListConfig("requiredBlocks", defaultRequiredBlockIdList, () -> requiredBlocks = blockSetFromIds(requiredBlocksConfig.getStrings()));
-        offhandFillingConfig = addBooleanConfig("offhandFilling", false);
-        limitFillingRange = addRangeLimitConfig(false);
-        outerRangeBlockMethod = addArrayOptionListConfig(limitFillingRange, "outerRangeBlockMethod");
-        for(OuterRangeBlockMethod method : OuterRangeBlockMethod.values())
-            outerRangeBlockMethod.addOption(method.getKey(), method);
-    }
-
-    enum OuterRangeBlockMethod {
-        AS_UNPASSABLE("lpctools.configs.tools.outerRangeBlockMethods.asUnpassable", block -> true),
-        AS_PASSABLE("lpctools.configs.tools.outerRangeBlockMethods.asPassable", block -> false),
-        AS_ORIGIN("lpctools.configs.tools.outerRangeBlockMethods.asOrigin", FillingAssistant::isBlockUnpassable);
-        public final String translationKey;
-        public final Method method;
-        public interface Method{ boolean isBlockUnpassable(Block block);}
-        OuterRangeBlockMethod(String translationKey, Method method){
-            this.translationKey = translationKey;
-            this.method = method;
-        }
-        String getKey(){return translationKey;}
-        boolean isBlockUnpassable(Block block){return method.isBlockUnpassable(block);}
-        boolean isUnpassable(BlockPos pos){
-            ClientWorld world = MinecraftClient.getInstance().world;
+    public interface OuterRangeBlockMethod {
+        boolean isBlockUnpassable(Block block);
+        default boolean isUnpassable(BlockPos pos, @Nullable BlockView world){
             if(world != null) return isBlockUnpassable(world.getBlockState(pos).getBlock());
             else return isBlockUnpassable(Blocks.VOID_AIR);
         }
     }
 
-    static BooleanHotkeyConfig fillingAssistant;
-    static LimitOperationSpeedConfig limitPlaceSpeedConfig;
-    static ReachDistanceConfig reachDistanceConfig;
-    static IntegerConfig testDistanceConfig;
-    static BooleanConfig disableOnLeftDownConfig;
-    static BooleanConfig disableOnGUIOpened;
-    static StringListConfig placeableItemsConfig;
-    static StringListConfig passableBlocksConfig;
-    static BooleanConfig transparentAsPassableConfig;
-    static BooleanConfig notOpaqueAsPassableConfig;
-    static StringListConfig requiredBlocksConfig;
-    static BooleanConfig offhandFillingConfig;
-    static RangeLimitConfig limitFillingRange;
-    static ArrayOptionListConfig<OuterRangeBlockMethod> outerRangeBlockMethod;
     @Nullable private static PlaceBlockTick runner = null;
-    @NotNull private static HashSet<Item> placeableItems = new HashSet<>(defaultPlaceableItemList);
-    @NotNull private static HashSet<Block> passableBlocks = new HashSet<>(defaultPassableBlockList);
-    @NotNull private static HashSet<Block> requiredBlocks = new HashSet<>(defaultRequiredBlockWhiteList);
-
-    public static void onMainValueChanged(boolean currentValue) {
-        if(currentValue) enableTool();
-        else disableTool(null);
-    }
-    private static class TestDistanceChangeCallback implements ILPCValueChangeCallback {
-        @Override public void onValueChanged() {
-            if(runner != null)
-                runner.setTestDistance(testDistanceConfig.getAsInt());
-        }
-    }
 }

@@ -7,7 +7,6 @@
     "BlockReplaceAction",
     "ClientPlayNetworkHandlerMixin",
     "DisplayClickSlotArguments",
-    "HappyGhastEntityMixin",
     "MinecraftWindowMixin",
     "MinecraftWindowMixin$GLFWVersionRecord",
     "OnMouseButtonReturnMixin",
@@ -15,11 +14,13 @@
     "SpriteContentsMixin",
     "WorldChunkMixin",
     "events.OnScreenChanged",
+    "HappyGhastRidingTweak.ClientPlayerEntityMixin",
+    "HappyGhastRidingTweak.HappyGhastEntityMixin",
+    "HappyGhastRidingTweak.PlayerInputC2SPacketMixin",
+    "MASAMixins.LayerRangeMixin",
     "MASAMixins.litematicaMixin.DataManagerMixin",
     "MASAMixins.MuteMASAConfigMinMaxMixin.ConfigDoubleMixin",
-    "MASAMixins.MuteMASAConfigMinMaxMixin.ConfigIntegerMixin",
-    "PlayerInputC2SPacketMixin",
-    "MASAMixins.LayerRangeMixin"
+    "MASAMixins.MuteMASAConfigMinMaxMixin.ConfigIntegerMixin"
   ],
   "injectors": {
     "defaultRequire": 1

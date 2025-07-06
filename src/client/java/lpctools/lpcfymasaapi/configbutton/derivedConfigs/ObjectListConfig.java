@@ -27,7 +27,7 @@ public class ObjectListConfig<T> extends StringListConfig {
         getStrings().forEach(str->set.add(converter.apply(str)));
         setValueChangeCallback(callback);
     }
-    public ObjectListConfig(@NotNull ILPCConfigList parent, String nameKey, @Nullable Iterable<T> defaultValue, NamedFunction<String, T> converter, NamedFunction<T, String> backConverter, @Nullable ILPCValueChangeCallback callback) {
+    public ObjectListConfig(@NotNull ILPCConfigList parent, String nameKey, @Nullable Iterable<? extends T> defaultValue, NamedFunction<String, T> converter, NamedFunction<T, String> backConverter, @Nullable ILPCValueChangeCallback callback) {
         super(parent, nameKey, convertToImmutableList(defaultValue, backConverter));
         this.converter = converter;
         if(defaultValue != null) defaultValue.forEach(set::add);
@@ -68,10 +68,10 @@ public class ObjectListConfig<T> extends StringListConfig {
     public static class BlockListConfig extends ObjectListConfig<Block> {
         public static final NamedFunction<String, Block> converter = id->getBlockFromId(id, true);
         public static final NamedFunction<Block, String> backConverter = DataUtils::getBlockId;
-        public BlockListConfig(@NotNull ILPCConfigList parent, String nameKey, @Nullable Iterable<Block> defaultValue, @Nullable ILPCValueChangeCallback callback) {
+        public BlockListConfig(@NotNull ILPCConfigList parent, String nameKey, @Nullable Iterable<? extends Block> defaultValue, @Nullable ILPCValueChangeCallback callback) {
             super(parent, nameKey, defaultValue, converter, backConverter, callback);
         }
-        public BlockListConfig(@NotNull ILPCConfigList parent, String nameKey, @Nullable Iterable<Block> defaultValue) {
+        public BlockListConfig(@NotNull ILPCConfigList parent, String nameKey, @Nullable Iterable<? extends Block> defaultValue) {
             this(parent, nameKey, defaultValue, null);
         }
     }

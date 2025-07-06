@@ -29,6 +29,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.concurrent.CompletableFuture;
 
+import static lpctools.tools.slightXRay.SlightXRayData.*;
 import static lpctools.util.AlgorithmUtils.iterateInManhattanDistance;
 import static lpctools.util.BlockUtils.isFluid;
 
@@ -122,7 +123,7 @@ public class DataInstance implements AutoCloseable, ClientChunkEvents.Load, Clie
     }
     private void testPos(World world, BlockPos pos){
         BlockState state = world.getBlockState(pos);
-        MutableInt color = SlightXRay.XRayBlocks.get(state.getBlock());
+        MutableInt color = XRayBlocks.get(state.getBlock());
         if(color == null){removePos(pos); return;}
         for(BlockPos pos1 : iterateInManhattanDistance(pos, 2)) {
             if(doShowAround(world.getBlockState(pos1))){
@@ -140,9 +141,9 @@ public class DataInstance implements AutoCloseable, ClientChunkEvents.Load, Clie
     private void testChunkAsync(ClientWorld world, ChunkPos pos, double distanceSquare){
         ChunkTask task = ChunkTask.buildTask(world, pos);
         if(task != null) {
-            HashMap<Block, MutableInt> XRayBlocks;
-            synchronized (SlightXRay.XRayBlocks){XRayBlocks = new HashMap<>(SlightXRay.XRayBlocks);}
-            updateFutures.add(new UpdateData(pos, GenericUtils.supplyAsync(()->task.testCurrentChunk(XRayBlocks), distanceSquare), distanceSquare));
+            HashMap<Block, MutableInt> copy;
+            synchronized (XRayBlocks){copy = new HashMap<>(XRayBlocks);}
+            updateFutures.add(new UpdateData(pos, GenericUtils.supplyAsync(()->task.testCurrentChunk(copy), distanceSquare), distanceSquare));
         }
     }
     

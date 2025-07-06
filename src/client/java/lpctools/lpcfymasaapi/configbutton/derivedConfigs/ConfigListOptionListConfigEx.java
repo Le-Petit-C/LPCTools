@@ -47,6 +47,7 @@ public class ConfigListOptionListConfigEx<T extends ILPCConfigList> extends Arra
                 if (data == null) continue;
                 data.setValueFromParentJsonObject(selections);
             }
+            onValueChanged();
         }
         else warnFailedLoadingConfig(this, element);
     }

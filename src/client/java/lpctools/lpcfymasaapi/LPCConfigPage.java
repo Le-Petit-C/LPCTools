@@ -42,10 +42,13 @@ public class LPCConfigPage implements IConfigHandler, Supplier<GuiBase>, ILPCCon
     }
     public Reference getModReference(){return modReference;}
     //给当前页面新添一列
-    public LPCConfigList addList(String nameKey){
-        lists.add(new LPCConfigList(this, nameKey));
+    public <T extends LPCConfigList> T addList(T list){
+        lists.add(list);
         widgetPosition.add(0);
-        return lists.getLast();
+        return list;
+    }
+    public LPCConfigList addList(String nameKey){
+        return addList(new LPCConfigList(this, nameKey));
     }
     @NotNull public InputHandler getInputHandler(){
         if(inputHandler == null) inputHandler = new InputHandler(modReference);
@@ -54,7 +57,7 @@ public class LPCConfigPage implements IConfigHandler, Supplier<GuiBase>, ILPCCon
     //显示当前页面
     public void showPage(){
         if(pageInstance != null) pageInstance.initGui();
-        else pageInstance = new ConfigPageInstance(this);
+        else pageInstance = new ConfigPageInstance();
         if(MinecraftClient.getInstance().currentScreen != pageInstance)
             GuiBase.openGui(pageInstance);
     }
@@ -66,7 +69,7 @@ public class LPCConfigPage implements IConfigHandler, Supplier<GuiBase>, ILPCCon
     //获取当前列
     public LPCConfigList getList(){return lists.get(selectedIndex);}
     @Override public GuiBase get() {
-        if(pageInstance == null) pageInstance = new ConfigPageInstance(this);
+        if(pageInstance == null) pageInstance = new ConfigPageInstance();
         return pageInstance;
     }
     //保存和加载已有的全部配置文件内容
@@ -141,7 +144,7 @@ public class LPCConfigPage implements IConfigHandler, Supplier<GuiBase>, ILPCCon
     
     @Override public @NotNull LPCConfigPage getPage() {return this;}
 
-    private static class ConfigPageInstance extends GuiConfigsBase{
+    private class ConfigPageInstance extends GuiConfigsBase{
         @Override public void initGui() {
             super.initGui();
             this.clearOptions();
@@ -149,40 +152,39 @@ public class LPCConfigPage implements IConfigHandler, Supplier<GuiBase>, ILPCCon
             int x = 10;
             int y = 26;
 
-            for (int a = 0; a < parent.lists.size(); ++a) {
-                String listName = parent.lists.get(a).getTitleDisplayName();
+            for (int a = 0; a < lists.size(); ++a) {
+                String listName = lists.get(a).getTitleDisplayName();
                 ButtonGeneric button = new ButtonGeneric(x, y, calculateDisplayLength(listName) * 7, 20, listName);
-                button.setEnabled(parent.selectedIndex != a);
+                button.setEnabled(selectedIndex != a);
                 this.addButton(button, new ButtonListener(a, this));
                 x += button.getWidth() + 2;
             }
         }
         @Override public List<ConfigOptionWrapper> getConfigs() {
-            return parent.lists.get(parent.selectedIndex).buildConfigWrappers(new ArrayList<>());
+            return lists.get(selectedIndex).buildConfigWrappers(new ArrayList<>());
         }
         @Override public void removed(){
             super.removed();
-            parent.pageInstance = null;
+            pageInstance = null;
             //malilib中并不总会更新热键，比如如果退出配置界面时有配置被ThirdListConfig收起了就不会更新，这样子能强制它更新一下
             InputEventHandler.getKeybindManager().updateUsedKeys();
         }
 
-        @Override protected boolean useKeybindSearch() {return parent.lists.get(parent.selectedIndex).hasHotkeyConfig();}
+        @Override protected boolean useKeybindSearch() {return lists.get(selectedIndex).hasHotkeyConfig();}
 
-        ConfigPageInstance(LPCConfigPage parent) {
-            super(10, 50, parent.modReference.modId, null, parent.getFullTranslationKey() + ".title", parent.modReference.getModVersion());
-            this.parent = parent;
+        ConfigPageInstance() {
+            super(10, 50, modReference.modId, null, getFullTranslationKey() + ".title", modReference.getModVersion());
         }
         void select(int index){
-            if(index == parent.selectedIndex) return;
+            if(index == selectedIndex) return;
             WidgetListConfigOptions widget = getListWidget();
             if(widget != null){
-                parent.widgetPosition.set(parent.selectedIndex, widget.getScrollbar().getValue());
+                widgetPosition.set(selectedIndex, widget.getScrollbar().getValue());
                 reCreateListWidget(); // apply the new config width
             }
-            parent.selectedIndex = index;
+            selectedIndex = index;
             initGui();
-            if(widget != null) widget.getScrollbar().setValue(parent.widgetPosition.get(index));
+            if(widget != null) widget.getScrollbar().setValue(widgetPosition.get(index));
         }
 
         private static int calculateDisplayLength(String str) {
@@ -197,7 +199,6 @@ public class LPCConfigPage implements IConfigHandler, Supplier<GuiBase>, ILPCCon
             }
             return length;
         }
-        private final LPCConfigPage parent;
 
         private record ButtonListener(int index, ConfigPageInstance parent) implements IButtonActionListener {
             @Override public void actionPerformedWithButton(ButtonBase button, int mouseButton) {parent.select(index);}

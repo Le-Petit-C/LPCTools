@@ -1,23 +1,21 @@
 package lpctools.generic;
 
-import com.google.common.collect.ImmutableList;
+import lpctools.lpcfymasaapi.LPCConfigList;
 import lpctools.lpcfymasaapi.configbutton.derivedConfigs.ConfigOpenGuiConfig;
+import lpctools.lpcfymasaapi.configbutton.derivedConfigs.ObjectListConfig;
 import lpctools.lpcfymasaapi.configbutton.derivedConfigs.ThirdListConfig;
 import lpctools.lpcfymasaapi.configbutton.transferredConfigs.BooleanConfig;
 import lpctools.lpcfymasaapi.configbutton.transferredConfigs.IntegerConfig;
-import lpctools.lpcfymasaapi.configbutton.transferredConfigs.StringListConfig;
 import lpctools.lpcfymasaapi.interfaces.ILPCValueChangeCallback;
 import lpctools.util.javaex.PriorityThreadPoolExecutor;
-import net.minecraft.block.Block;
-import net.minecraft.block.Blocks;
 
-import java.util.HashSet;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
+import static lpctools.LPCTools.*;
+import static lpctools.generic.GenericData.*;
 import static lpctools.generic.GenericRegistry.*;
 import static lpctools.lpcfymasaapi.LPCConfigStatics.*;
-import static lpctools.util.DataUtils.*;
 
 //TODO:生成条件：不检测脚下方块（蝙蝠）
 //TODO:生成条件：天空光照/方块光照切换
@@ -25,31 +23,20 @@ import static lpctools.util.DataUtils.*;
 
 public class GenericConfigs {
     private static final ILPCValueChangeCallback runSpawnConditionChanged = SPAWN_CONDITION_CHANGED.run()::onSpawnConditionChanged;
-    public static void init(){
-        configOpenGuiConfig = addConfigOpenGuiConfig("Z,C");
-        spawnLightLevelLimit = addIntegerConfig("spawnLightLevelLimit", 0, 0, 15, runSpawnConditionChanged);
-        liquidPlacesAsCanSpawn = addBooleanConfig("liquidPlacesAsCanSpawn", false,runSpawnConditionChanged);
-        extraSpawnBlockIds = addStringListConfig("extraSpawnBlocks",
-            idListFromBlockList(defaultExtraSpawnBlocks),
-            ()->{
-            extraSpawnBlocks.clear();
-            extraSpawnBlocks.addAll(blockSetFromIds(extraSpawnBlockIds));
-            runSpawnConditionChanged.onValueChanged();
-        });
-        extraNoSpawnBlockIds = addStringListConfig("extraNoSpawnBlocks",
-            idListFromBlockList(defaultExtraNoSpawnBlocks),
-            ()->{
-            extraNoSpawnBlocks.clear();
-            extraNoSpawnBlocks.addAll(blockSetFromIds(extraNoSpawnBlockIds));
-            runSpawnConditionChanged.onValueChanged();
-        });
-        reachDistanceAlwaysUnlimited = addBooleanConfig("reachDistanceAlwaysUnlimited", false);
-        useIndependentThreadPool = addThirdListConfig("threadPool", true);
-        threadCountConfig = addIntegerConfig(useIndependentThreadPool, "threadCount", 4,
-            1, Runtime.getRuntime().availableProcessors(),
-            GenericConfigs::threadCountConfigCallback);
-        threadCountConfig.onValueChanged();
-    }
+    public static final LPCConfigList generic = new LPCConfigList(page, "generic");
+    static {listStack.push(generic);}
+    @SuppressWarnings("unused")
+    public static final ConfigOpenGuiConfig configOpenGuiConfig = addConfigOpenGuiConfig("Z,C");
+    public static final IntegerConfig spawnLightLevelLimit = addIntegerConfig("spawnLightLevelLimit", 0, 0, 15, runSpawnConditionChanged);
+    public static final BooleanConfig liquidPlacesAsCanSpawn = addBooleanConfig("liquidPlacesAsCanSpawn", false,runSpawnConditionChanged);
+    public static final ObjectListConfig.BlockListConfig extraSpawnBlocks = addBlockListConfig("extraSpawnBlocks", defaultExtraSpawnBlocks);
+    public static final ObjectListConfig.BlockListConfig extraNoSpawnBlocks = addBlockListConfig("extraNoSpawnBlocks", defaultExtraNoSpawnBlocks);
+    public static final BooleanConfig reachDistanceAlwaysUnlimited = addBooleanConfig("reachDistanceAlwaysUnlimited", false);
+    public static final ThirdListConfig useIndependentThreadPool = addThirdListConfig("threadPool", true);
+    public static final IntegerConfig threadCountConfig = addIntegerConfig(useIndependentThreadPool, "threadCount", 4,
+        1, Runtime.getRuntime().availableProcessors(), GenericConfigs::threadCountConfigCallback);
+    static {threadCountConfig.onValueChanged();}
+    static {listStack.pop();}
     
     private static void threadCountConfigCallback(){
         PriorityThreadPoolExecutor newPool;
@@ -61,21 +48,4 @@ public class GenericConfigs {
         threadPool = newPool;
         if(oldPool != null) oldPool.close();
     }
-
-    public static ConfigOpenGuiConfig configOpenGuiConfig;
-    public static IntegerConfig spawnLightLevelLimit;
-    public static BooleanConfig liquidPlacesAsCanSpawn;
-    public static StringListConfig extraSpawnBlockIds;
-    public static StringListConfig extraNoSpawnBlockIds;
-    public static BooleanConfig reachDistanceAlwaysUnlimited;
-    public static ThirdListConfig useIndependentThreadPool;
-    public static IntegerConfig threadCountConfig;
-
-    public static final ImmutableList<Block> defaultExtraSpawnBlocks = ImmutableList.of();
-    public static final ImmutableList<Block> defaultExtraNoSpawnBlocks = ImmutableList.of(
-        Blocks.BEDROCK
-    );
-    public static final HashSet<Block> extraSpawnBlocks = new HashSet<>(defaultExtraSpawnBlocks);
-    public static final HashSet<Block> extraNoSpawnBlocks = new HashSet<>(defaultExtraNoSpawnBlocks);
-    public static PriorityThreadPoolExecutor threadPool;
 }

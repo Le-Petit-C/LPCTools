@@ -8,9 +8,7 @@ import lpctools.lpcfymasaapi.interfaces.ILPCValueChangeCallback;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
-import java.util.NoSuchElementException;
-import java.util.Objects;
+import java.util.*;
 import java.util.function.Supplier;
 
 public class ArrayOptionListConfig<T> extends OptionListConfig implements Supplier<T> {
@@ -87,10 +85,17 @@ public class ArrayOptionListConfig<T> extends OptionListConfig implements Suppli
     @Override public T get() {return getCurrentUserdata();}
     public T getCurrentUserdata(){return getCurrentOptionData().userData();}
     public ArrayOptionListConfig(@NotNull ILPCConfigList parent, @NotNull String nameKey) {
-        this(parent, nameKey, null);
+        this(parent, nameKey, null, null);
     }
     public ArrayOptionListConfig(@NotNull ILPCConfigList parent, @NotNull String nameKey, @Nullable ILPCValueChangeCallback callback) {
+        this(parent, nameKey, null, callback);
+    }
+    public ArrayOptionListConfig(@NotNull ILPCConfigList parent, @NotNull String nameKey, @Nullable Map<? extends String, ? extends T> values) {
+        this(parent, nameKey, values, null);
+    }
+    public ArrayOptionListConfig(@NotNull ILPCConfigList parent, @NotNull String nameKey, @Nullable Map<? extends String, ? extends T> values, @Nullable ILPCValueChangeCallback callback) {
         super(parent, nameKey, EmptyOptionData.of(), callback);
+        if (values != null) values.forEach(this::addOption);
     }
     public void addOption(@NotNull String translationKey, T userData){
         OptionList<T> list = getCurrentOptionData().options();

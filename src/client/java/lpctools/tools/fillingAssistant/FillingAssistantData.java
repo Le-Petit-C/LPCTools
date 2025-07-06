@@ -1,21 +1,28 @@
 package lpctools.tools.fillingAssistant;
 
 import com.google.common.collect.ImmutableList;
+import lpctools.LPCTools;
+import lpctools.util.DataUtils;
 import net.minecraft.block.Block;
 import net.minecraft.block.Blocks;
+import net.minecraft.item.BlockItem;
 import net.minecraft.item.Item;
 import net.minecraft.item.Items;
 import org.jetbrains.annotations.NotNull;
 
-import static lpctools.util.DataUtils.*;
+import java.util.Map;
 
-public class Data {
-    public static final @NotNull ImmutableList<Item> defaultPlaceableItemList = initDefaultPlaceableItemList();
-    public static final @NotNull ImmutableList<String> defaultPlaceableItemIdList = idListFromItemList(defaultPlaceableItemList);
+import static lpctools.tools.fillingAssistant.FillingAssistant.*;
+
+public class FillingAssistantData {
+    public static final @NotNull ImmutableList<BlockItem> defaultPlaceableItemList = DataUtils.blockItemListFromItemList(initDefaultPlaceableItemList(), LPCTools.LOGGER);
     public static final @NotNull ImmutableList<Block> defaultPassableBlockList = ImmutableList.of();
-    public static final @NotNull ImmutableList<String> defaultPassableBlockIdList = idListFromBlockList(defaultPassableBlockList);
     public static final @NotNull ImmutableList<Block> defaultRequiredBlockWhiteList = initDefaultRequiredBlockWhiteList();
-    public static final @NotNull ImmutableList<String> defaultRequiredBlockIdList = idListFromBlockList(defaultRequiredBlockWhiteList);
+    public static final Map<String, OuterRangeBlockMethod> outerRangeBlockMethods = Map.of(
+        "lpctools.configs.tools.outerRangeBlockMethods.asUnpassable", block -> true,
+        "lpctools.configs.tools.outerRangeBlockMethods.asPassable", block -> false,
+        "lpctools.configs.tools.outerRangeBlockMethods.asOrigin", FillingAssistant::isBlockUnpassable
+    );
     private static @NotNull ImmutableList<Item> initDefaultPlaceableItemList(){
         return ImmutableList.of(
                 Items.STONE,

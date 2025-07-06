@@ -14,7 +14,7 @@ public class HandRestock {
     public interface IRestockTest{
         boolean isStackOk(ItemStack stack);
     }
-    public record SearchInSet(@NotNull Set<Item> set) implements IRestockTest{
+    public record SearchInSet(@NotNull Set<? extends Item> set) implements IRestockTest{
         @Override public boolean isStackOk(ItemStack stack){
             return set.contains(stack.getItem());
         }

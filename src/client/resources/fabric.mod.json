@@ -17,7 +17,7 @@
 	"entrypoints": {
 		"client": [
 			"lpctools.lpcfymasaapi.LPCAPIInit",
-			"lpctools.LPCTools"
+			"lpctools.LPCToolsInitializer"
 		],
 		"modmenu": [
 			"lpctools.compact.ModMenu.ModMenu"

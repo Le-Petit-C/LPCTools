@@ -2,6 +2,8 @@ package lpctools.debugs;
 
 import fi.dy.masa.malilib.hotkeys.IKeybind;
 import fi.dy.masa.malilib.hotkeys.KeyAction;
+import lpctools.LPCTools;
+import lpctools.lpcfymasaapi.LPCConfigList;
 import lpctools.lpcfymasaapi.Registries;
 import lpctools.lpcfymasaapi.configbutton.transferredConfigs.BooleanConfig;
 import lpctools.lpcfymasaapi.configbutton.transferredConfigs.HotkeyConfig;
@@ -18,33 +20,28 @@ import net.minecraft.util.math.BlockPos;
 import static lpctools.generic.GenericUtils.mayMobSpawnOn;
 import static lpctools.lpcfymasaapi.LPCConfigStatics.*;
 
+@SuppressWarnings("unused")
 public class DebugConfigs {
-    public static BooleanConfig renderDebugShapes;
-    public static BooleanConfig displayClickSlotArguments;
-    public static InstancedRenderTest instancedRenderTest;
-    public static HotkeyConfig keyActDebug;
-    public static BooleanConfig showExecuteTime;
-    public static HotkeyConfig getBlockStateHotkey;
-    public static BooleanConfig briefBlockState;
-    public static MandelbrotSetRender mandelbrotSetRender;
-    public static void init(){
-        renderDebugShapes = addBooleanConfig(
-                "renderDebugShapes", false, DebugConfigs::renderDebugShapesValueRefreshCallback);
-        displayClickSlotArguments = addBooleanConfig("displayClickSlotArguments", false);
-        instancedRenderTest = addConfig(new InstancedRenderTest(peekConfigList()));
-        keyActDebug = addHotkeyConfig("keyActDebug", "", (action, bind)->{
-            ClientPlayerEntity player = MinecraftClient.getInstance().player;
-            if(player == null) return false;
-            player.setPitch(0);
-            player.setYaw(0);
-            return true;
-        });
-        showExecuteTime = addBooleanConfig("showExecuteTime", false);
-        getBlockStateHotkey = addHotkeyConfig("getBlockStateHotkey", "", DebugConfigs::getBlockStateHotkeyCallback);
-        briefBlockState = addBooleanConfig("briefBlockState", true);
-        mandelbrotSetRender = addConfig(new MandelbrotSetRender(peekConfigList()));
-    }
+    public static final LPCConfigList debugs = new LPCConfigList(LPCTools.page, "debugs");
+    static {listStack.push(debugs);}
+    public static final BooleanConfig renderDebugShapes = addBooleanConfig(
+        "renderDebugShapes", false, DebugConfigs::renderDebugShapesValueRefreshCallback);
+    public static final BooleanConfig displayClickSlotArguments = addBooleanConfig("displayClickSlotArguments", false);
+    public static final InstancedRenderTest instancedRenderTest = addConfig(new InstancedRenderTest(debugs));
+    public static final HotkeyConfig keyActDebug = addHotkeyConfig("keyActDebug", "", DebugConfigs::keyActDebugCallback);
+    public static final BooleanConfig showExecuteTime = addBooleanConfig("showExecuteTime", false);
+    public static final HotkeyConfig getBlockStateHotkey = addHotkeyConfig("getBlockStateHotkey", "", DebugConfigs::getBlockStateHotkeyCallback);
+    public static final BooleanConfig briefBlockState = addBooleanConfig("briefBlockState", true);
+    public static final MandelbrotSetRender mandelbrotSetRender = addConfig(new MandelbrotSetRender(debugs));
+    static {listStack.pop();}
     
+    private static boolean keyActDebugCallback(KeyAction action, IKeybind bind){
+        ClientPlayerEntity player = MinecraftClient.getInstance().player;
+        if(player == null) return false;
+        player.setPitch(0);
+        player.setYaw(0);
+        return true;
+    }
     private static void renderDebugShapes(WorldRenderContext context){
         try(MaskLayer layer = new MaskLayer()){
             layer.enableBlend().disableCullFace().enableDepthTest();

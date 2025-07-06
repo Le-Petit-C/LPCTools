@@ -18,6 +18,7 @@ import net.minecraft.resource.Resource;
 import net.minecraft.resource.ResourceManager;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
+import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Vector4f;
@@ -25,6 +26,7 @@ import org.lwjgl.opengl.GL30;
 
 import java.io.IOException;
 import java.util.*;
+import java.util.function.Consumer;
 
 @SuppressWarnings("unused")
 public class DataUtils {
@@ -49,16 +51,23 @@ public class DataUtils {
     public static String getBlockId(Block block){return Registries.BLOCK.getEntry(block).getIdAsString();}
     public static @NotNull ImmutableList<String> idListFromBlockList(@Nullable Iterable<Block> list){
         ArrayList<String> ret = new ArrayList<>();
-        if(list != null)
-            for(Block block : list)
-                ret.add(getBlockId(block));
+        if(list != null) list.forEach(block->ret.add(getBlockId(block)));
         return ImmutableList.copyOf(ret);
     }
-    public static @NotNull ImmutableList<String> idListFromItemList(@Nullable Iterable<Item> list){
+    public static @NotNull ImmutableList<BlockItem> blockItemListFromItemList(@Nullable Iterable<? extends Item> list, Consumer<? super Item> warn){
+        ArrayList<BlockItem> ret = new ArrayList<>();
+        if(list != null) list.forEach(item->{
+            if(item instanceof BlockItem blockItem) ret.add(blockItem);
+            else warn.accept(item);
+        });
+        return ImmutableList.copyOf(ret);
+    }
+    public static @NotNull ImmutableList<BlockItem> blockItemListFromItemList(@Nullable Iterable<? extends Item> list, Logger warn){
+        return blockItemListFromItemList(list, item->warn.warn("{} not instanceof blockItem", item));
+    }
+    public static @NotNull ImmutableList<String> idListFromItemList(@Nullable Iterable<? extends Item> list){
         ArrayList<String> ret = new ArrayList<>();
-        if(list != null)
-            for(Item item : list)
-                ret.add(getItemId(item));
+        if(list != null) list.forEach(item->ret.add(getItemId(item)));
         return ImmutableList.copyOf(ret);
     }
     public interface ClassCaster<T, U>{U cast(T v) throws ClassCastException;}
