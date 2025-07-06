@@ -17,6 +17,7 @@
     "HappyGhastRidingTweak.ClientPlayerEntityMixin",
     "HappyGhastRidingTweak.HappyGhastEntityMixin",
     "HappyGhastRidingTweak.PlayerInputC2SPacketMixin",
+    "LocatorBarTweakMixin.InGameHudMixin",
     "MASAMixins.LayerRangeMixin",
     "MASAMixins.litematicaMixin.DataManagerMixin",
     "MASAMixins.MuteMASAConfigMinMaxMixin.ConfigDoubleMixin",

@@ -47,6 +47,7 @@ public class LPCConfigPage implements IConfigHandler, Supplier<GuiBase>, ILPCCon
         widgetPosition.add(0);
         return list;
     }
+    @SuppressWarnings("unused")
     public LPCConfigList addList(String nameKey){
         return addList(new LPCConfigList(this, nameKey));
     }

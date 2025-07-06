@@ -29,6 +29,7 @@
 			"environment": "client"
 		}
 	],
+	"accessWidener" : "lpctools.accesswidener",
 	"depends": {
 		"fabricloader": ">=0.16.2",
 		"minecraft": [

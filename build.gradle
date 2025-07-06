@@ -23,14 +23,13 @@ repositories {
 
 loom {
 	splitEnvironmentSourceSets()
-
 	mods {
-		"LPCTweaks" {
+		"LPCTools" {
 			sourceSet sourceSets.main
 			sourceSet sourceSets.client
 		}
 	}
-
+	accessWidenerPath = file("src/client/resources/lpctools.accesswidener")
 }
 
 dependencies {
