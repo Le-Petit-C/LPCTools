@@ -4,6 +4,7 @@ import lpctools.LPCTools;
 import lpctools.lpcfymasaapi.LPCConfigList;
 import lpctools.tools.autoGrindstone.AutoGrindstone;
 import lpctools.tools.antiSpawner.AntiSpawner;
+import lpctools.tools.blockBreakRestriction.BlockBreakRestriction;
 import lpctools.tools.canSpawnDisplay.CanSpawnDisplay;
 import lpctools.tools.slightXRay.SlightXRay;
 import lpctools.tools.fillingAssistant.FillingAssistant;
@@ -18,5 +19,6 @@ public class ToolConfigs {
         toolConfigs.addConfig(AutoGrindstone.AGConfig);
         toolConfigs.addConfig(AntiSpawner.ASConfig);
         toolConfigs.addConfig(CanSpawnDisplay.CSConfig);
+        toolConfigs.addConfig(BlockBreakRestriction.BBConfig);
     }
 }

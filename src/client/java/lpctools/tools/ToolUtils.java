@@ -33,4 +33,9 @@ public class ToolUtils {
         if(tool.getAsBoolean()) displayEnableMessage(tool);
         else displayDisableMessage(tool);
     }
+    @SuppressWarnings("unused")
+    public static void displayToggleMessage(boolean b, ILPCConfig tool){
+        if(b) displayEnableMessage(tool);
+        else displayDisableMessage(tool);
+    }
 }

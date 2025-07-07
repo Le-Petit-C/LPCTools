@@ -13,6 +13,7 @@
     "SplashTextResourceSupplierMixin",
     "SpriteContentsMixin",
     "WorldChunkMixin",
+    "blockBreakRestriction.ClientPlayerInteractionManagerMixin",
     "events.OnScreenChanged",
     "HappyGhastRidingTweak.ClientPlayerEntityMixin",
     "HappyGhastRidingTweak.HappyGhastEntityMixin",
