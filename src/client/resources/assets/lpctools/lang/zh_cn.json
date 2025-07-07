@@ -184,5 +184,6 @@
   "lpctools.configs.utils.limitOperationSpeed.name": "限制操作速度",
   "lpctools.configs.utils.limitOperationSpeed.comment": "限制此工具的操作速度，防止在一些服务器里因发包过快被踢出",
   "lpctools.configs.utils.limitOperationSpeed.maxOperationSpeed.name": "最大操作速度",
-  "lpctools.configs.utils.limitOperationSpeed.maxOperationSpeed.comment": "最大操作速度，通常是一游戏刻的最大平均操作次数"
+  "lpctools.configs.utils.limitOperationSpeed.maxOperationSpeed.comment": "最大操作速度，通常是一游戏刻的最大平均操作次数",
+  "lpctools.mew~": "喵~"
 }

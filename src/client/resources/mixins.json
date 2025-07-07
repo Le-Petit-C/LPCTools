@@ -28,5 +28,6 @@
     "defaultRequire": 1
   },
   "mixins": [
+    "MASAMixins.WidgetConfigOptionMixin"
   ]
 }

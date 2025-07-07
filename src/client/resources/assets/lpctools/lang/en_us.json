@@ -184,5 +184,6 @@
   "lpctools.configs.utils.limitOperationSpeed.name": "Limit Operation Speed",
   "lpctools.configs.utils.limitOperationSpeed.comment": "Limit the operation speed of the tool\nPrevent being kicked out of some servers due to excessive packet sending",
   "lpctools.configs.utils.limitOperationSpeed.maxOperationSpeed.name": "Maximum Operation Speed",
-  "lpctools.configs.utils.limitOperationSpeed.maxOperationSpeed.comment": "Maximum Operation Speed\nUsually the maximum average operation times per tick"
+  "lpctools.configs.utils.limitOperationSpeed.maxOperationSpeed.comment": "Maximum Operation Speed\nUsually the maximum average operation times per tick",
+  "lpctools.mew~": "mew~"
 }

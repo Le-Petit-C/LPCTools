@@ -1,5 +1,6 @@
 package lpctools.debugs;
 
+import fi.dy.masa.malilib.gui.button.ButtonBase;
 import fi.dy.masa.malilib.hotkeys.IKeybind;
 import fi.dy.masa.malilib.hotkeys.KeyAction;
 import lpctools.LPCTools;
@@ -7,6 +8,7 @@ import lpctools.lpcfymasaapi.LPCConfigList;
 import lpctools.lpcfymasaapi.Registries;
 import lpctools.lpcfymasaapi.configbutton.transferredConfigs.BooleanConfig;
 import lpctools.lpcfymasaapi.configbutton.transferredConfigs.HotkeyConfig;
+import lpctools.lpcfymasaapi.configbutton.uniqueConfigs.ButtonConfig;
 import lpctools.lpcfymasaapi.gl.MaskLayer;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents;
@@ -19,6 +21,7 @@ import net.minecraft.util.math.BlockPos;
 
 import static lpctools.generic.GenericUtils.mayMobSpawnOn;
 import static lpctools.lpcfymasaapi.LPCConfigStatics.*;
+import static lpctools.util.DataUtils.*;
 
 @SuppressWarnings("unused")
 public class DebugConfigs {
@@ -33,7 +36,15 @@ public class DebugConfigs {
     public static final HotkeyConfig getBlockStateHotkey = addHotkeyConfig("getBlockStateHotkey", "", DebugConfigs::getBlockStateHotkeyCallback);
     public static final BooleanConfig briefBlockState = addBooleanConfig("briefBlockState", true);
     public static final MandelbrotSetRender mandelbrotSetRender = addConfig(new MandelbrotSetRender(debugs));
+    public static final ButtonConfig buttonConfigTest = addButtonConfig("button", DebugConfigs::buttonConfigTestCallback);
+    static {Registries.ON_SCREEN_CHANGED.register(newScreen -> buttonConfigTest.buttonName = null);}
     static {listStack.pop();}
+    
+    private static void buttonConfigTestCallback(ButtonBase button, int mouseButton){
+        notifyPlayer("❤Ahh❤It's❤Button❤" + mouseButton + "❤", false);
+        if(buttonConfigTest.buttonName == null) buttonConfigTest.buttonName = Text.translatable("lpctools.mew~").getString();
+        else buttonConfigTest.buttonName = "❤" + buttonConfigTest.buttonName + "❤";
+    }
     
     private static boolean keyActDebugCallback(KeyAction action, IKeybind bind){
         ClientPlayerEntity player = MinecraftClient.getInstance().player;

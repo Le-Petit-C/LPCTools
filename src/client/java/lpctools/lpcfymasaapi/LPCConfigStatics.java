@@ -2,10 +2,12 @@ package lpctools.lpcfymasaapi;
 
 import com.google.common.collect.ImmutableList;
 import fi.dy.masa.malilib.config.IConfigOptionListEntry;
+import fi.dy.masa.malilib.gui.button.IButtonActionListener;
 import fi.dy.masa.malilib.hotkeys.IHotkeyCallback;
 import fi.dy.masa.malilib.util.data.Color4f;
 import lpctools.lpcfymasaapi.configbutton.derivedConfigs.*;
 import lpctools.lpcfymasaapi.configbutton.transferredConfigs.*;
+import lpctools.lpcfymasaapi.configbutton.uniqueConfigs.ButtonConfig;
 import lpctools.lpcfymasaapi.interfaces.ILPCConfig;
 import lpctools.lpcfymasaapi.interfaces.ILPCConfigList;
 import lpctools.lpcfymasaapi.interfaces.ILPCValueChangeCallback;
@@ -179,6 +181,18 @@ public interface LPCConfigStatics {
     }
     static BlockItemListConfig addBlockItemListConfig(ILPCConfigList list, String nameKey, @Nullable Iterable<BlockItem> defaultValue){
         return list.addConfig(new BlockItemListConfig(list, nameKey, defaultValue));
+    }
+    static ButtonConfig addButtonConfig(ILPCConfigList list, String nameKey, @Nullable String buttonName, @Nullable IButtonActionListener buttonActionListener){
+        return list.addConfig(new ButtonConfig(list, nameKey, buttonName, buttonActionListener));
+    }
+    static ButtonConfig addButtonConfig(ILPCConfigList list, String nameKey, @Nullable String buttonName){
+        return list.addConfig(new ButtonConfig(list, nameKey, buttonName));
+    }
+    static ButtonConfig addButtonConfig(ILPCConfigList list, String nameKey, @Nullable IButtonActionListener buttonActionListener){
+        return list.addConfig(new ButtonConfig(list, nameKey, buttonActionListener));
+    }
+    static ButtonConfig addButtonConfig(ILPCConfigList list, String nameKey){
+        return list.addConfig(new ButtonConfig(list, nameKey));
     }
 
     //不带List版本的，使用栈存储当前list，方便操作
@@ -354,5 +368,17 @@ public interface LPCConfigStatics {
     }
     static BlockItemListConfig addBlockItemListConfig(String nameKey, @Nullable Iterable<BlockItem> defaultValue){
         return addBlockItemListConfig(peekConfigList(), nameKey, defaultValue);
+    }
+    static ButtonConfig addButtonConfig(String nameKey, @Nullable String buttonName, @Nullable IButtonActionListener buttonActionListener){
+        return addButtonConfig(peekConfigList(), nameKey, buttonName, buttonActionListener);
+    }
+    static ButtonConfig addButtonConfig(String nameKey, @Nullable String buttonName){
+        return addButtonConfig(peekConfigList(), nameKey, buttonName);
+    }
+    static ButtonConfig addButtonConfig(String nameKey, @Nullable IButtonActionListener buttonActionListener){
+        return addButtonConfig(peekConfigList(), nameKey, buttonActionListener);
+    }
+    static ButtonConfig addButtonConfig(String nameKey){
+        return addButtonConfig(peekConfigList(), nameKey);
     }
 }

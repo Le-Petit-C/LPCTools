@@ -1,12 +1,11 @@
 package lpctools.lpcfymasaapi.interfaces;
 
 import fi.dy.masa.malilib.config.IConfigBase;
-import fi.dy.masa.malilib.config.IConfigResettable;
 import lpctools.lpcfymasaapi.LPCConfigPage;
 import net.minecraft.text.Text;
 import org.jetbrains.annotations.NotNull;
 
-public interface ILPCConfig extends ILPCConfigBase, IConfigBase, IConfigResettable, ILPCConfigNotifiable {
+public interface ILPCConfig extends ILPCConfigBase, IConfigBase, ILPCConfigNotifiable {
     //当前配置是否有关热键，决定是否启用热键查找
     boolean hasHotkey();
     @Override @NotNull ILPCConfigList getParent();
