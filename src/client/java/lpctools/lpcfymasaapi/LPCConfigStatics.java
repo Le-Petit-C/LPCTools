@@ -7,6 +7,7 @@ import fi.dy.masa.malilib.hotkeys.IHotkeyCallback;
 import fi.dy.masa.malilib.util.data.Color4f;
 import lpctools.lpcfymasaapi.configbutton.derivedConfigs.*;
 import lpctools.lpcfymasaapi.configbutton.transferredConfigs.*;
+import lpctools.lpcfymasaapi.configbutton.uniqueConfigs.BooleanHotkeyThirdListConfig;
 import lpctools.lpcfymasaapi.configbutton.uniqueConfigs.ButtonConfig;
 import lpctools.lpcfymasaapi.interfaces.ILPCConfig;
 import lpctools.lpcfymasaapi.interfaces.ILPCConfigList;
@@ -194,6 +195,9 @@ public interface LPCConfigStatics {
     static ButtonConfig addButtonConfig(ILPCConfigList list, String nameKey){
         return list.addConfig(new ButtonConfig(list, nameKey));
     }
+    static BooleanHotkeyThirdListConfig addBooleanHotkeyThirdListConfig(ILPCConfigList list, String nameKey, boolean defaultBoolean, boolean defaultExpanded, String defaultHotkeyStorageString, ILPCValueChangeCallback callback, boolean onValueChangedWhenListCycled){
+        return addConfig(new BooleanHotkeyThirdListConfig(list, nameKey, defaultBoolean, defaultExpanded, defaultHotkeyStorageString, callback, onValueChangedWhenListCycled));
+    }
 
     //不带List版本的，使用栈存储当前list，方便操作
     @NotNull Stack<ILPCConfigList> listStack = new Stack<>();
@@ -380,5 +384,8 @@ public interface LPCConfigStatics {
     }
     static ButtonConfig addButtonConfig(String nameKey){
         return addButtonConfig(peekConfigList(), nameKey);
+    }
+    static BooleanHotkeyThirdListConfig addBooleanHotkeyThirdListConfig(String nameKey, boolean defaultBoolean, boolean defaultExpanded, String defaultHotkeyStorageString, ILPCValueChangeCallback callback, boolean onValueChangedWhenListCycled){
+        return addBooleanHotkeyThirdListConfig(peekConfigList(), nameKey, defaultBoolean, defaultExpanded, defaultHotkeyStorageString, callback, onValueChangedWhenListCycled);
     }
 }

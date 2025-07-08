@@ -8,7 +8,7 @@ import lpctools.lpcfymasaapi.LPCConfigList;
 import lpctools.lpcfymasaapi.Registries;
 import lpctools.lpcfymasaapi.configbutton.transferredConfigs.BooleanConfig;
 import lpctools.lpcfymasaapi.configbutton.transferredConfigs.HotkeyConfig;
-import lpctools.lpcfymasaapi.configbutton.uniqueConfigs.BooleanHotkeyThirdList;
+import lpctools.lpcfymasaapi.configbutton.uniqueConfigs.BooleanHotkeyThirdListConfig;
 import lpctools.lpcfymasaapi.configbutton.uniqueConfigs.ButtonConfig;
 import lpctools.lpcfymasaapi.gl.MaskLayer;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext;
@@ -37,8 +37,8 @@ public class DebugConfigs {
     public static final HotkeyConfig getBlockStateHotkey = addHotkeyConfig("getBlockStateHotkey", "", DebugConfigs::getBlockStateHotkeyCallback);
     public static final BooleanConfig briefBlockState = addBooleanConfig("briefBlockState", true);
     public static final MandelbrotSetRender mandelbrotSetRender = addConfig(new MandelbrotSetRender(debugs));
-    public static final BooleanHotkeyThirdList booleanHotkeyThirdListTest =
-        addConfig(new BooleanHotkeyThirdList(debugs, "booleanHotkeyThirdListTest", false, false, null, DebugConfigs::booleanHotkeyThirdListTestCallback, false));
+    public static final BooleanHotkeyThirdListConfig booleanHotkeyThirdListTest =
+        addBooleanHotkeyThirdListConfig(debugs, "booleanHotkeyThirdListTest", false, false, null, DebugConfigs::booleanHotkeyThirdListTestCallback, false);
     public static final ButtonConfig buttonConfigTest = addButtonConfig(booleanHotkeyThirdListTest, "button", DebugConfigs::buttonConfigTestCallback);
     static {Registries.ON_SCREEN_CHANGED.register(newScreen -> buttonConfigTest.buttonName = null);}
     static {listStack.pop();}

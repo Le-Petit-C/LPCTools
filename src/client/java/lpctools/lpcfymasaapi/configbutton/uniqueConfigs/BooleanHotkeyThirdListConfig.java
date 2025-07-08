@@ -1,18 +1,19 @@
 package lpctools.lpcfymasaapi.configbutton.uniqueConfigs;
 
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonPrimitive;
 import fi.dy.masa.malilib.config.IConfigBoolean;
-import fi.dy.masa.malilib.config.IConfigOptionList;
 import fi.dy.masa.malilib.config.IConfigOptionListEntry;
 import fi.dy.masa.malilib.gui.GuiConfigsBase;
+import fi.dy.masa.malilib.gui.LeftRight;
+import fi.dy.masa.malilib.gui.MaLiLibIcons;
 import fi.dy.masa.malilib.hotkeys.IHotkey;
 import fi.dy.masa.malilib.hotkeys.IKeybind;
 import fi.dy.masa.malilib.hotkeys.KeybindMulti;
 import fi.dy.masa.malilib.hotkeys.KeybindSettings;
 import lpctools.lpcfymasaapi.LPCConfigList;
-import lpctools.lpcfymasaapi.interfaces.ILPCConfig;
-import lpctools.lpcfymasaapi.interfaces.ILPCConfigList;
-import lpctools.lpcfymasaapi.interfaces.ILPCValueChangeCallback;
-import lpctools.lpcfymasaapi.interfaces.IThirdListBase;
+import lpctools.lpcfymasaapi.interfaces.*;
 import net.minecraft.text.Text;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -22,10 +23,10 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 
-//TODO:getAsJsonElement setValueFromJsonElement
+import static lpctools.lpcfymasaapi.LPCConfigUtils.*;
 
 //一个有三个按钮：展开，boolean，hotkey的配置
-public class BooleanHotkeyThirdList extends LPCConfigBase implements IThirdListBase, IConfigBoolean, IConfigOptionList, IHotkey {
+public class BooleanHotkeyThirdListConfig extends LPCConfigBase implements IThirdListBase, IConfigBoolean, IConfigOptionListEx, IHotkey {
     public final boolean defaultBoolean, defaultExpanded;
     public final @NotNull String defaultHotkeyStorageString;
     private boolean booleanValue;
@@ -33,7 +34,7 @@ public class BooleanHotkeyThirdList extends LPCConfigBase implements IThirdListB
     private final @NotNull IKeybind keybind;
     public final LPCConfigList subConfigs;
     public boolean onValueChangedWhenListCycled;
-    public BooleanHotkeyThirdList(@NotNull ILPCConfigList parent, @NotNull String nameKey, boolean defaultBoolean, boolean defaultExpanded, @Nullable String defaultHotkeyStorageString, @Nullable ILPCValueChangeCallback callback, boolean onValueChangedWhenListCycled) {
+    public BooleanHotkeyThirdListConfig(@NotNull ILPCConfigList parent, @NotNull String nameKey, boolean defaultBoolean, boolean defaultExpanded, @Nullable String defaultHotkeyStorageString, @Nullable ILPCValueChangeCallback callback, boolean onValueChangedWhenListCycled) {
         super(parent, nameKey, callback);
         booleanValue = this.defaultBoolean = defaultBoolean;
         this.defaultExpanded = defaultExpanded;
@@ -52,7 +53,7 @@ public class BooleanHotkeyThirdList extends LPCConfigBase implements IThirdListB
     }
     @Override protected List<ButtonOption> getButtonOptions() {
         return List.of(
-            buttonOptionsPreset(2, this),
+            new ButtonOption(-1, this::cycleByMouseButton, null, iconButtonAllocator(expanded.icon, LeftRight.CENTER)),
             buttonBooleanPreset(1, this),
             buttonKeybindPreset(3, this)
         );
@@ -80,17 +81,17 @@ public class BooleanHotkeyThirdList extends LPCConfigBase implements IThirdListB
     }
     @Override public @NotNull IKeybind getKeybind() {return keybind;}
     public enum OptionListEnum implements IConfigOptionListEntry{
-        RETRACTED(false, "lpctools.configs.utils.collapsed"),
-        EXPANDED(true, "lpctools.configs.utils.expanded");
+        RETRACTED(false, "lpctools.configs.utils.collapsed", MaLiLibIcons.ARROW_DOWN),
+        EXPANDED(true, "lpctools.configs.utils.expanded", MaLiLibIcons.ARROW_UP);
         public final boolean expanded;
         public final @NotNull String translationKey;
-        OptionListEnum(boolean expanded, @NotNull String translationKey){this.expanded = expanded;this.translationKey = translationKey;}
+        public final MaLiLibIcons icon;
+        OptionListEnum(boolean expanded, @NotNull String translationKey, MaLiLibIcons icon){
+            this.expanded = expanded;this.translationKey = translationKey;this.icon = icon;}
         @Override public String getStringValue() {return String.valueOf(expanded);}
         @Override public String getDisplayName() {return Text.translatable(translationKey).getString();}
         @Override public OptionListEnum cycle(boolean forward) {return expanded ? RETRACTED : EXPANDED;}
-        @Override public OptionListEnum fromString(String value) {
-            return get(Boolean.getBoolean(value));
-        }
+        @Override public OptionListEnum fromString(String value) {return get(Boolean.getBoolean(value));}
         public static OptionListEnum get(boolean b){return b ? EXPANDED : RETRACTED;}
     }
     @Override public OptionListEnum getOptionListValue() {
@@ -106,5 +107,54 @@ public class BooleanHotkeyThirdList extends LPCConfigBase implements IThirdListB
             getPage().updateIfCurrent();
             if(onValueChangedWhenListCycled) onValueChanged();
         }
+    }
+    
+    @Override public @Nullable JsonElement getAsJsonElement() {
+        JsonObject object = new JsonObject();
+        object.add("list", subConfigs.getAsJsonElement());
+        object.addProperty("expanded", expanded.expanded);
+        object.addProperty("booleanValue", booleanValue);
+        object.add("hotkey", keybind.getAsJsonElement());
+        return object;
+    }
+    
+    @Override public void setValueFromJsonElement(@NotNull JsonElement data) {
+        boolean success = true;
+        boolean changed = false;
+        if(data instanceof JsonObject object){
+            JsonElement list = object.get("list");
+            if(list != null) subConfigs.setValueFromJsonElement(list);
+            else success = false;
+            JsonElement booleanValueElement = object.get("booleanValue");
+            if(booleanValueElement instanceof JsonPrimitive primitive){
+                boolean newValue = primitive.getAsBoolean();
+                if(booleanValue != newValue){
+                    booleanValue = newValue;
+                    changed = true;
+                }
+            }
+            else success = false;
+            JsonElement expandedValueElement = object.get("expanded");
+            if(expandedValueElement instanceof JsonPrimitive primitive){
+                OptionListEnum newValue = OptionListEnum.get(primitive.getAsBoolean());
+                if(expanded != newValue) {
+                    expanded = newValue;
+                    if(onValueChangedWhenListCycled)
+                        changed = true;
+                }
+            }
+            else success = false;
+            JsonElement hotkey = object.get("hotkey");
+            if(hotkey != null) {
+                String lastStorageString = keybind.getStringValue();
+                keybind.setValueFromJsonElement(hotkey);
+                if(!Objects.equals(lastStorageString, keybind.getStringValue()))
+                    changed = true;
+            }
+            else success = false;
+        }
+        else success = false;
+        if(!success) warnFailedLoadingConfig(this, data);
+        if(changed) onValueChanged();
     }
 }

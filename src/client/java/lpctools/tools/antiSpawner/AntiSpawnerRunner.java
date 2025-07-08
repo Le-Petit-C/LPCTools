@@ -20,7 +20,7 @@ import static lpctools.util.DataUtils.notifyPlayer;
 public class AntiSpawnerRunner implements ClientTickEvents.EndTick {
     @Override public void onEndTick(MinecraftClient mc) {
         if (mc.player == null || mc.world == null || mc.interactionManager == null) {
-            antiSpawnerConfig.setBooleanValue(false);
+            ASConfig.setBooleanValue(false);
             return;
         }
         if (mc.currentScreen != null) return;

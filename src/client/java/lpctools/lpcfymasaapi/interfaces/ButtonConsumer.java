@@ -9,11 +9,8 @@ import fi.dy.masa.malilib.gui.widgets.WidgetBase;
 import fi.dy.masa.malilib.gui.widgets.WidgetListConfigOptionsBase;
 
 public interface ButtonConsumer {
-    <T extends ButtonBase> T addButton(T button, IButtonActionListener listener);
     @SuppressWarnings("UnusedReturnValue")
-    default ButtonGeneric addButton(int x, int y, int w, boolean rightAlign, String translationKey, IButtonActionListener listener){
-        return addButton(new ButtonGeneric(x, y, w, rightAlign, translationKey), listener);
-    }
+    <T extends ButtonBase> T addButton(T button, IButtonActionListener listener);
     ButtonGeneric createResetButton(int x, int y, IConfigResettable config);
     IKeybindConfigGui getKeybindHost();
     @SuppressWarnings("UnusedReturnValue")
