@@ -29,7 +29,7 @@ import static lpctools.tools.slightXRay.SlightXRayData.*;
 import static lpctools.util.DataUtils.*;
 
 public class SlightXRay{
-    public static final BooleanHotkeyThirdListConfig SXConfig = new BooleanHotkeyThirdListConfig(ToolConfigs.toolConfigs, "SX", false, false, null, SlightXRay::switchChanged, false);
+    public static final BooleanHotkeyThirdListConfig SXConfig = new BooleanHotkeyThirdListConfig(ToolConfigs.toolConfigs, "SX", SlightXRay::switchChanged);
     static {setLPCToolsToggleText(SXConfig);}
     static {listStack.push(SXConfig);}
     public static final ConfigListOptionListConfigEx<ConfigListWithColorMethod> defaultColorMethod = addConfigListOptionListConfigEx("defaultColorMethod", SlightXRay::refreshXRayBlocks);

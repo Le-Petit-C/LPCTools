@@ -15,7 +15,7 @@ import static lpctools.lpcfymasaapi.LPCConfigStatics.*;
 import static lpctools.tools.breakRestriction.BreakRestrictionData.*;
 
 public class BreakRestriction {
-    public static final BooleanHotkeyThirdListConfig BRConfig = new BooleanHotkeyThirdListConfig(ToolConfigs.toolConfigs, "BR", false, false, null, null, false);
+    public static final BooleanHotkeyThirdListConfig BRConfig = new BooleanHotkeyThirdListConfig(ToolConfigs.toolConfigs, "BR");
     static {ToolUtils.setLPCToolsToggleText(BRConfig);}
     static {listStack.push(BRConfig);}
     public static final RangeLimitConfig rangeLimit = addConfig(new RangeLimitConfig(BRConfig, false, "BR"){

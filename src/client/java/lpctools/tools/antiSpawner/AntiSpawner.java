@@ -9,7 +9,7 @@ import static lpctools.tools.ToolUtils.setLPCToolsToggleText;
 import static lpctools.tools.antiSpawner.AntiSpawnerData.*;
 
 public class AntiSpawner {
-    public static final BooleanHotkeyThirdListConfig ASConfig = new BooleanHotkeyThirdListConfig(ToolConfigs.toolConfigs, "AS", false, false, null, AntiSpawner::callback, false);
+    public static final BooleanHotkeyThirdListConfig ASConfig = new BooleanHotkeyThirdListConfig(ToolConfigs.toolConfigs, "AS", AntiSpawner::callback);
     static {listStack.push(ASConfig);}
     static {setLPCToolsToggleText(ASConfig);}
     public static final LimitOperationSpeedConfig limitOperationSpeedConfig = addLimitOperationSpeedConfig(false, 1);

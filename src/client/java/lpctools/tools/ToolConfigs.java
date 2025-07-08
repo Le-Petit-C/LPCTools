@@ -9,6 +9,7 @@ import lpctools.tools.canSpawnDisplay.CanSpawnDisplay;
 import lpctools.tools.slightXRay.SlightXRay;
 import lpctools.tools.fillingAssistant.FillingAssistant;
 import lpctools.tools.liquidCleaner.LiquidCleaner;
+import lpctools.tools.tilingTool.TilingTool;
 
 public class ToolConfigs {
     public static final LPCConfigList toolConfigs = new LPCConfigList(LPCTools.page, "tools");
@@ -20,5 +21,6 @@ public class ToolConfigs {
         toolConfigs.addConfig(AntiSpawner.ASConfig);
         toolConfigs.addConfig(CanSpawnDisplay.CSConfig);
         toolConfigs.addConfig(BreakRestriction.BRConfig);
+        toolConfigs.addConfig(TilingTool.TTConfig);
     }
 }

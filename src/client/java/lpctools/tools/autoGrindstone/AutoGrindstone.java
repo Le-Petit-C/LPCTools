@@ -9,7 +9,7 @@ import static lpctools.tools.ToolUtils.*;
 import static lpctools.tools.autoGrindstone.AutoGrindstoneData.*;
 
 public class AutoGrindstone {
-    public static final BooleanHotkeyThirdListConfig AGConfig = new BooleanHotkeyThirdListConfig(ToolConfigs.toolConfigs, "AG", false, false, null, null, false);
+    public static final BooleanHotkeyThirdListConfig AGConfig = new BooleanHotkeyThirdListConfig(ToolConfigs.toolConfigs, "AG");
     static {setLPCToolsToggleText(AGConfig);}
     static {listStack.push(AGConfig);}
     public static final StringListConfig limitEnchantmentsConfig = addStringListConfig("limitEnchantments", defaultStrings);

@@ -30,6 +30,10 @@ public class IntegerConfig extends ConfigInteger implements ILPC_MASAConfigWrapp
     }
     public int setMax(int value){return LPCConfigUtils.muteMaxValue(this, value);}
     public int setMin(int value){return LPCConfigUtils.muteMinValue(this, value);}
+    public IntegerConfig useSlider(boolean b){
+        if(shouldUseSlider() != b) toggleUseSlider();
+        return this;
+    }
 
     @Override public void setValueFromJsonElement(@NotNull JsonElement element) {
         int lastInt = getAsInt();

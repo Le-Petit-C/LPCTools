@@ -20,7 +20,6 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
 import java.util.Objects;
 
 import static lpctools.lpcfymasaapi.LPCConfigUtils.*;
@@ -46,17 +45,21 @@ public class BooleanHotkeyThirdListConfig extends LPCConfigBase implements IThir
         keybind.setCallback((action, bind)->{toggleBooleanValue(); return true;});
         parent.getPage().getInputHandler().addHotkey(this);
     }
+    public BooleanHotkeyThirdListConfig(@NotNull ILPCConfigList parent, @NotNull String nameKey){
+        this(parent, nameKey, false, false, null, null, false);
+    }
+    public BooleanHotkeyThirdListConfig(@NotNull ILPCConfigList parent, @NotNull String nameKey, @Nullable ILPCValueChangeCallback callback){
+        this(parent, nameKey, false, false, null, callback, false);
+    }
     @Override public ArrayList<GuiConfigsBase.ConfigOptionWrapper>
     buildConfigWrappers(ArrayList<GuiConfigsBase.ConfigOptionWrapper> wrapperList){
         if(isExpanded()) return subConfigs.buildConfigWrappers(wrapperList);
         else return wrapperList;
     }
-    @Override protected List<ButtonOption> getButtonOptions() {
-        return List.of(
-            new ButtonOption(-1, this::cycleByMouseButton, null, iconButtonAllocator(expanded.icon, LeftRight.CENTER)),
-            buttonBooleanPreset(1, this),
-            buttonKeybindPreset(3, this)
-        );
+    @Override protected void getButtonOptions(ArrayList<ButtonOption> res) {
+        res.add(new ButtonOption(-1, this::cycleByMouseButton, null, iconButtonAllocator(expanded.icon, LeftRight.CENTER)));
+        res.add(buttonBooleanPreset(1, this));
+        res.add(buttonKeybindPreset(3, this));
     }
     @Override public @NotNull Collection<ILPCConfig> getConfigs() {
         return subConfigs.getConfigs();

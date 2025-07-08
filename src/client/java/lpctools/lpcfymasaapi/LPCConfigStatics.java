@@ -7,8 +7,7 @@ import fi.dy.masa.malilib.hotkeys.IHotkeyCallback;
 import fi.dy.masa.malilib.util.data.Color4f;
 import lpctools.lpcfymasaapi.configbutton.derivedConfigs.*;
 import lpctools.lpcfymasaapi.configbutton.transferredConfigs.*;
-import lpctools.lpcfymasaapi.configbutton.uniqueConfigs.BooleanHotkeyThirdListConfig;
-import lpctools.lpcfymasaapi.configbutton.uniqueConfigs.ButtonConfig;
+import lpctools.lpcfymasaapi.configbutton.uniqueConfigs.*;
 import lpctools.lpcfymasaapi.interfaces.ILPCConfig;
 import lpctools.lpcfymasaapi.interfaces.ILPCConfigList;
 import lpctools.lpcfymasaapi.interfaces.ILPCValueChangeCallback;
@@ -16,6 +15,7 @@ import lpctools.util.javaex.NamedFunction;
 import net.minecraft.block.Block;
 import net.minecraft.item.BlockItem;
 import net.minecraft.item.Item;
+import net.minecraft.util.math.BlockPos;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -153,50 +153,56 @@ public interface LPCConfigStatics {
     static <T extends ILPCConfigList> ConfigListOptionListConfigEx<T> addConfigListOptionListConfigEx(ILPCConfigList list, @NotNull String nameKey, @Nullable ILPCValueChangeCallback callback){
         return list.addConfig(new ConfigListOptionListConfigEx<>(list, nameKey, callback));
     }
-    static <T> ObjectListConfig<T> addObjectListConfig(ILPCConfigList list, String nameKey, @Nullable ImmutableList<String> defaultValue, NamedFunction<String, T> converter, @Nullable ILPCValueChangeCallback callback){
+    static <T> ObjectListConfig<T> addObjectListConfig(ILPCConfigList list, @NotNull String nameKey, @Nullable ImmutableList<String> defaultValue, NamedFunction<String, T> converter, @Nullable ILPCValueChangeCallback callback){
         return list.addConfig(new ObjectListConfig<>(list, nameKey, defaultValue, converter, callback));
     }
-    static <T> ObjectListConfig<T> addObjectListConfig(ILPCConfigList list, String nameKey, @Nullable Iterable<T> defaultValue, NamedFunction<String, T> converter, NamedFunction<T, String> backConverter, @Nullable ILPCValueChangeCallback callback){
+    static <T> ObjectListConfig<T> addObjectListConfig(ILPCConfigList list, @NotNull String nameKey, @Nullable Iterable<T> defaultValue, NamedFunction<String, T> converter, NamedFunction<T, String> backConverter, @Nullable ILPCValueChangeCallback callback){
         return list.addConfig(new ObjectListConfig<>(list, nameKey, defaultValue, converter, backConverter, callback));
     }
-    static <T> ObjectListConfig<T> addObjectListConfig(ILPCConfigList list, String nameKey, @Nullable ImmutableList<String> defaultValue, NamedFunction<String, T> converter){
+    static <T> ObjectListConfig<T> addObjectListConfig(ILPCConfigList list, @NotNull String nameKey, @Nullable ImmutableList<String> defaultValue, NamedFunction<String, T> converter){
         return list.addConfig(new ObjectListConfig<>(list, nameKey, defaultValue, converter));
     }
-    static <T> ObjectListConfig<T> addObjectListConfig(ILPCConfigList list, String nameKey, @Nullable Iterable<T> defaultValue, NamedFunction<String, T> converter, NamedFunction<T, String> backConverter){
+    static <T> ObjectListConfig<T> addObjectListConfig(ILPCConfigList list, @NotNull String nameKey, @Nullable Iterable<T> defaultValue, NamedFunction<String, T> converter, NamedFunction<T, String> backConverter){
         return list.addConfig(new ObjectListConfig<>(list, nameKey, defaultValue, converter, backConverter));
     }
-    static ItemListConfig addItemListConfig(ILPCConfigList list, String nameKey, @Nullable Iterable<Item> defaultValue, ILPCValueChangeCallback callback){
+    static ItemListConfig addItemListConfig(ILPCConfigList list, @NotNull String nameKey, @Nullable Iterable<Item> defaultValue, ILPCValueChangeCallback callback){
         return list.addConfig(new ItemListConfig(list, nameKey, defaultValue, callback));
     }
-    static ItemListConfig addItemListConfig(ILPCConfigList list, String nameKey, @Nullable Iterable<Item> defaultValue){
+    static ItemListConfig addItemListConfig(ILPCConfigList list, @NotNull String nameKey, @Nullable Iterable<Item> defaultValue){
         return list.addConfig(new ItemListConfig(list, nameKey, defaultValue));
     }
-    static BlockListConfig addBlockListConfig(ILPCConfigList list, String nameKey, @Nullable Iterable<? extends Block> defaultValue, ILPCValueChangeCallback callback){
+    static BlockListConfig addBlockListConfig(ILPCConfigList list, @NotNull String nameKey, @Nullable Iterable<? extends Block> defaultValue, ILPCValueChangeCallback callback){
         return list.addConfig(new BlockListConfig(list, nameKey, defaultValue, callback));
     }
-    static BlockListConfig addBlockListConfig(ILPCConfigList list, String nameKey, @Nullable Iterable<? extends Block> defaultValue){
+    static BlockListConfig addBlockListConfig(ILPCConfigList list, @NotNull String nameKey, @Nullable Iterable<? extends Block> defaultValue){
         return list.addConfig(new BlockListConfig(list, nameKey, defaultValue));
     }
-    static BlockItemListConfig addBlockItemListConfig(ILPCConfigList list, String nameKey, @Nullable Iterable<BlockItem> defaultValue, ILPCValueChangeCallback callback){
+    static BlockItemListConfig addBlockItemListConfig(ILPCConfigList list, @NotNull String nameKey, @Nullable Iterable<BlockItem> defaultValue, ILPCValueChangeCallback callback){
         return list.addConfig(new BlockItemListConfig(list, nameKey, defaultValue, callback));
     }
-    static BlockItemListConfig addBlockItemListConfig(ILPCConfigList list, String nameKey, @Nullable Iterable<BlockItem> defaultValue){
+    static BlockItemListConfig addBlockItemListConfig(ILPCConfigList list, @NotNull String nameKey, @Nullable Iterable<BlockItem> defaultValue){
         return list.addConfig(new BlockItemListConfig(list, nameKey, defaultValue));
     }
-    static ButtonConfig addButtonConfig(ILPCConfigList list, String nameKey, @Nullable String buttonName, @Nullable IButtonActionListener buttonActionListener){
-        return list.addConfig(new ButtonConfig(list, nameKey, buttonName, buttonActionListener));
-    }
-    static ButtonConfig addButtonConfig(ILPCConfigList list, String nameKey, @Nullable String buttonName){
-        return list.addConfig(new ButtonConfig(list, nameKey, buttonName));
-    }
-    static ButtonConfig addButtonConfig(ILPCConfigList list, String nameKey, @Nullable IButtonActionListener buttonActionListener){
+    static ButtonConfig addButtonConfig(ILPCConfigList list, @NotNull String nameKey, @Nullable IButtonActionListener buttonActionListener){
         return list.addConfig(new ButtonConfig(list, nameKey, buttonActionListener));
     }
-    static ButtonConfig addButtonConfig(ILPCConfigList list, String nameKey){
+    static ButtonConfig addButtonConfig(ILPCConfigList list, @NotNull String nameKey){
         return list.addConfig(new ButtonConfig(list, nameKey));
     }
-    static BooleanHotkeyThirdListConfig addBooleanHotkeyThirdListConfig(ILPCConfigList list, String nameKey, boolean defaultBoolean, boolean defaultExpanded, String defaultHotkeyStorageString, ILPCValueChangeCallback callback, boolean onValueChangedWhenListCycled){
+    static BooleanHotkeyThirdListConfig addBooleanHotkeyThirdListConfig(ILPCConfigList list, @NotNull String nameKey, boolean defaultBoolean, boolean defaultExpanded, String defaultHotkeyStorageString, ILPCValueChangeCallback callback, boolean onValueChangedWhenListCycled){
         return addConfig(new BooleanHotkeyThirdListConfig(list, nameKey, defaultBoolean, defaultExpanded, defaultHotkeyStorageString, callback, onValueChangedWhenListCycled));
+    }
+    static BooleanHotkeyThirdListConfig addBooleanHotkeyThirdListConfig(ILPCConfigList list, @NotNull String nameKey, ILPCValueChangeCallback callback){
+        return addConfig(new BooleanHotkeyThirdListConfig(list, nameKey, callback));
+    }
+    static BooleanHotkeyThirdListConfig addBooleanHotkeyThirdListConfig(ILPCConfigList list, @NotNull String nameKey){
+        return addConfig(new BooleanHotkeyThirdListConfig(list, nameKey));
+    }
+    static ButtonHotkeyConfig addButtonHotkeyConfig(ILPCConfigList parent, @NotNull String nameKey, @Nullable String defaultKeyBindStorageString, @Nullable Runnable callback){
+        return addConfig(new ButtonHotkeyConfig(parent, nameKey, defaultKeyBindStorageString, callback));
+    }
+    static BlockPosConfig addBlockPosConfig(ILPCConfigList parent, @NotNull String nameKey, BlockPos defaultPos, boolean defaultBoolean){
+        return addConfig(new BlockPosConfig(parent, nameKey, defaultPos, defaultBoolean));
     }
 
     //不带List版本的，使用栈存储当前list，方便操作
@@ -373,12 +379,6 @@ public interface LPCConfigStatics {
     static BlockItemListConfig addBlockItemListConfig(String nameKey, @Nullable Iterable<BlockItem> defaultValue){
         return addBlockItemListConfig(peekConfigList(), nameKey, defaultValue);
     }
-    static ButtonConfig addButtonConfig(String nameKey, @Nullable String buttonName, @Nullable IButtonActionListener buttonActionListener){
-        return addButtonConfig(peekConfigList(), nameKey, buttonName, buttonActionListener);
-    }
-    static ButtonConfig addButtonConfig(String nameKey, @Nullable String buttonName){
-        return addButtonConfig(peekConfigList(), nameKey, buttonName);
-    }
     static ButtonConfig addButtonConfig(String nameKey, @Nullable IButtonActionListener buttonActionListener){
         return addButtonConfig(peekConfigList(), nameKey, buttonActionListener);
     }
@@ -387,5 +387,17 @@ public interface LPCConfigStatics {
     }
     static BooleanHotkeyThirdListConfig addBooleanHotkeyThirdListConfig(String nameKey, boolean defaultBoolean, boolean defaultExpanded, String defaultHotkeyStorageString, ILPCValueChangeCallback callback, boolean onValueChangedWhenListCycled){
         return addBooleanHotkeyThirdListConfig(peekConfigList(), nameKey, defaultBoolean, defaultExpanded, defaultHotkeyStorageString, callback, onValueChangedWhenListCycled);
+    }
+    static BooleanHotkeyThirdListConfig addBooleanHotkeyThirdListConfig(String nameKey, ILPCValueChangeCallback callback){
+        return addBooleanHotkeyThirdListConfig(peekConfigList(), nameKey, callback);
+    }
+    static BooleanHotkeyThirdListConfig addBooleanHotkeyThirdListConfig(String nameKey){
+        return addBooleanHotkeyThirdListConfig(peekConfigList(), nameKey);
+    }
+    static ButtonHotkeyConfig addButtonHotkeyConfig(String nameKey, @Nullable String defaultKeyBindStorageString, @Nullable Runnable callback){
+        return addButtonHotkeyConfig(peekConfigList(), nameKey, defaultKeyBindStorageString, callback);
+    }
+    static BlockPosConfig addBlockPosConfig(@NotNull String nameKey, BlockPos defaultPos, boolean defaultBoolean){
+        return addBlockPosConfig(peekConfigList(), nameKey, defaultPos, defaultBoolean);
     }
 }

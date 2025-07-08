@@ -135,6 +135,18 @@
   "lpctools.configs.tools.BR.blockTestMethod.blacklist.title": "黑名单",
   "lpctools.configs.tools.BR.blockTestMethod.blacklist.blacklist.name": "黑名单",
   "lpctools.configs.tools.BR.blockTestMethod.blacklist.blacklist.comment": "黑名单",
+  "lpctools.configs.tools.TT.name": "密铺工具",
+  "lpctools.configs.tools.TT.comment": "这个工具能帮你基于选区内方块密铺一定区域",
+  "lpctools.configs.tools.TT.refresh.title": "刷新",
+  "lpctools.configs.tools.TT.refresh.name": "刷新键",
+  "lpctools.configs.tools.TT.refresh.comment": "点击按钮或按下热键以刷新并保存需要密铺的参照选区数据",
+  "lpctools.configs.tools.TT.cornerPos1.name": "角点1",
+  "lpctools.configs.tools.TT.cornerPos1.comment": "参照选区角点1的坐标",
+  "lpctools.configs.tools.TT.cornerPos2.name": "角点2",
+  "lpctools.configs.tools.TT.cornerPos2.comment": "参照选区角点2的坐标",
+  "lpctools.configs.tools.TT.setByLitematica.title": "设置",
+  "lpctools.configs.tools.TT.setByLitematica.name": "使用投影选区设置",
+  "lpctools.configs.tools.TT.setByLitematica.comment": "用当前的投影选取设置参照选区角点数据",
   "lpctools.configs.tweaks.title": "微调",
   "lpctools.configs.tweaks.blockReplaceHotkey.name": "方块替换操作键",
   "lpctools.configs.tweaks.blockReplaceHotkey.comment": "定义一个额外的热键，按下后实现同时按下鼠标左右键替换方块的效果",
@@ -189,5 +201,8 @@
   "lpctools.configs.utils.limitOperationSpeed.maxOperationSpeed.comment": "最大操作速度，通常是一游戏刻的最大平均操作次数",
   "lpctools.configs.utils.collapsed": "已收起",
   "lpctools.configs.utils.expanded": "已展开",
-  "lpctools.mew~": "喵~"
+  "lpctools.configs.utils.coordinateComment": "coordinate",
+  "lpctools.mew~": "喵~",
+  "lpctools.compact.missingLitematica": "无法使用此功能：投影模组缺失",
+  "lpctools.compact.litematica.cantGetSelectionBox": "无法获取到当前投影选取"
 }

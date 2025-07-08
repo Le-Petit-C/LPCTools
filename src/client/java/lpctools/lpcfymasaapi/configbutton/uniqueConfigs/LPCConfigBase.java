@@ -23,7 +23,7 @@ import net.minecraft.text.Text;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.List;
+import java.util.ArrayList;
 import java.util.function.Supplier;
 
 @SuppressWarnings("SameParameterValue")
@@ -47,7 +47,8 @@ public abstract class LPCConfigBase implements ILPCUniqueConfig {
     public void addButtons(int x, int y, float zLevel, int labelWidth, int configWidth, ButtonConsumer consumer) {
         if(this instanceof IConfigResettable resettable)
             consumer.addButton(consumer.createResetButton(x + configWidth + 2, y, resettable), (button, mouseButton)->resettable.resetToDefault());
-        List<ButtonOption> options = getButtonOptions();
+        ArrayList<ButtonOption> options = new ArrayList<>();
+        getButtonOptions(options);
         float weightSum = 0;
         int h = 20;
         FloatArrayList weightList = new FloatArrayList();
@@ -70,15 +71,15 @@ public abstract class LPCConfigBase implements ILPCUniqueConfig {
             int currentX = (int)(weightList.getFloat(a) * weightedWidthSum / weightSum) + shiftList.getInt(a) + x;
             IButtonActionListener listener = option.actionListener;
             Supplier<@Nullable String> supplier = option.buttonId;
-            String _key = supplier == null ? null : supplier.get();
-            String translationKey = _key == null ? "" : _key;
             IButtonActionListener _listener = (button, mouseButton) -> {
                 if(listener != null) listener.actionPerformedWithButton(button, mouseButton);
                 String key = supplier == null ? null : supplier.get();
                 if(key != null) button.setDisplayString(Text.translatable(key).getString());
             };
+            String key = supplier == null ? null : supplier.get();
+            String str = key == null ? "" : Text.translatable(key).getString();
             if(option.allocator != null)
-                option.allocator.create(lastX, y, currentX - lastX - 2, 20, translationKey, _listener, consumer);
+                option.allocator.create(lastX, y, currentX - lastX - 2, 20, str, _listener, consumer);
             lastX = currentX;
             ++a;
         }
@@ -103,13 +104,13 @@ public abstract class LPCConfigBase implements ILPCUniqueConfig {
     }
     
     protected interface IButtonAllocator{
-        void create(int x, int y, int w, int h, String translationKey, IButtonActionListener listener, ButtonConsumer consumer);
+        void create(int x, int y, int w, int h, String str, IButtonActionListener listener, ButtonConsumer consumer);
     }
     //allocator为空表示这个位置不创建按钮，只是占位
     //仅在按钮创建时和被按后使用buttonId更新按钮名称，支持翻译键
     //widthWeight为负时表示此配置按钮宽度是相对按钮高度设置的，不再作为宽度占比使用
     protected record ButtonOption(float widthWeight, @Nullable IButtonActionListener actionListener, @Nullable Supplier<@Nullable String> buttonId, @Nullable IButtonAllocator allocator){}
-    protected abstract List<ButtonOption> getButtonOptions();
+    protected abstract void getButtonOptions(ArrayList<ButtonOption> res);
     @SuppressWarnings("unused")
     public IHotkey createHotkey(@Nullable String defaultStorageString, KeybindSettings settings){
         return new IHotkey() {

@@ -18,9 +18,12 @@ import net.minecraft.resource.Resource;
 import net.minecraft.resource.ResourceManager;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.Vec3i;
 import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.joml.Vector3i;
 import org.joml.Vector4f;
 import org.lwjgl.opengl.GL30;
 
@@ -161,5 +164,11 @@ public class DataUtils {
             (color & 0xff) / 255.0f,
             ((color >>> 24) & 0xff) / 255.0f
         );
+    }
+    public static Vector3i toVector3i(Vec3i vec){
+        return new Vector3i(vec.getX(), vec.getY(), vec.getZ());
+    }
+    public static BlockPos toBlockPos(Vector3i vec){
+        return new BlockPos(vec.x, vec.y, vec.z);
     }
 }

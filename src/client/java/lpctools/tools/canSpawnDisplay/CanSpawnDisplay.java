@@ -15,7 +15,7 @@ import static lpctools.tools.ToolUtils.*;
 import static lpctools.tools.canSpawnDisplay.CanSpawnDisplayData.*;
 
 public class CanSpawnDisplay{
-    public static final BooleanHotkeyThirdListConfig CSConfig = new BooleanHotkeyThirdListConfig(ToolConfigs.toolConfigs, "CS", false, false, null, CanSpawnDisplay::switchCallback, false);
+    public static final BooleanHotkeyThirdListConfig CSConfig = new BooleanHotkeyThirdListConfig(ToolConfigs.toolConfigs, "CS", CanSpawnDisplay::switchCallback);
     static {setLPCToolsToggleText(CSConfig);}
     static {listStack.push(CSConfig);}
     public static final ColorConfig displayColor = addColorConfig("displayColor", Color4f.fromColor(0x7fffffff));

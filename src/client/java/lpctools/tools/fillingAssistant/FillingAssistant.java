@@ -23,7 +23,7 @@ import static lpctools.tools.ToolUtils.*;
 import static lpctools.tools.fillingAssistant.FillingAssistantData.*;
 
 public class FillingAssistant {
-    public static final BooleanHotkeyThirdListConfig FAConfig = new BooleanHotkeyThirdListConfig(ToolConfigs.toolConfigs, "FA", false, false, null, FillingAssistant::switchCallback, false);
+    public static final BooleanHotkeyThirdListConfig FAConfig = new BooleanHotkeyThirdListConfig(ToolConfigs.toolConfigs, "FA", FillingAssistant::switchCallback);
     static {FAConfig.getKeybind().setCallback(new KeyCallbackToggleBoolean(FAConfig));}
     static {listStack.push(FAConfig);}
     public static final LimitOperationSpeedConfig limitPlaceSpeedConfig = addLimitOperationSpeedConfig(false, 1);

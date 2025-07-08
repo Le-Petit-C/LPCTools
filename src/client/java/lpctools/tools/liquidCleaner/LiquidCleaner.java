@@ -12,7 +12,7 @@ import static lpctools.lpcfymasaapi.LPCConfigStatics.*;
 import static lpctools.tools.ToolUtils.*;
 
 public class LiquidCleaner {
-    public static final BooleanHotkeyThirdListConfig LCConfig = new BooleanHotkeyThirdListConfig(ToolConfigs.toolConfigs, "LC", false, false, null, LiquidCleaner::switchCallback, false);
+    public static final BooleanHotkeyThirdListConfig LCConfig = new BooleanHotkeyThirdListConfig(ToolConfigs.toolConfigs, "LC", LiquidCleaner::switchCallback);
     static {LCConfig.getKeybind().setCallback(new KeyCallbackToggleBoolean(LCConfig));}
     static {listStack.push(LCConfig);}
     public static final LimitOperationSpeedConfig limitOperationSpeedConfig = addLimitOperationSpeedConfig(false, 1);
