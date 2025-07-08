@@ -29,8 +29,6 @@ import java.util.function.Supplier;
 
 import static lpctools.lpcfymasaapi.LPCConfigUtils.*;
 
-//TODO:打开高级快捷键设置再关闭后三级列表会出问题
-
 //单个总设置页面，就是在设置右上角分列出的不同页面
 public class LPCConfigPage implements IConfigHandler, Supplier<GuiBase>, ILPCConfigBase {
     //构造函数
@@ -66,8 +64,9 @@ public class LPCConfigPage implements IConfigHandler, Supplier<GuiBase>, ILPCCon
     }
     //如果当前页面正在展示中，刷新当前页面
     public void updateIfCurrent(){
-        if(pageInstance != null && MinecraftClient.getInstance().currentScreen == pageInstance)
-            pageInstance.initGui();
+        if(MinecraftClient.getInstance().currentScreen instanceof ConfigPageInstance instance
+            && instance.getOuter() == this)
+            instance.initGui();
     }
     //获取当前列
     public LPCConfigList getList(){return lists.get(selectedIndex);}
@@ -206,5 +205,6 @@ public class LPCConfigPage implements IConfigHandler, Supplier<GuiBase>, ILPCCon
         private record ButtonListener(int index, ConfigPageInstance parent) implements IButtonActionListener {
             @Override public void actionPerformedWithButton(ButtonBase button, int mouseButton) {parent.select(index);}
         }
+        public LPCConfigPage getOuter(){return LPCConfigPage.this;}
     }
 }
