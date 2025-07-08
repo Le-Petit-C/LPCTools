@@ -1,8 +1,10 @@
 package lpctools.lpcfymasaapi.configbutton.uniqueConfigs;
 
+import com.google.gson.JsonElement;
 import fi.dy.masa.malilib.gui.button.ButtonBase;
 import fi.dy.masa.malilib.gui.button.IButtonActionListener;
 import lpctools.lpcfymasaapi.interfaces.ILPCConfigList;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
@@ -27,9 +29,12 @@ public class ButtonConfig extends LPCConfigBase implements IButtonActionListener
         super(parent, nameKey, null);
     }
     @Override protected List<ButtonOption> getButtonOptions() {
-        return List.of(new ButtonOption(1, this, ()->buttonName));
+        return List.of(new ButtonOption(1, this, ()->buttonName, buttonGenericAllocator));
     }
     @Override public void actionPerformedWithButton(ButtonBase button, int mouseButton) {
         if(listener != null) listener.actionPerformedWithButton(button, mouseButton);
     }
+    
+    @Override public @Nullable JsonElement getAsJsonElement() {return null;}
+    @Override public void setValueFromJsonElement(@NotNull JsonElement data) {}
 }

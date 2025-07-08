@@ -171,6 +171,10 @@
   "lpctools.configs.debugs.mandelbrotSet.maxDepth.comment": "Mandelbrot Set Maximum Calculate times",
   "lpctools.configs.debugs.mandelbrotSet.stretch.name": "Stretch",
   "lpctools.configs.debugs.mandelbrotSet.stretch.comment": "Mandelbrot Set stretch (size)",
+  "lpctools.configs.debugs.booleanHotkeyThirdListTest.name": "New Third List Test",
+  "lpctools.configs.debugs.booleanHotkeyThirdListTest.comment": "Just a test",
+  "lpctools.configs.debugs.booleanHotkeyThirdListTest.button.name": "Button Config Test",
+  "lpctools.configs.debugs.booleanHotkeyThirdListTest.button.comment": "Just a test",
   "lpctools.configs.utils.limitRange.name": "limitWorkingRange",
   "lpctools.configs.utils.limitRange.comment": "Limits working range based on MiniHUD shapes and Litematica schematics or render range\nso that you should install any of those mods to enable this config",
   "lpctools.configs.utils.limitRange.rangeNamePrefix.name": "rangeNamePrefix",
@@ -185,5 +189,7 @@
   "lpctools.configs.utils.limitOperationSpeed.comment": "Limit the operation speed of the tool\nPrevent being kicked out of some servers due to excessive packet sending",
   "lpctools.configs.utils.limitOperationSpeed.maxOperationSpeed.name": "Maximum Operation Speed",
   "lpctools.configs.utils.limitOperationSpeed.maxOperationSpeed.comment": "Maximum Operation Speed\nUsually the maximum average operation times per tick",
+  "lpctools.configs.utils.collapsed": "Collapsed",
+  "lpctools.configs.utils.expanded": "Expanded",
   "lpctools.mew~": "mew~"
 }
