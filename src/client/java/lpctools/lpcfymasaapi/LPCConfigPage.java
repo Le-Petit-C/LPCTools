@@ -29,6 +29,8 @@ import java.util.function.Supplier;
 
 import static lpctools.lpcfymasaapi.LPCConfigUtils.*;
 
+//TODO:打开高级快捷键设置再关闭后三级列表会出问题
+
 //单个总设置页面，就是在设置右上角分列出的不同页面
 public class LPCConfigPage implements IConfigHandler, Supplier<GuiBase>, ILPCConfigBase {
     //构造函数

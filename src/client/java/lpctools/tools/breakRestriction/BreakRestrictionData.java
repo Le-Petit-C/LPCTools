@@ -1,4 +1,4 @@
-package lpctools.tools.blockBreakRestriction;
+package lpctools.tools.breakRestriction;
 
 import com.google.common.collect.ImmutableList;
 import lpctools.compact.derived.ShapeList;
@@ -8,8 +8,8 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
-public class BlockBreakRestrictionData {
-    public static @NotNull ShapeList shapeList = BlockBreakRestriction.rangeLimit.buildShapeList();
+public class BreakRestrictionData {
+    public static @NotNull ShapeList shapeList = BreakRestriction.rangeLimit.buildShapeList();
     public static final ImmutableList<Block> defaultBlockWhitelist;
     public static final ImmutableList<Block> defaultBlockBlacklist;
     static{

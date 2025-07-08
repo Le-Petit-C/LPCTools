@@ -3,11 +3,10 @@ package lpctools.tools.canSpawnDisplay;
 import fi.dy.masa.malilib.util.data.Color4f;
 import lpctools.lpcfymasaapi.configbutton.derivedConfigs.ArrayOptionListConfig;
 import lpctools.lpcfymasaapi.configbutton.derivedConfigs.RangeLimitConfig;
-import lpctools.lpcfymasaapi.configbutton.derivedConfigs.ThirdListConfig;
 import lpctools.lpcfymasaapi.configbutton.transferredConfigs.BooleanConfig;
-import lpctools.lpcfymasaapi.configbutton.transferredConfigs.BooleanHotkeyConfig;
 import lpctools.lpcfymasaapi.configbutton.transferredConfigs.ColorConfig;
 import lpctools.lpcfymasaapi.configbutton.transferredConfigs.DoubleConfig;
+import lpctools.lpcfymasaapi.configbutton.uniqueConfigs.BooleanHotkeyThirdListConfig;
 import lpctools.tools.ToolConfigs;
 import net.minecraft.client.MinecraftClient;
 
@@ -16,10 +15,9 @@ import static lpctools.tools.ToolUtils.*;
 import static lpctools.tools.canSpawnDisplay.CanSpawnDisplayData.*;
 
 public class CanSpawnDisplay{
-    public static final ThirdListConfig CSConfig = new ThirdListConfig(ToolConfigs.toolConfigs, "CS", false);
+    public static final BooleanHotkeyThirdListConfig CSConfig = new BooleanHotkeyThirdListConfig(ToolConfigs.toolConfigs, "CS", false, false, null, CanSpawnDisplay::switchCallback, false);
+    static {setLPCToolsToggleText(CSConfig);}
     static {listStack.push(CSConfig);}
-    public static final CanSpawnDisplaySwitch canSpawnDisplay = addConfig(new CanSpawnDisplaySwitch());
-    static {setLPCToolsToggleText(canSpawnDisplay);}
     public static final ColorConfig displayColor = addColorConfig("displayColor", Color4f.fromColor(0x7fffffff));
     public static final RangeLimitConfig rangeLimit = addRangeLimitConfig(false);
     static {rangeLimit.setValueChangeCallback(CanSpawnDisplay::onRenderRangeChanged);}
@@ -41,18 +39,12 @@ public class CanSpawnDisplay{
             if(renderInstance != null) renderInstance.resetRender();
         }
     }
-    public static class CanSpawnDisplaySwitch extends BooleanHotkeyConfig{
-        public CanSpawnDisplaySwitch() {
-            super(CSConfig, "canSpawnDisplay", false, null);
-        }
-        @Override public void onValueChanged() {
-            super.onValueChanged();
-            boolean currentValue = getBooleanValue();
-            if(currentValue) renderInstance = new RenderInstance(MinecraftClient.getInstance());
-            else if(renderInstance != null){
-                renderInstance.close();
-                renderInstance = null;
-            }
+    public static void switchCallback() {
+        boolean currentValue = CSConfig.getBooleanValue();
+        if(currentValue) renderInstance = new RenderInstance(MinecraftClient.getInstance());
+        else if(renderInstance != null){
+            renderInstance.close();
+            renderInstance = null;
         }
     }
 }

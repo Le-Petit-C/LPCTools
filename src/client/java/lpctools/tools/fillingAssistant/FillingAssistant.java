@@ -4,6 +4,7 @@ import fi.dy.masa.malilib.hotkeys.KeyCallbackToggleBoolean;
 import lpctools.lpcfymasaapi.Registries;
 import lpctools.lpcfymasaapi.configbutton.derivedConfigs.*;
 import lpctools.lpcfymasaapi.configbutton.transferredConfigs.*;
+import lpctools.lpcfymasaapi.configbutton.uniqueConfigs.BooleanHotkeyThirdListConfig;
 import lpctools.tools.ToolConfigs;
 import net.minecraft.block.Block;
 import net.minecraft.block.Blocks;
@@ -22,10 +23,9 @@ import static lpctools.tools.ToolUtils.*;
 import static lpctools.tools.fillingAssistant.FillingAssistantData.*;
 
 public class FillingAssistant {
-    public static final ThirdListConfig FAConfig = new ThirdListConfig(ToolConfigs.toolConfigs, "FA", false);
+    public static final BooleanHotkeyThirdListConfig FAConfig = new BooleanHotkeyThirdListConfig(ToolConfigs.toolConfigs, "FA", false, false, null, FillingAssistant::switchCallback, false);
+    static {FAConfig.getKeybind().setCallback(new KeyCallbackToggleBoolean(FAConfig));}
     static {listStack.push(FAConfig);}
-    public static final BooleanHotkeyConfig fillingAssistant = addBooleanHotkeyConfig("fillingAssistant", false, null, FillingAssistant::fillingAssistantConfigCallback);
-    static {fillingAssistant.getKeybind().setCallback(new KeyCallbackToggleBoolean(fillingAssistant));}
     public static final LimitOperationSpeedConfig limitPlaceSpeedConfig = addLimitOperationSpeedConfig(false, 1);
     public static final ReachDistanceConfig reachDistanceConfig = addReachDistanceConfig(FillingAssistant::reachDistanceConfigCallback);
     public static final IntegerConfig testDistanceConfig = addIntegerConfig("testDistance", 6, 6, 64, FillingAssistant::testDistanceChangeCallback);
@@ -41,8 +41,8 @@ public class FillingAssistant {
     public static final ArrayOptionListConfig<OuterRangeBlockMethod> outerRangeBlockMethod = addArrayOptionListConfig(limitFillingRange, "outerRangeBlockMethod", outerRangeBlockMethods);
     static {listStack.pop();}
     
-    private static void fillingAssistantConfigCallback() {
-        if(fillingAssistant.getBooleanValue()) enableTool();
+    private static void switchCallback() {
+        if(FAConfig.getBooleanValue()) enableTool();
         else disableTool(null);
     }
     private static void reachDistanceConfigCallback(){testDistanceConfig.setMin((int)reachDistanceConfig.getAsDouble() + 1);}
@@ -51,18 +51,18 @@ public class FillingAssistant {
     public static void enableTool(){
         if(runner != null) return;
         runner = new PlaceBlockTick();
-        fillingAssistant.setBooleanValue(true);
+        FAConfig.setBooleanValue(true);
         Registries.END_CLIENT_TICK.register(runner);
         Registries.IN_GAME_END_MOUSE.register(runner);
-        displayEnableMessage(fillingAssistant);
+        displayEnableMessage(FAConfig);
     }
     public static void disableTool(@Nullable String reasonKey){
         if(runner == null) return;
         Registries.END_CLIENT_TICK.unregister(runner);
         Registries.IN_GAME_END_MOUSE.unregister(runner);
         runner = null;
-        fillingAssistant.setBooleanValue(false);
-        displayDisableReason(fillingAssistant, reasonKey);
+        FAConfig.setBooleanValue(false);
+        displayDisableReason(FAConfig, reasonKey);
     }
     public static @NotNull HashSet<BlockItem> getPlaceableItems(){return placeableItemsConfig.set;}
     public static @NotNull HashSet<Block> getPassableBlocks(){return passableBlocksConfig.set;}

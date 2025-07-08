@@ -11,4 +11,5 @@ public interface IThirdListBase extends ILPCConfig, ILPCConfigList{
     @Override default void setValueFromJsonElement(@NotNull JsonElement data) {
         ILPCConfigList.super.setValueFromJsonElement(data);
     }
+    String propertiesId = "properties";
 }

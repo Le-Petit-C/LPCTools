@@ -109,12 +109,15 @@ public class BooleanHotkeyThirdListConfig extends LPCConfigBase implements IThir
         }
     }
     
+    public final String expandedJsonId = "expanded";
+    public final String booleanJsonId = "booleanValue";
+    public final String hotkeyJsonId = "hotkey";
     @Override public @Nullable JsonElement getAsJsonElement() {
         JsonObject object = new JsonObject();
-        object.add("list", subConfigs.getAsJsonElement());
-        object.addProperty("expanded", expanded.expanded);
-        object.addProperty("booleanValue", booleanValue);
-        object.add("hotkey", keybind.getAsJsonElement());
+        object.add(propertiesId, subConfigs.getAsJsonElement());
+        object.addProperty(expandedJsonId, expanded.expanded);
+        object.addProperty(booleanJsonId, booleanValue);
+        object.add(hotkeyJsonId, keybind.getAsJsonElement());
         return object;
     }
     
@@ -122,10 +125,10 @@ public class BooleanHotkeyThirdListConfig extends LPCConfigBase implements IThir
         boolean success = true;
         boolean changed = false;
         if(data instanceof JsonObject object){
-            JsonElement list = object.get("list");
+            JsonElement list = object.get(propertiesId);
             if(list != null) subConfigs.setValueFromJsonElement(list);
             else success = false;
-            JsonElement booleanValueElement = object.get("booleanValue");
+            JsonElement booleanValueElement = object.get(booleanJsonId);
             if(booleanValueElement instanceof JsonPrimitive primitive){
                 boolean newValue = primitive.getAsBoolean();
                 if(booleanValue != newValue){
@@ -134,7 +137,7 @@ public class BooleanHotkeyThirdListConfig extends LPCConfigBase implements IThir
                 }
             }
             else success = false;
-            JsonElement expandedValueElement = object.get("expanded");
+            JsonElement expandedValueElement = object.get(expandedJsonId);
             if(expandedValueElement instanceof JsonPrimitive primitive){
                 OptionListEnum newValue = OptionListEnum.get(primitive.getAsBoolean());
                 if(expanded != newValue) {
@@ -144,7 +147,7 @@ public class BooleanHotkeyThirdListConfig extends LPCConfigBase implements IThir
                 }
             }
             else success = false;
-            JsonElement hotkey = object.get("hotkey");
+            JsonElement hotkey = object.get(hotkeyJsonId);
             if(hotkey != null) {
                 String lastStorageString = keybind.getStringValue();
                 keybind.setValueFromJsonElement(hotkey);

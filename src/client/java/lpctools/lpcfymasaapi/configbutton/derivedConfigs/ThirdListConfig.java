@@ -32,9 +32,8 @@ public class ThirdListConfig extends BooleanConfig implements IThirdListBase {
         if(getAsBoolean()) return subConfigs.buildConfigWrappers(wrapperList);
         else return wrapperList;
     }
-
-    public static final String superJsonId = "value";
-    public static final String propertiesId = "properties";
+    
+    String superJsonId = "value";
     @Override public @NotNull JsonElement getAsJsonElement(){
         JsonObject object = new JsonObject();
         object.add(superJsonId, super.getAsJsonElement());

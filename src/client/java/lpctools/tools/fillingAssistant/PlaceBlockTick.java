@@ -84,7 +84,7 @@ public class PlaceBlockTick implements ClientTickEvents.EndTick, Registries.InGa
                      return OPERATED;
                  }
              }
-             if(!fillingAssistant.getAsBoolean()) return SHOULD_BREAK;
+             if(!FAConfig.getBooleanValue()) return SHOULD_BREAK;
              return NO_OPERATION;
         });
     }

@@ -3,8 +3,8 @@ package lpctools.tools.liquidCleaner;
 import com.google.common.collect.ImmutableList;
 import fi.dy.masa.malilib.hotkeys.KeyCallbackToggleBoolean;
 import lpctools.lpcfymasaapi.configbutton.derivedConfigs.*;
-import lpctools.lpcfymasaapi.configbutton.transferredConfigs.*;
 import lpctools.lpcfymasaapi.configbutton.transferredConfigs.BooleanConfig;
+import lpctools.lpcfymasaapi.configbutton.uniqueConfigs.BooleanHotkeyThirdListConfig;
 import lpctools.tools.ToolConfigs;
 import org.jetbrains.annotations.Nullable;
 
@@ -12,10 +12,9 @@ import static lpctools.lpcfymasaapi.LPCConfigStatics.*;
 import static lpctools.tools.ToolUtils.*;
 
 public class LiquidCleaner {
-    public static final ThirdListConfig LCConfig = new ThirdListConfig(ToolConfigs.toolConfigs, "LC", false);
+    public static final BooleanHotkeyThirdListConfig LCConfig = new BooleanHotkeyThirdListConfig(ToolConfigs.toolConfigs, "LC", false, false, null, LiquidCleaner::switchCallback, false);
+    static {LCConfig.getKeybind().setCallback(new KeyCallbackToggleBoolean(LCConfig));}
     static {listStack.push(LCConfig);}
-    public static final BooleanHotkeyConfig liquidCleaner = addBooleanHotkeyConfig("liquidCleaner", false, null, LiquidCleaner::liquidCleanerCallback);
-    static {liquidCleaner.getKeybind().setCallback(new KeyCallbackToggleBoolean(liquidCleaner));}
     public static final LimitOperationSpeedConfig limitOperationSpeedConfig = addLimitOperationSpeedConfig(false, 1);
     public static final ReachDistanceConfig reachDistanceConfig = addReachDistanceConfig();
     public static final BooleanConfig disableOnGUIOpened = addBooleanConfig("disableOnGUIOpened", false);
@@ -25,14 +24,14 @@ public class LiquidCleaner {
     public static final RangeLimitConfig limitCleaningRange = addRangeLimitConfig(false);
     public static final BooleanConfig expandRange = addBooleanConfig(limitCleaningRange, "expandRange", false);
     static {listStack.pop();}
-    private static void liquidCleanerCallback() {
-        if(liquidCleaner.getBooleanValue()) enableTool();
+    private static void switchCallback() {
+        if(LCConfig.getBooleanValue()) enableTool();
         else disableTool(null);
     }
     public static boolean isEnabled(){return onEndTick != null;}
     public static void enableTool(){
         if(isEnabled()) return;
-        displayEnableMessage(liquidCleaner);
+        displayEnableMessage(LCConfig);
         onEndTick = new OnEndTick();
         lpctools.lpcfymasaapi.Registries.END_CLIENT_TICK.register(onEndTick);
     }
@@ -40,7 +39,7 @@ public class LiquidCleaner {
         if(!isEnabled()) return;
         lpctools.lpcfymasaapi.Registries.END_CLIENT_TICK.unregister(onEndTick);
         onEndTick = null;
-        displayDisableReason(liquidCleaner, reasonKey);
+        displayDisableReason(LCConfig, reasonKey);
     }
     @Nullable static OnEndTick onEndTick;
 }

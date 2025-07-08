@@ -3,8 +3,8 @@ package lpctools.tools.slightXRay;
 import fi.dy.masa.malilib.util.data.Color4f;
 import lpctools.lpcfymasaapi.LPCConfigList;
 import lpctools.lpcfymasaapi.configbutton.derivedConfigs.ConfigListOptionListConfigEx;
-import lpctools.lpcfymasaapi.configbutton.derivedConfigs.ThirdListConfig;
 import lpctools.lpcfymasaapi.configbutton.transferredConfigs.*;
+import lpctools.lpcfymasaapi.configbutton.uniqueConfigs.BooleanHotkeyThirdListConfig;
 import lpctools.lpcfymasaapi.interfaces.ILPCConfigBase;
 import lpctools.lpcfymasaapi.interfaces.ILPCConfigList;
 import lpctools.lpcfymasaapi.configbutton.derivedConfigs.RangeLimitConfig;
@@ -29,10 +29,9 @@ import static lpctools.tools.slightXRay.SlightXRayData.*;
 import static lpctools.util.DataUtils.*;
 
 public class SlightXRay{
-    public static final ThirdListConfig SXConfig = new ThirdListConfig(ToolConfigs.toolConfigs, "SX", false);
+    public static final BooleanHotkeyThirdListConfig SXConfig = new BooleanHotkeyThirdListConfig(ToolConfigs.toolConfigs, "SX", false, false, null, SlightXRay::switchChanged, false);
+    static {setLPCToolsToggleText(SXConfig);}
     static {listStack.push(SXConfig);}
-    public static final BooleanHotkeyConfig slightXRay = addBooleanHotkeyConfig("slightXRay", false, null, SlightXRay::switchChanged);
-    static {setLPCToolsToggleText(slightXRay);}
     public static final ConfigListOptionListConfigEx<ConfigListWithColorMethod> defaultColorMethod = addConfigListOptionListConfigEx("defaultColorMethod", SlightXRay::refreshXRayBlocks);
     public static final ILPCConfigList byTextureColor = defaultColorMethod.addList(
         new ConfigListWithColorBase(defaultColorMethod, "byTextureColor", SlightXRay::getColorByTextureColor));
@@ -120,7 +119,7 @@ public class SlightXRay{
         notifyPlayer(String.format("§eWarning: Invalid string \"%s\"", str), false);
     }
     private static void switchChanged() {
-        if(slightXRay.getAsBoolean()){
+        if(SXConfig.getBooleanValue()){
             if(renderInstance == null)
                 renderInstance = new RenderInstance(MinecraftClient.getInstance());
         }

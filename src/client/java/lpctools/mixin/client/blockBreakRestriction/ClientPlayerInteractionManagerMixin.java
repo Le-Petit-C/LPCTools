@@ -13,8 +13,8 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
-import static lpctools.tools.blockBreakRestriction.BlockBreakRestriction.*;
-import static lpctools.tools.blockBreakRestriction.BlockBreakRestrictionData.*;
+import static lpctools.tools.breakRestriction.BreakRestriction.*;
+import static lpctools.tools.breakRestriction.BreakRestrictionData.*;
 
 @Mixin(ClientPlayerInteractionManager.class)
 public class ClientPlayerInteractionManagerMixin {
@@ -26,7 +26,7 @@ public class ClientPlayerInteractionManagerMixin {
     @SuppressWarnings("RedundantIfStatement")
     @Unique private boolean testBlockBreaking(BlockPos pos, Direction direction){
         if(client.world == null) return false;
-        if(!blockBreakRestriction.getBooleanValue()) return false;
+        if(!BRConfig.getBooleanValue()) return false;
         BlockState state = client.world.getBlockState(pos);
         if(!blockTestMethod.getCurrentUserdata().canBreak(state.getBlock())) return true;
         if(!shapeList.testPos(pos)) return true;
