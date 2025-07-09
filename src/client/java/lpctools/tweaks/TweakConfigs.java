@@ -10,9 +10,7 @@ public class TweakConfigs {
         tweaks.addConfigs(
             BlockReplaceHotkey.blockReplaceHotkey,
             HappyGhastRidingTweak.happyGhastRidingTweak,
-            LocatorBarTweak.expBarDisplaysLocatorPoints,
-            LocatorBarTweak.jumpBarDisplaysLocatorPoints,
-            LocatorBarTweak.locatorBarUsesExpBackground
+            BarTweaks.barTweaks
         );
     }
 }

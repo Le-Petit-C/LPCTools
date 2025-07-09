@@ -1,7 +1,7 @@
-package lpctools.mixin.client.LocatorBarTweakMixin;
+package lpctools.mixin.client.BarTweakMixin;
 
 import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
-import lpctools.tweaks.LocatorBarTweak;
+import lpctools.tweaks.BarTweaks;
 import net.minecraft.client.gui.hud.InGameHud;
 import net.minecraft.client.gui.hud.bar.Bar;
 import net.minecraft.client.gui.hud.bar.ExperienceBar;
@@ -21,16 +21,16 @@ public class InGameHudMixin {
     @ModifyExpressionValue(method = "renderMainHud", remap = false,
         at = @At(value = "INVOKE", target = "Lorg/apache/commons/lang3/tuple/Pair;getValue()Ljava/lang/Object;", ordinal = 0))
     Object modifyValue0(Object original){
-        if(LocatorBarTweak.locatorBarUsesExpBackground.getAsBoolean() && original instanceof LocatorBar)
+        if(BarTweaks.locatorBarUsesExpBackground.getAsBoolean() && original instanceof LocatorBar)
             return bars.get(InGameHud.BarType.EXPERIENCE).get();
         return original;
     }
     @ModifyExpressionValue(method = "renderMainHud", remap = false,
         at = @At(value = "INVOKE", target = "Lorg/apache/commons/lang3/tuple/Pair;getValue()Ljava/lang/Object;", ordinal = 1))
     Object modifyValue1(Object original){
-        if(LocatorBarTweak.expBarDisplaysLocatorPoints.getAsBoolean() && original instanceof ExperienceBar)
+        if(BarTweaks.expBarDisplaysLocatorPoints.getAsBoolean() && original instanceof ExperienceBar)
             return bars.get(InGameHud.BarType.LOCATOR).get();
-        if(LocatorBarTweak.jumpBarDisplaysLocatorPoints.getAsBoolean() && original instanceof JumpBar)
+        if(BarTweaks.jumpBarDisplaysLocatorPoints.getAsBoolean() && original instanceof JumpBar)
             return bars.get(InGameHud.BarType.LOCATOR).get();
         return original;
     }
