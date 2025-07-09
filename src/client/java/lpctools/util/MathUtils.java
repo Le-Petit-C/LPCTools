@@ -44,4 +44,13 @@ public class MathUtils {
     }
     @Contract(pure = true)
     public static double square(double x){return x * x;}
+    @Contract(pure = true)//请自行确保vec三个分量为正
+    public static void clamp(BlockPos.Mutable src, Vec3i vec){
+        src.setX(src.getX() % vec.getX());
+        if(src.getX() < 0 ) src.setX(src.getX() + vec.getX());
+        src.setY(src.getY() % vec.getY());
+        if(src.getY() < 0 ) src.setY(src.getY() + vec.getY());
+        src.setZ(src.getZ() % vec.getZ());
+        if(src.getZ() < 0 ) src.setZ(src.getZ() + vec.getZ());
+    }
 }

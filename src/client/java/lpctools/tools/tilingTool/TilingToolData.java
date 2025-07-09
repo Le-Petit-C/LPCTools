@@ -9,7 +9,6 @@ import net.minecraft.client.world.ClientWorld;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3i;
 import org.jetbrains.annotations.Nullable;
-import org.joml.Vector3i;
 
 public class TilingToolData {
     static @Nullable TilingToolExecutor executor;
@@ -19,10 +18,11 @@ public class TilingToolData {
         public static StoredData create(Box3i box){
             ClientWorld world = MinecraftClient.getInstance().world;
             if(world == null) return null;
+            box = box.ensureMinMax(new Box3i());
             BlockPos startPos = DataUtils.toBlockPos(box.pos1);
-            Vec3i cuboidSize = DataUtils.toBlockPos(box.pos2.sub(box.pos1, new Vector3i()));
+            Vec3i cuboidSize = DataUtils.toBlockPos(box.pos2.sub(box.pos1).add(1, 1, 1));
             Block[][][] storedBlocks = new Block[cuboidSize.getZ()][cuboidSize.getY()][cuboidSize.getX()];
-            for(BlockPos pos : AlgorithmUtils.iterateInBox(startPos, startPos.add(cuboidSize))){
+            for(BlockPos pos : AlgorithmUtils.iterateInBox(startPos, startPos.add(cuboidSize).add(-1, -1, -1))){
                 storedBlocks[pos.getZ() - startPos.getZ()][pos.getY() - startPos.getY()][pos.getX() - startPos.getX()]
                     = world.getBlockState(pos).getBlock();
             }
