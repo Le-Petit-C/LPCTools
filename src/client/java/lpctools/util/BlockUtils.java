@@ -33,22 +33,22 @@ public class BlockUtils {
         return state.getBlock().getHardness() == 0 || state.getBlock() == Blocks.KELP || state.getBlock() == Blocks.KELP_PLANT;
     }
     //检测能不能被水冲掉
-    public static boolean canBeReplacedByFluid(BlockState state){
+    public static boolean canAnyBucketPlaceAt(BlockState state){
         if(state.getBlock() instanceof Waterloggable) return false;
         for(Fluid fluid : Registries.FLUID)
             if (state.canBucketPlace(fluid))
                 return true;
         return false;
     }
-    public static boolean canBeReplacedByFluid(Block block){
-        return canBeReplacedByFluid(block.getDefaultState());
+    public static boolean canAnyBucketPlaceAt(Block block){
+        return canAnyBucketPlaceAt(block.getDefaultState());
     }
-    public static boolean canBeReplacedByFluid(BlockItem item){
-        return canBeReplacedByFluid(item.getBlock());
+    public static boolean canAnyBucketPlaceAt(BlockItem item){
+        return canAnyBucketPlaceAt(item.getBlock());
     }
-    public static boolean canBeReplacedByFluid(Item item){
+    public static boolean canAnyBucketPlaceAt(Item item){
         if(item instanceof BlockItem blockItem)
-            return canBeReplacedByFluid(blockItem);
+            return canAnyBucketPlaceAt(blockItem);
         return false;
     }
     //检测是不是流体，原版的话只有水或者岩浆

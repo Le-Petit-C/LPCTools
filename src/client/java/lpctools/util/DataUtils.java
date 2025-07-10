@@ -171,4 +171,8 @@ public class DataUtils {
     public static BlockPos toBlockPos(Vector3i vec){
         return new BlockPos(vec.x, vec.y, vec.z);
     }
+    public static StringBuilder appendNodeIfNotEmpty(StringBuilder builder, String str){
+        if(str.isEmpty()) return builder;
+        return builder.append('.').append(str);
+    }
 }

@@ -1,6 +1,7 @@
 package lpctools.tools.antiSpawner;
 
 import com.google.common.collect.ImmutableList;
+import lpctools.util.BlockUtils;
 import lpctools.util.HandRestock;
 import net.minecraft.block.Block;
 import net.minecraft.item.BlockItem;
@@ -9,7 +10,6 @@ import net.minecraft.registry.Registries;
 import java.util.ArrayList;
 
 import static lpctools.tools.antiSpawner.AntiSpawner.*;
-import static lpctools.util.BlockUtils.canBeReplacedByFluid;
 import static lpctools.util.DataUtils.getBlockId;
 
 public class AntiSpawnerData {
@@ -22,7 +22,7 @@ public class AntiSpawnerData {
             BlockItem item;
             try{item = (BlockItem) block.asItem();}
             catch (Exception ignored){continue;}
-            if(canBeReplacedByFluid(block)) continue;
+            if(BlockUtils.canAnyBucketPlaceAt(block)) continue;
             if(block.getDefaultState().isBurnable()) continue;
             String idPath = getBlockId(block);
             if(idPath.contains("rail")) placeableItems.add(item);

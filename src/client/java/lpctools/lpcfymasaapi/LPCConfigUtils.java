@@ -24,4 +24,19 @@ public interface LPCConfigUtils {
     static void warnFailedLoadingConfig(ILPCConfigBase configThis, @NotNull JsonElement element){
         LPCAPIInit.LOGGER.warn("Failed to set config value for '{}' from the JSON element '{}'", configThis.getNameKey(), element);
     }
+    static int calculateDisplayLength(String str) {
+        int length = 0;
+        for (char c : str.toCharArray()) {
+            // 检查字符是否是 ASCII 打印字符（半角字符）
+            if (c >= 0x20 && c <= 0x7E) {
+                length += 1;
+            } else {
+                length += 2;
+            }
+        }
+        return length;
+    }
+    static int calculateAndAdjustDisplayLength(String str){
+        return calculateDisplayLength(str) * 6 + 8;
+    }
 }

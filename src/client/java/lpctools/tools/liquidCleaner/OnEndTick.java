@@ -108,7 +108,7 @@ public class OnEndTick implements ClientTickEvents.EndTick {
         if(!isZeroHardBlock(state)) return false;
         if(state.isAir()) return false;
         if(!isReplaceable(state) && isContainingLiquid(state)) return true;
-        if(canBeReplacedByFluid(state)) return false;
+        if(canAnyBucketPlaceAt(state)) return false;
         for(Direction direction : Direction.values()){
             if(ignoreDownwardTest.getAsBoolean() && direction == Direction.DOWN) continue;
             if(isContainingLiquid(world.getBlockState(pos.offset(direction)))) return false;
@@ -122,7 +122,7 @@ public class OnEndTick implements ClientTickEvents.EndTick {
         Block block = blockItem.getBlock();
         if (block.getHardness() != 0) return false;
         BlockState state = block.getDefaultState();
-        if (canBeReplacedByFluid(state)) return false;
+        if (canAnyBucketPlaceAt(state)) return false;
         FluidState fluidState = state.getFluidState();
         if (fluidState.getLevel() != 0) return false;
         if (block instanceof Waterloggable) return false;

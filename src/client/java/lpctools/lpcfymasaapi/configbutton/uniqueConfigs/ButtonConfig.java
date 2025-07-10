@@ -15,13 +15,13 @@ public class ButtonConfig extends LPCConfigBase implements IButtonActionListener
     public ButtonConfig(ILPCConfigList parent, String nameKey, @Nullable IButtonActionListener listener) {
         super(parent, nameKey, null);
         this.listener = listener;
-        buttonName = getFullTranslationKey() + ".title";
+        buttonName = getFullTitleTranslationKey();
     }
     public ButtonConfig(ILPCConfigList parent, String nameKey) {this(parent, nameKey, null);}
     public void setListener(@Nullable IButtonActionListener listener){this.listener = listener;}
     @SuppressWarnings("unused")
     public @Nullable IButtonActionListener getListener(){return listener;}
-    @Override protected void getButtonOptions(ArrayList<ButtonOption> res) {
+    @Override public void getButtonOptions(ArrayList<ButtonOption> res) {
         res.add(new ButtonOption(1, this, ()->buttonName, buttonGenericAllocator));
     }
     @Override public void actionPerformedWithButton(ButtonBase button, int mouseButton) {

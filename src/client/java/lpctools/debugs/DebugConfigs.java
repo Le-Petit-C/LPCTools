@@ -1,5 +1,6 @@
 package lpctools.debugs;
 
+import com.google.common.collect.ImmutableList;
 import fi.dy.masa.malilib.gui.button.ButtonBase;
 import fi.dy.masa.malilib.hotkeys.IKeybind;
 import fi.dy.masa.malilib.hotkeys.KeyAction;
@@ -8,8 +9,7 @@ import lpctools.lpcfymasaapi.LPCConfigList;
 import lpctools.lpcfymasaapi.Registries;
 import lpctools.lpcfymasaapi.configbutton.transferredConfigs.BooleanConfig;
 import lpctools.lpcfymasaapi.configbutton.transferredConfigs.HotkeyConfig;
-import lpctools.lpcfymasaapi.configbutton.uniqueConfigs.BooleanHotkeyThirdListConfig;
-import lpctools.lpcfymasaapi.configbutton.uniqueConfigs.ButtonConfig;
+import lpctools.lpcfymasaapi.configbutton.uniqueConfigs.*;
 import lpctools.lpcfymasaapi.gl.MaskLayer;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents;
@@ -40,6 +40,13 @@ public class DebugConfigs {
     public static final BooleanHotkeyThirdListConfig booleanHotkeyThirdListTest =
         addBooleanHotkeyThirdListConfig(debugs, "booleanHotkeyThirdListTest", false, false, null, DebugConfigs::booleanHotkeyThirdListTestCallback, false);
     public static final ButtonConfig buttonConfigTest = addButtonConfig(booleanHotkeyThirdListTest, "button", DebugConfigs::buttonConfigTestCallback);
+    private static final ImmutableList<ScriptConfig.ScriptAllocator<?>> configSuppliers =ImmutableList.of(
+        new ScriptConfig.ScriptAllocator<>("button", ButtonConfig::new),
+        new ScriptConfig.ScriptAllocator<>("buttonHotkey", (parent, key)->new ButtonHotkeyConfig(parent, key, null, null)),
+        new ScriptConfig.ScriptAllocator<>("", (parent, key)->new ScriptConfig(parent, key, getConfigSuppliers(), null)));
+    public static final ScriptConfig scriptConfigTest = booleanHotkeyThirdListTest.
+        addConfig(new ScriptConfig(booleanHotkeyThirdListTest, "script", configSuppliers, null));
+    private static ImmutableList<ScriptConfig.ScriptAllocator<?>> getConfigSuppliers(){return configSuppliers;}
     static {Registries.ON_SCREEN_CHANGED.register(newScreen -> buttonConfigTest.buttonName = null);}
     static {listStack.pop();}
     

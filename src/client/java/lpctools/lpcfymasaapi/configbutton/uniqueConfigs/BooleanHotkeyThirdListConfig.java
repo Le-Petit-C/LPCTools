@@ -56,10 +56,10 @@ public class BooleanHotkeyThirdListConfig extends LPCConfigBase implements IThir
         if(isExpanded()) return subConfigs.buildConfigWrappers(wrapperList);
         else return wrapperList;
     }
-    @Override protected void getButtonOptions(ArrayList<ButtonOption> res) {
-        res.add(new ButtonOption(-1, this::cycleByMouseButton, null, iconButtonAllocator(expanded.icon, LeftRight.CENTER)));
-        res.add(buttonBooleanPreset(1, this));
-        res.add(buttonKeybindPreset(3, this));
+    @Override public void getButtonOptions(ArrayList<ButtonOption> res) {
+        res.add(new ButtonOption(-1, this::cycleByMouseButton, null, ILPCUniqueConfigBase.iconButtonAllocator(expanded.icon, LeftRight.CENTER)));
+        res.add(ILPCUniqueConfigBase.buttonBooleanPreset(1, this));
+        res.add(ILPCUniqueConfigBase.buttonKeybindPreset(3, this));
     }
     @Override public @NotNull Collection<ILPCConfig> getConfigs() {
         return subConfigs.getConfigs();
@@ -81,6 +81,7 @@ public class BooleanHotkeyThirdListConfig extends LPCConfigBase implements IThir
         booleanValue = defaultBoolean;
         expanded = OptionListEnum.get(defaultExpanded);
         if(modified) onValueChanged();
+        getPage().updateIfCurrent();
     }
     @Override public @NotNull IKeybind getKeybind() {return keybind;}
     public enum OptionListEnum implements IConfigOptionListEntry{

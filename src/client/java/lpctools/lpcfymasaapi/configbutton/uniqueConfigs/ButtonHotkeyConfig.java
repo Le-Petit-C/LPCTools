@@ -3,6 +3,7 @@ package lpctools.lpcfymasaapi.configbutton.uniqueConfigs;
 import com.google.gson.JsonElement;
 import fi.dy.masa.malilib.hotkeys.*;
 import lpctools.lpcfymasaapi.interfaces.ILPCConfigList;
+import lpctools.lpcfymasaapi.interfaces.ILPCUniqueConfigBase;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -20,9 +21,9 @@ public class ButtonHotkeyConfig extends ButtonConfig implements IHotkey {
         getPage().getInputHandler().addHotkey(this);
     }
     @Override public @NotNull IKeybind getKeybind() {return keybind;}
-    @Override protected void getButtonOptions(ArrayList<ButtonOption> res) {
+    @Override public void getButtonOptions(ArrayList<ButtonOption> res) {
         super.getButtonOptions(res);
-        res.add(buttonKeybindPreset(1, this));
+        res.add(ILPCUniqueConfigBase.buttonKeybindPreset(1, this));
     }
     @Override public @Nullable JsonElement getAsJsonElement() {
         return keybind.getAsJsonElement();

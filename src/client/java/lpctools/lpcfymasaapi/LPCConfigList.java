@@ -6,7 +6,6 @@ import lpctools.lpcfymasaapi.interfaces.ILPCConfigList;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
-import java.util.Collection;
 
 //配置列表
 public class LPCConfigList implements ILPCConfigList {
@@ -23,7 +22,7 @@ public class LPCConfigList implements ILPCConfigList {
     @Override public @NotNull ILPCConfigBase getParent() {return parent;}
     @Override public @NotNull String getNameKey(){return nameKey;}
     @Override public @NotNull LPCConfigPage getPage() {return parent.getPage();}
-    @Override public @NotNull Collection<ILPCConfig> getConfigs() {return subConfigs;}
+    @Override public @NotNull ArrayList<ILPCConfig> getConfigs() {return subConfigs;}
 
     private final String nameKey;
     private final ILPCConfigBase parent;

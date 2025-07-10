@@ -28,8 +28,8 @@ public class TilingTool {
     public static final ButtonHotkeyConfig refreshButton = addButtonHotkeyConfig("refresh", null, TilingTool::refreshCallback);
     public static final ReachDistanceConfig reachDistance = addReachDistanceConfig();
     public static final LimitOperationSpeedConfig limitOperationSpeed = addLimitOperationSpeedConfig(false, 1);
-    public static final BlockPosConfig cornerPos1 = addConfig(new BlockPosConfig(TTConfig, "cornerPos1", BlockPos.ORIGIN, false));
-    public static final BlockPosConfig cornerPos2 = addConfig(new BlockPosConfig(TTConfig, "cornerPos2", BlockPos.ORIGIN, false));
+    public static final BlockPosConfig cornerPos1 = addBlockPosConfig("cornerPos1", BlockPos.ORIGIN, false);
+    public static final BlockPosConfig cornerPos2 = addBlockPosConfig("cornerPos2", BlockPos.ORIGIN, false);
     @SuppressWarnings("unused")
     public static final ButtonHotkeyConfig setByLitematicaButton = addButtonHotkeyConfig("setByLitematica", null, TilingTool::setByLitematica);
     static {listStack.pop();}
