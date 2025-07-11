@@ -40,13 +40,13 @@ public class DebugConfigs {
     public static final BooleanHotkeyThirdListConfig booleanHotkeyThirdListTest =
         addBooleanHotkeyThirdListConfig(debugs, "booleanHotkeyThirdListTest", false, false, null, DebugConfigs::booleanHotkeyThirdListTestCallback, false);
     public static final ButtonConfig buttonConfigTest = addButtonConfig(booleanHotkeyThirdListTest, "button", DebugConfigs::buttonConfigTestCallback);
-    private static final ImmutableList<ScriptConfig.ScriptAllocator<?>> configSuppliers =ImmutableList.of(
-        new ScriptConfig.ScriptAllocator<>("button", ButtonConfig::new),
-        new ScriptConfig.ScriptAllocator<>("buttonHotkey", (parent, key)->new ButtonHotkeyConfig(parent, key, null, null)),
-        new ScriptConfig.ScriptAllocator<>("", (parent, key)->new ScriptConfig(parent, key, getConfigSuppliers(), null)));
-    public static final ScriptConfig scriptConfigTest = booleanHotkeyThirdListTest.
-        addConfig(new ScriptConfig(booleanHotkeyThirdListTest, "script", configSuppliers, null));
-    private static ImmutableList<ScriptConfig.ScriptAllocator<?>> getConfigSuppliers(){return configSuppliers;}
+    private static final ImmutableList<MutableConfig.ConfigAllocator<?>> configSuppliers =ImmutableList.of(
+        new MutableConfig.ConfigAllocator<>("button", ButtonConfig::new),
+        new MutableConfig.ConfigAllocator<>("buttonHotkey", (parent, key)->new ButtonHotkeyConfig(parent, key, null, null)),
+        new MutableConfig.ConfigAllocator<>("", (parent, key)->new MutableConfig(parent, key, getConfigSuppliers(), null)));
+    public static final MutableConfig MUTABLE_CONFIG_TEST = booleanHotkeyThirdListTest.
+        addConfig(new MutableConfig(booleanHotkeyThirdListTest, "mutable", configSuppliers, null));
+    private static ImmutableList<MutableConfig.ConfigAllocator<?>> getConfigSuppliers(){return configSuppliers;}
     static {Registries.ON_SCREEN_CHANGED.register(newScreen -> buttonConfigTest.buttonName = null);}
     static {listStack.pop();}
     

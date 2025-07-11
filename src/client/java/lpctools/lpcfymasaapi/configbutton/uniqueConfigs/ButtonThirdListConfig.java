@@ -1,5 +1,8 @@
 package lpctools.lpcfymasaapi.configbutton.uniqueConfigs;
 
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonPrimitive;
 import fi.dy.masa.malilib.gui.GuiConfigsBase;
 import fi.dy.masa.malilib.gui.LeftRight;
 import fi.dy.masa.malilib.gui.MaLiLibIcons;
@@ -13,6 +16,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
+
+import static lpctools.lpcfymasaapi.LPCConfigUtils.*;
 
 public class ButtonThirdListConfig extends ButtonConfig implements IThirdListBase {
     public boolean extended = false;
@@ -30,6 +35,22 @@ public class ButtonThirdListConfig extends ButtonConfig implements IThirdListBas
         res.add(new ButtonOption(-1, (button, mouseButton)->{extended = !extended; getPage().updateIfCurrent();}, null,
             ILPCUniqueConfigBase.iconButtonAllocator(extended ? MaLiLibIcons.ARROW_UP : MaLiLibIcons.ARROW_DOWN, LeftRight.CENTER)));
         super.getButtonOptions(res);
+    }
+    
+    @Override public void setValueFromJsonElement(@NotNull JsonElement data) {
+        if(data instanceof JsonObject object){
+            if(object.get(propertiesId) instanceof JsonElement element)
+                subConfigs.setValueFromJsonElement(element);
+            if(object.get("extended") instanceof JsonPrimitive primitive)
+                extended = primitive.getAsBoolean();
+        }
+        else warnFailedLoadingConfig(this, data);
+    }
+    @Override public @Nullable JsonObject getAsJsonElement() {
+        JsonObject object = new JsonObject();
+        object.addProperty("extended", extended);
+        object.add(propertiesId, subConfigs.getAsJsonElement());
+        return object;
     }
     //TODO:Json
 }

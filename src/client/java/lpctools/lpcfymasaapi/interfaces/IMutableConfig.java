@@ -1,5 +1,6 @@
 package lpctools.lpcfymasaapi.interfaces;
 
-public interface IScriptConfig {
+public interface IMutableConfig {
     boolean doCondenseOperationButton();
+    boolean doHideOperationButton();
 }
