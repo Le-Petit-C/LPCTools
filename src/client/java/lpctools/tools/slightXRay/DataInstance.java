@@ -47,7 +47,7 @@ public class DataInstance implements AutoCloseable, ClientChunkEvents.Load, Clie
         }
         AlgorithmUtils.fastRemove(updateFutures, v->completedFutures.contains(v.pos));
     }
-    MinecraftClient client;
+    public final MinecraftClient client;
     public double squaredDistanceByClient(ChunkPos chunkPos){
         if(client.player != null) return MathUtils.squaredDistance(client.player.getEyePos(), chunkPos);
         else return MathUtils.square(client.options.getViewDistance().getValue() * 16);

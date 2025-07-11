@@ -10,7 +10,7 @@ import org.joml.Vector3i;
 
 @SuppressWarnings("unused")
 public class BlockPosConfig extends ThirdListConfig{
-    public @NotNull _INTConfig x, y, z;
+    public final @NotNull _INTConfig x, y, z;
     public BlockPosConfig(ILPCConfigList parent, String nameKey, BlockPos defaultPos, boolean defaultBoolean) {
         super(parent, nameKey, defaultBoolean);
         x = addConfig(new _INTConfig(this, "x", defaultPos.getX()));

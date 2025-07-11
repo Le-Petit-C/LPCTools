@@ -33,7 +33,7 @@ public class ThirdListConfig extends BooleanConfig implements IThirdListBase {
         else return wrapperList;
     }
     
-    String superJsonId = "value";
+    public static final String superJsonId = "value";
     @Override public @NotNull JsonElement getAsJsonElement(){
         JsonObject object = new JsonObject();
         object.add(superJsonId, super.getAsJsonElement());

@@ -37,10 +37,10 @@ public class AlgorithmUtils {
     }
     //从近到远遍历方块
     public static Iterable<BlockPos> iterateFromClosest(Vec3d center){
-        return () -> new NearstIterator3D(center);
+        return () -> new ClosestIterator3D(center);
     }
     public static Iterable<BlockPos> iterateFromClosestInDistance(Vec3d center, double distance){
-        return () -> new InNearstIterator3D(center, distance);
+        return () -> new InClosestIterator3D(center, distance);
     }
     //从远到近遍历方块
     public static Iterable<BlockPos> iterateFromFurthestInDistance(Vec3d center, double distance){
@@ -52,10 +52,10 @@ public class AlgorithmUtils {
     }
     //从近到远遍历格点
     public static Iterable<Vector2i> iterateFromClosest(Vector2i center){
-        return () -> new NearstIterator2i(center);
+        return () -> new ClosestIterator2i(center);
     }
     public static Iterable<Vector2i> iterateFromClosestInDistance(Vector2i center, double distance){
-        return () -> new InNearstIterator2i(center, distance);
+        return () -> new InClosestIterator2I(center, distance);
     }
     //从远到近遍历格点
     public static ArrayList<Vector2i> iterateFromFurthestInDistance(Vector2i center, double distance){
@@ -190,11 +190,11 @@ public class AlgorithmUtils {
         }
     }
     
-    public static class NearstIterator3D implements Iterator<BlockPos>{
+    public static class ClosestIterator3D implements Iterator<BlockPos>{
         private final @NotNull Vec3d center;
         protected final PriorityQueue<BlockPos> poses;
         protected final HashSet<BlockPos> posSet;
-        NearstIterator3D(@NotNull Vec3d center){
+        ClosestIterator3D(@NotNull Vec3d center){
             this.center = center;
             poses = new PriorityQueue<>(
                     (o1, o2) -> {
@@ -231,19 +231,19 @@ public class AlgorithmUtils {
             return ret;
         }
     }
-    public static class InNearstIterator3D extends NearstIterator3D {
+    public static class InClosestIterator3D extends ClosestIterator3D {
         public final double maxSquaredDistance;
-        InNearstIterator3D(@NotNull Vec3d center, double maxDistance) {
+        InClosestIterator3D(@NotNull Vec3d center, double maxDistance) {
             super(center);
             maxSquaredDistance = maxDistance * maxDistance;
         }
         @Override public boolean hasNext() {return getNextDistance() <= maxSquaredDistance;}
     }
-    public static class NearstIterator2i implements Iterator<Vector2i>{
+    public static class ClosestIterator2i implements Iterator<Vector2i>{
         private final @NotNull Vector2i center;
         protected final PriorityQueue<Vector2i> poses;
         protected final HashSet<Vector2i> posSet;
-        NearstIterator2i(@NotNull Vector2i center){
+        ClosestIterator2i(@NotNull Vector2i center){
             this.center = center;
             poses = new PriorityQueue<>(
                 (o1, o2) -> {
@@ -275,15 +275,15 @@ public class AlgorithmUtils {
             }
             return ret;
         }
-        Vector2i[] directions = {
+        static final Vector2i[] directions = {
             new Vector2i(1, 0),
             new Vector2i(0, 1),
             new Vector2i(-1, 0),
             new Vector2i(0, -1)};
     }
-    public static class InNearstIterator2i extends NearstIterator2i {
+    public static class InClosestIterator2I extends ClosestIterator2i {
         public final double maxSquaredDistance;
-        InNearstIterator2i(@NotNull Vector2i center, double maxDistance) {
+        InClosestIterator2I(@NotNull Vector2i center, double maxDistance) {
             super(center);
             maxSquaredDistance = maxDistance * maxDistance;
         }

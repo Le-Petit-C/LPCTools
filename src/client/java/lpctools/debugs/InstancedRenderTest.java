@@ -41,8 +41,8 @@ public class InstancedRenderTest extends BooleanConfig{
     private static final Shader testInstanceDrawVertex = VertexShaders.newLPCVert("test_instance_draw.glsl");
     private static final TestInstanceDrawProgram program = new TestInstanceDrawProgram();
     private static class TestInstanceDrawProgram extends Program implements ShaderPrograms.WithFinalMatrix {
-        Uniform.UniformMatrix4f matrix = addUniform(new Uniform.UniformMatrix4f(this, "matrix"));
-        Uniform.Uniform1f timeAngle = addUniform(new Uniform.Uniform1f(this, "timeAngle"));
+        final Uniform.UniformMatrix4f matrix = addUniform(new Uniform.UniformMatrix4f(this, "matrix"));
+        final Uniform.Uniform1f timeAngle = addUniform(new Uniform.Uniform1f(this, "timeAngle"));
         public TestInstanceDrawProgram() {super(testInstanceDrawVertex, FragmentShaders.flat_vertex_color, POSITION_ANGLE_COLOR);}
         @Override public void setFinalMatrix(Matrix4f matrix) {this.matrix.set(matrix);}
         public void setTimeAngle(float timeAngle){this.timeAngle.setValue(timeAngle);}

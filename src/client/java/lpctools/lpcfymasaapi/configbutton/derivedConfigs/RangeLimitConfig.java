@@ -31,7 +31,7 @@ public class RangeLimitConfig extends ThirdListConfig implements Registries.Scre
             this.testType.addOption(testType.getPrefix(), testType);
         registerAll(true);
     }
-    @Override public void close() throws Exception {registerAll(false);}
+    @Override public void close() {registerAll(false);}
     public ShapeList buildShapeList(){
         if(getAsBoolean())
             return new ShapeList(litematica.getAsBoolean() ? testType.get() : null, prefix.get());

@@ -153,6 +153,7 @@ public class DataUtils {
             default -> def;
         };
     }
+    @SuppressWarnings("SpellCheckingInspection")
     public static int argb2agbr(int color){
         int s = color & 0x00ff00ff;
         return (color & 0xff00ff00) | (s >> 16) | (s << 16);

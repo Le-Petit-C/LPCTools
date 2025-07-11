@@ -20,7 +20,6 @@ import org.apache.commons.lang3.mutable.MutableInt;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
-import java.lang.Math;
 import java.util.*;
 
 import static lpctools.lpcfymasaapi.LPCConfigStatics.*;
@@ -141,6 +140,6 @@ public class SlightXRay{
         @Override public int getColor(Block block) {
             return defaultColorMethod.getColor(block);
         }
-        @NotNull DefaultColorMethod defaultColorMethod;
+        public final @NotNull DefaultColorMethod defaultColorMethod;
     }
 }
