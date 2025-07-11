@@ -4,8 +4,7 @@ import com.google.common.collect.ImmutableList;
 import it.unimi.dsi.fastutil.objects.Object2DoubleOpenHashMap;
 import lpctools.LPCTools;
 import lpctools.lpcfymasaapi.LPCAPIInit;
-import lpctools.util.javaex.NamedFunction;
-import lpctools.util.javaex.NamedObject2BooleanFunction;
+import lpctools.util.javaex.Object2BooleanFunction;
 import net.minecraft.block.Block;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ClientPlayerEntity;
@@ -30,6 +29,7 @@ import org.lwjgl.opengl.GL30;
 import java.io.IOException;
 import java.util.*;
 import java.util.function.Consumer;
+import java.util.function.Function;
 
 @SuppressWarnings("unused")
 public class DataUtils {
@@ -47,8 +47,8 @@ public class DataUtils {
         ClientPlayerEntity player = MinecraftClient.getInstance().player;
         if(player != null) player.sendMessage(message, overlay);
     }
-    public static <T> void notifyPlayerIf(T value, NamedFunction<T, String> converter, NamedObject2BooleanFunction<T> condition, boolean overlay){
-        if(condition.booleanApply(value)) notifyPlayer(converter.apply(value), overlay);
+    public static <T> void notifyPlayerIf(T value, Function<T, String> converter, Object2BooleanFunction<T> condition, boolean overlay){
+        if(condition.getBoolean(value)) notifyPlayer(converter.apply(value), overlay);
     }
     public static String getItemId(Item item){return Registries.ITEM.getEntry(item).getIdAsString();}
     public static String getBlockId(Block block){return Registries.BLOCK.getEntry(block).getIdAsString();}

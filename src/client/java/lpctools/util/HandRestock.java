@@ -56,6 +56,6 @@ public class HandRestock {
             if(i < 9) inventory.setSelectedSlot(i);
             else ItemUtils.swapSlotWithMainhand(i);
         }
-        return count;
+        return player.isCreative() ? count : 64;
     }
 }

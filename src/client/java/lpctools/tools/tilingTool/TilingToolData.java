@@ -10,9 +10,14 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3i;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+
 public class TilingToolData {
     static @Nullable TilingToolExecutor executor;
     static @Nullable StoredData storedData;
+    public static final HashMap<Block, ArrayList<HashSet<Block>>> vagueBlocks = new HashMap<>();
     public static void refresh(Box3i box){storedData = StoredData.create(box);}
     public record StoredData(BlockPos startPos, Vec3i cuboidSize, Block[][][] storedBlocks){
         public static StoredData create(Box3i box){

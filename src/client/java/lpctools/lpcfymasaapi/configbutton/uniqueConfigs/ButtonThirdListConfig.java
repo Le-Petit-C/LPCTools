@@ -43,6 +43,7 @@ public class ButtonThirdListConfig extends ButtonConfig implements IThirdListBas
                 subConfigs.setValueFromJsonElement(element);
             if(object.get("extended") instanceof JsonPrimitive primitive)
                 extended = primitive.getAsBoolean();
+            onValueChanged();
         }
         else warnFailedLoadingConfig(this, data);
     }
@@ -52,5 +53,4 @@ public class ButtonThirdListConfig extends ButtonConfig implements IThirdListBas
         object.add(propertiesId, subConfigs.getAsJsonElement());
         return object;
     }
-    //TODO:Json
 }

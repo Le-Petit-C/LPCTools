@@ -9,7 +9,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 
-public class ButtonConfig extends LPCConfigBase implements IButtonActionListener {
+public class ButtonConfig extends LPCUniqueConfigBase implements IButtonActionListener {
     @Nullable public IButtonActionListener listener;
     @Nullable public String buttonName;
     public ButtonConfig(ILPCConfigList parent, String nameKey, @Nullable IButtonActionListener listener) {

@@ -25,7 +25,7 @@ import java.util.Objects;
 import static lpctools.lpcfymasaapi.LPCConfigUtils.*;
 
 //一个有三个按钮：展开，boolean，hotkey的配置
-public class BooleanHotkeyThirdListConfig extends LPCConfigBase implements IThirdListBase, IConfigBoolean, IConfigOptionListEx, IHotkey {
+public class BooleanHotkeyThirdListConfig extends LPCUniqueConfigBase implements IThirdListBase, IConfigBoolean, IConfigOptionListEx, IHotkey {
     public final boolean defaultBoolean, defaultExpanded;
     public final @NotNull String defaultHotkeyStorageString;
     private boolean booleanValue;

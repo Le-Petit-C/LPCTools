@@ -1,8 +1,7 @@
 package lpctools.util;
 
 import com.google.common.collect.ImmutableList;
-import lpctools.util.javaex.NamedFunction;
-import lpctools.util.javaex.NamedObject2BooleanFunction;
+import lpctools.util.javaex.Object2BooleanFunction;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.ChunkPos;
 import net.minecraft.util.math.Direction;
@@ -19,6 +18,7 @@ import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
+import java.util.function.Function;
 
 import static lpctools.util.MathUtils.*;
 
@@ -290,9 +290,9 @@ public class AlgorithmUtils {
         @Override public boolean hasNext() {return getNextDistance() <= maxSquaredDistance;}
     }
     //快速从ArrayList中移除内容，但是不保序
-    public static <T> void fastRemove(ArrayList<T> source, NamedObject2BooleanFunction<T> shouldRemove){
+    public static <T> void fastRemove(ArrayList<T> source, Object2BooleanFunction<T> shouldRemove){
         for(int a = 0; a < source.size(); ++a){
-            while (shouldRemove.booleanApply(source.get(a))){
+            while (shouldRemove.getBoolean(source.get(a))){
                 Collections.swap(source, a, source.size() - 1);
                 source.removeLast();
                 if(a >= source.size()) break;
@@ -307,7 +307,7 @@ public class AlgorithmUtils {
         }catch (Exception ignored){}
     }
     //软取消元素关联的所有任务，清空原始集合并阻塞等待剩余任务完成
-    public static <T> void cancelTasks(Collection<T> collection, NamedFunction<T, @Nullable CompletableFuture<?>> futureGetter){
+    public static <T> void cancelTasks(Collection<T> collection, Function<T, @Nullable CompletableFuture<?>> futureGetter){
         CompletableFuture<?>[] futures = new CompletableFuture<?>[collection.size()];
         int a = 0;
         for(T futureT : collection){
@@ -368,14 +368,14 @@ public class AlgorithmUtils {
         if(closeable != null) try{closeable.close();}catch(Exception ignored){}
     }
     //转换集合内元素
-    public static <T, U, V extends Collection<? super U>> @NotNull V convert(@NotNull V collection, @Nullable Iterable<T> values, NamedFunction<? super T, U> converter){
+    public static <T, U, V extends Collection<? super U>> @NotNull V convert(@NotNull V collection, @Nullable Iterable<T> values, Function<? super T, U> converter){
         if(values != null) values.forEach(value->collection.add(converter.apply(value)));
         return collection;
     }
-    public static <T, U> @NotNull ImmutableList<U> convertToImmutableList(@Nullable Iterable<T> values, NamedFunction<? super T, U> converter){
+    public static <T, U> @NotNull ImmutableList<U> convertToImmutableList(@Nullable Iterable<T> values, Function<? super T, U> converter){
         return ImmutableList.copyOf(convert(new ArrayList<>(), values, converter));
     }
-    public static <T, U> @NotNull HashSet<U> convertToHashSet(@Nullable Iterable<T> values, NamedFunction<T, U> converter){
+    public static <T, U> @NotNull HashSet<U> convertToHashSet(@Nullable Iterable<T> values, Function<T, U> converter){
         return convert(new HashSet<>(), values, converter);
     }
 }

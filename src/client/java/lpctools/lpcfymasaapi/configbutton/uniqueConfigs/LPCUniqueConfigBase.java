@@ -11,14 +11,14 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 @SuppressWarnings("SameParameterValue")
-public abstract class LPCConfigBase implements ILPCUniqueConfigBase {
+public abstract class LPCUniqueConfigBase implements ILPCUniqueConfigBase {
     public final @NotNull ILPCConfigList parent;
     public final @NotNull String nameKey;
     public @Nullable ILPCValueChangeCallback callback;
     public @NotNull String translatedName = "";
     public @NotNull String comment = "";
     public @NotNull String prettyName;
-    public LPCConfigBase(@NotNull ILPCConfigList parent, @NotNull String nameKey, @Nullable ILPCValueChangeCallback callback){
+    public LPCUniqueConfigBase(@NotNull ILPCConfigList parent, @NotNull String nameKey, @Nullable ILPCValueChangeCallback callback){
         this.parent = parent;
         this.nameKey = nameKey;
         this.callback = callback;
@@ -37,22 +37,22 @@ public abstract class LPCConfigBase implements ILPCUniqueConfigBase {
                 return ConfigType.HOTKEY;
             }
             @Override public String getName() {
-                return LPCConfigBase.this.getName();
+                return LPCUniqueConfigBase.this.getName();
             }
             @Override public String getComment() {
-                return LPCConfigBase.this.getComment();
+                return LPCUniqueConfigBase.this.getComment();
             }
             @Override public String getTranslatedName() {
-                return LPCConfigBase.this.getTranslatedName();
+                return LPCUniqueConfigBase.this.getTranslatedName();
             }
             @Override public void setPrettyName(String prettyName) {
-                LPCConfigBase.this.setPrettyName(prettyName);
+                LPCUniqueConfigBase.this.setPrettyName(prettyName);
             }
             @Override public void setTranslatedName(String translatedName) {
-                LPCConfigBase.this.setTranslatedName(translatedName);
+                LPCUniqueConfigBase.this.setTranslatedName(translatedName);
             }
             @Override public void setComment(String comment) {
-                LPCConfigBase.this.setComment(comment);
+                LPCUniqueConfigBase.this.setComment(comment);
             }
             @Override public void setValueFromJsonElement(JsonElement element) {
                 keybind.setValueFromJsonElement(element);
