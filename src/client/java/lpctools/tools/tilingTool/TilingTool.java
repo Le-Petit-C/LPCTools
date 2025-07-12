@@ -8,7 +8,6 @@ import lpctools.lpcfymasaapi.configbutton.derivedConfigs.*;
 import lpctools.lpcfymasaapi.configbutton.uniqueConfigs.BooleanHotkeyThirdListConfig;
 import lpctools.lpcfymasaapi.configbutton.uniqueConfigs.ButtonHotkeyConfig;
 import lpctools.lpcfymasaapi.configbutton.uniqueConfigs.MutableConfig;
-import lpctools.lpcfymasaapi.interfaces.ILPCConfig;
 import lpctools.tools.ToolConfigs;
 import lpctools.util.data.Box3i;
 import net.minecraft.block.Block;
@@ -30,8 +29,8 @@ public class TilingTool {
     static {listStack.push(TTConfig);}
     public static final ReachDistanceConfig reachDistance = addReachDistanceConfig();
     public static final LimitOperationSpeedConfig limitOperationSpeed = addLimitOperationSpeedConfig(false, 1);
-    public static final BlockPosConfig cornerPos1 = addBlockPosConfig("cornerPos1", BlockPos.ORIGIN, false);
-    public static final BlockPosConfig cornerPos2 = addBlockPosConfig("cornerPos2", BlockPos.ORIGIN, false);
+    public static final BlockPosConfig cornerPos1 = addBlockPosConfig("cornerPos1", BlockPos.ORIGIN, null);
+    public static final BlockPosConfig cornerPos2 = addBlockPosConfig("cornerPos2", BlockPos.ORIGIN, null);
     @SuppressWarnings("unused")
     public static final ButtonHotkeyConfig refreshButton = addButtonHotkeyConfig("refresh", null, TilingTool::refreshCallback);
     @SuppressWarnings("unused")
@@ -50,7 +49,7 @@ public class TilingTool {
         litematicaButtonModeDefaults.put("lpctools.configs.tools.TT.litematicaButtonMode.bufferDirectly", TilingTool::litematicaRefreshDirectly);
     }
     public static final ArrayOptionListConfig<Runnable> litematicaButtonMode = addArrayOptionListConfig("litematicaButtonMode", litematicaButtonModeDefaults);
-    public static final MutableConfig vagueBlocksConfig = addMutableConfig("vagueBlocks", ImmutableList.of(
+    public static final MutableConfig<ObjectListConfig.BlockListConfig> vagueBlocksConfig = addMutableConfig("vagueBlocks", ImmutableList.of(
         new MutableConfig.ConfigAllocator<>("blocks", null,
             (parent, key, user)->new ObjectListConfig.BlockListConfig(parent, key, user, parent::onValueChanged))
     ), ImmutableMap.of("blocks", ImmutableList.of(Blocks.DIRT, Blocks.GRASS_BLOCK)), TilingTool::refreshVagueBlocks);
@@ -97,10 +96,9 @@ public class TilingTool {
     private static void setByLitematica(){litematicaButtonMode.get().run();}
     private static void refreshVagueBlocks(){
         vagueBlocks.clear();
-        for(ILPCConfig config : vagueBlocksConfig.iterateConfigs())
-            if(config instanceof ObjectListConfig.BlockListConfig blockListConfig)
-                for(Block block : blockListConfig.set)
-                    vagueBlocks.computeIfAbsent(block, v->new ArrayList<>()).add(blockListConfig.set);
+        for(ObjectListConfig.BlockListConfig config : vagueBlocksConfig.iterateConfigs())
+            for(Block block : config.set)
+                vagueBlocks.computeIfAbsent(block, v->new ArrayList<>()).add(config.set);
     }
     static void setConfigBox(Box3i box){
         cornerPos1.setPos(box.pos1);

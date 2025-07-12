@@ -6,8 +6,9 @@ import fi.dy.masa.malilib.hotkeys.IHotkeyCallback;
 import fi.dy.masa.malilib.hotkeys.IKeybind;
 import fi.dy.masa.malilib.hotkeys.KeyAction;
 import fi.dy.masa.malilib.util.StringUtils;
+import lpctools.lpcfymasaapi.configbutton.UpdateTodo;
 import lpctools.lpcfymasaapi.interfaces.IButtonDisplay;
-import lpctools.lpcfymasaapi.interfaces.ILPCConfigList;
+import lpctools.lpcfymasaapi.interfaces.ILPCConfigReadable;
 import lpctools.lpcfymasaapi.interfaces.ILPC_MASAConfigWrapper;
 import lpctools.lpcfymasaapi.interfaces.data.LPCConfigData;
 import net.minecraft.client.MinecraftClient;
@@ -22,7 +23,7 @@ import java.util.function.IntConsumer;
 import java.util.function.IntSupplier;
 
 public class HotkeyConfig extends ConfigHotkey implements ILPC_MASAConfigWrapper<ConfigHotkey> {
-    public HotkeyConfig(@NotNull ILPCConfigList parent, @NotNull String nameKey, @Nullable String defaultStorageString, @Nullable IHotkeyCallback hotkeyCallback){
+    public HotkeyConfig(@NotNull ILPCConfigReadable parent, @NotNull String nameKey, @Nullable String defaultStorageString, @Nullable IHotkeyCallback hotkeyCallback){
         super(nameKey, defaultStorageString != null ? defaultStorageString : "");
         data = new LPCConfigData(parent, true);
         ILPC_MASAConfigWrapperDefaultInit(null);
@@ -30,7 +31,7 @@ public class HotkeyConfig extends ConfigHotkey implements ILPC_MASAConfigWrapper
         getKeybind().setCallback(hotkeyCallback);
     }
     
-    public HotkeyConfig(@NotNull ILPCConfigList parent, @NotNull String nameKey, @Nullable String defaultStorageString){
+    public HotkeyConfig(@NotNull ILPCConfigReadable parent, @NotNull String nameKey, @Nullable String defaultStorageString){
         this(parent, nameKey, defaultStorageString, null);
     }
 
@@ -57,11 +58,14 @@ public class HotkeyConfig extends ConfigHotkey implements ILPC_MASAConfigWrapper
         @NotNull private final T valueToChange;
         @Nullable private final BooleanSupplier enabled;
     }
-
+    
     @Override public void setValueFromJsonElement(@NotNull JsonElement element) {
+        ILPC_MASAConfigWrapper.super.setValueFromJsonElement(element);
+    }
+    @Override public UpdateTodo setValueFromJsonElementEx(@NotNull JsonElement element) {
         List<Integer> lastKeys = List.copyOf(getKeybind().getKeys());
         super.setValueFromJsonElement(element);
-        if(!lastKeys.equals(getKeybind().getKeys())) onValueChanged();
+        return new UpdateTodo().valueChanged(!lastKeys.equals(getKeybind().getKeys()));
     }
     @Override public @NotNull LPCConfigData getLPCConfigData() {return data;}
     private final @NotNull LPCConfigData data;

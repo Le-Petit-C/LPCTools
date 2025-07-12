@@ -1,7 +1,8 @@
 package lpctools.lpcfymasaapi.configbutton.derivedConfigs;
 
 import lpctools.lpcfymasaapi.configbutton.transferredConfigs.DoubleConfig;
-import lpctools.lpcfymasaapi.interfaces.ILPCConfigList;
+import lpctools.lpcfymasaapi.configbutton.uniqueConfigs.BooleanThirdListConfig;
+import lpctools.lpcfymasaapi.interfaces.ILPCConfigReadable;
 import lpctools.util.HandRestock;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ClientPlayerEntity;
@@ -12,10 +13,10 @@ import java.util.Iterator;
 import static lpctools.lpcfymasaapi.configbutton.derivedConfigs.DerivedConfigUtils.*;
 
 @SuppressWarnings("unused")
-public class LimitOperationSpeedConfig extends ThirdListConfig {
+public class LimitOperationSpeedConfig extends BooleanThirdListConfig {
     public final @NotNull DoubleConfig maxOperationSpeed;
-    public LimitOperationSpeedConfig(ILPCConfigList parent, boolean defaultBoolean, double defaultDouble) {
-        super(parent, "limitOperationSpeed", defaultBoolean);
+    public LimitOperationSpeedConfig(ILPCConfigReadable parent, boolean defaultBoolean, double defaultDouble) {
+        super(parent, "limitOperationSpeed", defaultBoolean, null);
         maxOperationSpeed = addConfig(new DoubleConfig(this, "maxOperationSpeed", defaultDouble, 0, 64){
             @Override public @NotNull String getFullTranslationKey() {return fullKeyByParent(this);}
         });
@@ -23,7 +24,7 @@ public class LimitOperationSpeedConfig extends ThirdListConfig {
     //重置剩余操作次数
     public void resetOperationTimes(){
         restocked = false;
-        if(!getAsBoolean()){
+        if(!getBooleanValue()){
             reservedTimes = Double.MAX_VALUE;
             return;
         }

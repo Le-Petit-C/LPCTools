@@ -63,7 +63,7 @@ public class GenericUtils {
     
     public static CompletableFuture<Void> runAsync(Runnable runnable){
         CompletableFuture<Void> ret;
-        if(useIndependentThreadPool.getAsBoolean())
+        if(useIndependentThreadPool.getBooleanValue())
             ret = CompletableFuture.runAsync(runnable, threadPool);
         else ret = CompletableFuture.runAsync(runnable);
         asyncTest(ret);
@@ -71,7 +71,7 @@ public class GenericUtils {
     }
     public static <T> CompletableFuture<T> supplyAsync(Supplier<T> supplier){
         CompletableFuture<T> ret;
-        if(useIndependentThreadPool.getAsBoolean())
+        if(useIndependentThreadPool.getBooleanValue())
             ret = CompletableFuture.supplyAsync(supplier, threadPool);
         else ret = CompletableFuture.supplyAsync(supplier);
         asyncTest(ret);
@@ -79,7 +79,7 @@ public class GenericUtils {
     }
     public static CompletableFuture<Void> runAsync(Runnable runnable, double priority){
         CompletableFuture<Void> ret;
-        if(useIndependentThreadPool.getAsBoolean()){
+        if(useIndependentThreadPool.getBooleanValue()){
             ret = new CompletableFuture<>();
             threadPool.execute(()->{
                 runnable.run();
@@ -92,7 +92,7 @@ public class GenericUtils {
     }
     public static <T> CompletableFuture<T> supplyAsync(Supplier<T> supplier, double priority){
         CompletableFuture<T> ret;
-        if(useIndependentThreadPool.getAsBoolean()){
+        if(useIndependentThreadPool.getBooleanValue()){
             ret = new CompletableFuture<>();
             threadPool.execute(()->ret.complete(supplier.get()), priority);
         }

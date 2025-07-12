@@ -15,6 +15,7 @@ import fi.dy.masa.malilib.gui.GuiConfigsBase;
 import fi.dy.masa.malilib.gui.button.IButtonActionListener;
 import fi.dy.masa.malilib.gui.button.ButtonBase;
 import fi.dy.masa.malilib.gui.button.ButtonGeneric;
+import lpctools.lpcfymasaapi.configbutton.UpdateTodo;
 import lpctools.lpcfymasaapi.interfaces.ILPCConfigBase;
 import net.minecraft.client.MinecraftClient;
 import org.jetbrains.annotations.NotNull;
@@ -108,12 +109,14 @@ public class LPCConfigPage implements IConfigHandler, Supplier<GuiBase>, ILPCCon
             list.addIntoParentJsonObject(pageJson);
         return pageJson;
     }
-    @Override public void setValueFromJsonElement(@NotNull JsonElement data) {
-        if(data instanceof JsonObject jsonObject){
+    
+    @Override public UpdateTodo setValueFromJsonElementEx(@NotNull JsonElement data) {
+        UpdateTodo todo = new UpdateTodo();
+        if(data instanceof JsonObject jsonObject)
             for(LPCConfigList list : lists)
-                list.setValueFromParentJsonObject(jsonObject);
-        }
+                todo.combine(list.setValueFromParentJsonObjectEx(jsonObject));
         else warnFailedLoadingConfig(this, data);
+        return todo;
     }
     
     static void staticAfterInit(){

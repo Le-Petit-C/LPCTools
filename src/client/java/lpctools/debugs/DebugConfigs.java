@@ -11,6 +11,7 @@ import lpctools.lpcfymasaapi.configbutton.transferredConfigs.BooleanConfig;
 import lpctools.lpcfymasaapi.configbutton.transferredConfigs.HotkeyConfig;
 import lpctools.lpcfymasaapi.configbutton.uniqueConfigs.*;
 import lpctools.lpcfymasaapi.gl.MaskLayer;
+import lpctools.lpcfymasaapi.interfaces.ILPCUniqueConfigBase;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents;
 import net.minecraft.block.BlockState;
@@ -38,15 +39,15 @@ public class DebugConfigs {
     public static final BooleanConfig briefBlockState = addBooleanConfig("briefBlockState", true);
     public static final MandelbrotSetRender mandelbrotSetRender = addConfig(new MandelbrotSetRender(debugs));
     public static final BooleanHotkeyThirdListConfig booleanHotkeyThirdListTest =
-        addBooleanHotkeyThirdListConfig(debugs, "booleanHotkeyThirdListTest", false, false, null, DebugConfigs::booleanHotkeyThirdListTestCallback, false);
+        addBooleanHotkeyThirdListConfig(debugs, "booleanHotkeyThirdListTest", false, null, DebugConfigs::booleanHotkeyThirdListTestCallback);
     public static final ButtonConfig buttonConfigTest = addButtonConfig(booleanHotkeyThirdListTest, "button", DebugConfigs::buttonConfigTestCallback);
-    private static final ImmutableList<MutableConfig.ConfigAllocator<?, Void>> configSuppliers =ImmutableList.of(
+    private static final ImmutableList<MutableConfig.ConfigAllocator<ILPCUniqueConfigBase, Void>> configSuppliers =ImmutableList.of(
         new MutableConfig.ConfigAllocator<>("button", ButtonConfig::new),
         new MutableConfig.ConfigAllocator<>("buttonHotkey", (parent, key)->new ButtonHotkeyConfig(parent, key, null, null)),
-        new MutableConfig.ConfigAllocator<>("", (parent, key)->new MutableConfig(parent, key, getConfigSuppliers(), null, null)));
-    public static final MutableConfig MUTABLE_CONFIG_TEST = booleanHotkeyThirdListTest.
-        addConfig(new MutableConfig(booleanHotkeyThirdListTest, "mutable", configSuppliers, null, null));
-    private static ImmutableList<MutableConfig.ConfigAllocator<?, Void>> getConfigSuppliers(){return configSuppliers;}
+        new MutableConfig.ConfigAllocator<>("", (parent, key)->new MutableConfig<>(parent, key, getConfigSuppliers(), null, null)));
+    public static final MutableConfig<ILPCUniqueConfigBase> MUTABLE_CONFIG_TEST = booleanHotkeyThirdListTest.
+        addConfig(new MutableConfig<>(booleanHotkeyThirdListTest, "mutable", configSuppliers, null, null));
+    private static ImmutableList<MutableConfig.ConfigAllocator<ILPCUniqueConfigBase, Void>> getConfigSuppliers(){return configSuppliers;}
     static {Registries.ON_SCREEN_CHANGED.register(newScreen -> buttonConfigTest.buttonName = null);}
     static {listStack.pop();}
     

@@ -18,7 +18,7 @@ public class BreakRestriction {
     public static final BooleanHotkeyThirdListConfig BRConfig = new BooleanHotkeyThirdListConfig(ToolConfigs.toolConfigs, "BR");
     static {ToolUtils.setLPCToolsToggleText(BRConfig);}
     static {listStack.push(BRConfig);}
-    public static final RangeLimitConfig rangeLimit = addConfig(new RangeLimitConfig(BRConfig, false, "BR"){
+    public static final RangeLimitConfig rangeLimit = addConfig(new RangeLimitConfig(BRConfig, "BR"){
         @Override public @NotNull String getFullNameTranslationKey() {
             return getFullPath() + ".name";
         }

@@ -19,7 +19,7 @@ public class CanSpawnDisplay{
     static {setLPCToolsToggleText(CSConfig);}
     static {listStack.push(CSConfig);}
     public static final ColorConfig displayColor = addColorConfig("displayColor", Color4f.fromColor(0x7fffffff));
-    public static final RangeLimitConfig rangeLimit = addRangeLimitConfig(false);
+    public static final RangeLimitConfig rangeLimit = addRangeLimitConfig();
     static {rangeLimit.setValueChangeCallback(CanSpawnDisplay::onRenderRangeChanged);}
     public static final DoubleConfig renderDistance = addDoubleConfig("renderDistance", 32, 16, 512);
     public static final RenderMethodConfig renderMethod = addConfig(new RenderMethodConfig());

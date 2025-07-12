@@ -1,6 +1,6 @@
 package lpctools.lpcfymasaapi.configbutton.derivedConfigs;
 
-import lpctools.lpcfymasaapi.interfaces.ILPCConfigList;
+import lpctools.lpcfymasaapi.interfaces.ILPCConfigReadable;
 import lpctools.lpcfymasaapi.interfaces.ILPCValueChangeCallback;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -12,10 +12,10 @@ import java.util.function.IntSupplier;
 //其实是给HotkeyConfig.IntegerChanger用的
 public class IntegerArrayListConfig<T extends IntSupplier & IntConsumer>
         extends ArrayOptionListConfig<T> implements IntSupplier, IntConsumer{
-    public IntegerArrayListConfig(@NotNull ILPCConfigList parent, @NotNull String nameKey, @NotNull Iterable<T> values) {
+    public IntegerArrayListConfig(@NotNull ILPCConfigReadable parent, @NotNull String nameKey, @NotNull Iterable<T> values) {
         this(parent, nameKey, values, null);
     }
-    public IntegerArrayListConfig(@NotNull ILPCConfigList parent, @NotNull String nameKey, @NotNull Iterable<T> values, @Nullable ILPCValueChangeCallback callback) {
+    public IntegerArrayListConfig(@NotNull ILPCConfigReadable parent, @NotNull String nameKey, @NotNull Iterable<T> values, @Nullable ILPCValueChangeCallback callback) {
         super(parent, nameKey, callback);
         for(T value : values) addOption(value);
     }

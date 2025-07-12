@@ -18,7 +18,7 @@ public class ClientPlayerEntityMixin {
             lastModified = false;
             return true;
         }
-        if(!happyGhastRidingTweak.getAsBoolean()) return lastValue;
+        if(!happyGhastRidingTweak.getBooleanValue()) return lastValue;
         if(!(MinecraftClient.getInstance().player instanceof ClientPlayerEntity player)) return lastValue;
         if(!(player.getVehicle() instanceof HappyGhastEntity)) return lastValue;
         if(!happyGhastDismountKey.getKeybind().isPressed()) return lastValue;

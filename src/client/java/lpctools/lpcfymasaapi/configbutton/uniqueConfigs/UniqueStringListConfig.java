@@ -6,7 +6,8 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonPrimitive;
 import fi.dy.masa.malilib.config.IConfigResettable;
 import fi.dy.masa.malilib.config.IConfigStringList;
-import lpctools.lpcfymasaapi.interfaces.ILPCConfigList;
+import lpctools.lpcfymasaapi.configbutton.UpdateTodo;
+import lpctools.lpcfymasaapi.interfaces.ILPCConfigReadable;
 import lpctools.lpcfymasaapi.interfaces.ILPCUniqueConfigBase;
 import lpctools.lpcfymasaapi.interfaces.ILPCValueChangeCallback;
 import org.jetbrains.annotations.NotNull;
@@ -20,10 +21,10 @@ import static lpctools.lpcfymasaapi.LPCConfigUtils.warnFailedLoadingConfig;
 public class UniqueStringListConfig extends LPCUniqueConfigBase implements IConfigStringList, IConfigResettable {
     public final ImmutableList<String> defaultStrings;
     public final ArrayList<String> strings = new ArrayList<>();
-    public UniqueStringListConfig(@NotNull ILPCConfigList parent, @NotNull String nameKey, @Nullable ImmutableList<String> defaultStrings) {
+    public UniqueStringListConfig(@NotNull ILPCConfigReadable parent, @NotNull String nameKey, @Nullable ImmutableList<String> defaultStrings) {
         this(parent, nameKey, defaultStrings, null);
     }
-    public UniqueStringListConfig(@NotNull ILPCConfigList parent, @NotNull String nameKey, @Nullable ImmutableList<String> defaultStrings, @Nullable ILPCValueChangeCallback callback) {
+    public UniqueStringListConfig(@NotNull ILPCConfigReadable parent, @NotNull String nameKey, @Nullable ImmutableList<String> defaultStrings, @Nullable ILPCValueChangeCallback callback) {
         super(parent, nameKey, callback);
         this.defaultStrings = defaultStrings == null ? ImmutableList.of() : defaultStrings;
         strings.addAll(defaultStrings);
@@ -46,7 +47,8 @@ public class UniqueStringListConfig extends LPCUniqueConfigBase implements IConf
         for(String string : strings) array.add(string);
         return array;
     }
-    @Override public void setValueFromJsonElement(@NotNull JsonElement data) {
+    @Override public UpdateTodo setValueFromJsonElementEx(@NotNull JsonElement data) {
+        UpdateTodo todo = new UpdateTodo();
         if(data instanceof JsonArray array){
             ArrayList<String> newList = new ArrayList<>();
             for(JsonElement element : array){
@@ -57,10 +59,11 @@ public class UniqueStringListConfig extends LPCUniqueConfigBase implements IConf
             if(!newList.equals(strings)){
                 strings.clear();
                 strings.addAll(newList);
-                onValueChanged();
+                todo.valueChanged();
             }
         }
         else warnFailedLoadingConfig(this, data);
+        return todo;
     }
     @Override public boolean isModified() {
         return !strings.equals(defaultStrings);

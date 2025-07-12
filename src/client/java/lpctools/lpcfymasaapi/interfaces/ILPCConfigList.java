@@ -4,6 +4,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import fi.dy.masa.malilib.gui.GuiConfigsBase;
 import fi.dy.masa.malilib.util.StringUtils;
+import lpctools.lpcfymasaapi.configbutton.UpdateTodo;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -13,7 +14,7 @@ import java.util.Collection;
 import static lpctools.lpcfymasaapi.LPCConfigUtils.*;
 
 @SuppressWarnings("unused")
-public interface ILPCConfigList extends ILPCConfigBase{
+public interface ILPCConfigList extends ILPCConfigBase, ILPCConfigReadable {
     @NotNull Collection<ILPCConfig> getConfigs();
 
     default boolean needAlign(){return true;}
@@ -27,24 +28,18 @@ public interface ILPCConfigList extends ILPCConfigBase{
 
     default String getTitleFullTranslationKey(){return getFullTranslationKey() + ".title";}
     default String getTitleDisplayName(){return StringUtils.translate(getTitleFullTranslationKey());}
-    default ArrayList<GuiConfigsBase.ConfigOptionWrapper>
+    @Override default ArrayList<GuiConfigsBase.ConfigOptionWrapper>
     buildConfigWrappers(ArrayList<GuiConfigsBase.ConfigOptionWrapper> wrapperList){
-        for(ILPCConfig config : getConfigs()){
-            config.refreshName(needAlign());
-            wrapperList.add(new GuiConfigsBase.ConfigOptionWrapper(config));
-            if(config instanceof ILPCConfigList list)
-                list.buildConfigWrappers(wrapperList);
-        }
-        return wrapperList;
+        return ILPCConfigReadable.defaultBuildConfigWrappers(wrapperList, getConfigs(), needAlign());
     }
-    //使用此方法从jsonObject中加载列表配置
-    @Override default void setValueFromJsonElement(@NotNull JsonElement data){
+    @Override default UpdateTodo setValueFromJsonElementEx(@NotNull JsonElement data){
+        UpdateTodo todo = new UpdateTodo();
         if(data instanceof JsonObject jsonObject)
             for (ILPCConfig config : getConfigs())
-                config.setValueFromParentJsonObject(jsonObject);
+                todo.combine(config.setValueFromParentJsonObjectEx(jsonObject).apply(config));
         else warnFailedLoadingConfig(this, data);
+        return todo;
     }
-    //使用此方法生成当前列表配置的Json并加到jsonObject中
     @Override default @Nullable JsonElement getAsJsonElement(){
         JsonObject listJson = new JsonObject();
         for(ILPCConfig config : getConfigs())

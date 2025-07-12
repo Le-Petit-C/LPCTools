@@ -41,7 +41,7 @@ public class ButtonThirdListConfig extends ButtonConfig implements IThirdListBas
         if(data instanceof JsonObject object){
             if(object.get(propertiesId) instanceof JsonElement element)
                 subConfigs.setValueFromJsonElement(element);
-            if(object.get("extended") instanceof JsonPrimitive primitive)
+            if(object.get("expanded") instanceof JsonPrimitive primitive)
                 extended = primitive.getAsBoolean();
             onValueChanged();
         }
@@ -49,7 +49,7 @@ public class ButtonThirdListConfig extends ButtonConfig implements IThirdListBas
     }
     @Override public @Nullable JsonObject getAsJsonElement() {
         JsonObject object = new JsonObject();
-        object.addProperty("extended", extended);
+        object.addProperty("expanded", extended);
         object.add(propertiesId, subConfigs.getAsJsonElement());
         return object;
     }

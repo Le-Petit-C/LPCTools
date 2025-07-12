@@ -1,18 +1,22 @@
 package lpctools.lpcfymasaapi.configbutton.derivedConfigs;
 
+import fi.dy.masa.malilib.config.IConfigResettable;
 import lpctools.lpcfymasaapi.configbutton.transferredConfigs.IntegerConfig;
-import lpctools.lpcfymasaapi.interfaces.ILPCConfigList;
+import lpctools.lpcfymasaapi.configbutton.uniqueConfigs.ThirdListConfig;
+import lpctools.lpcfymasaapi.interfaces.ILPCConfigReadable;
+import lpctools.lpcfymasaapi.interfaces.ILPCValueChangeCallback;
 import net.minecraft.text.Text;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3i;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.joml.Vector3i;
-
+//TODO
 @SuppressWarnings("unused")
-public class BlockPosConfig extends ThirdListConfig{
-    public final @NotNull _INTConfig x, y, z;
-    public BlockPosConfig(ILPCConfigList parent, String nameKey, BlockPos defaultPos, boolean defaultBoolean) {
-        super(parent, nameKey, defaultBoolean);
+public class BlockPosConfig extends ThirdListConfig implements IConfigResettable {
+    private final @NotNull _INTConfig x, y, z;
+    public BlockPosConfig(ILPCConfigReadable parent, String nameKey, BlockPos defaultPos, @Nullable ILPCValueChangeCallback callback) {
+        super(parent, nameKey, callback);
         x = addConfig(new _INTConfig(this, "x", defaultPos.getX()));
         y = addConfig(new _INTConfig(this, "y", defaultPos.getX()));
         z = addConfig(new _INTConfig(this, "z", defaultPos.getX()));
@@ -53,8 +57,8 @@ public class BlockPosConfig extends ThirdListConfig{
     }
     
     public static class _INTConfig extends IntegerConfig{
-        public _INTConfig(ILPCConfigList parent, String nameKey, int defaultInteger) {
-            super(parent, nameKey, defaultInteger);
+        public _INTConfig(BlockPosConfig parent, String nameKey, int defaultInteger) {
+            super(parent, nameKey, defaultInteger, parent::onValueChanged);
             useSlider(false);
         }
         @Override public @NotNull String getNameTranslation() {

@@ -2,6 +2,7 @@ package lpctools.lpcfymasaapi.configbutton.transferredConfigs;
 
 import com.google.gson.JsonElement;
 import fi.dy.masa.malilib.config.options.ConfigString;
+import lpctools.lpcfymasaapi.configbutton.UpdateTodo;
 import lpctools.lpcfymasaapi.interfaces.ILPCConfigList;
 import lpctools.lpcfymasaapi.interfaces.ILPCValueChangeCallback;
 import lpctools.lpcfymasaapi.interfaces.ILPC_MASAConfigWrapper;
@@ -27,11 +28,13 @@ public class StringConfig extends ConfigString implements ILPC_MASAConfigWrapper
     public StringConfig(@NotNull ILPCConfigList parent, @NotNull String nameKey) {
         this(parent, nameKey, null, null);
     }
-
-    @Override public void setValueFromJsonElement(@NotNull JsonElement element) {
+    @Override public void setValueFromJsonElement(@NotNull JsonElement element){
+        ILPC_MASAConfigWrapper.super.setValueFromJsonElement(element);
+    }
+    @Override public UpdateTodo setValueFromJsonElementEx(@NotNull JsonElement element) {
         String lastString = get();
         super.setValueFromJsonElement(element);
-        if(!lastString.equals(get())) onValueChanged();
+        return new UpdateTodo().valueChanged(!lastString.equals(get()));
     }
     @Override public void accept(String s) {setValueFromString(s);}
     @Override @NotNull public String get() {return getStringValue();}

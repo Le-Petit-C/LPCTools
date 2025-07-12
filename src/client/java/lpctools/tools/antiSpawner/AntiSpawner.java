@@ -15,7 +15,7 @@ public class AntiSpawner {
     public static final LimitOperationSpeedConfig limitOperationSpeedConfig = addLimitOperationSpeedConfig(false, 1);
     public static final ReachDistanceConfig reachDistanceConfig = addReachDistanceConfig();
     public static final ObjectListConfig.BlockItemListConfig placeableItems = addBlockItemListConfig("placeableItems", defaultPlaceableItems);
-    public static final RangeLimitConfig rangeLimitConfig = addRangeLimitConfig(false);
+    public static final RangeLimitConfig rangeLimitConfig = addRangeLimitConfig();
     public static void start(){lpctools.lpcfymasaapi.Registries.END_CLIENT_TICK.register(runner);}
     public static void stop(){lpctools.lpcfymasaapi.Registries.END_CLIENT_TICK.unregister(runner);}
     private static void callback(){

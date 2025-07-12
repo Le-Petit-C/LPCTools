@@ -41,7 +41,7 @@ public class SlightXRay{
     public static final ColorConfig defaultColor = addColorConfig(byDefaultColor, "defaultColor", new Color4f(0.5f, 0.5f, 1.0f, 0.5f), SlightXRay::refreshXRayBlocks);
     public static final StringListConfig XRayBlocksConfig = addStringListConfig("XRayBlocks", defaultXRayBlockIds, SlightXRay::refreshXRayBlocks);
     public static final BooleanConfig useCullFace = addBooleanConfig("useCullFace", true);
-    public static final RangeLimitConfig displayRange = addRangeLimitConfig(false);
+    public static final RangeLimitConfig displayRange = addRangeLimitConfig();
     static {displayRange.setValueChangeCallback(()->{if(renderInstance != null) renderInstance.onRenderRangeChanged(displayRange);});}
     static {listStack.pop();}
     

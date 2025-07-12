@@ -11,6 +11,7 @@ import lpctools.lpcfymasaapi.configbutton.transferredConfigs.*;
 import lpctools.lpcfymasaapi.configbutton.uniqueConfigs.*;
 import lpctools.lpcfymasaapi.interfaces.ILPCConfig;
 import lpctools.lpcfymasaapi.interfaces.ILPCConfigList;
+import lpctools.lpcfymasaapi.interfaces.ILPCUniqueConfigBase;
 import lpctools.lpcfymasaapi.interfaces.ILPCValueChangeCallback;
 import net.minecraft.block.Block;
 import net.minecraft.item.BlockItem;
@@ -81,8 +82,11 @@ public interface LPCConfigStatics {
     static ConfigOpenGuiConfig addConfigOpenGuiConfig(ILPCConfigList list, @Nullable String defaultStorageString){
         return list.addConfig(new ConfigOpenGuiConfig(list, defaultStorageString));
     }
-    static ThirdListConfig addThirdListConfig(ILPCConfigList list, @NotNull String nameKey, boolean defaultBoolean){
-        return list.addConfig(new ThirdListConfig(list, nameKey, defaultBoolean));
+    static ThirdListConfig addThirdListConfig(ILPCConfigList list, @NotNull String nameKey, ILPCValueChangeCallback callback){
+        return list.addConfig(new ThirdListConfig(list, nameKey, callback));
+    }
+    static BooleanThirdListConfig addBooleanThirdListConfig(ILPCConfigList list, @NotNull String nameKey, boolean defaultBoolean, ILPCValueChangeCallback callback){
+        return list.addConfig(new BooleanThirdListConfig(list, nameKey, defaultBoolean, callback));
     }
     static <T> OptionListConfig addOptionListConfig(ILPCConfigList list, @NotNull String nameKey, IConfigOptionListEntry defaultOption){
         return list.addConfig(new OptionListConfig(list, nameKey, defaultOption));
@@ -108,8 +112,8 @@ public interface LPCConfigStatics {
     static StringConfig addStringConfig(ILPCConfigList list, @NotNull String nameKey){
         return list.addConfig(new StringConfig(list, nameKey));
     }
-    static RangeLimitConfig addRangeLimitConfig(ILPCConfigList list, boolean defaultBoolean, String defaultPrefix){
-        return list.addConfig(new RangeLimitConfig(list, defaultBoolean, defaultPrefix));
+    static RangeLimitConfig addRangeLimitConfig(ILPCConfigList list, String defaultPrefix){
+        return list.addConfig(new RangeLimitConfig(list, defaultPrefix));
     }
     static ColorConfig addColorConfig(ILPCConfigList list, @NotNull String nameKey, @NotNull Color4f defaultColor){
         return list.addConfig(new ColorConfig(list, nameKey, defaultColor));
@@ -186,23 +190,23 @@ public interface LPCConfigStatics {
     static ButtonConfig addButtonConfig(ILPCConfigList list, @NotNull String nameKey){
         return list.addConfig(new ButtonConfig(list, nameKey));
     }
-    static BooleanHotkeyThirdListConfig addBooleanHotkeyThirdListConfig(ILPCConfigList list, @NotNull String nameKey, boolean defaultBoolean, boolean defaultExpanded, String defaultHotkeyStorageString, ILPCValueChangeCallback callback, boolean onValueChangedWhenListCycled){
-        return addConfig(new BooleanHotkeyThirdListConfig(list, nameKey, defaultBoolean, defaultExpanded, defaultHotkeyStorageString, callback, onValueChangedWhenListCycled));
+    static BooleanHotkeyThirdListConfig addBooleanHotkeyThirdListConfig(ILPCConfigList list, @NotNull String nameKey, boolean defaultBoolean, @Nullable String defaultHotkey, @Nullable ILPCValueChangeCallback callback){
+        return list.addConfig(new BooleanHotkeyThirdListConfig(list, nameKey, defaultBoolean, defaultHotkey, callback));
     }
-    static BooleanHotkeyThirdListConfig addBooleanHotkeyThirdListConfig(ILPCConfigList list, @NotNull String nameKey, ILPCValueChangeCallback callback){
-        return addConfig(new BooleanHotkeyThirdListConfig(list, nameKey, callback));
+    static BooleanHotkeyThirdListConfig addBooleanHotkeyThirdListConfig(ILPCConfigList list, @NotNull String nameKey, @Nullable ILPCValueChangeCallback callback){
+        return list.addConfig(new BooleanHotkeyThirdListConfig(list, nameKey, callback));
     }
     static BooleanHotkeyThirdListConfig addBooleanHotkeyThirdListConfig(ILPCConfigList list, @NotNull String nameKey){
-        return addConfig(new BooleanHotkeyThirdListConfig(list, nameKey));
+        return list.addConfig(new BooleanHotkeyThirdListConfig(list, nameKey));
     }
-    static ButtonHotkeyConfig addButtonHotkeyConfig(ILPCConfigList parent, @NotNull String nameKey, @Nullable String defaultKeyBindStorageString, @Nullable Runnable callback){
-        return addConfig(new ButtonHotkeyConfig(parent, nameKey, defaultKeyBindStorageString, callback));
+    static ButtonHotkeyConfig addButtonHotkeyConfig(ILPCConfigList list, @NotNull String nameKey, @Nullable String defaultKeyBindStorageString, @Nullable Runnable callback){
+        return list.addConfig(new ButtonHotkeyConfig(list, nameKey, defaultKeyBindStorageString, callback));
     }
-    static BlockPosConfig addBlockPosConfig(ILPCConfigList parent, @NotNull String nameKey, BlockPos defaultPos, boolean defaultBoolean){
-        return addConfig(new BlockPosConfig(parent, nameKey, defaultPos, defaultBoolean));
+    static BlockPosConfig addBlockPosConfig(ILPCConfigList list, @NotNull String nameKey, BlockPos defaultPos, @Nullable ILPCValueChangeCallback callback){
+        return list.addConfig(new BlockPosConfig(list, nameKey, defaultPos, callback));
     }
-    static <T> MutableConfig addMutableConfig(@NotNull ILPCConfigList parent, @NotNull String nameKey, @NotNull ImmutableList<MutableConfig.ConfigAllocator<?, T>> configSuppliers, @Nullable ImmutableMap<String, T> defaultValueAllocator, @Nullable ILPCValueChangeCallback callback){
-        return addConfig(new MutableConfig(parent, nameKey, configSuppliers, defaultValueAllocator, callback));
+    static <T extends ILPCUniqueConfigBase, U> MutableConfig<T> addMutableConfig(@NotNull ILPCConfigList list, @NotNull String nameKey, @NotNull ImmutableList<MutableConfig.ConfigAllocator<T, U>> configSuppliers, @Nullable ImmutableMap<String, U> defaultValueAllocator, @Nullable ILPCValueChangeCallback callback){
+        return list.addConfig(new MutableConfig<>(list, nameKey, configSuppliers, defaultValueAllocator, callback));
     }
 
     //不带List版本的，使用栈存储当前list，方便操作
@@ -277,8 +281,11 @@ public interface LPCConfigStatics {
     static ConfigOpenGuiConfig addConfigOpenGuiConfig(@Nullable String defaultStorageString){
         return addConfigOpenGuiConfig(peekConfigList(), defaultStorageString);
     }
-    static ThirdListConfig addThirdListConfig(@NotNull String nameKey, boolean defaultBoolean){
-        return addThirdListConfig(peekConfigList(), nameKey, defaultBoolean);
+    static ThirdListConfig addThirdListConfig(@NotNull String nameKey, ILPCValueChangeCallback callback){
+        return addThirdListConfig(peekConfigList(), nameKey, callback);
+    }
+    static BooleanThirdListConfig addBooleanThirdListConfig(@NotNull String nameKey, boolean defaultBoolean, ILPCValueChangeCallback callback){
+        return addBooleanThirdListConfig(peekConfigList(), nameKey, defaultBoolean, callback);
     }
     static <T> OptionListConfig addOptionListConfig(@NotNull String nameKey, IConfigOptionListEntry defaultOption){
         return addOptionListConfig(peekConfigList(), nameKey, defaultOption);
@@ -304,11 +311,11 @@ public interface LPCConfigStatics {
     static StringConfig addStringConfig(@NotNull String nameKey){
         return addStringConfig(peekConfigList(), nameKey);
     }
-    static RangeLimitConfig addRangeLimitConfig(boolean defaultBoolean, String defaultPrefix){
-        return addRangeLimitConfig(peekConfigList(), defaultBoolean, defaultPrefix);
+    static RangeLimitConfig addRangeLimitConfig(String defaultPrefix){
+        return addRangeLimitConfig(peekConfigList(), defaultPrefix);
     }
-    static RangeLimitConfig addRangeLimitConfig(boolean defaultBoolean){
-        return addRangeLimitConfig(peekConfigList(), defaultBoolean, peekConfigList().getNameKey());
+    static RangeLimitConfig addRangeLimitConfig(){
+        return addRangeLimitConfig(peekConfigList(), peekConfigList().getNameKey());
     }
     static ColorConfig addColorConfig(@NotNull String nameKey, @NotNull Color4f defaultColor){
         return addColorConfig(peekConfigList(), nameKey, defaultColor);
@@ -385,10 +392,10 @@ public interface LPCConfigStatics {
     static ButtonConfig addButtonConfig(String nameKey){
         return addButtonConfig(peekConfigList(), nameKey);
     }
-    static BooleanHotkeyThirdListConfig addBooleanHotkeyThirdListConfig(String nameKey, boolean defaultBoolean, boolean defaultExpanded, String defaultHotkeyStorageString, ILPCValueChangeCallback callback, boolean onValueChangedWhenListCycled){
-        return addBooleanHotkeyThirdListConfig(peekConfigList(), nameKey, defaultBoolean, defaultExpanded, defaultHotkeyStorageString, callback, onValueChangedWhenListCycled);
+    static BooleanHotkeyThirdListConfig addBooleanHotkeyThirdListConfig(String nameKey, boolean defaultBoolean, @Nullable String defaultHotkey, @Nullable ILPCValueChangeCallback callback){
+        return addBooleanHotkeyThirdListConfig(peekConfigList(), nameKey, defaultBoolean, defaultHotkey, callback);
     }
-    static BooleanHotkeyThirdListConfig addBooleanHotkeyThirdListConfig(String nameKey, ILPCValueChangeCallback callback){
+    static BooleanHotkeyThirdListConfig addBooleanHotkeyThirdListConfig(String nameKey, @Nullable ILPCValueChangeCallback callback){
         return addBooleanHotkeyThirdListConfig(peekConfigList(), nameKey, callback);
     }
     static BooleanHotkeyThirdListConfig addBooleanHotkeyThirdListConfig(String nameKey){
@@ -397,10 +404,10 @@ public interface LPCConfigStatics {
     static ButtonHotkeyConfig addButtonHotkeyConfig(String nameKey, @Nullable String defaultKeyBindStorageString, @Nullable Runnable callback){
         return addButtonHotkeyConfig(peekConfigList(), nameKey, defaultKeyBindStorageString, callback);
     }
-    static BlockPosConfig addBlockPosConfig(@NotNull String nameKey, BlockPos defaultPos, boolean defaultBoolean){
-        return addBlockPosConfig(peekConfigList(), nameKey, defaultPos, defaultBoolean);
+    static BlockPosConfig addBlockPosConfig(@NotNull String nameKey, BlockPos defaultPos, ILPCValueChangeCallback callback){
+        return addBlockPosConfig(peekConfigList(), nameKey, defaultPos, callback);
     }
-    static <T> MutableConfig addMutableConfig(@NotNull String nameKey, @NotNull ImmutableList<MutableConfig.ConfigAllocator<?, T>> configSuppliers, @Nullable ImmutableMap<String, T> defaultValueAllocator, @Nullable ILPCValueChangeCallback callback){
+    static <T extends ILPCUniqueConfigBase, U> MutableConfig<T> addMutableConfig(@NotNull String nameKey, @NotNull ImmutableList<MutableConfig.ConfigAllocator<T, U>> configSuppliers, @Nullable ImmutableMap<String, U> defaultValueAllocator, @Nullable ILPCValueChangeCallback callback){
         return addMutableConfig(peekConfigList(), nameKey, configSuppliers, defaultValueAllocator, callback);
     }
 }

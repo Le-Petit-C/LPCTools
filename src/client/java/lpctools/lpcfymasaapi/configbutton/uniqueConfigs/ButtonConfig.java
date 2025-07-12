@@ -3,7 +3,8 @@ package lpctools.lpcfymasaapi.configbutton.uniqueConfigs;
 import com.google.gson.JsonElement;
 import fi.dy.masa.malilib.gui.button.ButtonBase;
 import fi.dy.masa.malilib.gui.button.IButtonActionListener;
-import lpctools.lpcfymasaapi.interfaces.ILPCConfigList;
+import lpctools.lpcfymasaapi.configbutton.UpdateTodo;
+import lpctools.lpcfymasaapi.interfaces.ILPCConfigReadable;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -12,12 +13,12 @@ import java.util.ArrayList;
 public class ButtonConfig extends LPCUniqueConfigBase implements IButtonActionListener {
     @Nullable public IButtonActionListener listener;
     @Nullable public String buttonName;
-    public ButtonConfig(ILPCConfigList parent, String nameKey, @Nullable IButtonActionListener listener) {
+    public ButtonConfig(ILPCConfigReadable parent, String nameKey, @Nullable IButtonActionListener listener) {
         super(parent, nameKey, null);
         this.listener = listener;
         buttonName = getFullTitleTranslationKey();
     }
-    public ButtonConfig(ILPCConfigList parent, String nameKey) {this(parent, nameKey, null);}
+    public ButtonConfig(ILPCConfigReadable parent, String nameKey) {this(parent, nameKey, null);}
     public void setListener(@Nullable IButtonActionListener listener){this.listener = listener;}
     @SuppressWarnings("unused")
     public @Nullable IButtonActionListener getListener(){return listener;}
@@ -28,5 +29,5 @@ public class ButtonConfig extends LPCUniqueConfigBase implements IButtonActionLi
         if(listener != null) listener.actionPerformedWithButton(button, mouseButton);
     }
     @Override public @Nullable JsonElement getAsJsonElement() {return null;}
-    @Override public void setValueFromJsonElement(@NotNull JsonElement data) {}
+    @Override public UpdateTodo setValueFromJsonElementEx(@NotNull JsonElement data) {return new UpdateTodo();}
 }

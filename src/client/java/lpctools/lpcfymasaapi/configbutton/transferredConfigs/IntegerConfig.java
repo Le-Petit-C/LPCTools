@@ -3,7 +3,8 @@ package lpctools.lpcfymasaapi.configbutton.transferredConfigs;
 import com.google.gson.JsonElement;
 import fi.dy.masa.malilib.config.options.ConfigInteger;
 import lpctools.lpcfymasaapi.LPCConfigUtils;
-import lpctools.lpcfymasaapi.interfaces.ILPCConfigList;
+import lpctools.lpcfymasaapi.configbutton.UpdateTodo;
+import lpctools.lpcfymasaapi.interfaces.ILPCConfigReadable;
 import lpctools.lpcfymasaapi.interfaces.ILPCValueChangeCallback;
 import lpctools.lpcfymasaapi.interfaces.ILPC_MASAConfigWrapper;
 import lpctools.lpcfymasaapi.interfaces.data.LPCConfigData;
@@ -14,16 +15,16 @@ import java.util.function.IntSupplier;
 
 @SuppressWarnings({"unused", "UnusedReturnValue"})
 public class IntegerConfig extends ConfigInteger implements ILPC_MASAConfigWrapper<ConfigInteger>,IntSupplier, IntConsumer {
-    public IntegerConfig(ILPCConfigList parent, String nameKey, int defaultInteger){
+    public IntegerConfig(ILPCConfigReadable parent, String nameKey, int defaultInteger){
         this(parent, nameKey, defaultInteger, Integer.MIN_VALUE, Integer.MAX_VALUE, null);
     }
-    public IntegerConfig(ILPCConfigList parent, String nameKey, int defaultInteger, ILPCValueChangeCallback callback){
+    public IntegerConfig(ILPCConfigReadable parent, String nameKey, int defaultInteger, ILPCValueChangeCallback callback){
         this(parent, nameKey, defaultInteger, Integer.MIN_VALUE, Integer.MAX_VALUE, callback);
     }
-    public IntegerConfig(ILPCConfigList parent, String nameKey, int defaultInteger, int minValue, int maxValue){
+    public IntegerConfig(ILPCConfigReadable parent, String nameKey, int defaultInteger, int minValue, int maxValue){
         this(parent, nameKey, defaultInteger, minValue, maxValue, null);
     }
-    public IntegerConfig(ILPCConfigList parent, String nameKey, int defaultInteger, int minValue, int maxValue, ILPCValueChangeCallback callback){
+    public IntegerConfig(ILPCConfigReadable parent, String nameKey, int defaultInteger, int minValue, int maxValue, ILPCValueChangeCallback callback){
         super(nameKey, defaultInteger, minValue, maxValue);
         data = new LPCConfigData(parent, false);
         ILPC_MASAConfigWrapperDefaultInit(callback);
@@ -34,11 +35,13 @@ public class IntegerConfig extends ConfigInteger implements ILPC_MASAConfigWrapp
         if(shouldUseSlider() != b) toggleUseSlider();
         return this;
     }
-
-    @Override public void setValueFromJsonElement(@NotNull JsonElement element) {
+    @Override public void setValueFromJsonElement(@NotNull JsonElement element){
+        ILPC_MASAConfigWrapper.super.setValueFromJsonElement(element);
+    }
+    @Override public UpdateTodo setValueFromJsonElementEx(@NotNull JsonElement element) {
         int lastInt = getAsInt();
         super.setValueFromJsonElement(element);
-        if(lastInt != getAsInt()) onValueChanged();
+        return new UpdateTodo().valueChanged(lastInt != getAsInt());
     }
 
     @Override public int getAsInt() {return getIntegerValue();}

@@ -36,6 +36,7 @@ public interface ILPCUniqueConfigBase extends ILPCUniqueConfig{
             shift += 2;
             shiftList.add(shift);
         }
+        if(weightSum == 0) weightSum = 1;
         int weightedWidthSum = configWidth - shift;
         int lastX = x;
         int a = 0;

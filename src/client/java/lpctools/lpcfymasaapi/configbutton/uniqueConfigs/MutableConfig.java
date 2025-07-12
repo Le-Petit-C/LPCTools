@@ -10,7 +10,7 @@ import fi.dy.masa.malilib.config.IConfigResettable;
 import fi.dy.masa.malilib.gui.*;
 import fi.dy.masa.malilib.gui.button.ButtonBase;
 import fi.dy.masa.malilib.gui.button.ButtonGeneric;
-import lpctools.lpcfymasaapi.LPCConfigList;
+import lpctools.lpcfymasaapi.configbutton.UpdateTodo;
 import lpctools.lpcfymasaapi.interfaces.*;
 import lpctools.util.DataUtils;
 import net.minecraft.client.MinecraftClient;
@@ -26,36 +26,18 @@ import java.util.function.Supplier;
 
 import static lpctools.lpcfymasaapi.LPCConfigUtils.*;
 import static lpctools.lpcfymasaapi.interfaces.ILPCUniqueConfigBase.*;
+import static lpctools.util.AlgorithmUtils.*;
 
-public class MutableConfig extends ButtonThirdListConfig implements IThirdListBase, IMutableConfig, IConfigResettable {
+public class MutableConfig<T extends ILPCUniqueConfigBase> extends LPCUniqueConfigBase implements ILPCConfigReadable, IMutableConfig, IConfigResettable {
     private boolean condenseOperationButton;
     private boolean hideOperationButton;
     private final JsonObject defaultJson;
+    private final ArrayList<MutableConfigOption<? extends T>> subConfigs = new ArrayList<>();
+    @Nullable public String buttonName;
+    public boolean expanded;
     
     //getConfigs()获取到的是包装后的配置，如果要遍历被包装的配置，应该调用这个
-    public Iterable<ILPCUniqueConfigBase> iterateConfigs(){
-        return new Iterable<>() {
-            @Override public @NotNull Iterator<ILPCUniqueConfigBase> iterator() {
-                return new Iterator<>() {
-                    private final Iterator<ILPCConfig> iterator = getConfigs().iterator();
-                    ILPCUniqueConfigBase next = null;
-                    @Override public boolean hasNext() {
-                        while(next == null){
-                            if(!iterator.hasNext()) break;
-                            if(iterator.next() instanceof MutableConfigOption<?> config)
-                                next = config.wrappedConfig;
-                        }
-                        return next != null;
-                    }
-                    @Override public ILPCUniqueConfigBase next() {
-                        ILPCUniqueConfigBase next = this.next;
-                        this.next = null;
-                        return next;
-                    }
-                };
-            }
-        };
-    }
+    public Iterable<T> iterateConfigs(){return convertIterable(subConfigs, config->config.wrappedConfig);}
     
     @Override public boolean doCondenseOperationButton() {
         if(getParent() instanceof IMutableConfig config)
@@ -73,35 +55,41 @@ public class MutableConfig extends ButtonThirdListConfig implements IThirdListBa
         getPage().updateIfCurrent();
     }
     
+    @Override public ArrayList<GuiConfigsBase.ConfigOptionWrapper> buildConfigWrappers(ArrayList<GuiConfigsBase.ConfigOptionWrapper> wrapperList) {
+        if(expanded) return ILPCConfigReadable.defaultBuildConfigWrappers(wrapperList, subConfigs, true);
+        else return wrapperList;
+    }
+    
     public record ConfigAllocator<T extends ILPCUniqueConfigBase, U>(
-        String nameKey, U userData, TriFunction<MutableConfig, String, @Nullable U, T> allocator) {
-        public ConfigAllocator(String nameKey, BiFunction<MutableConfig, String, T> allocator){
+        String nameKey, U userData, TriFunction<MutableConfig<T>, String, @Nullable U, ? extends T> allocator) {
+        public ConfigAllocator(String nameKey, BiFunction<MutableConfig<T>, String, ? extends T> allocator){
             this(nameKey, null, (parent, key, user)->allocator.apply(parent, key));
         }
     }
-    private final LinkedHashMap<String, ConfigAllocator<?, ?>> allocatorMap = new LinkedHashMap<>();
-    public <U> MutableConfig(@NotNull ILPCConfigList parent, @NotNull String nameKey,
-                         @NotNull ImmutableList<ConfigAllocator<?, U>> configSuppliers,
-                        @Nullable ImmutableMap<String, U> defaultValues,
-                         @Nullable ILPCValueChangeCallback callback) {
+    private final LinkedHashMap<String, ConfigAllocator<T, ?>> allocatorMap = new LinkedHashMap<>();
+    public <U> MutableConfig(@NotNull ILPCConfigReadable parent, @NotNull String nameKey,
+                             @NotNull ImmutableList<ConfigAllocator<T, U>> configSuppliers,
+                             @Nullable ImmutableMap<String, U> defaultValues,
+                             @Nullable ILPCValueChangeCallback callback) {
         super(parent, nameKey, null);
-        setListener((button, mouseButton)->onAddConfigClicked(getConfigs().size()));
         buttonName = titleKey;
         setValueChangeCallback(callback);
-        for(ConfigAllocator<?, U> allocator : configSuppliers) allocatorMap.put(allocator.nameKey, allocator);
+        for(ConfigAllocator<T, U> allocator : configSuppliers) allocatorMap.put(allocator.nameKey, allocator);
         if(defaultValues != null){
-            HashMap<String, ConfigAllocator<?, U>> map = new HashMap<>();
-            for(ConfigAllocator<?, U> allocator : configSuppliers) map.put(allocator.nameKey, allocator);
+            HashMap<String, ConfigAllocator<T, U>> map = new HashMap<>();
+            for(ConfigAllocator<T, U> allocator : configSuppliers) map.put(allocator.nameKey, allocator);
             defaultValues.forEach((key, userData)->{
-                ConfigAllocator<?, U> allocator = map.get(key);
-                if(allocator != null) addConfig(wrapConfig(allocator.allocator.apply(this, key, userData)));
+                ConfigAllocator<T, U> allocator = map.get(key);
+                if(allocator != null) subConfigs.add(wrapConfig(allocator.allocator.apply(this, key, userData)));
             });
         }
         defaultJson = getAsJsonElement();
     }
     
     @Override public void getButtonOptions(ArrayList<ButtonOption> res) {
-        super.getButtonOptions(res);
+        res.add(new ButtonOption(-1, (button, mouseButton)->{expanded = !expanded; getPage().updateIfCurrent();}, null,
+            ILPCUniqueConfigBase.iconButtonAllocator(expanded ? MaLiLibIcons.ARROW_UP : MaLiLibIcons.ARROW_DOWN, LeftRight.CENTER)));
+        res.add(new ButtonOption(1, (button, mouseButton)->onAddConfigClicked(subConfigs.size()), ()->buttonName, buttonGenericAllocator));
         if(getParent() instanceof IMutableConfig) return;
         res.add(new ButtonOption(-1, (button, mouseButton)->{
             hideOperationButton = !hideOperationButton;
@@ -119,18 +107,10 @@ public class MutableConfig extends ButtonThirdListConfig implements IThirdListBa
     @Override public @NotNull JsonObject getAsJsonElement() {
         JsonObject object = new JsonObject();
         JsonArray array = new JsonArray();
-        LPCConfigList list = new LPCConfigList(getParent(), getNameKey());
-        for(ILPCConfig config : getConfigs()){
-            if(config instanceof MutableConfigOption<?> mutableConfigOption)
-                array.add(mutableConfigOption.getAsJsonElement());
-            else {
-                array.add(new JsonPrimitive(config.getNameKey()));
-                list.addConfig(config);
-            }
-        }
+        for(MutableConfigOption<? extends T> config : subConfigs)
+            array.add(config.getAsJsonElement());
         object.add("mutableValues", array);
-        object.add(propertiesId, list.getAsJsonElement());
-        object.addProperty("extended", extended);
+        object.addProperty("expanded", expanded);
         if(!(getParent() instanceof MutableConfig)){
             object.addProperty("condense", condenseOperationButton);
             object.addProperty("hide", hideOperationButton);
@@ -138,113 +118,107 @@ public class MutableConfig extends ButtonThirdListConfig implements IThirdListBa
         return object;
     }
     
-    @Override public void setValueFromJsonElement(@NotNull JsonElement data) {
-        if( !(data instanceof JsonObject object)){
+    @Override public UpdateTodo setValueFromJsonElementEx(@NotNull JsonElement data) {
+        if(!(data instanceof JsonObject object)){
             warnFailedLoadingConfig(this, data);
-            return;
+            return new UpdateTodo();
         }
-        HashMap<String, ILPCConfig> configs = new HashMap<>();
-        getConfigs().forEach(config->{if(!(config instanceof MutableConfigOption)) configs.put(config.getNameKey(), config);});
-        getConfigs().clear();
-        getConfigs().addAll(configs.values());
-        if(object.get(propertiesId) instanceof JsonElement properties)
-            subConfigs.setValueFromJsonElement(properties);
-        getConfigs().clear();
+        subConfigs.clear();
         if(object.get("mutableValues") instanceof JsonArray mutableValues)
             for(JsonElement element : mutableValues)
-                if(loadFromJsonElement(element, configs) instanceof ILPCConfig config)
-                    addConfig(config);
-        for(ILPCConfig config : configs.values())
-            addConfig(config);
-        if(object.get("extended") instanceof JsonPrimitive primitive)
-            extended = primitive.getAsBoolean();
+                if(loadFromJsonElement(element) instanceof MutableConfigOption<? extends T> config)
+                    subConfigs.add(config);
+        if(object.get("expanded") instanceof JsonPrimitive primitive)
+            expanded = primitive.getAsBoolean();
         if(!(getParent() instanceof MutableConfig)){
             if(object.get("condense") instanceof JsonPrimitive primitive)
                 condenseOperationButton = primitive.getAsBoolean();
             if(object.get("hide") instanceof JsonPrimitive primitive)
                 hideOperationButton = primitive.getAsBoolean();
         }
-        onValueChanged();
+        return new UpdateTodo().valueChanged();
     }
     
-    private @Nullable ILPCConfig loadFromJsonElement(@NotNull JsonElement data, HashMap<String, ILPCConfig> staticConfigs){
-        Supplier<MutableConfigOption<?>> fail = ()->{
+    private @Nullable MutableConfigOption<? extends T> loadFromJsonElement(@NotNull JsonElement data){
+        Supplier<MutableConfigOption<? extends T>> fail = ()->{
             warnFailedLoadingConfig(this, data);
             return null;
         };
         if(data instanceof JsonObject object){
             if(!(object.get("supplier") instanceof JsonPrimitive primitive)) return fail.get();
-            MutableConfigOption<?> config = allocateConfig(primitive.getAsString());
+            MutableConfigOption<? extends T> config = allocateConfig(primitive.getAsString());
             if(config == null) return fail.get();
             if(object.get("value") instanceof JsonElement element)
                 config.wrappedConfig.setValueFromJsonElement(element);
             return config;
         }
-        else{
-            if (!(data instanceof JsonPrimitive primitive)) return fail.get();
-            return staticConfigs.remove(primitive.getAsString());
-        }
+        else return fail.get();
     }
     
     @Override public @NotNull StringBuilder getFullPath() {
-        ILPCConfigList parent = getParent();
+        ILPCConfigReadable parent = getParent();
         if(parent instanceof MutableConfig) return getParent().getFullPath();
         else return super.getFullPath();
     }
     
-    public class MutableConfigOption<T extends ILPCUniqueConfigBase> extends LPCUniqueConfigBase {
+    public static class MutableConfigOption<T extends ILPCUniqueConfigBase> extends LPCUniqueConfigBase {
         public final T wrappedConfig;
         public boolean flipPosButton, flipMinusButton;
-        private MutableConfigOption(@NotNull T wrappedConfig) {
-            super(MutableConfig.this, "", MutableConfig.this::onValueChanged);
+        public final MutableConfig<? super T> parent;
+        private MutableConfigOption(MutableConfig<? super T> parent, @NotNull T wrappedConfig) {
+            super(parent, "", parent::onValueChanged);
             this.wrappedConfig = wrappedConfig;
+            this.parent = parent;
         }
         @Override public void getButtonOptions(ArrayList<ButtonOption> res) {
             wrappedConfig.getButtonOptions(res);
-            if(doHideOperationButton()) return;
-            if(doCondenseOperationButton()){
+            if(parent.doHideOperationButton()) return;
+            if(parent.doCondenseOperationButton()){
                 res.add(new ButtonOption(-1, this::posListener, null, iconButtonAllocator(flipPosButton ? MaLiLibIcons.ARROW_DOWN : MaLiLibIcons.ARROW_UP, LeftRight.CENTER)));
                 res.add(new ButtonOption(-1, this::minusListener, null, iconButtonAllocator(flipMinusButton ? MaLiLibIcons.PLUS : MaLiLibIcons.MINUS, LeftRight.CENTER)));
             }
             else{
-                res.add(new ButtonOption(-1, (b, m)->posListener(b, 0), null, getConfigs().getFirst() != this ? iconButtonAllocator(MaLiLibIcons.ARROW_UP, LeftRight.CENTER) : null));
-                res.add(new ButtonOption(-1, (b, m)->posListener(b, 1), null, getConfigs().getLast() != this ? iconButtonAllocator(MaLiLibIcons.ARROW_DOWN, LeftRight.CENTER) : null));
+                res.add(new ButtonOption(-1, (b, m)->posListener(b, 0), null, parent.subConfigs.getFirst() != this ? iconButtonAllocator(MaLiLibIcons.ARROW_UP, LeftRight.CENTER) : null));
+                res.add(new ButtonOption(-1, (b, m)->posListener(b, 1), null, parent.subConfigs.getLast() != this ? iconButtonAllocator(MaLiLibIcons.ARROW_DOWN, LeftRight.CENTER) : null));
                 res.add(new ButtonOption(-1, (b, m)->minusListener(b, 1), null, iconButtonAllocator(MaLiLibIcons.PLUS, LeftRight.CENTER)));
                 res.add(new ButtonOption(-1, (b, m)->minusListener(b, 0), null, iconButtonAllocator(MaLiLibIcons.MINUS, LeftRight.CENTER)));
             }
         }
         private int getPosition(){
             int a;
-            ArrayList<ILPCConfig> configs = getConfigs();
-            for(a = 0; a < configs.size(); ++a)
-                if(configs.get(a) == this) break;
+            for(a = 0; a < parent.subConfigs.size(); ++a)
+                if(parent.subConfigs.get(a) == this) break;
             return a;
         }
         private void posListener(ButtonBase ignored, int mouseButton){
-            ArrayList<ILPCConfig> configs = getConfigs();
             int position = getPosition();
-            if(doCondenseOperationButton() && flipPosButton && (mouseButton == 0 || mouseButton == 1))
+            if(parent.doCondenseOperationButton() && flipPosButton && (mouseButton == 0 || mouseButton == 1))
                 mouseButton = 1 - mouseButton;
             if(mouseButton == 0) {//往上移动
                 if(position - 1 < 0) return;
-                Collections.swap(configs, position, position - 1);
+                Collections.swap(parent.subConfigs, position, position - 1);
             }
             else if(mouseButton == 1) {//往下移动
-                if(position + 1 >= configs.size()) return;
-                Collections.swap(configs, position, position + 1);
+                if(position + 1 >= parent.subConfigs.size()) return;
+                Collections.swap(parent.subConfigs, position, position + 1);
             }
             else if(mouseButton == 2) flipPosButton = !flipPosButton;
             getPage().updateIfCurrent();
         }
         private void minusListener(ButtonBase ignored, int mouseButton){
-            ArrayList<ILPCConfig> configs = getConfigs();
             int position = getPosition();
-            if(doCondenseOperationButton() && flipPosButton && (mouseButton == 0 || mouseButton == 1))
+            if(parent.doCondenseOperationButton() && flipPosButton && (mouseButton == 0 || mouseButton == 1))
                 mouseButton = 1 - mouseButton;
-            if(mouseButton == 0) configs.remove(position);//删除
-            else if(mouseButton == 1) onAddConfigClicked(position);//添加
-            else if(mouseButton == 2) flipMinusButton = !flipMinusButton;
-            getPage().updateIfCurrent();
+            if(mouseButton == 0) {
+                parent.subConfigs.remove(position);//删除
+                parent.onValueChanged();
+                getPage().updateIfCurrent();
+            }
+            else if(mouseButton == 1) parent.onAddConfigClicked(position);//添加
+            else if(mouseButton == 2) {
+                flipMinusButton = !flipMinusButton;
+                getPage().updateIfCurrent();
+            }
         }
         @Override public @Nullable JsonElement getAsJsonElement() {
             JsonObject object = new JsonObject();
@@ -252,7 +226,7 @@ public class MutableConfig extends ButtonThirdListConfig implements IThirdListBa
             object.add("value", wrappedConfig.getAsJsonElement());
             return object;
         }
-        @Deprecated @Override public void setValueFromJsonElement(@NotNull JsonElement data) {
+        @Deprecated @Override public UpdateTodo setValueFromJsonElementEx(@NotNull JsonElement data) {
             throw new UnsupportedOperationException();
         }
         @Override public @NotNull String getFullTranslationKey() {
@@ -260,32 +234,31 @@ public class MutableConfig extends ButtonThirdListConfig implements IThirdListBa
             else return wrappedConfig.getFullTranslationKey();
         }
     }
-    public class ThirdListMutableConfigOption<T extends ILPCUniqueConfigBase & IThirdListBase> extends MutableConfigOption<T> implements ILPCConfigList{
-        private ThirdListMutableConfigOption(@NotNull T wrappedConfig) {
-            super(wrappedConfig);
-        }
-        @Override public @NotNull Collection<ILPCConfig> getConfigs() {
-            return wrappedConfig.getConfigs();
+    public static class ThirdListMutableConfigOption<T extends ILPCUniqueConfigBase, U extends ILPCConfigReadable> extends MutableConfigOption<T> implements ILPCConfigReadable {
+        private final U wrappedConfig2;
+        private ThirdListMutableConfigOption(MutableConfig<? super T> parent, @NotNull T wrappedConfig1, @NotNull U wrappedConfig2) {
+            super(parent, wrappedConfig1);
+            this.wrappedConfig2 = wrappedConfig2;
         }
         @Override public ArrayList<GuiConfigsBase.ConfigOptionWrapper> buildConfigWrappers(ArrayList<GuiConfigsBase.ConfigOptionWrapper> wrapperList) {
-            return wrappedConfig.buildConfigWrappers(wrapperList);
+            return wrappedConfig2.buildConfigWrappers(wrapperList);
         }
     }
-    private @NotNull MutableConfig.MutableConfigOption<?> wrapConfig(@NotNull ILPCUniqueConfigBase config){
-        if(config instanceof IThirdListBase)
-            return new ThirdListMutableConfigOption<>((IThirdListBase & ILPCUniqueConfigBase)config);
-        else return new MutableConfigOption<>(config);
+    private @NotNull <U extends T> MutableConfig.MutableConfigOption<U> wrapConfig(@NotNull U config){
+        if(config instanceof ILPCConfigReadable displayable)
+            return new ThirdListMutableConfigOption<>(this, config, displayable);
+        else return new MutableConfigOption<>(this, config);
     }
-    private @Nullable MutableConfig.MutableConfigOption<?> allocateConfig(String supplierId){
-        ConfigAllocator<?, ?> allocator = allocatorMap.get(supplierId);
+    private @Nullable MutableConfig.MutableConfigOption<? extends T> allocateConfig(String supplierId){
+        ConfigAllocator<T, ?> allocator = allocatorMap.get(supplierId);
         if(allocator == null) return null;
         return wrapConfig(allocator.allocator.apply(this, allocator.nameKey, null));
     }
     private void allocateAndAddConfig(String id, int position){
-        MutableConfigOption<?> config = allocateConfig(id);
+        MutableConfigOption<? extends T> config = allocateConfig(id);
         if(config == null) return;
-        extended = true;
-        getConfigs().add(position, config);
+        expanded = true;
+        subConfigs.add(position, config);
         getPage().updateIfCurrent();
         onValueChanged();
     }

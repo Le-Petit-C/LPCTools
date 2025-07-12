@@ -23,7 +23,7 @@ public class PlayerInputC2SPacketMixin {
     @Inject(method = "<init>", at = @At("TAIL"))
     void initInject(PlayerInput playerInput, CallbackInfo ci){
         if(!isOnRenderThread()) return;
-        if(!HappyGhastRidingTweak.happyGhastRidingTweak.getAsBoolean()) return;
+        if(!HappyGhastRidingTweak.happyGhastRidingTweak.getBooleanValue()) return;
         ClientPlayerEntity player = MinecraftClient.getInstance().player;
         if(player == null || !(player.getVehicle() instanceof HappyGhastEntity)) return;
         input = new PlayerInput(input.forward(), input.backward(), input.left(), input.right(), input.jump(), HappyGhastRidingTweak.happyGhastDismountKey.getKeybind().isPressed(), input.sprint());

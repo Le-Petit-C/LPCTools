@@ -5,23 +5,25 @@ import lpctools.compact.derived.ShapeList;
 import lpctools.compact.derived.SimpleTestableShape;
 import lpctools.lpcfymasaapi.Registries;
 import lpctools.lpcfymasaapi.configbutton.transferredConfigs.StringConfig;
-import lpctools.lpcfymasaapi.interfaces.ILPCConfigList;
+import lpctools.lpcfymasaapi.configbutton.uniqueConfigs.BooleanThirdListConfig;
+import lpctools.lpcfymasaapi.configbutton.uniqueConfigs.ThirdListConfig;
+import lpctools.lpcfymasaapi.interfaces.ILPCConfigReadable;
 import net.minecraft.client.gui.screen.Screen;
 import org.jetbrains.annotations.NotNull;
 
 import static lpctools.lpcfymasaapi.configbutton.derivedConfigs.DerivedConfigUtils.*;
 
 //不只在配置被修改时会调用onValueChanged，形状发生变化时也会
-public class RangeLimitConfig extends ThirdListConfig implements Registries.ScreenChangeCallback, AutoCloseable, IRangeChangeListener {
+public class RangeLimitConfig extends BooleanThirdListConfig implements Registries.ScreenChangeCallback, AutoCloseable, IRangeChangeListener {
     public final StringConfig prefix;
-    public final ThirdListConfig litematica;//决定是否启用投影渲染范围限制
+    public final BooleanThirdListConfig litematica;//决定是否启用投影渲染范围限制
     public final ArrayOptionListConfig<SimpleTestableShape.TestType> testType;//决定投影渲染范围检测方式
-    public RangeLimitConfig(ILPCConfigList list, boolean defaultBoolean, String defaultPrefix) {
-        super(list, "limitRange", defaultBoolean);
+    public RangeLimitConfig(ILPCConfigReadable list, String defaultPrefix) {
+        super(list, "limitRange", false, null);
         prefix = addConfig(new StringConfig(this, "rangeNamePrefix", defaultPrefix){
             @Override public @NotNull String getFullTranslationKey(){return fullKeyByParent(this);}
         });
-        litematica = addConfig(new ThirdListConfig(this, "rangeLitematica", false){
+        litematica = addConfig(new BooleanThirdListConfig(this, "rangeLitematica", false, null){
             @Override public @NotNull String getFullTranslationKey(){return fullKeyByParent(this);}
         });
         testType = litematica.addConfig(new ArrayOptionListConfig<>(litematica, "renderRangeTestType"){
@@ -33,8 +35,7 @@ public class RangeLimitConfig extends ThirdListConfig implements Registries.Scre
     }
     @Override public void close() {registerAll(false);}
     public ShapeList buildShapeList(){
-        if(getAsBoolean())
-            return new ShapeList(litematica.getAsBoolean() ? testType.get() : null, prefix.get());
+        if(getBooleanValue()) return new ShapeList(litematica.getBooleanValue() ? testType.get() : null, prefix.get());
         else return ShapeList.emptyList();
     }
     protected void registerAll(boolean b){

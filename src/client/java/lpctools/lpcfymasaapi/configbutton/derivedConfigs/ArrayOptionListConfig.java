@@ -3,7 +3,7 @@ package lpctools.lpcfymasaapi.configbutton.derivedConfigs;
 import fi.dy.masa.malilib.config.IConfigOptionListEntry;
 import fi.dy.masa.malilib.util.StringUtils;
 import lpctools.lpcfymasaapi.configbutton.transferredConfigs.OptionListConfig;
-import lpctools.lpcfymasaapi.interfaces.ILPCConfigList;
+import lpctools.lpcfymasaapi.interfaces.ILPCConfigReadable;
 import lpctools.lpcfymasaapi.interfaces.ILPCValueChangeCallback;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -84,16 +84,16 @@ public class ArrayOptionListConfig<T> extends OptionListConfig implements Suppli
     @NotNull IArrayConfigOptionListEntry<T> getCurrentOptionData(){return ((IArrayConfigOptionListEntry<T>)getOptionListValue());}
     @Override public T get() {return getCurrentUserdata();}
     public T getCurrentUserdata(){return getCurrentOptionData().userData();}
-    public ArrayOptionListConfig(@NotNull ILPCConfigList parent, @NotNull String nameKey) {
+    public ArrayOptionListConfig(@NotNull ILPCConfigReadable parent, @NotNull String nameKey) {
         this(parent, nameKey, null, null);
     }
-    public ArrayOptionListConfig(@NotNull ILPCConfigList parent, @NotNull String nameKey, @Nullable ILPCValueChangeCallback callback) {
+    public ArrayOptionListConfig(@NotNull ILPCConfigReadable parent, @NotNull String nameKey, @Nullable ILPCValueChangeCallback callback) {
         this(parent, nameKey, null, callback);
     }
-    public ArrayOptionListConfig(@NotNull ILPCConfigList parent, @NotNull String nameKey, @Nullable Map<? extends String, ? extends T> values) {
+    public ArrayOptionListConfig(@NotNull ILPCConfigReadable parent, @NotNull String nameKey, @Nullable Map<? extends String, ? extends T> values) {
         this(parent, nameKey, values, null);
     }
-    public ArrayOptionListConfig(@NotNull ILPCConfigList parent, @NotNull String nameKey, @Nullable Map<? extends String, ? extends T> values, @Nullable ILPCValueChangeCallback callback) {
+    public ArrayOptionListConfig(@NotNull ILPCConfigReadable parent, @NotNull String nameKey, @Nullable Map<? extends String, ? extends T> values, @Nullable ILPCValueChangeCallback callback) {
         super(parent, nameKey, EmptyOptionData.of(), callback);
         if (values != null) values.forEach(this::addOption);
     }

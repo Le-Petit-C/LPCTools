@@ -378,4 +378,15 @@ public class AlgorithmUtils {
     public static <T, U> @NotNull HashSet<U> convertToHashSet(@Nullable Iterable<T> values, Function<T, U> converter){
         return convert(new HashSet<>(), values, converter);
     }
+    public static <T, U> @NotNull Iterable<U> convertIterable(@NotNull Iterable<T> iterable, Function<T, U> converter){
+        return new Iterable<>() {
+            @Override public @NotNull Iterator<U> iterator() {
+                return new Iterator<>() {
+                    final Iterator<T> iterator = iterable.iterator();
+                    @Override public boolean hasNext() {return iterator.hasNext();}
+                    @Override public U next() {return converter.apply(iterator.next());}
+                };
+            }
+        };
+    }
 }

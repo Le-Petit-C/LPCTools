@@ -16,13 +16,13 @@ public class HappyGhastEntityMixin {
     @Redirect(method = "getControlledMovementInput", at = @At(value = "INVOKE", target = "Lnet/minecraft/entity/player/PlayerEntity;getPitch()F"))
     float setPitch(PlayerEntity instance){
         if(!isOnRenderThread()) return instance.getPitch();
-        if(!HappyGhastRidingTweak.happyGhastRidingTweak.getAsBoolean()) return instance.getPitch();
+        if(!HappyGhastRidingTweak.happyGhastRidingTweak.getBooleanValue()) return instance.getPitch();
         return 0;
     }
     @ModifyArg(index = 1, method = "getControlledMovementInput", at = @At(value = "INVOKE", target = "Lnet/minecraft/util/math/Vec3d;<init>(DDD)V"))
     double isSneaking(double h, @Local(argsOnly = true) PlayerEntity controllingPlayer){
         if(!isOnRenderThread()) return h;
-        if(!HappyGhastRidingTweak.happyGhastRidingTweak.getAsBoolean()) return h;
+        if(!HappyGhastRidingTweak.happyGhastRidingTweak.getBooleanValue()) return h;
         if(controllingPlayer.isSneaking()) return h - 0.5;
         else return h;
     }
