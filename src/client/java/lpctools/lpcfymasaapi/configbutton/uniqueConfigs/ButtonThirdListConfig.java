@@ -19,6 +19,7 @@ import java.util.ArrayList;
 
 import static lpctools.lpcfymasaapi.LPCConfigUtils.*;
 
+@SuppressWarnings("unused")
 public class ButtonThirdListConfig extends ButtonConfig implements IThirdListBase {
     public boolean extended = false;
     public final LPCConfigList subConfigs;

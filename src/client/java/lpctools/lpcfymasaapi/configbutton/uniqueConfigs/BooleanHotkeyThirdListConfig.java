@@ -2,15 +2,12 @@ package lpctools.lpcfymasaapi.configbutton.uniqueConfigs;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import fi.dy.masa.malilib.config.IConfigOptionListEntry;
-import fi.dy.masa.malilib.gui.MaLiLibIcons;
 import fi.dy.masa.malilib.hotkeys.IHotkey;
 import fi.dy.masa.malilib.hotkeys.IKeybind;
 import fi.dy.masa.malilib.hotkeys.KeybindMulti;
 import fi.dy.masa.malilib.hotkeys.KeybindSettings;
 import lpctools.lpcfymasaapi.configbutton.UpdateTodo;
 import lpctools.lpcfymasaapi.interfaces.*;
-import net.minecraft.text.Text;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -47,20 +44,6 @@ public class BooleanHotkeyThirdListConfig extends BooleanThirdListConfig impleme
         }
     }
     @Override public @NotNull IKeybind getKeybind() {return keybind;}
-    public enum OptionListEnum implements IConfigOptionListEntry{
-        RETRACTED(false, "lpctools.configs.utils.collapsed", MaLiLibIcons.ARROW_DOWN),
-        EXPANDED(true, "lpctools.configs.utils.expanded", MaLiLibIcons.ARROW_UP);
-        public final boolean expanded;
-        public final @NotNull String translationKey;
-        public final MaLiLibIcons icon;
-        OptionListEnum(boolean expanded, @NotNull String translationKey, MaLiLibIcons icon){
-            this.expanded = expanded;this.translationKey = translationKey;this.icon = icon;}
-        @Override public String getStringValue() {return String.valueOf(expanded);}
-        @Override public String getDisplayName() {return Text.translatable(translationKey).getString();}
-        @Override public OptionListEnum cycle(boolean forward) {return expanded ? RETRACTED : EXPANDED;}
-        @Override public OptionListEnum fromString(String value) {return get(Boolean.getBoolean(value));}
-        public static OptionListEnum get(boolean b){return b ? EXPANDED : RETRACTED;}
-    }
     
     public final String hotkeyJsonId = "hotkey";
     @Override public @NotNull JsonObject getAsJsonElement() {

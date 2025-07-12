@@ -6,7 +6,6 @@ import lpctools.compact.derived.SimpleTestableShape;
 import lpctools.lpcfymasaapi.Registries;
 import lpctools.lpcfymasaapi.configbutton.transferredConfigs.StringConfig;
 import lpctools.lpcfymasaapi.configbutton.uniqueConfigs.BooleanThirdListConfig;
-import lpctools.lpcfymasaapi.configbutton.uniqueConfigs.ThirdListConfig;
 import lpctools.lpcfymasaapi.interfaces.ILPCConfigReadable;
 import net.minecraft.client.gui.screen.Screen;
 import org.jetbrains.annotations.NotNull;

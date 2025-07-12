@@ -4,7 +4,6 @@ import lpctools.lpcfymasaapi.LPCConfigList;
 import lpctools.lpcfymasaapi.configbutton.derivedConfigs.ConfigOpenGuiConfig;
 import lpctools.lpcfymasaapi.configbutton.derivedConfigs.ObjectListConfig;
 import lpctools.lpcfymasaapi.configbutton.uniqueConfigs.BooleanThirdListConfig;
-import lpctools.lpcfymasaapi.configbutton.uniqueConfigs.ThirdListConfig;
 import lpctools.lpcfymasaapi.configbutton.transferredConfigs.BooleanConfig;
 import lpctools.lpcfymasaapi.configbutton.transferredConfigs.IntegerConfig;
 import lpctools.lpcfymasaapi.interfaces.ILPCValueChangeCallback;

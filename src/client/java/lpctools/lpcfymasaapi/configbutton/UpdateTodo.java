@@ -2,6 +2,7 @@ package lpctools.lpcfymasaapi.configbutton;
 
 import lpctools.lpcfymasaapi.interfaces.ILPCConfig;
 
+@SuppressWarnings("unused")
 public class UpdateTodo {
     public boolean valueChanged = false;
     public boolean updatePage = false;

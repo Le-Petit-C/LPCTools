@@ -15,7 +15,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 
 import static lpctools.lpcfymasaapi.LPCConfigUtils.*;
-//TODO:子类的setValueFromJsonElementEx
+
 //第三级列表，配置中切换true或false可以展开或收起内含的配置项
 public class ThirdListConfig extends LPCUniqueConfigBase implements IThirdListBase, IBooleanThirdList {
     protected boolean expanded;

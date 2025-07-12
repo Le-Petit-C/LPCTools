@@ -1,7 +1,6 @@
 package lpctools.tweaks;
 
 import lpctools.lpcfymasaapi.configbutton.uniqueConfigs.BooleanThirdListConfig;
-import lpctools.lpcfymasaapi.configbutton.uniqueConfigs.ThirdListConfig;
 import lpctools.lpcfymasaapi.configbutton.transferredConfigs.HotkeyConfig;
 
 import static lpctools.lpcfymasaapi.LPCConfigStatics.addHotkeyConfig;
