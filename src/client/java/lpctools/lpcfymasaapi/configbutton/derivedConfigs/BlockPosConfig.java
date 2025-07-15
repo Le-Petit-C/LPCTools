@@ -4,6 +4,7 @@ import fi.dy.masa.malilib.config.IConfigResettable;
 import lpctools.lpcfymasaapi.configbutton.transferredConfigs.IntegerConfig;
 import lpctools.lpcfymasaapi.configbutton.uniqueConfigs.ThirdListConfig;
 import lpctools.lpcfymasaapi.interfaces.ILPCConfigReadable;
+import lpctools.lpcfymasaapi.interfaces.ILPCUniqueConfigBase;
 import lpctools.lpcfymasaapi.interfaces.ILPCValueChangeCallback;
 import net.minecraft.text.Text;
 import net.minecraft.util.math.BlockPos;
@@ -11,10 +12,22 @@ import net.minecraft.util.math.Vec3i;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Vector3i;
+
+import java.util.ArrayList;
+
 //TODO
 @SuppressWarnings("unused")
 public class BlockPosConfig extends ThirdListConfig implements IConfigResettable {
     private final @NotNull _INTConfig x, y, z;
+    @Override public void getButtonOptions(ArrayList<ButtonOption> res) {
+        super.getButtonOptions(res);
+        if(!expanded){
+            res.add(ILPCUniqueConfigBase.textFieldConfigValuePreset(1, x));
+            res.add(ILPCUniqueConfigBase.textFieldConfigValuePreset(1, y));
+            res.add(ILPCUniqueConfigBase.textFieldConfigValuePreset(1, z));
+        }
+    }
+    
     public BlockPosConfig(ILPCConfigReadable parent, String nameKey, BlockPos defaultPos, @Nullable ILPCValueChangeCallback callback) {
         super(parent, nameKey, callback);
         x = addConfig(new _INTConfig(this, "x", defaultPos.getX()));

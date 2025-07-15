@@ -1,6 +1,8 @@
 package lpctools.lpcfymasaapi.interfaces;
 
 import fi.dy.masa.malilib.config.*;
+import fi.dy.masa.malilib.config.gui.ConfigOptionChangeListenerTextField;
+import fi.dy.masa.malilib.gui.GuiTextFieldGeneric;
 import fi.dy.masa.malilib.gui.LeftRight;
 import fi.dy.masa.malilib.gui.MaLiLibIcons;
 import fi.dy.masa.malilib.gui.button.*;
@@ -17,8 +19,12 @@ import java.util.function.Supplier;
 public interface ILPCUniqueConfigBase extends ILPCUniqueConfig{
     @Override
     default void addButtons(int x, int y, float zLevel, int labelWidth, int configWidth, ButtonConsumer consumer) {
-        if(this instanceof IConfigResettable resettable)
-            consumer.addButton(consumer.createResetButton(x + configWidth + 2, y, resettable), (button, mouseButton)->resettable.resetToDefault());
+        ButtonGeneric resetButton;
+        if(this instanceof IConfigResettable resettable){
+            resetButton = consumer.createResetButton(x + configWidth + 2, y, resettable);
+            consumer.addButton(resetButton, (button, mouseButton)->resettable.resetToDefault());
+        }
+        else resetButton = null;
         ArrayList<ButtonOption> options = new ArrayList<>();
         getButtonOptions(options);
         float weightSum = 0;
@@ -52,7 +58,7 @@ public interface ILPCUniqueConfigBase extends ILPCUniqueConfig{
             String key = supplier == null ? null : supplier.get();
             String str = key == null ? "" : Text.translatable(key).getString();
             if(option.allocator != null)
-                option.allocator.create(lastX, y, currentX - lastX - 2, 20, str, _listener, consumer);
+                option.allocator.create(lastX, y, currentX - lastX - 2, 20, str, _listener, consumer, resetButton);
             lastX = currentX;
             ++a;
         }
@@ -65,28 +71,46 @@ public interface ILPCUniqueConfigBase extends ILPCUniqueConfig{
     void getButtonOptions(ArrayList<ButtonOption> res);
     
     interface IButtonAllocator{
-        void create(int x, int y, int w, int h, String str, IButtonActionListener listener, ButtonConsumer consumer);
+        void create(int x, int y, int w, int h, String str, IButtonActionListener listener, ButtonConsumer consumer, @Nullable ButtonGeneric resetButton);
     }
     //presets
-    IButtonAllocator buttonGenericAllocator = (x, y, w, h, key, listener, consumer)->consumer.addButton(new ButtonGeneric(x, y, w, h, key), listener);
+    IButtonAllocator buttonGenericAllocator = (x, y, w, h, key, listener, consumer, reset)->consumer.addButton(new ButtonGeneric(x, y, w, h, key), listener);
     static IButtonAllocator iconButtonAllocator(MaLiLibIcons icon, LeftRight iconAlignment){
-        return (x, y, w, h, key, listener, consumer)-> consumer.addButton(new ButtonGeneric(x, y, w, h, key, icon).setIconAlignment(iconAlignment), listener);
+        return (x, y, w, h, key, listener, consumer, reset)-> consumer.addButton(new ButtonGeneric(x, y, w, h, key, icon).setIconAlignment(iconAlignment), listener);
     }
     static ButtonOption buttonBooleanPreset(float widthWeight, IConfigBoolean configBoolean){
         return new ButtonOption(widthWeight, null, null,
-            (x, y, w, h, key, listener, consumer)->consumer.addButton(new ConfigButtonBoolean(x, y, w, h, configBoolean), listener)
+            (x, y, w, h, key, listener, consumer, reset)->consumer.addButton(new ConfigButtonBoolean(x, y, w, h, configBoolean), listener)
         );
+    }
+    static ButtonOption textFieldConfigValuePreset(float widthWeight, IConfigValue config){
+        return new ButtonOption(widthWeight, null, null, (x, y, w, h, key, listener, consumer, reset)->{
+            GuiTextFieldGeneric field = new GuiTextFieldGeneric(x + 2, y + 1, w - 4, h - 3, consumer.getTextRenderer()){
+                @Override public void setFocused(boolean focused) {
+                    super.setFocused(focused);
+                    if(!focused){
+                        try{ config.setValueFromString(getText());
+                        } catch (NumberFormatException ignored){}
+                        setText(config.getStringValue());
+                    }
+                }
+            };
+            field.setMaxLength(consumer.getMaxTextFieldTextLength());
+            field.setText(config.getStringValue());
+            ConfigOptionChangeListenerTextField listenerChange = new ConfigOptionChangeListenerTextField(config, field, reset);
+            consumer.addExtraTextField(field, listenerChange);
+        });
     }
     @SuppressWarnings("unused")
     static ButtonOption buttonOptionsPreset(float weight, IConfigOptionList configOptionList){
         return new ButtonOption(weight, null, null,
-            (x, y, w, h, key, listener, consumer)->consumer.addButton(new ConfigButtonOptionList(x, y, w, h, configOptionList), listener)
+            (x, y, w, h, key, listener, consumer, reset)->consumer.addButton(new ConfigButtonOptionList(x, y, w, h, configOptionList), listener)
         );
     }
     static ButtonOption buttonKeybindPreset(float weight, IHotkey hotkey){
         return new ButtonOption(
             weight, null, null,
-            (x, y, w, h, key, listener, consumer) -> {
+            (x, y, w, h, key, listener, consumer, reset) -> {
                 consumer.addButton(new ConfigButtonKeybind(x, y, w - h - 2, h, hotkey.getKeybind(), consumer.getKeybindHost()), listener);
                 consumer.addWidget(new WidgetKeybindSettings(x + w - h, y, h, h, hotkey.getKeybind(), hotkey.getName(), consumer.getWidgetListConfigOptionsBase(), consumer.getKeybindHost().getDialogHandler()));
             }
@@ -96,7 +120,7 @@ public interface ILPCUniqueConfigBase extends ILPCUniqueConfig{
     static ButtonOption buttonStringListPreset(float weight, IConfigStringList configStringList){
         return new ButtonOption(
             weight, null, null,
-            (x, y, w, h, key, listener, consumer) -> consumer.addButton(new ConfigButtonStringList(
+            (x, y, w, h, key, listener, consumer, reset) -> consumer.addButton(new ConfigButtonStringList(
                 x, y, w, h, configStringList, consumer.getKeybindHost(), consumer.getKeybindHost().getDialogHandler()), listener)
         );
     }

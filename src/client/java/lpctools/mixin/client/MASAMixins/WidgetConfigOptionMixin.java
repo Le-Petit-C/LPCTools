@@ -2,7 +2,9 @@ package lpctools.mixin.client.MASAMixins;
 
 import fi.dy.masa.malilib.config.IConfigBase;
 import fi.dy.masa.malilib.config.IConfigResettable;
+import fi.dy.masa.malilib.config.gui.ConfigOptionChangeListenerTextField;
 import fi.dy.masa.malilib.gui.GuiConfigsBase;
+import fi.dy.masa.malilib.gui.GuiTextFieldGeneric;
 import fi.dy.masa.malilib.gui.button.ButtonBase;
 import fi.dy.masa.malilib.gui.button.ButtonGeneric;
 import fi.dy.masa.malilib.gui.button.IButtonActionListener;
@@ -13,6 +15,8 @@ import fi.dy.masa.malilib.gui.widgets.WidgetConfigOptionBase;
 import fi.dy.masa.malilib.gui.widgets.WidgetListConfigOptionsBase;
 import lpctools.lpcfymasaapi.interfaces.ButtonBaseProvider;
 import lpctools.lpcfymasaapi.interfaces.ButtonConsumer;
+import lpctools.mixinInterfaces.MASAMixins.IWidgetConfigOptionBaseEx;
+import net.minecraft.client.font.TextRenderer;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -35,6 +39,18 @@ public abstract class WidgetConfigOptionMixin extends WidgetConfigOptionBase<Gui
                 @Override public <T extends ButtonBase> T addButton(T button, IButtonActionListener listener) {
                     return WidgetConfigOptionMixin.this.addButton(button, listener);
                 }
+                @Override public GuiTextFieldGeneric createTextField(int x, int y, int width, int height) {
+                    return WidgetConfigOptionMixin.this.createTextField(x, y, width, height);
+                }
+                @Override public int getMaxTextFieldTextLength() {
+                    return maxTextfieldTextLength;
+                }
+                @Override public void addTextField(GuiTextFieldGeneric field, ConfigOptionChangeListenerTextField listener) {
+                    WidgetConfigOptionMixin.this.addTextField(field, listener);
+                }
+                @Override public void addExtraTextField(GuiTextFieldGeneric field, ConfigOptionChangeListenerTextField listener) {
+                    ((IWidgetConfigOptionBaseEx)getThis()).lPCTools$addExtraTextField(field, listener);
+                }
                 @Override public ButtonGeneric createResetButton(int x, int y, IConfigResettable config) {
                     return WidgetConfigOptionMixin.this.createResetButton(x, y, config);
                 }
@@ -46,6 +62,9 @@ public abstract class WidgetConfigOptionMixin extends WidgetConfigOptionBase<Gui
                 }
                 @Override public WidgetListConfigOptionsBase<?, ?> getWidgetListConfigOptionsBase() {
                     return parent;
+                }
+                @Override public TextRenderer getTextRenderer() {
+                    return textRenderer;
                 }
             });
             ci.cancel();
