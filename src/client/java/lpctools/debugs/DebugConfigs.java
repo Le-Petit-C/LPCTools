@@ -52,7 +52,8 @@ public class DebugConfigs {
     static {listStack.pop();}
     
     private static void booleanHotkeyThirdListTestCallback(){
-        notifyPlayer("Value changed! current is " + booleanHotkeyThirdListTest.getBooleanValue(), false);
+        if(booleanHotkeyThirdListTest.isExpanded())
+            notifyPlayer("Value changed! current is " + booleanHotkeyThirdListTest.getBooleanValue(), false);
     }
     
     private static void buttonConfigTestCallback(ButtonBase button, int mouseButton){

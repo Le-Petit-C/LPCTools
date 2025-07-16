@@ -14,11 +14,9 @@ import net.minecraft.client.font.TextRenderer;
 public interface ButtonConsumer {
     @SuppressWarnings("UnusedReturnValue") <T extends WidgetBase> T addWidget(T widget);
     @SuppressWarnings("UnusedReturnValue") <T extends ButtonBase> T addButton(T button, IButtonActionListener listener);
-    @SuppressWarnings("unused")
-    GuiTextFieldGeneric createTextField(int x, int y, int width, int height);
+    @SuppressWarnings("unused") GuiTextFieldGeneric createTextField(int x, int y, int width, int height);
     int getMaxTextFieldTextLength();
-    @SuppressWarnings("unused")
-    void addTextField(GuiTextFieldGeneric field, ConfigOptionChangeListenerTextField listener);
+    @SuppressWarnings("unused") void addTextField(GuiTextFieldGeneric field, ConfigOptionChangeListenerTextField listener);
     void addExtraTextField(GuiTextFieldGeneric field, ConfigOptionChangeListenerTextField listener);
     ButtonGeneric createResetButton(int x, int y, IConfigResettable config);
     IKeybindConfigGui getKeybindHost();

@@ -303,9 +303,7 @@ public class MutableConfig<T extends ILPCUniqueConfigBase> extends LPCUniqueConf
             return;
         }
         MinecraftClient mc = MinecraftClient.getInstance();
-        AddConfigScreen screen = new AddConfigScreen(position);
-        mc.currentScreen = null;
-        mc.setScreen(screen);
+        mc.setScreen(new AddConfigScreen(position));
     }
     private static final String titleKey = "lpcfymasaapi.configs.mutableConfig.title";
     private static final String cancelKey = "lpcfymasaapi.configs.mutableConfig.cancel";

@@ -56,6 +56,7 @@ public class LPCConfigPage implements IConfigHandler, Supplier<GuiBase>, ILPCCon
         if(inputHandler == null) inputHandler = new InputHandler(modReference);
         return inputHandler;
     }
+    @Override public void onConfigsChanged() {save();}
     //显示当前页面
     public void showPage(){
         if(pageInstance != null) pageInstance.close();

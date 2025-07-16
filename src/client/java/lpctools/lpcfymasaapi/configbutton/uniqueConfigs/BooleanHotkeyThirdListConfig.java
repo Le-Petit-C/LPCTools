@@ -54,7 +54,7 @@ public class BooleanHotkeyThirdListConfig extends BooleanThirdListConfig impleme
     
     @Override public UpdateTodo setValueFromJsonElementEx(@NotNull JsonElement data) {
         UpdateTodo todo = super.setValueFromJsonElementEx(data);
-        if(data instanceof JsonObject object && object.get(booleanJsonId) instanceof JsonElement element){
+        if(data instanceof JsonObject object && object.get(hotkeyJsonId) instanceof JsonElement element){
             String str = keybind.getStringValue();
             keybind.setValueFromJsonElement(element);
             todo.valueChanged(!keybind.getStringValue().equals(str));
