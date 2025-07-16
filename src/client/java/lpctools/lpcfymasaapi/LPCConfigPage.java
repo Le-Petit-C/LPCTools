@@ -18,6 +18,7 @@ import fi.dy.masa.malilib.gui.button.ButtonGeneric;
 import lpctools.lpcfymasaapi.configbutton.UpdateTodo;
 import lpctools.lpcfymasaapi.interfaces.ILPCConfigBase;
 import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.gui.screen.Screen;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -58,9 +59,10 @@ public class LPCConfigPage implements IConfigHandler, Supplier<GuiBase>, ILPCCon
     }
     @Override public void onConfigsChanged() {save();}
     //显示当前页面
-    public void showPage(){
+    public void showPage(Screen parent){
         if(pageInstance != null) pageInstance.close();
         pageInstance = new ConfigPageInstance();
+        pageInstance.setParent(parent);
         if(MinecraftClient.getInstance().currentScreen != pageInstance)
             GuiBase.openGui(pageInstance);
     }
