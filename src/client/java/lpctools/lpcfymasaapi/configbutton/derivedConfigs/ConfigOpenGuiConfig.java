@@ -6,6 +6,7 @@ import fi.dy.masa.malilib.hotkeys.KeyAction;
 import lpctools.lpcfymasaapi.LPCConfigPage;
 import lpctools.lpcfymasaapi.configbutton.transferredConfigs.HotkeyConfig;
 import lpctools.lpcfymasaapi.interfaces.ILPCConfigList;
+import net.minecraft.client.MinecraftClient;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -15,7 +16,7 @@ public class ConfigOpenGuiConfig extends HotkeyConfig {
     }
     private record ConfigOpenGuiConfigInstance(LPCConfigPage page) implements IHotkeyCallback{
         @Override public boolean onKeyAction(KeyAction action, IKeybind key) {
-            page.showPage();
+            page.showPage(MinecraftClient.getInstance().currentScreen);
             return true;
         }
     }
