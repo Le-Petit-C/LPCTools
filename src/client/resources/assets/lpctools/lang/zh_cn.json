@@ -171,6 +171,8 @@
   "lpctools.configs.tools.FM.detectFurnaces.title": "检测",
   "lpctools.configs.tools.FM.detectFurnaces.name": "检测熔炉",
   "lpctools.configs.tools.FM.detectFurnaces.comment": "触发以检测附近的熔炉",
+  "lpctools.configs.tools.MB.name": "苔藓盾构",
+  "lpctools.configs.tools.MB.comment": "使用苔藓块快速挖坑（暂时还不是很好用）",
   "lpctools.configs.tweaks.title": "微调",
   "lpctools.configs.tweaks.blockReplaceHotkey.name": "方块替换操作键",
   "lpctools.configs.tweaks.blockReplaceHotkey.comment": "定义一个额外的热键，按下后实现同时按下鼠标左右键替换方块的效果",

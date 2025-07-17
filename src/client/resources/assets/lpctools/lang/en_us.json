@@ -171,6 +171,8 @@
   "lpctools.configs.tools.FM.detectFurnaces.title": "Detect",
   "lpctools.configs.tools.FM.detectFurnaces.name": "Detect Furnaces",
   "lpctools.configs.tools.FM.detectFurnaces.comment": "Trigger to detect current furnaces",
+  "lpctools.configs.tools.MB.name": "Moss Borer",
+  "lpctools.configs.tools.MB.comment": "Digging holes fast using moss (not so easy to use yet)",
   "lpctools.configs.tweaks.title": "Tweaks",
   "lpctools.configs.tweaks.blockReplaceHotkey.name": "blockReplaceHotkey",
   "lpctools.configs.tweaks.blockReplaceHotkey.comment": "Define an extra hotkey used to replace blocks, which reacts the same as pressing both mouse buttons.",

@@ -7,6 +7,7 @@ import lpctools.tools.antiSpawner.AntiSpawner;
 import lpctools.tools.breakRestriction.BreakRestriction;
 import lpctools.tools.canSpawnDisplay.CanSpawnDisplay;
 import lpctools.tools.furnaceMaintainer.FurnaceMaintainer;
+import lpctools.tools.mossBorer.MossBorer;
 import lpctools.tools.slightXRay.SlightXRay;
 import lpctools.tools.fillingAssistant.FillingAssistant;
 import lpctools.tools.liquidCleaner.LiquidCleaner;
@@ -24,5 +25,6 @@ public class ToolConfigs {
         toolConfigs.addConfig(BreakRestriction.BRConfig);
         toolConfigs.addConfig(TilingTool.TTConfig);
         toolConfigs.addConfig(FurnaceMaintainer.FMConfig);
+        toolConfigs.addConfig(MossBorer.MBConfig);
     }
 }
