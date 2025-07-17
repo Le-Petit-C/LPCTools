@@ -69,6 +69,7 @@ public class TilingToolExecutor implements AutoCloseable, ClientTickEvents.EndTi
         };
         limitOperationSpeed.resetOperationTimes();
         limitOperationSpeed.iterableOperate(reachDistance.iterateFromClosest(player.getEyePos()), pos->{
+            if(!shapeList.testPos(pos)) return NO_OPERATION;
             if(!world.getBlockState(pos).isReplaceable()) return NO_OPERATION;
             BlockPos.Mutable shiftPos = new BlockPos.Mutable();
             shiftPos.set(pos.subtract(startPos));
@@ -78,13 +79,13 @@ public class TilingToolExecutor implements AutoCloseable, ClientTickEvents.EndTi
             MathUtils.clamp(shiftPos, cuboidSize);
             block.setValue(storedBlocks[shiftPos.getZ()][shiftPos.getY()][shiftPos.getX()]);
             if(data.block == null){
-                data.count = HandRestock.restock(restockTest, 0);
+                data.count = HandRestock.restock(restockTest, offhandOperate.getAsBoolean() ? -1 : 0);
                 if(data.count == 0) return NO_OPERATION;
                 data.block = block.getValue();
             }
             if(!condition.getBoolean(data.block)) return NO_OPERATION;
             BlockHitResult hitResult = new BlockHitResult(pos.toCenterPos(), Direction.DOWN, pos.toImmutable(), false);
-            itm.interactBlock(player, Hand.MAIN_HAND, hitResult);
+            itm.interactBlock(player, offhandOperate.getAsBoolean() ? Hand.OFF_HAND : Hand.MAIN_HAND, hitResult);
             if(--data.count == 0) return SHOULD_BREAK;
             else return OPERATED;
         });

@@ -1,5 +1,6 @@
 package lpctools.tools.tilingTool;
 
+import lpctools.compact.derived.ShapeList;
 import lpctools.util.AlgorithmUtils;
 import lpctools.util.DataUtils;
 import lpctools.util.data.Box3i;
@@ -8,6 +9,7 @@ import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3i;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -17,6 +19,7 @@ import java.util.HashSet;
 public class TilingToolData {
     static @Nullable TilingToolExecutor executor;
     static @Nullable StoredData storedData;
+    static @NotNull ShapeList shapeList = ShapeList.emptyList();
     public static final HashMap<Block, ArrayList<HashSet<Block>>> vagueBlocks = new HashMap<>();
     public static void refresh(Box3i box){storedData = StoredData.create(box);}
     public record StoredData(BlockPos startPos, Vec3i cuboidSize, Block[][][] storedBlocks){

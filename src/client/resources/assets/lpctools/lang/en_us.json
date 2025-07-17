@@ -121,6 +121,8 @@
   "lpctools.configs.tools.BR.blockTestMethod.blacklist.title": "Blacklist",
   "lpctools.configs.tools.BR.blockTestMethod.blacklist.blacklist.name": "blacklist",
   "lpctools.configs.tools.BR.blockTestMethod.blacklist.blacklist.comment": "blacklist",
+  "lpctools.configs.tools.TT.offhandOperate.name": "Offhand Operate",
+  "lpctools.configs.tools.TT.offhandOperate.comment": "Decide whether use offhand to operate",
   "lpctools.configs.tools.TT.name": "Tiling tool",
   "lpctools.configs.tools.TT.comment": "This tool helps you tilling area based on selection area blocks.",
   "lpctools.configs.tools.TT.refresh.title": "refresh",

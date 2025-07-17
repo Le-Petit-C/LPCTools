@@ -121,6 +121,8 @@
   "lpctools.configs.tools.BR.blockTestMethod.blacklist.title": "黑名单",
   "lpctools.configs.tools.BR.blockTestMethod.blacklist.blacklist.name": "黑名单",
   "lpctools.configs.tools.BR.blockTestMethod.blacklist.blacklist.comment": "黑名单",
+  "lpctools.configs.tools.TT.offhandOperate.name": "副手操作",
+  "lpctools.configs.tools.TT.offhandOperate.comment": "决定是否使用副手执行操作",
   "lpctools.configs.tools.TT.name": "密铺工具",
   "lpctools.configs.tools.TT.comment": "这个工具能帮你基于选区内方块密铺一定区域",
   "lpctools.configs.tools.TT.refresh.title": "刷新",
