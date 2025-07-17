@@ -233,7 +233,9 @@
   "lpctools.configs.utils.limitOperationSpeed.maxOperationSpeed.comment": "最大操作速度，通常是一游戏刻的最大平均操作次数",
   "lpctools.configs.utils.collapsed": "已收起",
   "lpctools.configs.utils.expanded": "已展开",
-  "lpctools.configs.utils.coordinateComment": "坐标",
+  "lpctools.configs.utils.blockPosConfig.coordinate": "坐标",
+  "lpctools.configs.utils.blockPosConfig.setToPlayer": "设为玩家坐标",
+  "lpctools.configs.utils.blockPosConfig.setToTarget": "设为准心方块坐标",
   "lpctools.mew~": "喵~",
   "lpctools.compact.missingLitematica": "无法使用此功能：投影模组缺失",
   "lpctools.compact.litematica.cantGetSelectionBox": "无法获取到当前投影选取"

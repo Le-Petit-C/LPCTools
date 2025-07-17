@@ -233,7 +233,9 @@
   "lpctools.configs.utils.limitOperationSpeed.maxOperationSpeed.comment": "Maximum Operation Speed\nUsually the maximum average operation times per tick",
   "lpctools.configs.utils.collapsed": "Collapsed",
   "lpctools.configs.utils.expanded": "Expanded",
-  "lpctools.configs.utils.coordinateComment": "coordinate",
+  "lpctools.configs.utils.blockPosConfig.coordinate": "coordinate",
+  "lpctools.configs.utils.blockPosConfig.setToPlayer": "set to player",
+  "lpctools.configs.utils.blockPosConfig.setToTarget": "set to target",
   "lpctools.mew~": "mew~",
   "lpctools.compact.missingLitematica" : "Can't use this method: missing Litematica",
   "lpctools.compact.litematica.cantGetSelectionBox" : "Can't get Litematica selection box!"
