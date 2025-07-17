@@ -7,6 +7,7 @@ import lpctools.compact.litematica.LitematicaMethods;
 import lpctools.lpcfymasaapi.configbutton.derivedConfigs.*;
 import lpctools.lpcfymasaapi.configbutton.uniqueConfigs.BooleanHotkeyThirdListConfig;
 import lpctools.lpcfymasaapi.configbutton.uniqueConfigs.ButtonHotkeyConfig;
+import lpctools.lpcfymasaapi.configbutton.uniqueConfigs.MultiBooleanConfig;
 import lpctools.lpcfymasaapi.configbutton.uniqueConfigs.MutableConfig;
 import lpctools.tools.ToolConfigs;
 import lpctools.util.data.Box3i;
@@ -35,6 +36,7 @@ public class TilingTool {
     public static final ButtonHotkeyConfig refreshButton = addButtonHotkeyConfig("refresh", null, TilingTool::refreshCallback);
     @SuppressWarnings("unused")
     public static final ButtonHotkeyConfig setByLitematicaButton = addButtonHotkeyConfig("setByLitematica", null, TilingTool::setByLitematica);
+    public static final MultiBooleanConfig tilingDirection = addConfig(new MultiBooleanConfig(peekConfigList(), "tilingDirection", ImmutableList.of(true, false, true), null));
     private static final LinkedHashMap<String, AutoResetMode> autoRefreshDefaults = new LinkedHashMap<>();
     static {
         autoRefreshDefaults.put("lpctools.configs.tools.TT.autoRefresh.onFirstStart", AutoResetMode.ON_FIRST_START);

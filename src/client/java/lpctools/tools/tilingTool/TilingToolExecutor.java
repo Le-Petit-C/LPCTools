@@ -72,7 +72,9 @@ public class TilingToolExecutor implements AutoCloseable, ClientTickEvents.EndTi
             if(!world.getBlockState(pos).isReplaceable()) return NO_OPERATION;
             BlockPos.Mutable shiftPos = new BlockPos.Mutable();
             shiftPos.set(pos.subtract(startPos));
-            if(shiftPos.getY() < 0 || shiftPos.getY() >= cuboidSize.getY()) return NO_OPERATION;
+            if(!tilingDirection.booleans.get(0).getBooleanValue() && (shiftPos.getX() < 0 || shiftPos.getX() >= cuboidSize.getX())) return NO_OPERATION;
+            if(!tilingDirection.booleans.get(1).getBooleanValue() && (shiftPos.getY() < 0 || shiftPos.getY() >= cuboidSize.getY())) return NO_OPERATION;
+            if(!tilingDirection.booleans.get(2).getBooleanValue() && (shiftPos.getZ() < 0 || shiftPos.getZ() >= cuboidSize.getZ())) return NO_OPERATION;
             MathUtils.clamp(shiftPos, cuboidSize);
             block.setValue(storedBlocks[shiftPos.getZ()][shiftPos.getY()][shiftPos.getX()]);
             if(data.block == null){
