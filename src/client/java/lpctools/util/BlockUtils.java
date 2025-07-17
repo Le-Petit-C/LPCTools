@@ -5,6 +5,7 @@ import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
 import net.minecraft.block.Waterloggable;
 import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.fluid.Fluid;
 import net.minecraft.fluid.Fluids;
@@ -60,5 +61,8 @@ public class BlockUtils {
     }
     public static boolean isFluid(BlockState state){
         return isFluid(state.getBlock());
+    }
+    public static boolean canBreakInstantly(ClientPlayerEntity player, BlockPos pos){
+        return player.getWorld().getBlockState(pos).calcBlockBreakingDelta(player, player.getWorld(), pos) >= 1.0F;
     }
 }

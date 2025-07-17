@@ -38,7 +38,10 @@ public class FurnaceMaintainerRunner implements AutoCloseable, ClientTickEvents.
         ClientPlayerEntity player = mc.player;
         ClientWorld world = mc.world;
         ClientPlayerInteractionManager itm = mc.interactionManager;
-        if(player == null || world == null || itm == null) return;
+        if(player == null || world == null || itm == null) {
+            FMConfig.setBooleanValue(false);
+            return;
+        }
         boolean hasEmptyStack = false;
         for(ItemStack stack : player.getInventory().getMainStacks()){
             if(stack.isEmpty()){

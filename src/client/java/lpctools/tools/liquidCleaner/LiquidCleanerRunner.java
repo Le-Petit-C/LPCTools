@@ -9,7 +9,6 @@ import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.client.network.ClientPlayerInteractionManager;
 import net.minecraft.client.world.ClientWorld;
-import net.minecraft.fluid.FluidState;
 import net.minecraft.item.BlockItem;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
@@ -26,7 +25,7 @@ import static lpctools.lpcfymasaapi.configbutton.derivedConfigs.LimitOperationSp
 import static lpctools.tools.liquidCleaner.LiquidCleaner.*;
 import static lpctools.util.BlockUtils.*;
 
-public class OnEndTick implements ClientTickEvents.EndTick {
+public class LiquidCleanerRunner implements ClientTickEvents.EndTick {
     @Override public void onEndTick(MinecraftClient client) {
         ClientPlayerEntity player = client.player;
         if (player == null) {
@@ -55,7 +54,7 @@ public class OnEndTick implements ClientTickEvents.EndTick {
         ShapeList list = limitCleaningRange.buildShapeList();
         limitOperationSpeedConfig.resetOperationTimes();
         limitOperationSpeedConfig.iterableOperate(iterateRegion, pos -> {
-            if (shouldAttackBlock(list, world, pos)) {
+            if (shouldAttackBlock(list, player, pos)) {
                 manager.attackBlock(pos.toImmutable(), Direction.DOWN);
                 return OPERATED;
             }
@@ -89,7 +88,8 @@ public class OnEndTick implements ClientTickEvents.EndTick {
         });
     }
 
-    private static boolean shouldAttackBlock(@NotNull ShapeList shapeList ,@NotNull ClientWorld world, @NotNull BlockPos pos){
+    private static boolean shouldAttackBlock(@NotNull ShapeList shapeList ,@NotNull ClientPlayerEntity player, @NotNull BlockPos pos){
+        ClientWorld world = player.clientWorld;
         BlockState state = world.getBlockState(pos);
         if(!shapeList.testPos(pos)){
             if(!expandRange.getAsBoolean()) return false;
@@ -104,11 +104,9 @@ public class OnEndTick implements ClientTickEvents.EndTick {
             if(!isNear) return false;
             else if(!isContainingLiquid(state)) return false;
         }
-        if(blockBlackListConfig.contains(state.getBlock())) return false;
-        if(!isZeroHardBlock(state)) return false;
-        if(state.isAir()) return false;
+        if(!canBreakInstantly(player, pos)) return false;
         if(!isReplaceable(state) && isContainingLiquid(state)) return true;
-        if(canAnyBucketPlaceAt(state)) return false;
+        if(!cleaningBlocks.contains(state.getBlock())) return false;
         for(Direction direction : Direction.values()){
             if(ignoreDownwardTest.getAsBoolean() && direction == Direction.DOWN) continue;
             if(isContainingLiquid(world.getBlockState(pos.offset(direction)))) return false;
@@ -117,17 +115,7 @@ public class OnEndTick implements ClientTickEvents.EndTick {
     }
     private boolean isStackOk(ItemStack stack){
         Item item = stack.getItem();
-        if(item instanceof BlockItem blockItem && blockBlackListConfig.contains(blockItem.getBlock())) return false;
         if (!(item instanceof BlockItem blockItem)) return false;
-        Block block = blockItem.getBlock();
-        if (block.getHardness() != 0) return false;
-        BlockState state = block.getDefaultState();
-        if (canAnyBucketPlaceAt(state)) return false;
-        FluidState fluidState = state.getFluidState();
-        if (fluidState.getLevel() != 0) return false;
-        if (block instanceof Waterloggable) return false;
-        //noinspection RedundantIfStatement
-        if (block instanceof PlantBlock) return false;
-        return true;
+        return cleaningBlocks.contains(blockItem.getBlock());
     }
 }
