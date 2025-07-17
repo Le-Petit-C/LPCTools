@@ -9,7 +9,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 
-public class ButtonHotkeyConfig extends ButtonConfig implements IHotkey {
+public class ButtonHotkeyConfig extends ButtonConfig implements IHotkey, AutoCloseable {
     public final @NotNull IKeybind keybind;
     public Runnable callback;
     public ButtonHotkeyConfig(@NotNull ILPCConfigReadable parent, @NotNull String nameKey, @Nullable String defaultKeyBindStorageString, @Nullable Runnable callback) {
@@ -32,4 +32,7 @@ public class ButtonHotkeyConfig extends ButtonConfig implements IHotkey {
         keybind.setValueFromJsonElement(data);
     }
     private boolean callCallback(Object... ignored){if(callback != null) callback.run(); return true;}
+    @Override public void close() {
+        getPage().getInputHandler().removeHotkey(this);
+    }
 }

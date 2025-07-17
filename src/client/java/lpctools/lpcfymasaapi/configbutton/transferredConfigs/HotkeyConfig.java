@@ -22,7 +22,7 @@ import java.util.function.BooleanSupplier;
 import java.util.function.IntConsumer;
 import java.util.function.IntSupplier;
 
-public class HotkeyConfig extends ConfigHotkey implements ILPC_MASAConfigWrapper<ConfigHotkey> {
+public class HotkeyConfig extends ConfigHotkey implements ILPC_MASAConfigWrapper<ConfigHotkey>, AutoCloseable {
     public HotkeyConfig(@NotNull ILPCConfigReadable parent, @NotNull String nameKey, @Nullable String defaultStorageString, @Nullable IHotkeyCallback hotkeyCallback){
         super(nameKey, defaultStorageString != null ? defaultStorageString : "");
         data = new LPCConfigData(parent, true);
@@ -34,7 +34,11 @@ public class HotkeyConfig extends ConfigHotkey implements ILPC_MASAConfigWrapper
     public HotkeyConfig(@NotNull ILPCConfigReadable parent, @NotNull String nameKey, @Nullable String defaultStorageString){
         this(parent, nameKey, defaultStorageString, null);
     }
-
+    
+    @Override public void close() {
+        getPage().getInputHandler().removeHotkey(this);
+    }
+    
     @SuppressWarnings("unused")
     public static class IntegerChanger<T extends IntSupplier & IntConsumer & IButtonDisplay> implements IHotkeyCallback{
         public IntegerChanger(int changeValue, @NotNull T valueToChange){

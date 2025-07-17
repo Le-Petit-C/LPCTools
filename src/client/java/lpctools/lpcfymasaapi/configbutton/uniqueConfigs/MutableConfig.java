@@ -28,7 +28,7 @@ import static lpctools.lpcfymasaapi.LPCConfigUtils.*;
 import static lpctools.lpcfymasaapi.interfaces.ILPCUniqueConfigBase.*;
 import static lpctools.util.AlgorithmUtils.*;
 
-public class MutableConfig<T extends ILPCUniqueConfigBase> extends LPCUniqueConfigBase implements ILPCConfigReadable, IMutableConfig, IConfigResettable {
+public class MutableConfig<T extends ILPCUniqueConfigBase> extends LPCUniqueConfigBase implements ILPCConfigReadable, IMutableConfig, IConfigResettable, AutoCloseable {
     private boolean condenseOperationButton;
     private boolean hideOperationButton;
     private final JsonObject defaultJson;
@@ -58,6 +58,12 @@ public class MutableConfig<T extends ILPCUniqueConfigBase> extends LPCUniqueConf
     @Override public ArrayList<GuiConfigsBase.ConfigOptionWrapper> buildConfigWrappers(ArrayList<GuiConfigsBase.ConfigOptionWrapper> wrapperList) {
         if(expanded) return ILPCConfigReadable.defaultBuildConfigWrappers(wrapperList, subConfigs, true);
         else return wrapperList;
+    }
+    
+    @Override public void close() {
+        for(MutableConfigOption<? extends T> config : subConfigs)
+            config.close();
+        subConfigs.clear();
     }
     
     public record ConfigAllocator<T extends ILPCUniqueConfigBase, U>(
@@ -123,11 +129,15 @@ public class MutableConfig<T extends ILPCUniqueConfigBase> extends LPCUniqueConf
             warnFailedLoadingConfig(this, data);
             return new UpdateTodo();
         }
+        for(MutableConfigOption<? extends T> config : subConfigs)
+            config.close();
         subConfigs.clear();
-        if(object.get("mutableValues") instanceof JsonArray mutableValues)
-            for(JsonElement element : mutableValues)
-                if(loadFromJsonElement(element) instanceof MutableConfigOption<? extends T> config)
-                    subConfigs.add(config);
+        if(object.get("mutableValues") instanceof JsonArray mutableValues){
+            for(JsonElement element : mutableValues){
+                MutableConfigOption<? extends T> config = loadFromJsonElement(element);
+                if(config != null) subConfigs.add(config);
+            }
+        }
         if(object.get("expanded") instanceof JsonPrimitive primitive)
             expanded = primitive.getAsBoolean();
         if(!(getParent() instanceof MutableConfig)){
@@ -161,7 +171,7 @@ public class MutableConfig<T extends ILPCUniqueConfigBase> extends LPCUniqueConf
         else return super.getFullPath();
     }
     
-    public static class MutableConfigOption<T extends ILPCUniqueConfigBase> extends LPCUniqueConfigBase {
+    public static class MutableConfigOption<T extends ILPCUniqueConfigBase> extends LPCUniqueConfigBase implements AutoCloseable{
         public final T wrappedConfig;
         public boolean flipPosButton, flipMinusButton;
         public final MutableConfig<? super T> parent;
@@ -210,7 +220,7 @@ public class MutableConfig<T extends ILPCUniqueConfigBase> extends LPCUniqueConf
             if(parent.doCondenseOperationButton() && flipPosButton && (mouseButton == 0 || mouseButton == 1))
                 mouseButton = 1 - mouseButton;
             if(mouseButton == 0) {
-                parent.subConfigs.remove(position);//删除
+                parent.subConfigs.remove(position).close();//删除
                 parent.onValueChanged();
                 getPage().updateIfCurrent();
             }
@@ -232,6 +242,15 @@ public class MutableConfig<T extends ILPCUniqueConfigBase> extends LPCUniqueConf
         @Override public @NotNull String getFullTranslationKey() {
             if(wrappedConfig == null) return super.getFullTranslationKey();
             else return wrappedConfig.getFullTranslationKey();
+        }
+        @Override public void close() {
+            if(wrappedConfig instanceof AutoCloseable closeable){
+                try {
+                    closeable.close();
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
+                }
+            }
         }
     }
     public static class ThirdListMutableConfigOption<T extends ILPCUniqueConfigBase, U extends ILPCConfigReadable> extends MutableConfigOption<T> implements ILPCConfigReadable {
