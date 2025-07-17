@@ -37,13 +37,20 @@ public class TilingTool {
     @SuppressWarnings("unused")
     public static final ButtonHotkeyConfig setByLitematicaButton = addButtonHotkeyConfig("setByLitematica", null, TilingTool::setByLitematica);
     public static final MultiBooleanConfig tilingDirection = addConfig(new MultiBooleanConfig(peekConfigList(), "tilingDirection", ImmutableList.of(true, false, true), null));
-    private static final LinkedHashMap<String, AutoResetMode> autoRefreshDefaults = new LinkedHashMap<>();
+    private static final LinkedHashMap<String, AutoRefreshMode> autoRefreshDefaults = new LinkedHashMap<>();
     static {
-        autoRefreshDefaults.put("lpctools.configs.tools.TT.autoRefresh.onFirstStart", AutoResetMode.ON_FIRST_START);
-        autoRefreshDefaults.put("lpctools.configs.tools.TT.autoRefresh.onEveryEnable", AutoResetMode.ON_EVERY_ENABLE);
-        autoRefreshDefaults.put("lpctools.configs.tools.TT.autoRefresh.noAutoRefresh", AutoResetMode.NO_AUTO_REFRESH);
+        autoRefreshDefaults.put("lpctools.configs.tools.TT.autoRefresh.onFirstStart", AutoRefreshMode.ON_FIRST_START);
+        autoRefreshDefaults.put("lpctools.configs.tools.TT.autoRefresh.onEveryEnable", AutoRefreshMode.ON_EVERY_ENABLE);
+        autoRefreshDefaults.put("lpctools.configs.tools.TT.autoRefresh.noAutoRefresh", AutoRefreshMode.NO_AUTO_REFRESH);
     }
-    public static final ArrayOptionListConfig<AutoResetMode> autoRefresh = addArrayOptionListConfig("autoRefresh", autoRefreshDefaults);
+    private static final LinkedHashMap<String, AutoRefreshOperation> autoRefreshOperationDefaults = new LinkedHashMap<>();
+    static {
+        autoRefreshOperationDefaults.put("lpctools.configs.tools.TT.autoRefreshOperation.refreshButton", AutoRefreshOperation.REFRESH_BUTTON);
+        autoRefreshOperationDefaults.put("lpctools.configs.tools.TT.autoRefreshOperation.litematicaThenRefresh", AutoRefreshOperation.LITEMATICA_THEN_REFRESH);
+        autoRefreshOperationDefaults.put("lpctools.configs.tools.TT.autoRefreshOperation.litematicaOnly", AutoRefreshOperation.LITEMATICA_ONLY);
+    }
+    public static final ArrayOptionListConfig<AutoRefreshMode> autoRefresh = addArrayOptionListConfig("autoRefresh", autoRefreshDefaults);
+    public static final ArrayOptionListConfig<AutoRefreshOperation> autoRefreshOperation = addArrayOptionListConfig("autoRefreshOperation", autoRefreshOperationDefaults);
     private static final LinkedHashMap<String, Runnable> litematicaButtonModeDefaults = new LinkedHashMap<>();
     static {
         litematicaButtonModeDefaults.put("lpctools.configs.tools.TT.litematicaButtonMode.cornersOnly", TilingTool::litematicaSetCoordinates);
@@ -56,12 +63,22 @@ public class TilingTool {
             (parent, key, user)->new ObjectListConfig.BlockListConfig(parent, key, user, parent::onValueChanged))
     ), ImmutableMap.of("blocks", ImmutableList.of(Blocks.DIRT, Blocks.GRASS_BLOCK)), TilingTool::refreshVagueBlocks);
     
-    public enum AutoResetMode{
+    public enum AutoRefreshOperation implements Runnable{
+        REFRESH_BUTTON(TilingTool::refreshCallback),
+        LITEMATICA_THEN_REFRESH(()->{litematicaButtonMode.get().run(); refreshCallback();}),
+        LITEMATICA_ONLY(()->litematicaButtonMode.get().run());
+        public final Runnable operation;
+        AutoRefreshOperation(Runnable operation){
+            this.operation = operation;
+        }
+        @Override public void run() {operation.run();}
+    }
+    public enum AutoRefreshMode {
         ON_FIRST_START(true, false),
         ON_EVERY_ENABLE(false, true),
         NO_AUTO_REFRESH(false, false);
         public final boolean refreshOnExecuteNull, refreshOnToolEnabled;
-        AutoResetMode(boolean refreshOnExecuteNull, boolean refreshOnToolEnabled){
+        AutoRefreshMode(boolean refreshOnExecuteNull, boolean refreshOnToolEnabled){
             this.refreshOnExecuteNull = refreshOnExecuteNull;
             this.refreshOnToolEnabled = refreshOnToolEnabled;
         }

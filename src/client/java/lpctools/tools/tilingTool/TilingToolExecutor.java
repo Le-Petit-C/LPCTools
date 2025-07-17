@@ -29,7 +29,7 @@ public class TilingToolExecutor implements AutoCloseable, ClientTickEvents.EndTi
     TilingToolExecutor(){
         registerAll(true);
         if(autoRefresh.get().refreshOnToolEnabled)
-            refreshCallback();
+            autoRefreshOperation.get().run();
     }
     @Override public void close() {registerAll(false);}
     private void registerAll(boolean b){
@@ -38,7 +38,7 @@ public class TilingToolExecutor implements AutoCloseable, ClientTickEvents.EndTi
     @Override public void onEndTick(MinecraftClient mc) {
         if(storedData == null) {
             if(autoRefresh.get().refreshOnExecuteNull)
-                refreshCallback();
+                autoRefreshOperation.get().run();
             if(storedData == null) return;
         }
         class Data{
