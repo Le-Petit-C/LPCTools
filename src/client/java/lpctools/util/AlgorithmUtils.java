@@ -320,7 +320,7 @@ public class AlgorithmUtils {
         try{CompletableFuture.allOf(futures).join();
         }catch (Exception ignored){}
     }
-    public static <T> void cancelTasks(Collection<@Nullable CompletableFuture<T>> collection){
+    public static void cancelTasks(Collection<? extends @Nullable CompletableFuture<?>> collection){
         CompletableFuture<?>[] futures = new CompletableFuture<?>[collection.size()];
         int a = 0;
         for(CompletableFuture<?> future : collection){
@@ -333,7 +333,7 @@ public class AlgorithmUtils {
         }catch (Exception ignored){}
     }
     //处理并移除所有已完成的任务
-    public static <T> void consumeCompletedTasks(Collection<CompletableFuture<T>> tasks, Consumer<T> consumer){
+    public static <T> void consumeCompletedTasks(Collection<? extends CompletableFuture<T>> tasks, Consumer<T> consumer){
         ArrayList<CompletableFuture<T>> completedTasks = new ArrayList<>();
         for(CompletableFuture<T> task : tasks){
             if(!task.isDone()) continue;
@@ -342,7 +342,7 @@ public class AlgorithmUtils {
         }
         completedTasks.forEach(tasks::remove);
     }
-    public static <T> void consumeCompletedTasks(ArrayList<CompletableFuture<T>> tasks, Consumer<T> consumer){
+    public static <T> void consumeCompletedTasks(ArrayList<? extends CompletableFuture<T>> tasks, Consumer<T> consumer){
         HashSet<CompletableFuture<T>> completedTasks = new HashSet<>();
         for(CompletableFuture<T> task : tasks){
             if(!task.isDone()) continue;
@@ -351,7 +351,7 @@ public class AlgorithmUtils {
         }
         fastRemove(tasks, completedTasks::contains);
     }
-    public static <T, U> void consumeCompletedTasks(Map<T, CompletableFuture<U>> tasks, BiConsumer<T, U> consumer){
+    public static <T, U> void consumeCompletedTasks(Map<T, ? extends CompletableFuture<U>> tasks, BiConsumer<T, U> consumer){
         ArrayList<T> completedTasks = new ArrayList<>();
         tasks.forEach((t, task)->{
             if(!task.isDone()) return;
