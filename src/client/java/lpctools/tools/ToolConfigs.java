@@ -4,6 +4,7 @@ import lpctools.LPCTools;
 import lpctools.lpcfymasaapi.LPCConfigList;
 import lpctools.tools.autoGrindstone.AutoGrindstone;
 import lpctools.tools.antiSpawner.AntiSpawner;
+import lpctools.tools.autoReconnect.AutoReconnect;
 import lpctools.tools.breakRestriction.BreakRestriction;
 import lpctools.tools.canSpawnDisplay.CanSpawnDisplay;
 import lpctools.tools.furnaceMaintainer.FurnaceMaintainer;
@@ -26,5 +27,6 @@ public class ToolConfigs {
         toolConfigs.addConfig(TilingTool.TTConfig);
         toolConfigs.addConfig(FurnaceMaintainer.FMConfig);
         toolConfigs.addConfig(MossBorer.MBConfig);
+        toolConfigs.addConfig(AutoReconnect.ARConfig);
     }
 }

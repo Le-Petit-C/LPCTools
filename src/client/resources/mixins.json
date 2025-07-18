@@ -14,6 +14,9 @@
     "SplashTextResourceSupplierMixin",
     "SpriteContentsMixin",
     "WorldChunkMixin",
+    "AutoReconnect.ConnectScreenMixin",
+    "AutoReconnect.DisconnectedScreenMixin",
+    "AutoReconnect.MinecraftClientMixin",
     "BarTweakMixin.ClientPlayerInteractionManagerMixin",
     "BarTweakMixin.InGameHudMixin",
     "blockBreakRestriction.ClientPlayerInteractionManagerMixin",
@@ -24,13 +27,13 @@
     "MASAMixins.LayerRangeMixin",
     "MASAMixins.litematicaMixin.DataManagerMixin",
     "MASAMixins.MuteMASAConfigMinMaxMixin.ConfigDoubleMixin",
-    "MASAMixins.MuteMASAConfigMinMaxMixin.ConfigIntegerMixin"
+    "MASAMixins.MuteMASAConfigMinMaxMixin.ConfigIntegerMixin",
+    "MASAMixins.WidgetConfigOptionBaseMixin",
+    "MASAMixins.WidgetConfigOptionMixin"
   ],
   "injectors": {
     "defaultRequire": 1
   },
   "mixins": [
-    "MASAMixins.WidgetConfigOptionBaseMixin",
-    "MASAMixins.WidgetConfigOptionMixin"
   ]
 }

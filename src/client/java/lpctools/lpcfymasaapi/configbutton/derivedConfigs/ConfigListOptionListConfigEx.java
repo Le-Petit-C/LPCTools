@@ -54,7 +54,7 @@ public class ConfigListOptionListConfigEx<T extends ILPCConfigList> extends Arra
         super.onValueChanged();
         getPage().updateIfCurrent();
     }
-    public T addList(T list){
+    public <U extends T> U addList(U list){
         addOption(list.getTitleFullTranslationKey(), list);
         return list;
     }
