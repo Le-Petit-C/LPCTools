@@ -25,7 +25,7 @@ public interface ILPCUniqueConfigBase extends ILPCUniqueConfig{
             consumer.addButton(resetButton, (button, mouseButton)->resettable.resetToDefault());
         }
         else resetButton = null;
-        ArrayList<ButtonOption> options = new ArrayList<>();
+        ButtonOptionArrayList options = new ButtonOptionArrayList();
         getButtonOptions(options);
         float weightSum = 0;
         int h = 20;
@@ -68,7 +68,12 @@ public interface ILPCUniqueConfigBase extends ILPCUniqueConfig{
     //仅在按钮创建时和被按后使用buttonId更新按钮名称，支持翻译键
     //widthWeight为负时表示此配置按钮宽度是相对按钮高度设置的，不再作为宽度占比使用
     record ButtonOption(float widthWeight, @Nullable IButtonActionListener actionListener, @Nullable Supplier<@Nullable String> buttonId, @Nullable IButtonAllocator allocator){}
-    void getButtonOptions(ArrayList<ButtonOption> res);
+    
+    class ButtonOptionArrayList extends ArrayList<ButtonOption>{
+    
+    }
+    
+    void getButtonOptions(ButtonOptionArrayList res);
     
     interface IButtonAllocator{
         void create(int x, int y, int w, int h, String str, IButtonActionListener listener, ButtonConsumer consumer, @Nullable ButtonGeneric resetButton);

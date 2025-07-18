@@ -4,6 +4,7 @@ import lpctools.debugs.DebugConfigs;
 import lpctools.generic.GenericConfigs;
 import lpctools.lpcfymasaapi.LPCConfigPage;
 import lpctools.lpcfymasaapi.Reference;
+import lpctools.scripts.ScriptConfigs;
 import lpctools.shader.LPCShaderInitializer;
 import lpctools.tools.ToolConfigs;
 import lpctools.tweaks.TweakConfigs;
@@ -21,6 +22,7 @@ public class LPCTools {
 		page.addList(ToolConfigs.toolConfigs);
 		page.addList(TweakConfigs.tweaks);
 		page.addList(DebugConfigs.debugs);
+		page.addList(ScriptConfigs.script);
 	}
 	static {LOGGER.info("Initialized");}
 }
