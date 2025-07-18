@@ -40,6 +40,7 @@ public class DebugConfigs {
     public static final MandelbrotSetRender mandelbrotSetRender = addConfig(new MandelbrotSetRender(debugs));
     public static final BooleanHotkeyThirdListConfig booleanHotkeyThirdListTest =
         addBooleanHotkeyThirdListConfig(debugs, "booleanHotkeyThirdListTest", false, null, DebugConfigs::booleanHotkeyThirdListTestCallback);
+    public static final UniqueIntegerConfig uniqueIntegerConfigTest = booleanHotkeyThirdListTest.addConfig(new UniqueIntegerConfig(booleanHotkeyThirdListTest, "uniqueIntegerConfigTest", 0));
     public static final ButtonConfig buttonConfigTest = addButtonConfig(booleanHotkeyThirdListTest, "button", DebugConfigs::buttonConfigTestCallback);
     private static final ImmutableList<MutableConfig.ConfigAllocator<ILPCUniqueConfigBase, Void>> configSuppliers =ImmutableList.of(
         new MutableConfig.ConfigAllocator<>("button", ButtonConfig::new),
