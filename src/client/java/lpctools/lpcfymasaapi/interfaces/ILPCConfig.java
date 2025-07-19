@@ -3,7 +3,7 @@ package lpctools.lpcfymasaapi.interfaces;
 import com.google.gson.JsonElement;
 import fi.dy.masa.malilib.config.IConfigBase;
 import lpctools.lpcfymasaapi.LPCConfigPage;
-import lpctools.lpcfymasaapi.configbutton.UpdateTodo;
+import lpctools.lpcfymasaapi.configButtons.UpdateTodo;
 import org.jetbrains.annotations.NotNull;
 
 public interface ILPCConfig extends ILPCConfigBase, IConfigBase, ILPCConfigNotifiable {

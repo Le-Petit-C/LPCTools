@@ -1,10 +1,10 @@
 package lpctools.tools.breakRestriction;
 
 import lpctools.lpcfymasaapi.LPCConfigList;
-import lpctools.lpcfymasaapi.configbutton.derivedConfigs.ConfigListOptionListConfigEx;
-import lpctools.lpcfymasaapi.configbutton.derivedConfigs.ObjectListConfig;
-import lpctools.lpcfymasaapi.configbutton.derivedConfigs.RangeLimitConfig;
-import lpctools.lpcfymasaapi.configbutton.uniqueConfigs.BooleanHotkeyThirdListConfig;
+import lpctools.lpcfymasaapi.configButtons.derivedConfigs.ConfigListOptionListConfigEx;
+import lpctools.lpcfymasaapi.configButtons.derivedConfigs.ObjectListConfig;
+import lpctools.lpcfymasaapi.configButtons.derivedConfigs.RangeLimitConfig;
+import lpctools.lpcfymasaapi.configButtons.uniqueConfigs.BooleanHotkeyThirdListConfig;
 import lpctools.lpcfymasaapi.interfaces.ILPCConfigBase;
 import lpctools.tools.ToolConfigs;
 import lpctools.tools.ToolUtils;

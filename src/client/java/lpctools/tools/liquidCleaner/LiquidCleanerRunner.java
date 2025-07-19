@@ -20,8 +20,8 @@ import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.GameMode;
 import org.jetbrains.annotations.NotNull;
 
-import static lpctools.lpcfymasaapi.configbutton.derivedConfigs.LimitOperationSpeedConfig.OperationResult.NO_OPERATION;
-import static lpctools.lpcfymasaapi.configbutton.derivedConfigs.LimitOperationSpeedConfig.OperationResult.OPERATED;
+import static lpctools.lpcfymasaapi.configButtons.derivedConfigs.LimitOperationSpeedConfig.OperationResult.NO_OPERATION;
+import static lpctools.lpcfymasaapi.configButtons.derivedConfigs.LimitOperationSpeedConfig.OperationResult.OPERATED;
 import static lpctools.tools.liquidCleaner.LiquidCleaner.*;
 import static lpctools.util.BlockUtils.*;
 

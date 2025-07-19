@@ -2,12 +2,12 @@ package lpctools.tools.slightXRay;
 
 import fi.dy.masa.malilib.util.data.Color4f;
 import lpctools.lpcfymasaapi.LPCConfigList;
-import lpctools.lpcfymasaapi.configbutton.derivedConfigs.ConfigListOptionListConfigEx;
-import lpctools.lpcfymasaapi.configbutton.transferredConfigs.*;
-import lpctools.lpcfymasaapi.configbutton.uniqueConfigs.BooleanHotkeyThirdListConfig;
+import lpctools.lpcfymasaapi.configButtons.derivedConfigs.ConfigListOptionListConfigEx;
+import lpctools.lpcfymasaapi.configButtons.transferredConfigs.*;
+import lpctools.lpcfymasaapi.configButtons.uniqueConfigs.BooleanHotkeyThirdListConfig;
 import lpctools.lpcfymasaapi.interfaces.ILPCConfigBase;
 import lpctools.lpcfymasaapi.interfaces.ILPCConfigList;
-import lpctools.lpcfymasaapi.configbutton.derivedConfigs.RangeLimitConfig;
+import lpctools.lpcfymasaapi.configButtons.derivedConfigs.RangeLimitConfig;
 import lpctools.mixin.client.SpriteContentsMixin;
 import lpctools.tools.ToolConfigs;
 import lpctools.util.DataUtils;

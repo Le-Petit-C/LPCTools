@@ -1,7 +1,7 @@
 package lpctools.tools.autoGrindstone;
 
-import lpctools.lpcfymasaapi.configbutton.transferredConfigs.StringListConfig;
-import lpctools.lpcfymasaapi.configbutton.uniqueConfigs.BooleanHotkeyThirdListConfig;
+import lpctools.lpcfymasaapi.configButtons.transferredConfigs.StringListConfig;
+import lpctools.lpcfymasaapi.configButtons.uniqueConfigs.BooleanHotkeyThirdListConfig;
 import lpctools.tools.ToolConfigs;
 
 import static lpctools.lpcfymasaapi.LPCConfigStatics.*;

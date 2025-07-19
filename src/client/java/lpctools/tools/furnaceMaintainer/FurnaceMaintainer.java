@@ -1,9 +1,9 @@
 package lpctools.tools.furnaceMaintainer;
 
 import lpctools.generic.GenericUtils;
-import lpctools.lpcfymasaapi.configbutton.derivedConfigs.ReachDistanceConfig;
-import lpctools.lpcfymasaapi.configbutton.uniqueConfigs.BooleanHotkeyThirdListConfig;
-import lpctools.lpcfymasaapi.configbutton.uniqueConfigs.ButtonHotkeyConfig;
+import lpctools.lpcfymasaapi.configButtons.derivedConfigs.ReachDistanceConfig;
+import lpctools.lpcfymasaapi.configButtons.uniqueConfigs.BooleanHotkeyThirdListConfig;
+import lpctools.lpcfymasaapi.configButtons.uniqueConfigs.ButtonHotkeyConfig;
 import lpctools.tools.ToolConfigs;
 import lpctools.tools.ToolUtils;
 import lpctools.util.AlgorithmUtils;

@@ -1,6 +1,6 @@
 package lpctools.scripts.suppliers.intSuppliers;
 
-import lpctools.lpcfymasaapi.configbutton.uniqueConfigs.UniqueIntegerConfig;
+import lpctools.lpcfymasaapi.configButtons.uniqueConfigs.UniqueIntegerConfig;
 import lpctools.lpcfymasaapi.interfaces.ILPCConfigReadable;
 import lpctools.lpcfymasaapi.interfaces.ILPCValueChangeCallback;
 import org.jetbrains.annotations.NotNull;

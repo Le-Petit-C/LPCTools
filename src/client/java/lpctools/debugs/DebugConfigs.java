@@ -7,9 +7,9 @@ import fi.dy.masa.malilib.hotkeys.KeyAction;
 import lpctools.LPCTools;
 import lpctools.lpcfymasaapi.LPCConfigList;
 import lpctools.lpcfymasaapi.Registries;
-import lpctools.lpcfymasaapi.configbutton.transferredConfigs.BooleanConfig;
-import lpctools.lpcfymasaapi.configbutton.transferredConfigs.HotkeyConfig;
-import lpctools.lpcfymasaapi.configbutton.uniqueConfigs.*;
+import lpctools.lpcfymasaapi.configButtons.transferredConfigs.BooleanConfig;
+import lpctools.lpcfymasaapi.configButtons.transferredConfigs.HotkeyConfig;
+import lpctools.lpcfymasaapi.configButtons.uniqueConfigs.*;
 import lpctools.lpcfymasaapi.gl.MaskLayer;
 import lpctools.lpcfymasaapi.interfaces.ILPCUniqueConfigBase;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext;
@@ -20,6 +20,7 @@ import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.text.Text;
 import net.minecraft.util.math.BlockPos;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.function.BiFunction;
 
@@ -45,11 +46,11 @@ public class DebugConfigs {
     public static final UniqueIntegerConfig uniqueIntegerConfigTest = booleanHotkeyThirdListTest.addConfig(new UniqueIntegerConfig(booleanHotkeyThirdListTest, "uniqueIntegerConfigTest", 0));
     public static final ButtonConfig buttonConfigTest = addButtonConfig(booleanHotkeyThirdListTest, "button", DebugConfigs::buttonConfigTestCallback);
     private static final ImmutableMap<String, BiFunction<MutableConfig<ILPCUniqueConfigBase>, String, ILPCUniqueConfigBase>> configSuppliers =ImmutableMap.of(
-        "button", ButtonConfig::new,
-        "buttonHotkey", (parent, key)->new ButtonHotkeyConfig(parent, key, null, null),
-        "", (parent, key)->new MutableConfig<>(parent, key, getConfigSuppliers(), null));
-    public static final MutableConfig<ILPCUniqueConfigBase> MUTABLE_CONFIG_TEST = booleanHotkeyThirdListTest.
-        addConfig(new MutableConfig<>(booleanHotkeyThirdListTest, "mutable", configSuppliers, null));
+        "button", (parent, key)->new ButtonConfig(parent, key){@Override public @NotNull String getFullTranslationKey() {return "lpctools.configs.debugs.booleanHotkeyThirdListTest.mutable.button";}},
+        "buttonHotkey", (parent, key)->new ButtonHotkeyConfig(parent, key, null, null){@Override public @NotNull String getFullTranslationKey() {return "lpctools.configs.debugs.booleanHotkeyThirdListTest.mutable.buttonHotkey";}},
+        "mutable", (parent, key)->new MutableConfig<>(parent, key, getConfigSuppliers(), null){@Override public @NotNull String getFullTranslationKey() {return "lpctools.configs.debugs.booleanHotkeyThirdListTest.mutable.mutable";}}
+    );
+    public static final MutableConfig<ILPCUniqueConfigBase> MUTABLE_CONFIG_TEST = booleanHotkeyThirdListTest.addConfig(new MutableConfig<>(booleanHotkeyThirdListTest, "mutable", configSuppliers, null));
     private static ImmutableMap<String, BiFunction<MutableConfig<ILPCUniqueConfigBase>, String, ILPCUniqueConfigBase>> getConfigSuppliers(){return configSuppliers;}
     static {Registries.ON_SCREEN_CHANGED.register(newScreen -> buttonConfigTest.buttonName = null);}
     static {listStack.pop();}

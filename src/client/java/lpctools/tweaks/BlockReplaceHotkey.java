@@ -2,7 +2,7 @@ package lpctools.tweaks;
 
 import fi.dy.masa.malilib.hotkeys.IKeybind;
 import fi.dy.masa.malilib.hotkeys.KeyAction;
-import lpctools.lpcfymasaapi.configbutton.transferredConfigs.HotkeyConfig;
+import lpctools.lpcfymasaapi.configButtons.transferredConfigs.HotkeyConfig;
 import lpctools.mixin.client.BlockReplaceAction;
 import net.minecraft.client.MinecraftClient;
 

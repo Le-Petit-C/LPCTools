@@ -6,9 +6,9 @@ import fi.dy.masa.malilib.config.IConfigOptionListEntry;
 import fi.dy.masa.malilib.gui.button.IButtonActionListener;
 import fi.dy.masa.malilib.hotkeys.IHotkeyCallback;
 import fi.dy.masa.malilib.util.data.Color4f;
-import lpctools.lpcfymasaapi.configbutton.derivedConfigs.*;
-import lpctools.lpcfymasaapi.configbutton.transferredConfigs.*;
-import lpctools.lpcfymasaapi.configbutton.uniqueConfigs.*;
+import lpctools.lpcfymasaapi.configButtons.derivedConfigs.*;
+import lpctools.lpcfymasaapi.configButtons.transferredConfigs.*;
+import lpctools.lpcfymasaapi.configButtons.uniqueConfigs.*;
 import lpctools.lpcfymasaapi.interfaces.*;
 import net.minecraft.block.Block;
 import net.minecraft.item.BlockItem;
@@ -21,7 +21,7 @@ import java.util.Map;
 import java.util.Stack;
 import java.util.function.*;
 
-import static lpctools.lpcfymasaapi.configbutton.derivedConfigs.ObjectListConfig.*;
+import static lpctools.lpcfymasaapi.configButtons.derivedConfigs.ObjectListConfig.*;
 
 @SuppressWarnings({"unused", "UnusedReturnValue"})
 public interface LPCConfigStatics {

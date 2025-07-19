@@ -1,8 +1,8 @@
 package lpctools.tools.mossBorer;
 
-import lpctools.lpcfymasaapi.configbutton.derivedConfigs.LimitOperationSpeedConfig;
-import lpctools.lpcfymasaapi.configbutton.derivedConfigs.ReachDistanceConfig;
-import lpctools.lpcfymasaapi.configbutton.uniqueConfigs.BooleanHotkeyThirdListConfig;
+import lpctools.lpcfymasaapi.configButtons.derivedConfigs.LimitOperationSpeedConfig;
+import lpctools.lpcfymasaapi.configButtons.derivedConfigs.ReachDistanceConfig;
+import lpctools.lpcfymasaapi.configButtons.uniqueConfigs.BooleanHotkeyThirdListConfig;
 import lpctools.tools.ToolConfigs;
 import lpctools.tools.ToolUtils;
 

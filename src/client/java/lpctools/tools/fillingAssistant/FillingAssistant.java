@@ -2,9 +2,9 @@ package lpctools.tools.fillingAssistant;
 
 import fi.dy.masa.malilib.hotkeys.KeyCallbackToggleBoolean;
 import lpctools.lpcfymasaapi.Registries;
-import lpctools.lpcfymasaapi.configbutton.derivedConfigs.*;
-import lpctools.lpcfymasaapi.configbutton.transferredConfigs.*;
-import lpctools.lpcfymasaapi.configbutton.uniqueConfigs.BooleanHotkeyThirdListConfig;
+import lpctools.lpcfymasaapi.configButtons.derivedConfigs.*;
+import lpctools.lpcfymasaapi.configButtons.transferredConfigs.*;
+import lpctools.lpcfymasaapi.configButtons.uniqueConfigs.BooleanHotkeyThirdListConfig;
 import lpctools.tools.ToolConfigs;
 import net.minecraft.block.Block;
 import net.minecraft.block.Blocks;

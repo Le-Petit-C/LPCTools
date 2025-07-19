@@ -1,12 +1,12 @@
 package lpctools.tools.canSpawnDisplay;
 
 import fi.dy.masa.malilib.util.data.Color4f;
-import lpctools.lpcfymasaapi.configbutton.derivedConfigs.ArrayOptionListConfig;
-import lpctools.lpcfymasaapi.configbutton.derivedConfigs.RangeLimitConfig;
-import lpctools.lpcfymasaapi.configbutton.transferredConfigs.BooleanConfig;
-import lpctools.lpcfymasaapi.configbutton.transferredConfigs.ColorConfig;
-import lpctools.lpcfymasaapi.configbutton.transferredConfigs.DoubleConfig;
-import lpctools.lpcfymasaapi.configbutton.uniqueConfigs.BooleanHotkeyThirdListConfig;
+import lpctools.lpcfymasaapi.configButtons.derivedConfigs.ArrayOptionListConfig;
+import lpctools.lpcfymasaapi.configButtons.derivedConfigs.RangeLimitConfig;
+import lpctools.lpcfymasaapi.configButtons.transferredConfigs.BooleanConfig;
+import lpctools.lpcfymasaapi.configButtons.transferredConfigs.ColorConfig;
+import lpctools.lpcfymasaapi.configButtons.transferredConfigs.DoubleConfig;
+import lpctools.lpcfymasaapi.configButtons.uniqueConfigs.BooleanHotkeyThirdListConfig;
 import lpctools.tools.ToolConfigs;
 import net.minecraft.client.MinecraftClient;
 

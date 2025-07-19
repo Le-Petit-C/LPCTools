@@ -1,8 +1,8 @@
 package lpctools.tools.autoReconnect;
 
-import lpctools.lpcfymasaapi.configbutton.transferredConfigs.DoubleConfig;
-import lpctools.lpcfymasaapi.configbutton.transferredConfigs.IntegerConfig;
-import lpctools.lpcfymasaapi.configbutton.uniqueConfigs.BooleanHotkeyThirdListConfig;
+import lpctools.lpcfymasaapi.configButtons.transferredConfigs.DoubleConfig;
+import lpctools.lpcfymasaapi.configButtons.transferredConfigs.IntegerConfig;
+import lpctools.lpcfymasaapi.configButtons.uniqueConfigs.BooleanHotkeyThirdListConfig;
 import lpctools.tools.ToolConfigs;
 import net.minecraft.client.gui.screen.multiplayer.ConnectScreen;
 

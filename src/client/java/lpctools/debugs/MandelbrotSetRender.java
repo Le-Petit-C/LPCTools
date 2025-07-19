@@ -1,9 +1,9 @@
 package lpctools.debugs;
 
 import lpctools.lpcfymasaapi.Registries;
-import lpctools.lpcfymasaapi.configbutton.uniqueConfigs.BooleanThirdListConfig;
-import lpctools.lpcfymasaapi.configbutton.transferredConfigs.DoubleConfig;
-import lpctools.lpcfymasaapi.configbutton.transferredConfigs.IntegerConfig;
+import lpctools.lpcfymasaapi.configButtons.uniqueConfigs.BooleanThirdListConfig;
+import lpctools.lpcfymasaapi.configButtons.transferredConfigs.DoubleConfig;
+import lpctools.lpcfymasaapi.configButtons.transferredConfigs.IntegerConfig;
 import lpctools.lpcfymasaapi.gl.*;
 import lpctools.lpcfymasaapi.gl.furtherWarpped.ArrayListCachedRenderBuffer;
 import lpctools.lpcfymasaapi.interfaces.ILPCConfigReadable;

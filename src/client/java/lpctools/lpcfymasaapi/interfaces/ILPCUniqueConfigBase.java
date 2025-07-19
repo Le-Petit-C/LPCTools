@@ -70,7 +70,9 @@ public interface ILPCUniqueConfigBase extends ILPCUniqueConfig{
     record ButtonOption(float widthWeight, @Nullable IButtonActionListener actionListener, @Nullable Supplier<@Nullable String> buttonId, @Nullable IButtonAllocator allocator){}
     
     class ButtonOptionArrayList extends ArrayList<ButtonOption>{
-    
+        public void add(float widthWeight, @Nullable IButtonActionListener actionListener, @Nullable Supplier<@Nullable String> buttonId, @Nullable IButtonAllocator allocator){
+            add(new ButtonOption(widthWeight, actionListener, buttonId, allocator));
+        }
     }
     
     void getButtonOptions(ButtonOptionArrayList res);
@@ -102,7 +104,12 @@ public interface ILPCUniqueConfigBase extends ILPCUniqueConfig{
             };
             field.setMaxLength(consumer.getMaxTextFieldTextLength());
             field.setText(config.getStringValue());
-            ConfigOptionChangeListenerTextField listenerChange = new ConfigOptionChangeListenerTextField(config, field, reset);
+            ConfigOptionChangeListenerTextField listenerChange = new ConfigOptionChangeListenerTextField(config, field, reset){
+                @Override public boolean onTextChange(GuiTextFieldGeneric textField) {
+                    if(buttonReset != null) buttonReset.setEnabled(this.config.isModified(this.textField.getText()));
+                    return false;
+                }
+            };
             consumer.addExtraTextField(field, listenerChange);
         });
     }

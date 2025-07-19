@@ -1,9 +1,9 @@
 package lpctools.tools.liquidCleaner;
 
 import fi.dy.masa.malilib.hotkeys.KeyCallbackToggleBoolean;
-import lpctools.lpcfymasaapi.configbutton.derivedConfigs.*;
-import lpctools.lpcfymasaapi.configbutton.transferredConfigs.BooleanConfig;
-import lpctools.lpcfymasaapi.configbutton.uniqueConfigs.BooleanHotkeyThirdListConfig;
+import lpctools.lpcfymasaapi.configButtons.derivedConfigs.*;
+import lpctools.lpcfymasaapi.configButtons.transferredConfigs.BooleanConfig;
+import lpctools.lpcfymasaapi.configButtons.uniqueConfigs.BooleanHotkeyThirdListConfig;
 import lpctools.tools.ToolConfigs;
 import org.jetbrains.annotations.Nullable;
 

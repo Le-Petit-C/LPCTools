@@ -12,7 +12,7 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
 
 import static lpctools.generic.GenericUtils.mayMobSpawnAt;
-import static lpctools.lpcfymasaapi.configbutton.derivedConfigs.LimitOperationSpeedConfig.OperationResult.*;
+import static lpctools.lpcfymasaapi.configButtons.derivedConfigs.LimitOperationSpeedConfig.OperationResult.*;
 import static lpctools.tools.antiSpawner.AntiSpawner.*;
 import static lpctools.tools.antiSpawner.AntiSpawnerData.*;
 import static lpctools.util.DataUtils.notifyPlayer;

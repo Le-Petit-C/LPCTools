@@ -20,7 +20,7 @@ import net.minecraft.util.math.Vec3d;
 import java.util.Comparator;
 import java.util.PriorityQueue;
 
-import static lpctools.lpcfymasaapi.configbutton.derivedConfigs.LimitOperationSpeedConfig.OperationResult.*;
+import static lpctools.lpcfymasaapi.configButtons.derivedConfigs.LimitOperationSpeedConfig.OperationResult.*;
 import static lpctools.tools.mossBorer.MossBorer.*;
 
 public class MossBorerRunner implements AutoCloseable, ClientTickEvents.EndTick{

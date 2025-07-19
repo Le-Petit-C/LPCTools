@@ -1,7 +1,7 @@
 package lpctools.tweaks;
 
-import lpctools.lpcfymasaapi.configbutton.uniqueConfigs.ThirdListConfig;
-import lpctools.lpcfymasaapi.configbutton.transferredConfigs.BooleanConfig;
+import lpctools.lpcfymasaapi.configButtons.uniqueConfigs.ThirdListConfig;
+import lpctools.lpcfymasaapi.configButtons.transferredConfigs.BooleanConfig;
 
 import static lpctools.lpcfymasaapi.LPCConfigStatics.*;
 

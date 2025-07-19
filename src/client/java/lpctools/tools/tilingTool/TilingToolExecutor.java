@@ -21,7 +21,7 @@ import org.apache.commons.lang3.mutable.MutableObject;
 import java.util.ArrayList;
 import java.util.HashSet;
 
-import static lpctools.lpcfymasaapi.configbutton.derivedConfigs.LimitOperationSpeedConfig.OperationResult.*;
+import static lpctools.lpcfymasaapi.configButtons.derivedConfigs.LimitOperationSpeedConfig.OperationResult.*;
 import static lpctools.tools.tilingTool.TilingTool.*;
 import static lpctools.tools.tilingTool.TilingToolData.*;
 

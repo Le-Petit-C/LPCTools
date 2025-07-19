@@ -24,7 +24,7 @@ import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.Queue;
 
-import static lpctools.lpcfymasaapi.configbutton.derivedConfigs.LimitOperationSpeedConfig.OperationResult.*;
+import static lpctools.lpcfymasaapi.configButtons.derivedConfigs.LimitOperationSpeedConfig.OperationResult.*;
 import static lpctools.tools.fillingAssistant.FillingAssistant.*;
 import static lpctools.util.BlockUtils.*;
 

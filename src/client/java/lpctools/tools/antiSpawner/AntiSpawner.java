@@ -1,7 +1,7 @@
 package lpctools.tools.antiSpawner;
 
-import lpctools.lpcfymasaapi.configbutton.derivedConfigs.*;
-import lpctools.lpcfymasaapi.configbutton.uniqueConfigs.BooleanHotkeyThirdListConfig;
+import lpctools.lpcfymasaapi.configButtons.derivedConfigs.*;
+import lpctools.lpcfymasaapi.configButtons.uniqueConfigs.BooleanHotkeyThirdListConfig;
 import lpctools.tools.ToolConfigs;
 
 import static lpctools.lpcfymasaapi.LPCConfigStatics.*;

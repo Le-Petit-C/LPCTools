@@ -4,7 +4,7 @@ import com.google.common.collect.Sets;
 import lpctools.compact.derived.ShapeList;
 import lpctools.generic.GenericUtils;
 import lpctools.lpcfymasaapi.Registries;
-import lpctools.lpcfymasaapi.configbutton.derivedConfigs.RangeLimitConfig;
+import lpctools.lpcfymasaapi.configButtons.derivedConfigs.RangeLimitConfig;
 import lpctools.lpcfymasaapi.gl.*;
 import lpctools.shader.ShaderPrograms;
 import lpctools.util.AlgorithmUtils;

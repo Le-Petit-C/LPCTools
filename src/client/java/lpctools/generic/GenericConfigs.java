@@ -1,11 +1,11 @@
 package lpctools.generic;
 
 import lpctools.lpcfymasaapi.LPCConfigList;
-import lpctools.lpcfymasaapi.configbutton.derivedConfigs.ConfigOpenGuiConfig;
-import lpctools.lpcfymasaapi.configbutton.derivedConfigs.ObjectListConfig;
-import lpctools.lpcfymasaapi.configbutton.uniqueConfigs.BooleanThirdListConfig;
-import lpctools.lpcfymasaapi.configbutton.transferredConfigs.BooleanConfig;
-import lpctools.lpcfymasaapi.configbutton.transferredConfigs.IntegerConfig;
+import lpctools.lpcfymasaapi.configButtons.derivedConfigs.ConfigOpenGuiConfig;
+import lpctools.lpcfymasaapi.configButtons.derivedConfigs.ObjectListConfig;
+import lpctools.lpcfymasaapi.configButtons.uniqueConfigs.BooleanThirdListConfig;
+import lpctools.lpcfymasaapi.configButtons.transferredConfigs.BooleanConfig;
+import lpctools.lpcfymasaapi.configButtons.transferredConfigs.IntegerConfig;
 import lpctools.lpcfymasaapi.interfaces.ILPCValueChangeCallback;
 import lpctools.util.javaex.PriorityThreadPoolExecutor;
 

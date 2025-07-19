@@ -3,7 +3,7 @@ package lpctools.tools.canSpawnDisplay;
 import lpctools.compact.derived.ShapeList;
 import lpctools.generic.GenericUtils;
 import lpctools.lpcfymasaapi.Registries;
-import lpctools.lpcfymasaapi.configbutton.derivedConfigs.RangeLimitConfig;
+import lpctools.lpcfymasaapi.configButtons.derivedConfigs.RangeLimitConfig;
 import lpctools.lpcfymasaapi.gl.*;
 import lpctools.lpcfymasaapi.gl.furtherWarpped.BlendPresets;
 import lpctools.util.AlgorithmUtils;

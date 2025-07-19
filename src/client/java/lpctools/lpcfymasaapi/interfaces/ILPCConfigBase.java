@@ -3,10 +3,12 @@ package lpctools.lpcfymasaapi.interfaces;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import lpctools.lpcfymasaapi.LPCConfigPage;
-import lpctools.lpcfymasaapi.configbutton.UpdateTodo;
+import lpctools.lpcfymasaapi.configButtons.UpdateTodo;
 import lpctools.util.DataUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import static lpctools.lpcfymasaapi.LPCConfigUtils.warnFailedLoadingConfig;
 
 public interface ILPCConfigBase extends ILPCConfigKeyProvider{
     //获取当前配置的父对象，如果是LPCConfigPage则返回自身
@@ -28,6 +30,10 @@ public interface ILPCConfigBase extends ILPCConfigKeyProvider{
     }
     //Ex返回的valueChanged由调用者执行，非Ex由被调用者自行处理
     UpdateTodo setValueFromJsonElementEx(@NotNull JsonElement element);
+    default UpdateTodo setValueFailed(JsonElement element){
+        warnFailedLoadingConfig(this, element);
+        return new UpdateTodo();
+    }
     default void setValueFromJsonElement(@NotNull JsonElement data){
         UpdateTodo todo = setValueFromJsonElementEx(data);
         if(todo.updatePage) getPage().updateIfCurrent();

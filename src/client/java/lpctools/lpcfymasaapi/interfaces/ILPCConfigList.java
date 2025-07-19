@@ -4,7 +4,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import fi.dy.masa.malilib.gui.GuiConfigsBase;
 import fi.dy.masa.malilib.util.StringUtils;
-import lpctools.lpcfymasaapi.configbutton.UpdateTodo;
+import lpctools.lpcfymasaapi.configButtons.UpdateTodo;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 

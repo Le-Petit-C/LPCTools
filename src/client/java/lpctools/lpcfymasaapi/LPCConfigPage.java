@@ -15,7 +15,7 @@ import fi.dy.masa.malilib.gui.GuiConfigsBase;
 import fi.dy.masa.malilib.gui.button.IButtonActionListener;
 import fi.dy.masa.malilib.gui.button.ButtonBase;
 import fi.dy.masa.malilib.gui.button.ButtonGeneric;
-import lpctools.lpcfymasaapi.configbutton.UpdateTodo;
+import lpctools.lpcfymasaapi.configButtons.UpdateTodo;
 import lpctools.lpcfymasaapi.interfaces.ILPCConfigBase;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.screen.Screen;
