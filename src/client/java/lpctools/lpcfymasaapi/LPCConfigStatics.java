@@ -202,10 +202,10 @@ public interface LPCConfigStatics {
     static BlockPosConfig addBlockPosConfig(ILPCConfigList list, @NotNull String nameKey, BlockPos defaultPos, @Nullable ILPCValueChangeCallback callback){
         return list.addConfig(new BlockPosConfig(list, nameKey, defaultPos, callback));
     }
-    static <T extends ILPCUniqueConfigBase> MutableConfig<T> addMutableConfig(@NotNull ILPCConfigList list, @NotNull String nameKey,
+    static <T extends ILPCUniqueConfigBase> MutableConfig<T> addMutableConfig(@NotNull ILPCConfigList list, @NotNull String nameKey, @NotNull String buttonKeyPrefix,
                                                                               @NotNull ImmutableMap<String, BiFunction<MutableConfig<T>, String, T>> configSuppliers,
                                                                               @Nullable ILPCValueChangeCallback callback){
-        return list.addConfig(new MutableConfig<>(list, nameKey, configSuppliers, callback));
+        return list.addConfig(new MutableConfig<>(list, nameKey, buttonKeyPrefix, configSuppliers, callback));
     }
 
     //不带List版本的，使用栈存储当前list，方便操作
@@ -406,9 +406,9 @@ public interface LPCConfigStatics {
     static BlockPosConfig addBlockPosConfig(@NotNull String nameKey, BlockPos defaultPos, ILPCValueChangeCallback callback){
         return addBlockPosConfig(peekConfigList(), nameKey, defaultPos, callback);
     }
-    static <T extends ILPCUniqueConfigBase> MutableConfig<T> addMutableConfig(@NotNull String nameKey,
+    static <T extends ILPCUniqueConfigBase> MutableConfig<T> addMutableConfig(@NotNull String nameKey, @NotNull String buttonKeyPrefix,
                                                                               @NotNull ImmutableMap<String, BiFunction<MutableConfig<T>, String, T>> configSuppliers,
                                                                               @Nullable ILPCValueChangeCallback callback){
-        return addMutableConfig(peekConfigList(), nameKey, configSuppliers, callback);
+        return addMutableConfig(peekConfigList(), nameKey, buttonKeyPrefix, configSuppliers, callback);
     }
 }

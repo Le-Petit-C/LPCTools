@@ -63,7 +63,7 @@ public class TilingTool {
         litematicaButtonModeDefaults.put("lpctools.configs.tools.TT.litematicaButtonMode.bufferDirectly", TilingTool::litematicaRefreshDirectly);
     }
     public static final ArrayOptionListConfig<Runnable> litematicaButtonMode = addArrayOptionListConfig("litematicaButtonMode", litematicaButtonModeDefaults);
-    public static final MutableConfig<ObjectListConfig.BlockListConfig> vagueBlocksConfig = addMutableConfig("vagueBlocks", ImmutableMap.of(
+    public static final MutableConfig<ObjectListConfig.BlockListConfig> vagueBlocksConfig = addMutableConfig("vagueBlocks", TTConfig.getFullTranslationKey(), ImmutableMap.of(
         "blocks", (parent, key)->new ObjectListConfig.BlockListConfig(parent, key, null, parent::onValueChanged)
     ), TilingTool::refreshVagueBlocks);
     static {

@@ -30,4 +30,14 @@ public interface ILPCConfigKeyProvider{
     default @NotNull String getCommentTranslation(){
         return Text.translatable(getFullCommentTranslationKey()).getString();
     }
+    static ILPCConfigKeyProvider of(String fullTranslationKey){return ()->fullTranslationKey;}
+    static ILPCConfigKeyProvider of(String... strings){
+        StringBuilder builder = new StringBuilder();
+        for(String s : strings){
+            if(s == null || s.isEmpty()) continue;
+            if(!builder.isEmpty()) builder.append('.');
+            builder.append(s);
+        }
+        return of(builder.toString());
+    }
 }

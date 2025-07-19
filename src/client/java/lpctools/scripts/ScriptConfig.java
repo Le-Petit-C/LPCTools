@@ -16,8 +16,8 @@ import static lpctools.scripts.ScriptConfigData.*;
 
 public class ScriptConfig extends StringThirdListConfig {
     @SuppressWarnings("unused")
-    public final MutableConfig<ILPCUniqueConfigBase> triggers = addConfig(new MutableConfig<>(this, "triggers", triggerConfigs, null, this::runScript));
-    public final MutableConfig<IScriptRunner> runner = addConfig(new MutableConfig<>(this, "runner", runnerConfigs, null));
+    public final MutableConfig<ILPCUniqueConfigBase> triggers = addConfig(new MutableConfig<>(this, "triggers", getFullTranslationKey(), triggerConfigs, null, this::runScript));
+    public final MutableConfig<IScriptRunner> runner = addConfig(new MutableConfig<>(this, "runner", getFullTranslationKey(), runnerConfigs, null));
     
     public ScriptConfig(@NotNull ILPCConfigReadable parent, @NotNull String nameKey) {super(parent, nameKey, null, null);}
     public void runScript(){

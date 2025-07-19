@@ -9,15 +9,11 @@ import com.google.gson.JsonPrimitive;
 import fi.dy.masa.malilib.config.IConfigResettable;
 import fi.dy.masa.malilib.gui.*;
 import fi.dy.masa.malilib.gui.button.ButtonBase;
-import fi.dy.masa.malilib.gui.button.ButtonGeneric;
 import lpctools.lpcfymasaapi.configButtons.UpdateTodo;
 import lpctools.lpcfymasaapi.interfaces.*;
-import lpctools.util.DataUtils;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.gui.DrawContext;
+import lpctools.lpcfymasaapi.screen.ChooseScreen;
 import net.minecraft.text.Text;
 import org.apache.commons.lang3.function.TriFunction;
-import org.apache.commons.lang3.mutable.MutableInt;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -31,6 +27,7 @@ import static lpctools.util.AlgorithmUtils.*;
 
 public class MutableConfig<T extends ILPCUniqueConfigBase> extends LPCUniqueConfigBase implements ILPCConfigReadable, IMutableConfig, IConfigResettable, AutoCloseable {
     public final @NotNull ImmutableMap<String, ? extends BiFunction<MutableConfig<T>, String, T>> configSuppliers;
+    public final @NotNull String buttonKeyPrefix;
     private boolean condenseOperationButton;
     private boolean hideOperationButton;
     private JsonArray defaultJson;
@@ -67,19 +64,20 @@ public class MutableConfig<T extends ILPCUniqueConfigBase> extends LPCUniqueConf
             config.close();
         subConfigs.clear();
     }
-    public MutableConfig(@NotNull ILPCConfigReadable parent, @NotNull String nameKey,
+    public MutableConfig(@NotNull ILPCConfigReadable parent, @NotNull String nameKey, @NotNull String buttonKeyPrefix,
                              @NotNull ImmutableMap<String, BiFunction<MutableConfig<T>, String, T>> configSuppliers,
                              @Nullable ILPCValueChangeCallback callback){
         super(parent, nameKey, null);
         this.configSuppliers = configSuppliers;
+        this.buttonKeyPrefix = buttonKeyPrefix;
         buttonName = titleKey;
         setValueChangeCallback(callback);
         defaultJson = getSubConfigsAsJsonElement();
     }
-    public <U> MutableConfig(@NotNull ILPCConfigReadable parent, @NotNull String nameKey,
+    public <U> MutableConfig(@NotNull ILPCConfigReadable parent, @NotNull String nameKey, @NotNull String buttonKeyPrefix,
                          @NotNull ImmutableMap<String, TriFunction<MutableConfig<T>, String, U, T>> configSuppliers,
                          @Nullable ILPCValueChangeCallback callback, U userData) {
-        this(parent, nameKey, convertSuppliers(configSuppliers, userData), callback);
+        this(parent, nameKey, buttonKeyPrefix, convertSuppliers(configSuppliers, userData), callback);
     }
     private static <T extends ILPCUniqueConfigBase, U> ImmutableMap<String, BiFunction<MutableConfig<T>, String, T>>
     convertSuppliers(Map<String, TriFunction<MutableConfig<T>, String, U, T>> configSuppliers, U userData){
@@ -283,48 +281,17 @@ public class MutableConfig<T extends ILPCUniqueConfigBase> extends LPCUniqueConf
         return config.wrappedConfig;
     }
     public T allocateAndAddConfig(String id){return allocateAndAddConfig(id, subConfigs.size());}
-    public class AddConfigScreen extends GuiBase {
-        public final int position;
-        AddConfigScreen(int position){
-            this.position = position;
-            setParent(mc.currentScreen);
-            setTitle(Text.translatable(titleKey).getString());
-        }
-        void onButtonClicked(String id){
-            allocateAndAddConfig(id, position);
-            closeGui(true);
-        }
-        @Override public void initGui() {
-            super.initGui();
-            int dy = 22;
-            int x = getScreenWidth() / 2;
-            MutableInt y = new MutableInt((getScreenHeight() - dy * configSuppliers.size()) / 2);
-            configSuppliers.forEach((key, value)->{
-                String text = ((ILPCConfigKeyProvider) () -> DataUtils.appendNodeIfNotEmpty(MutableConfig.this.getFullPath(), key).toString()).getTitleTranslation();
-                addButton(allocateCenterAt(x, y.getAndAdd(dy), text), (button, mouse)->onButtonClicked(key));
-            });
-            addButton(allocateCenterAt(x, y.intValue(), Text.translatable(cancelKey).getString()), (button, mouse)->onButtonClicked(null));
-        }
-        
-        private static ButtonGeneric allocateCenterAt(int centerX, int centerY, String text){
-            int w = calculateAndAdjustDisplayLength(text);
-            return new ButtonGeneric(centerX - w / 2, centerY - 10, w, 20, text);
-        }
-        
-        @Override public void render(DrawContext drawContext, int mouseX, int mouseY, float partialTicks) {
-            if (this.getParent() != null)
-                this.getParent().render(drawContext, mouseX, mouseY, partialTicks);
-            super.render(drawContext, mouseX, mouseY, partialTicks);
-        }
-    }
     public void onAddConfigClicked(int position){
         if(configSuppliers.size() == 1)
             configSuppliers.forEach((key, value)->allocateAndAddConfig(key, position));
         else{
-            MinecraftClient mc = MinecraftClient.getInstance();
-            mc.setScreen(new AddConfigScreen(position));
+            ChooseScreen screen = ChooseScreen.openChooseScreen(Text.translatable(titleKey).getString(), true);
+            configSuppliers.keySet().forEach(key->{
+                String text = ILPCConfigKeyProvider.of(buttonKeyPrefix, getNameKey(), key).getTitleTranslation();
+                screen.add(text, ()->allocateAndAddConfig(key, position));
+            });
+            screen.initGui();
         }
     }
     private static final String titleKey = "lpcfymasaapi.configs.mutableConfig.title";
-    private static final String cancelKey = "lpcfymasaapi.configs.mutableConfig.cancel";
 }
