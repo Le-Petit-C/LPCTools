@@ -8,15 +8,13 @@ import lpctools.lpcfymasaapi.interfaces.ILPCValueChangeCallback;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
-
 public class ScriptConfigurableInteger extends LPCUniqueConfigBase implements IntVariable {
     int value;
     public ScriptConfigurableInteger(@NotNull ILPCConfigReadable parent, @NotNull String nameKey, @Nullable ILPCValueChangeCallback callback) {
         super(parent, nameKey, callback);
     }
-    @Override public void getButtonOptions(ArrayList<ButtonOption> res) {
-    
+    @Override public void getButtonOptions(ButtonOptionArrayList res) {
+        //TODO
     }
     
     @Override

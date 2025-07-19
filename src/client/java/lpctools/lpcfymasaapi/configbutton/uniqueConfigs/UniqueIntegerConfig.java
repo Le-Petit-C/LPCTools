@@ -14,8 +14,6 @@ import lpctools.lpcfymasaapi.interfaces.ILPCValueChangeCallback;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
-
 import static lpctools.lpcfymasaapi.LPCConfigUtils.warnFailedLoadingConfig;
 
 public class UniqueIntegerConfig extends LPCUniqueConfigBase implements IConfigInteger {
@@ -57,7 +55,7 @@ public class UniqueIntegerConfig extends LPCUniqueConfigBase implements IConfigI
         } catch (NumberFormatException ignored){ return true; }
     }
     @Override public String getStringValue() {return String.valueOf(intValue);}
-    @Override public void getButtonOptions(ArrayList<ButtonOption> res) {
+    @Override public void getButtonOptions(ButtonOptionArrayList res) {
         if(useSlider){
             res.add(new ButtonOption(1, null, null, (x, y, w, h, str, listener, consumer, resetButton)->{
                 ISliderCallback callback = new ISliderCallback() {

@@ -10,8 +10,6 @@ import lpctools.lpcfymasaapi.interfaces.ILPCValueChangeCallback;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
-
 public class UniqueBooleanConfig extends LPCUniqueConfigBase implements IConfigBoolean {
     public boolean booleanValue;
     public final boolean defaultBoolean;
@@ -19,7 +17,7 @@ public class UniqueBooleanConfig extends LPCUniqueConfigBase implements IConfigB
         super(parent, nameKey, callback);
         this.defaultBoolean = defaultBoolean;
     }
-    @Override public void getButtonOptions(ArrayList<ButtonOption> res) {
+    @Override public void getButtonOptions(ButtonOptionArrayList res) {
         res.add(ILPCUniqueConfigBase.buttonBooleanPreset(1, this));
     }
     @Override public @Nullable JsonPrimitive getAsJsonElement() {return new JsonPrimitive(booleanValue);}

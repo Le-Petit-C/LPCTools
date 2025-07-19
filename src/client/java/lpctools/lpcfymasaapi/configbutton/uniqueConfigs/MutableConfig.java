@@ -1,6 +1,5 @@
 package lpctools.lpcfymasaapi.configbutton.uniqueConfigs;
 
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
@@ -16,7 +15,7 @@ import lpctools.util.DataUtils;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.text.Text;
-import org.apache.commons.lang3.function.TriFunction;
+import org.apache.commons.lang3.mutable.MutableInt;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -29,9 +28,10 @@ import static lpctools.lpcfymasaapi.interfaces.ILPCUniqueConfigBase.*;
 import static lpctools.util.AlgorithmUtils.*;
 
 public class MutableConfig<T extends ILPCUniqueConfigBase> extends LPCUniqueConfigBase implements ILPCConfigReadable, IMutableConfig, IConfigResettable, AutoCloseable {
+    public final @NotNull ImmutableMap<String, BiFunction<MutableConfig<T>, String, T>> configSuppliers;
     private boolean condenseOperationButton;
     private boolean hideOperationButton;
-    private final JsonObject defaultJson;
+    private JsonArray defaultJson;
     private final ArrayList<MutableConfigOption<? extends T>> subConfigs = new ArrayList<>();
     @Nullable public String buttonName;
     public boolean expanded;
@@ -49,9 +49,9 @@ public class MutableConfig<T extends ILPCUniqueConfigBase> extends LPCUniqueConf
             return config.doHideOperationButton();
         else return hideOperationButton;
     }
-    @Override public boolean isModified() {return !defaultJson.equals(getAsJsonElement());}
+    @Override public boolean isModified() {return !defaultJson.equals(getSubConfigsAsJsonElement());}
     @Override public void resetToDefault() {
-        setValueFromJsonElement(defaultJson);
+        setSubConfigsValueFromJsonElement(defaultJson);
         getPage().updateIfCurrent();
     }
     
@@ -66,33 +66,21 @@ public class MutableConfig<T extends ILPCUniqueConfigBase> extends LPCUniqueConf
         subConfigs.clear();
     }
     
-    public record ConfigAllocator<T extends ILPCUniqueConfigBase, U>(
-        String nameKey, U userData, TriFunction<MutableConfig<T>, String, @Nullable U, ? extends T> allocator) {
-        public ConfigAllocator(String nameKey, BiFunction<MutableConfig<T>, String, ? extends T> allocator){
-            this(nameKey, null, (parent, key, user)->allocator.apply(parent, key));
-        }
-    }
-    private final LinkedHashMap<String, ConfigAllocator<T, ?>> allocatorMap = new LinkedHashMap<>();
-    public <U> MutableConfig(@NotNull ILPCConfigReadable parent, @NotNull String nameKey,
-                             @NotNull ImmutableList<ConfigAllocator<T, U>> configSuppliers,
-                             @Nullable ImmutableMap<String, U> defaultValues,
-                             @Nullable ILPCValueChangeCallback callback) {
+    public MutableConfig(@NotNull ILPCConfigReadable parent, @NotNull String nameKey,
+                         @NotNull ImmutableMap<String, BiFunction<MutableConfig<T>, String, T>> configSuppliers,
+                         @Nullable ILPCValueChangeCallback callback) {
         super(parent, nameKey, null);
+        this.configSuppliers = configSuppliers;
         buttonName = titleKey;
         setValueChangeCallback(callback);
-        for(ConfigAllocator<T, U> allocator : configSuppliers) allocatorMap.put(allocator.nameKey, allocator);
-        if(defaultValues != null){
-            HashMap<String, ConfigAllocator<T, U>> map = new HashMap<>();
-            for(ConfigAllocator<T, U> allocator : configSuppliers) map.put(allocator.nameKey, allocator);
-            defaultValues.forEach((key, userData)->{
-                ConfigAllocator<T, U> allocator = map.get(key);
-                if(allocator != null) subConfigs.add(wrapConfig(allocator.allocator.apply(this, key, userData)));
-            });
-        }
-        defaultJson = getAsJsonElement();
+        defaultJson = getSubConfigsAsJsonElement();
+    }
+    public void setCurrentAsDefault(boolean expanded){
+        defaultJson = getSubConfigsAsJsonElement();
+        this.expanded = expanded;
     }
     
-    @Override public void getButtonOptions(ArrayList<ButtonOption> res) {
+    @Override public void getButtonOptions(ButtonOptionArrayList res) {
         res.add(new ButtonOption(-1, (button, mouseButton)->{expanded = !expanded; getPage().updateIfCurrent();}, null,
             ILPCUniqueConfigBase.iconButtonAllocator(expanded ? MaLiLibIcons.ARROW_UP : MaLiLibIcons.ARROW_DOWN, LeftRight.CENTER)));
         res.add(new ButtonOption(1, (button, mouseButton)->onAddConfigClicked(subConfigs.size()), ()->buttonName, buttonGenericAllocator));
@@ -110,12 +98,16 @@ public class MutableConfig<T extends ILPCUniqueConfigBase> extends LPCUniqueConf
                 buttonGenericAllocator));
     }
     
-    @Override public @NotNull JsonObject getAsJsonElement() {
-        JsonObject object = new JsonObject();
+    JsonArray getSubConfigsAsJsonElement(){
         JsonArray array = new JsonArray();
         for(MutableConfigOption<? extends T> config : subConfigs)
             array.add(config.getAsJsonElement());
-        object.add("mutableValues", array);
+        return array;
+    }
+    
+    @Override public @NotNull JsonObject getAsJsonElement() {
+        JsonObject object = new JsonObject();
+        object.add("mutableValues", getSubConfigsAsJsonElement());
         object.addProperty("expanded", expanded);
         if(!(getParent() instanceof MutableConfig)){
             object.addProperty("condense", condenseOperationButton);
@@ -123,21 +115,23 @@ public class MutableConfig<T extends ILPCUniqueConfigBase> extends LPCUniqueConf
         }
         return object;
     }
-    
-    @Override public UpdateTodo setValueFromJsonElementEx(@NotNull JsonElement data) {
-        if(!(data instanceof JsonObject object)){
-            warnFailedLoadingConfig(this, data);
-            return new UpdateTodo();
-        }
+    public void setSubConfigsValueFromJsonElement(@NotNull JsonElement data){
         for(MutableConfigOption<? extends T> config : subConfigs)
             config.close();
         subConfigs.clear();
-        if(object.get("mutableValues") instanceof JsonArray mutableValues){
+        if(data instanceof JsonArray mutableValues){
             for(JsonElement element : mutableValues){
                 MutableConfigOption<? extends T> config = loadFromJsonElement(element);
                 if(config != null) subConfigs.add(config);
             }
         }
+    }
+    @Override public UpdateTodo setValueFromJsonElementEx(@NotNull JsonElement data) {
+        if(!(data instanceof JsonObject object)){
+            warnFailedLoadingConfig(this, data);
+            return new UpdateTodo();
+        }
+        setSubConfigsValueFromJsonElement(object.get("mutableValues"));
         if(object.get("expanded") instanceof JsonPrimitive primitive)
             expanded = primitive.getAsBoolean();
         if(!(getParent() instanceof MutableConfig)){
@@ -180,7 +174,7 @@ public class MutableConfig<T extends ILPCUniqueConfigBase> extends LPCUniqueConf
             this.wrappedConfig = wrappedConfig;
             this.parent = parent;
         }
-        @Override public void getButtonOptions(ArrayList<ButtonOption> res) {
+        @Override public void getButtonOptions(ButtonOptionArrayList res) {
             wrappedConfig.getButtonOptions(res);
             if(parent.doHideOperationButton()) return;
             if(parent.doCondenseOperationButton()){
@@ -263,24 +257,26 @@ public class MutableConfig<T extends ILPCUniqueConfigBase> extends LPCUniqueConf
             return wrappedConfig2.buildConfigWrappers(wrapperList);
         }
     }
-    private @NotNull <U extends T> MutableConfig.MutableConfigOption<U> wrapConfig(@NotNull U config){
+    private @NotNull <V extends T> MutableConfig.MutableConfigOption<V> wrapConfig(@NotNull V config){
         if(config instanceof ILPCConfigReadable displayable)
             return new ThirdListMutableConfigOption<>(this, config, displayable);
         else return new MutableConfigOption<>(this, config);
     }
     private @Nullable MutableConfig.MutableConfigOption<? extends T> allocateConfig(String supplierId){
-        ConfigAllocator<T, ?> allocator = allocatorMap.get(supplierId);
+        BiFunction<MutableConfig<T>, String, T> allocator = configSuppliers.get(supplierId);
         if(allocator == null) return null;
-        return wrapConfig(allocator.allocator.apply(this, allocator.nameKey, null));
+        return wrapConfig(allocator.apply(this, supplierId));
     }
-    private void allocateAndAddConfig(String id, int position){
+    private T allocateAndAddConfig(String id, int position){
         MutableConfigOption<? extends T> config = allocateConfig(id);
-        if(config == null) return;
+        if(config == null) return null;
         expanded = true;
         subConfigs.add(position, config);
         getPage().updateIfCurrent();
         onValueChanged();
+        return config.wrappedConfig;
     }
+    public T allocateAndAddConfig(String id){return allocateAndAddConfig(id, subConfigs.size());}
     public class AddConfigScreen extends GuiBase {
         public final int position;
         AddConfigScreen(int position){
@@ -296,13 +292,12 @@ public class MutableConfig<T extends ILPCUniqueConfigBase> extends LPCUniqueConf
             super.initGui();
             int dy = 22;
             int x = getScreenWidth() / 2;
-            int y = (getScreenHeight() - dy * allocatorMap.size()) / 2;
-            for(ConfigAllocator<?, ?> allocator : allocatorMap.values()){
-                String text = ((ILPCConfigKeyProvider) () -> DataUtils.appendNodeIfNotEmpty(MutableConfig.this.getFullPath(), allocator.nameKey).toString()).getTitleTranslation();
-                addButton(allocateCenterAt(x, y, text), (button, mouse)->onButtonClicked(allocator.nameKey));
-                y += dy;
-            }
-            addButton(allocateCenterAt(x, y, Text.translatable(cancelKey).getString()), (button, mouse)->onButtonClicked(null));
+            MutableInt y = new MutableInt((getScreenHeight() - dy * configSuppliers.size()) / 2);
+            configSuppliers.forEach((key, value)->{
+                String text = ((ILPCConfigKeyProvider) () -> DataUtils.appendNodeIfNotEmpty(MutableConfig.this.getFullPath(), key).toString()).getTitleTranslation();
+                addButton(allocateCenterAt(x, y.getAndAdd(dy), text), (button, mouse)->onButtonClicked(key));
+            });
+            addButton(allocateCenterAt(x, y.intValue(), Text.translatable(cancelKey).getString()), (button, mouse)->onButtonClicked(null));
         }
         
         private static ButtonGeneric allocateCenterAt(int centerX, int centerY, String text){
@@ -317,12 +312,12 @@ public class MutableConfig<T extends ILPCUniqueConfigBase> extends LPCUniqueConf
         }
     }
     public void onAddConfigClicked(int position){
-        if(allocatorMap.size() == 1){
-            allocateAndAddConfig(allocatorMap.keySet().iterator().next(), position);
-            return;
+        if(configSuppliers.size() == 1)
+            configSuppliers.forEach((key, value)->allocateAndAddConfig(key, position));
+        else{
+            MinecraftClient mc = MinecraftClient.getInstance();
+            mc.setScreen(new AddConfigScreen(position));
         }
-        MinecraftClient mc = MinecraftClient.getInstance();
-        mc.setScreen(new AddConfigScreen(position));
     }
     private static final String titleKey = "lpcfymasaapi.configs.mutableConfig.title";
     private static final String cancelKey = "lpcfymasaapi.configs.mutableConfig.cancel";

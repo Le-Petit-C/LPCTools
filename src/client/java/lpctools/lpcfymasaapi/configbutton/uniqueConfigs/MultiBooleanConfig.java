@@ -28,7 +28,7 @@ public class MultiBooleanConfig extends ThirdListConfig implements IConfigResett
         }
         this.booleans = ImmutableList.copyOf(booleans);
     }
-    @Override public void getButtonOptions(ArrayList<ButtonOption> res) {
+    @Override public void getButtonOptions(ButtonOptionArrayList res) {
         super.getButtonOptions(res);
         if(!isExpanded())
             for(UniqueBooleanConfig configBoolean : booleans){

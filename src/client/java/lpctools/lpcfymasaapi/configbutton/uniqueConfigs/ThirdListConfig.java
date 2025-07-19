@@ -52,7 +52,7 @@ public class ThirdListConfig extends LPCUniqueConfigBase implements IThirdListBa
         else warnFailedLoadingConfig(this, element);
         return todo;
     }
-    @Override public void getButtonOptions(ArrayList<ButtonOption> res) {
+    @Override public void getButtonOptions(ButtonOptionArrayList res) {
         res.add(new ButtonOption(-1, (button, mouseButton) -> setExpanded(!isExpanded()), null,
             ILPCUniqueConfigBase.iconButtonAllocator(expanded ? MaLiLibIcons.ARROW_UP : MaLiLibIcons.ARROW_DOWN, LeftRight.CENTER)));
     }

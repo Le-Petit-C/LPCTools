@@ -7,8 +7,6 @@ import lpctools.lpcfymasaapi.interfaces.ILPCUniqueConfigBase;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
-
 public class ButtonHotkeyConfig extends ButtonConfig implements IHotkey, AutoCloseable {
     public final @NotNull IKeybind keybind;
     public Runnable callback;
@@ -21,7 +19,7 @@ public class ButtonHotkeyConfig extends ButtonConfig implements IHotkey, AutoClo
         getPage().getInputHandler().addHotkey(this);
     }
     @Override public @NotNull IKeybind getKeybind() {return keybind;}
-    @Override public void getButtonOptions(ArrayList<ButtonOption> res) {
+    @Override public void getButtonOptions(ButtonOptionArrayList res) {
         super.getButtonOptions(res);
         res.add(ILPCUniqueConfigBase.buttonKeybindPreset(1, this));
     }

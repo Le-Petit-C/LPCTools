@@ -11,8 +11,6 @@ import lpctools.lpcfymasaapi.interfaces.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
-
 //一个有三个按钮：展开，boolean，hotkey的配置
 public class BooleanHotkeyThirdListConfig extends BooleanThirdListConfig implements IHotkey, AutoCloseable {
     private final @NotNull IKeybind keybind;
@@ -28,7 +26,7 @@ public class BooleanHotkeyThirdListConfig extends BooleanThirdListConfig impleme
     public BooleanHotkeyThirdListConfig(@NotNull ILPCConfigList parent, @NotNull String nameKey, @Nullable ILPCValueChangeCallback callback){
         this(parent, nameKey, false, null, callback);
     }
-    @Override public void getButtonOptions(ArrayList<ButtonOption> res) {
+    @Override public void getButtonOptions(ButtonOptionArrayList res) {
         super.getButtonOptions(res);
         res.add(ILPCUniqueConfigBase.buttonKeybindPreset(3, this));
     }

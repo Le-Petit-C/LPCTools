@@ -16,12 +16,10 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Vector3i;
 
-import java.util.ArrayList;
-
 @SuppressWarnings("unused")
 public class BlockPosConfig extends ThirdListConfig implements IConfigResettable {
     private final @NotNull _INTConfig x, y, z;
-    @Override public void getButtonOptions(ArrayList<ButtonOption> res) {
+    @Override public void getButtonOptions(ButtonOptionArrayList res) {
         super.getButtonOptions(res);
         if(expanded){
             res.add(new ButtonOption(1, (button, mouseButton)->{

@@ -8,8 +8,6 @@ import lpctools.lpcfymasaapi.interfaces.ILPCConfigReadable;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
-
 public class ButtonConfig extends LPCUniqueConfigBase implements IButtonActionListener {
     @Nullable public IButtonActionListener listener;
     @Nullable public String buttonName;
@@ -22,7 +20,7 @@ public class ButtonConfig extends LPCUniqueConfigBase implements IButtonActionLi
     public void setListener(@Nullable IButtonActionListener listener){this.listener = listener;}
     @SuppressWarnings("unused")
     public @Nullable IButtonActionListener getListener(){return listener;}
-    @Override public void getButtonOptions(ArrayList<ButtonOption> res) {
+    @Override public void getButtonOptions(ButtonOptionArrayList res) {
         res.add(new ButtonOption(1, this, ()->buttonName, buttonGenericAllocator));
     }
     @Override public void actionPerformedWithButton(ButtonBase button, int mouseButton) {

@@ -79,6 +79,7 @@ public class LPCConfigPage implements IConfigHandler, Supplier<GuiBase>, ILPCCon
         pageInstance.setTitle(String.format(getTitleTranslation(), modReference.getModVersion()));
         return pageInstance;
     }
+    public @Nullable ConfigPageInstance getPageInstance(){return pageInstance;}
     //保存和加载已有的全部配置文件内容
     //如果文件中有目前未注册的配置项，不理它但是保留
     @Override public void load() {

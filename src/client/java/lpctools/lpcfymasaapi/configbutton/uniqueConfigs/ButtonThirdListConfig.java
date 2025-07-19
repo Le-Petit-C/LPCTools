@@ -32,7 +32,7 @@ public class ButtonThirdListConfig extends ButtonConfig implements IThirdListBas
         else return wrapperList;
     }
     @Override public @NotNull ArrayList<ILPCConfig> getConfigs() {return subConfigs.getConfigs();}
-    @Override public void getButtonOptions(ArrayList<ButtonOption> res) {
+    @Override public void getButtonOptions(ButtonOptionArrayList res) {
         res.add(new ButtonOption(-1, (button, mouseButton)->{extended = !extended; getPage().updateIfCurrent();}, null,
             ILPCUniqueConfigBase.iconButtonAllocator(extended ? MaLiLibIcons.ARROW_UP : MaLiLibIcons.ARROW_DOWN, LeftRight.CENTER)));
         super.getButtonOptions(res);

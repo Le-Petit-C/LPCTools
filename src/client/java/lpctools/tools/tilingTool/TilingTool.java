@@ -19,6 +19,7 @@ import net.minecraft.util.math.BlockPos;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
+import java.util.List;
 
 import static lpctools.lpcfymasaapi.LPCConfigStatics.*;
 import static lpctools.tools.ToolUtils.*;
@@ -62,10 +63,13 @@ public class TilingTool {
         litematicaButtonModeDefaults.put("lpctools.configs.tools.TT.litematicaButtonMode.bufferDirectly", TilingTool::litematicaRefreshDirectly);
     }
     public static final ArrayOptionListConfig<Runnable> litematicaButtonMode = addArrayOptionListConfig("litematicaButtonMode", litematicaButtonModeDefaults);
-    public static final MutableConfig<ObjectListConfig.BlockListConfig> vagueBlocksConfig = addMutableConfig("vagueBlocks", ImmutableList.of(
-        new MutableConfig.ConfigAllocator<>("blocks", null,
-            (parent, key, user)->new ObjectListConfig.BlockListConfig(parent, key, user, parent::onValueChanged))
-    ), ImmutableMap.of("blocks", ImmutableList.of(Blocks.DIRT, Blocks.GRASS_BLOCK)), TilingTool::refreshVagueBlocks);
+    public static final MutableConfig<ObjectListConfig.BlockListConfig> vagueBlocksConfig = addMutableConfig("vagueBlocks", ImmutableMap.of(
+        "blocks", (parent, key)->new ObjectListConfig.BlockListConfig(parent, key, null, parent::onValueChanged)
+    ), TilingTool::refreshVagueBlocks);
+    static {
+        vagueBlocksConfig.allocateAndAddConfig("blocks").setBlocks(List.of(Blocks.DIRT, Blocks.GRASS_BLOCK));
+        vagueBlocksConfig.setCurrentAsDefault(false);
+    }
     
     public enum AutoRefreshOperation implements Runnable{
         REFRESH_BUTTON(TilingTool::refreshCallback),

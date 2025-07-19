@@ -6,6 +6,7 @@ import fi.dy.masa.malilib.hotkeys.IHotkey;
 import fi.dy.masa.malilib.hotkeys.IKeybind;
 import fi.dy.masa.malilib.hotkeys.KeybindMulti;
 import fi.dy.masa.malilib.hotkeys.KeybindSettings;
+import lpctools.lpcfymasaapi.LPCConfigPage;
 import lpctools.lpcfymasaapi.interfaces.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -75,7 +76,8 @@ public abstract class LPCUniqueConfigBase implements ILPCUniqueConfigBase {
     @Override public void setComment(@NotNull String comment) {this.comment = comment;}
     @Override public void onValueChanged() {
         if(callback != null) callback.onValueChanged();
-        getPage().get().markConfigsModified();
+        LPCConfigPage.ConfigPageInstance instance = getPage().getPageInstance();
+        if(instance != null) instance.markConfigsModified();
     }
     @Override public void setValueChangeCallback(@Nullable ILPCValueChangeCallback callback) {
         this.callback = callback;

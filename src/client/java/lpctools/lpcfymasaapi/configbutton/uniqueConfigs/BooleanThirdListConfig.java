@@ -10,8 +10,6 @@ import lpctools.lpcfymasaapi.interfaces.ILPCUniqueConfigBase;
 import lpctools.lpcfymasaapi.interfaces.ILPCValueChangeCallback;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
-
 public class BooleanThirdListConfig extends ThirdListConfig implements IBooleanConfig {
     protected boolean booleanValue;
     private final boolean defaultBoolean;
@@ -34,7 +32,7 @@ public class BooleanThirdListConfig extends ThirdListConfig implements IBooleanC
             getPage().updateIfCurrent();
         }
     }
-    @Override public void getButtonOptions(ArrayList<ButtonOption> res) {
+    @Override public void getButtonOptions(ButtonOptionArrayList res) {
         super.getButtonOptions(res);
         res.add(ILPCUniqueConfigBase.buttonBooleanPreset(1, this));
     }

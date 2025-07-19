@@ -74,6 +74,9 @@ public class ObjectListConfig<T> extends UniqueStringListConfig {
         public BlockListConfig(@NotNull ILPCConfigReadable parent, String nameKey, @Nullable Iterable<? extends Block> defaultValue) {
             this(parent, nameKey, defaultValue, null);
         }
+        public void setBlocks(Iterable<Block> blocks){
+            setStrings(DataUtils.idListFromBlockList(blocks));
+        }
     }
     public static class BlockItemListConfig extends ObjectListConfig<BlockItem> {
         public static final Function<String, BlockItem> converter = id->getBlockItemFromId(id, true);

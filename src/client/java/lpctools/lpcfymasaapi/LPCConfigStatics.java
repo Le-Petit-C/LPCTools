@@ -9,10 +9,7 @@ import fi.dy.masa.malilib.util.data.Color4f;
 import lpctools.lpcfymasaapi.configbutton.derivedConfigs.*;
 import lpctools.lpcfymasaapi.configbutton.transferredConfigs.*;
 import lpctools.lpcfymasaapi.configbutton.uniqueConfigs.*;
-import lpctools.lpcfymasaapi.interfaces.ILPCConfig;
-import lpctools.lpcfymasaapi.interfaces.ILPCConfigList;
-import lpctools.lpcfymasaapi.interfaces.ILPCUniqueConfigBase;
-import lpctools.lpcfymasaapi.interfaces.ILPCValueChangeCallback;
+import lpctools.lpcfymasaapi.interfaces.*;
 import net.minecraft.block.Block;
 import net.minecraft.item.BlockItem;
 import net.minecraft.item.Item;
@@ -205,8 +202,10 @@ public interface LPCConfigStatics {
     static BlockPosConfig addBlockPosConfig(ILPCConfigList list, @NotNull String nameKey, BlockPos defaultPos, @Nullable ILPCValueChangeCallback callback){
         return list.addConfig(new BlockPosConfig(list, nameKey, defaultPos, callback));
     }
-    static <T extends ILPCUniqueConfigBase, U> MutableConfig<T> addMutableConfig(@NotNull ILPCConfigList list, @NotNull String nameKey, @NotNull ImmutableList<MutableConfig.ConfigAllocator<T, U>> configSuppliers, @Nullable ImmutableMap<String, U> defaultValueAllocator, @Nullable ILPCValueChangeCallback callback){
-        return list.addConfig(new MutableConfig<>(list, nameKey, configSuppliers, defaultValueAllocator, callback));
+    static <T extends ILPCUniqueConfigBase> MutableConfig<T> addMutableConfig(@NotNull ILPCConfigList list, @NotNull String nameKey,
+                                                                              @NotNull ImmutableMap<String, BiFunction<MutableConfig<T>, String, T>> configSuppliers,
+                                                                              @Nullable ILPCValueChangeCallback callback){
+        return list.addConfig(new MutableConfig<>(list, nameKey, configSuppliers, callback));
     }
 
     //不带List版本的，使用栈存储当前list，方便操作
@@ -407,7 +406,9 @@ public interface LPCConfigStatics {
     static BlockPosConfig addBlockPosConfig(@NotNull String nameKey, BlockPos defaultPos, ILPCValueChangeCallback callback){
         return addBlockPosConfig(peekConfigList(), nameKey, defaultPos, callback);
     }
-    static <T extends ILPCUniqueConfigBase, U> MutableConfig<T> addMutableConfig(@NotNull String nameKey, @NotNull ImmutableList<MutableConfig.ConfigAllocator<T, U>> configSuppliers, @Nullable ImmutableMap<String, U> defaultValueAllocator, @Nullable ILPCValueChangeCallback callback){
-        return addMutableConfig(peekConfigList(), nameKey, configSuppliers, defaultValueAllocator, callback);
+    static <T extends ILPCUniqueConfigBase> MutableConfig<T> addMutableConfig(@NotNull String nameKey,
+                                                                              @NotNull ImmutableMap<String, BiFunction<MutableConfig<T>, String, T>> configSuppliers,
+                                                                              @Nullable ILPCValueChangeCallback callback){
+        return addMutableConfig(peekConfigList(), nameKey, configSuppliers, callback);
     }
 }
