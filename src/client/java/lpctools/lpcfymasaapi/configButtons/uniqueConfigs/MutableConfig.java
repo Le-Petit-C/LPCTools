@@ -28,6 +28,7 @@ import static lpctools.util.AlgorithmUtils.*;
 public class MutableConfig<T extends ILPCUniqueConfigBase> extends LPCUniqueConfigBase implements ILPCConfigReadable, IMutableConfig, IConfigResettable, AutoCloseable {
     public final @NotNull ImmutableMap<String, ? extends BiFunction<MutableConfig<T>, String, T>> configSuppliers;
     public final @NotNull String buttonKeyPrefix;
+    public @NotNull Map<?, ?> optionTree;
     private boolean condenseOperationButton;
     private boolean hideOperationButton;
     private JsonArray defaultJson;
@@ -64,26 +65,37 @@ public class MutableConfig<T extends ILPCUniqueConfigBase> extends LPCUniqueConf
             config.close();
         subConfigs.clear();
     }
-    public MutableConfig(@NotNull ILPCConfigReadable parent, @NotNull String nameKey, @NotNull String buttonKeyPrefix,
-                             @NotNull ImmutableMap<String, BiFunction<MutableConfig<T>, String, T>> configSuppliers,
-                             @Nullable ILPCValueChangeCallback callback){
+    public MutableConfig(@NotNull ILPCConfigBase parent, @NotNull String nameKey, @NotNull String buttonKeyPrefix,
+                         @NotNull ImmutableMap<String, BiFunction<MutableConfig<T>, String, T>> configSuppliers,
+                         @Nullable Map<?, ?> optionTree, @Nullable ILPCValueChangeCallback callback){
         super(parent, nameKey, null);
         this.configSuppliers = configSuppliers;
         this.buttonKeyPrefix = buttonKeyPrefix;
         buttonName = titleKey;
         setValueChangeCallback(callback);
         defaultJson = getSubConfigsAsJsonElement();
+        if(optionTree == null){
+            ImmutableMap.Builder<String, String> builder = ImmutableMap.builder();
+            configSuppliers.forEach((key, func)->builder.put(key, key));
+            this.optionTree = builder.build();
+        }
+        else this.optionTree = optionTree;
     }
-    public <U> MutableConfig(@NotNull ILPCConfigReadable parent, @NotNull String nameKey, @NotNull String buttonKeyPrefix,
+    public <U> MutableConfig(@NotNull ILPCConfigBase parent, @NotNull String nameKey, @NotNull String buttonKeyPrefix,
                          @NotNull ImmutableMap<String, TriFunction<MutableConfig<T>, String, U, T>> configSuppliers,
                          @Nullable ILPCValueChangeCallback callback, U userData) {
         this(parent, nameKey, buttonKeyPrefix, convertSuppliers(configSuppliers, userData), callback);
     }
+    public MutableConfig(@NotNull ILPCConfigBase parent, @NotNull String nameKey, @NotNull String buttonKeyPrefix,
+                         @NotNull ImmutableMap<String, BiFunction<MutableConfig<T>, String, T>> configSuppliers,
+                         @Nullable ILPCValueChangeCallback callback){
+        this(parent, nameKey, buttonKeyPrefix, configSuppliers, null, callback);
+    }
     private static <T extends ILPCUniqueConfigBase, U> ImmutableMap<String, BiFunction<MutableConfig<T>, String, T>>
     convertSuppliers(Map<String, TriFunction<MutableConfig<T>, String, U, T>> configSuppliers, U userData){
-        LinkedHashMap<String, BiFunction<MutableConfig<T>, String, T>> convertedSuppliers = new LinkedHashMap<>();
+        ImmutableMap.Builder<String, BiFunction<MutableConfig<T>, String, T>> convertedSuppliers = ImmutableMap.builder();
         configSuppliers.forEach((k, v)->convertedSuppliers.put(k, (c, s)->v.apply(c, s, userData)));
-        return ImmutableSortedMap.copyOf(convertedSuppliers);
+        return ImmutableSortedMap.copyOf(convertedSuppliers.build());
     }
     public void setCurrentAsDefault(boolean expanded){
         defaultJson = getSubConfigsAsJsonElement();
@@ -282,15 +294,11 @@ public class MutableConfig<T extends ILPCUniqueConfigBase> extends LPCUniqueConf
     }
     public T allocateAndAddConfig(String id){return allocateAndAddConfig(id, subConfigs.size());}
     public void onAddConfigClicked(int position){
-        if(configSuppliers.size() == 1)
-            configSuppliers.forEach((key, value)->allocateAndAddConfig(key, position));
-        else{
-            ChooseScreen screen = ChooseScreen.openChooseScreen(Text.translatable(titleKey).getString(), true);
-            configSuppliers.keySet().forEach(key->{
-                String text = ILPCConfigKeyProvider.of(buttonKeyPrefix, getNameKey(), key).getTitleTranslation();
-                screen.add(text, ()->allocateAndAddConfig(key, position));
-            });
-            screen.initGui();
+        if(configSuppliers.size() == 1) configSuppliers.forEach((key, value)->allocateAndAddConfig(key, position));
+        else {
+            ImmutableMap.Builder<String, ChooseScreen.OptionCallback<Object>> options = ImmutableMap.builder();
+            configSuppliers.forEach((key, func)->options.put(key, (button, mouseButton, user)->allocateAndAddConfig(key, position)));
+            ChooseScreen.openChooseScreen(Text.translatable(titleKey).getString(), true, options.build(), optionTree, null);
         }
     }
     private static final String titleKey = "lpcfymasaapi.configs.mutableConfig.title";

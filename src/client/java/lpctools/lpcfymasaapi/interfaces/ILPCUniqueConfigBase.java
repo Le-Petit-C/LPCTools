@@ -73,6 +73,12 @@ public interface ILPCUniqueConfigBase extends ILPCUniqueConfig{
         public void add(float widthWeight, @Nullable IButtonActionListener actionListener, @Nullable Supplier<@Nullable String> buttonId, @Nullable IButtonAllocator allocator){
             add(new ButtonOption(widthWeight, actionListener, buttonId, allocator));
         }
+        public void add(float widthWeight, @Nullable Runnable actionListener, @Nullable Supplier<@Nullable String> buttonId, @Nullable IButtonAllocator allocator){
+            add(widthWeight, actionListener == null ? null : (button, mouseButton)->actionListener.run(), buttonId, allocator);
+        }
+        public void add(float widthWeight, @Nullable IButtonAllocator allocator){
+            add(widthWeight, (IButtonActionListener) null, null, allocator);
+        }
     }
     
     void getButtonOptions(ButtonOptionArrayList res);

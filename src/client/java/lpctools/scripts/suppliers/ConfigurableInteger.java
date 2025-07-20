@@ -1,4 +1,4 @@
-package lpctools.scripts.suppliers.intSuppliers;
+package lpctools.scripts.suppliers;
 
 import lpctools.lpcfymasaapi.configButtons.uniqueConfigs.UniqueIntegerConfig;
 import lpctools.lpcfymasaapi.interfaces.ILPCConfigReadable;

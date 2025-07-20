@@ -20,7 +20,7 @@ import static lpctools.lpcfymasaapi.LPCConfigUtils.*;
 public class ThirdListConfig extends LPCUniqueConfigBase implements IThirdListBase, IBooleanThirdList {
     protected boolean expanded;
     public final String expandedJsonId = "expanded";
-    public ThirdListConfig(ILPCConfigReadable parent, String nameKey, ILPCValueChangeCallback callback) {
+    public ThirdListConfig(ILPCConfigBase parent, String nameKey, ILPCValueChangeCallback callback) {
         super(parent, nameKey, callback);
         subConfigs = new LPCConfigList(parent, nameKey);
     }

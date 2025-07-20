@@ -29,5 +29,8 @@ public class UniqueHotkeyConfig extends LPCUniqueConfigBase implements IHotkey, 
         return new UpdateTodo().valueChanged(lastStorageString.equals(keybind.getStringValue()));
     }
     @Override public IKeybind getKeybind() {return keybind;}
-    @Override public void close() {getPage().getInputHandler().removeHotkey(this);}
+    @Override public void close() {
+        getPage().getInputHandler().removeHotkey(this);
+        keybind.clearKeys();
+    }
 }

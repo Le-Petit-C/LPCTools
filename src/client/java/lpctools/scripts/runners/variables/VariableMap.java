@@ -1,4 +1,4 @@
-package lpctools.scripts.runner.variables;
+package lpctools.scripts.runners.variables;
 
 import fi.dy.masa.litematica.util.ToBooleanFunction;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;

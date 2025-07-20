@@ -1,4 +1,4 @@
-package lpctools.scripts.runner.variables;
+package lpctools.scripts.runners.variables;
 
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 

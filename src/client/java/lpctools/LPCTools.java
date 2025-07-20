@@ -21,8 +21,8 @@ public class LPCTools {
 		page.addList(GenericConfigs.generic);
 		page.addList(ToolConfigs.toolConfigs);
 		page.addList(TweakConfigs.tweaks);
-		page.addList(DebugConfigs.debugs);
 		page.addList(ScriptConfigs.script);
+		page.addList(DebugConfigs.debugs);
 	}
 	static {LOGGER.info("Initialized");}
 }

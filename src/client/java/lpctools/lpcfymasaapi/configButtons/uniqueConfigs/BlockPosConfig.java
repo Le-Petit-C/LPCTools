@@ -1,9 +1,8 @@
-package lpctools.lpcfymasaapi.configButtons.derivedConfigs;
+package lpctools.lpcfymasaapi.configButtons.uniqueConfigs;
 
 import fi.dy.masa.malilib.config.IConfigResettable;
 import lpctools.lpcfymasaapi.configButtons.transferredConfigs.IntegerConfig;
-import lpctools.lpcfymasaapi.configButtons.uniqueConfigs.ThirdListConfig;
-import lpctools.lpcfymasaapi.interfaces.ILPCConfigReadable;
+import lpctools.lpcfymasaapi.interfaces.ILPCConfigBase;
 import lpctools.lpcfymasaapi.interfaces.ILPCUniqueConfigBase;
 import lpctools.lpcfymasaapi.interfaces.ILPCValueChangeCallback;
 import net.minecraft.client.MinecraftClient;
@@ -38,7 +37,7 @@ public class BlockPosConfig extends ThirdListConfig implements IConfigResettable
         }
     }
     
-    public BlockPosConfig(ILPCConfigReadable parent, String nameKey, BlockPos defaultPos, @Nullable ILPCValueChangeCallback callback) {
+    public BlockPosConfig(ILPCConfigBase parent, String nameKey, BlockPos defaultPos, @Nullable ILPCValueChangeCallback callback) {
         super(parent, nameKey, callback);
         x = addConfig(new _INTConfig(this, "x", defaultPos.getX()));
         y = addConfig(new _INTConfig(this, "y", defaultPos.getX()));

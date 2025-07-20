@@ -1,7 +1,7 @@
 package lpctools.scripts;
 
 import fi.dy.masa.malilib.util.StringUtils;
-import lpctools.scripts.runner.variables.Variable;
+import lpctools.scripts.runners.variables.Variable;
 
 import static lpctools.util.DataUtils.*;
 
@@ -13,6 +13,6 @@ public class CompileFailedException extends Exception {
     }
     public static CompileFailedException notExpectedType(String name, Variable<?> foundVariable, String expectedVariableDescription){
         return new CompileFailedException(StringUtils.translate("lpctools.configs.scripts.exceptions.notExpectedType",
-            expectedVariableDescription, foundVariable.getDescription(), name));
+            expectedVariableDescription, foundVariable.getTitleTranslation(), name));
     }
 }

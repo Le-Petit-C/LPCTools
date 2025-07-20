@@ -1,10 +1,7 @@
 package lpctools.scripts.trigger;
 
-import lpctools.lpcfymasaapi.interfaces.ILPCUniqueConfigBase;
-import org.jetbrains.annotations.NotNull;
+import lpctools.scripts.IScriptBase;
 
-public interface IScriptTrigger extends ILPCUniqueConfigBase {
-	@Override default @NotNull String getFullTranslationKey() {
-		return "lpctools.configs.scripts.triggers." + getNameKey();
-	}
+public interface IScriptTrigger extends IScriptBase {
+	String fullPrefix = IScriptBase.fullPrefix + "triggers.";
 }

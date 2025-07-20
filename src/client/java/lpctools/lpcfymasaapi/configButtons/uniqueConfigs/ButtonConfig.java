@@ -4,19 +4,19 @@ import com.google.gson.JsonElement;
 import fi.dy.masa.malilib.gui.button.ButtonBase;
 import fi.dy.masa.malilib.gui.button.IButtonActionListener;
 import lpctools.lpcfymasaapi.configButtons.UpdateTodo;
-import lpctools.lpcfymasaapi.interfaces.ILPCConfigReadable;
+import lpctools.lpcfymasaapi.interfaces.ILPCConfigBase;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class ButtonConfig extends LPCUniqueConfigBase implements IButtonActionListener {
     @Nullable public IButtonActionListener listener;
     @Nullable public String buttonName;
-    public ButtonConfig(ILPCConfigReadable parent, String nameKey, @Nullable IButtonActionListener listener) {
+    public ButtonConfig(ILPCConfigBase parent, String nameKey, @Nullable IButtonActionListener listener) {
         super(parent, nameKey, null);
         this.listener = listener;
         buttonName = getFullTitleTranslationKey();
     }
-    public ButtonConfig(ILPCConfigReadable parent, String nameKey) {this(parent, nameKey, null);}
+    public ButtonConfig(ILPCConfigBase parent, String nameKey) {this(parent, nameKey, null);}
     public void setListener(@Nullable IButtonActionListener listener){this.listener = listener;}
     @SuppressWarnings("unused")
     public @Nullable IButtonActionListener getListener(){return listener;}

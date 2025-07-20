@@ -48,9 +48,9 @@ public class DebugConfigs {
     private static final ImmutableMap<String, BiFunction<MutableConfig<ILPCUniqueConfigBase>, String, ILPCUniqueConfigBase>> configSuppliers =ImmutableMap.of(
         "button", (parent, key)->new ButtonConfig(parent, key){@Override public @NotNull String getFullTranslationKey() {return "lpctools.configs.debugs.booleanHotkeyThirdListTest.mutable.button";}},
         "buttonHotkey", (parent, key)->new ButtonHotkeyConfig(parent, key, null, null){@Override public @NotNull String getFullTranslationKey() {return "lpctools.configs.debugs.booleanHotkeyThirdListTest.mutable.buttonHotkey";}},
-        "mutable", (parent, key)->new MutableConfig<>(parent, key, booleanHotkeyThirdListTest.getFullTranslationKey(), getConfigSuppliers(), null){@Override public @NotNull String getFullTranslationKey() {return "lpctools.configs.debugs.booleanHotkeyThirdListTest.mutable.mutable";}}
+        "mutable", (parent, key)->new MutableConfig<>(parent, key, booleanHotkeyThirdListTest.getFullTranslationKey() + ".mutable", getConfigSuppliers(), null){@Override public @NotNull String getFullTranslationKey() {return "lpctools.configs.debugs.booleanHotkeyThirdListTest.mutable.mutable";}}
     );
-    public static final MutableConfig<ILPCUniqueConfigBase> MUTABLE_CONFIG_TEST = booleanHotkeyThirdListTest.addConfig(new MutableConfig<>(booleanHotkeyThirdListTest, "mutable", booleanHotkeyThirdListTest.getFullTranslationKey(), configSuppliers, null));
+    public static final MutableConfig<ILPCUniqueConfigBase> MUTABLE_CONFIG_TEST = booleanHotkeyThirdListTest.addConfig(new MutableConfig<>(booleanHotkeyThirdListTest, "mutable", booleanHotkeyThirdListTest.getFullTranslationKey() + ".mutable", configSuppliers, null));
     private static ImmutableMap<String, BiFunction<MutableConfig<ILPCUniqueConfigBase>, String, ILPCUniqueConfigBase>> getConfigSuppliers(){return configSuppliers;}
     static {Registries.ON_SCREEN_CHANGED.register(newScreen -> buttonConfigTest.buttonName = null);}
     static {listStack.pop();}

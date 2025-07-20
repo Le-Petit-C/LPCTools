@@ -1,25 +1,22 @@
 package lpctools.scripts;
 
-import lpctools.lpcfymasaapi.configButtons.uniqueConfigs.MutableConfig;
 import lpctools.lpcfymasaapi.configButtons.uniqueConfigs.StringThirdListConfig;
 import lpctools.lpcfymasaapi.interfaces.ILPCConfigReadable;
-import lpctools.lpcfymasaapi.interfaces.ILPCUniqueConfigBase;
-import lpctools.scripts.runner.IScriptRunner;
-import lpctools.scripts.runner.variables.CompiledVariableList;
-import lpctools.scripts.runner.variables.VariableMap;
+import lpctools.scripts.runners.SubRunners;
+import lpctools.scripts.runners.variables.CompiledVariableList;
+import lpctools.scripts.runners.variables.VariableMap;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
 import java.util.function.Consumer;
 
-import static lpctools.scripts.ScriptConfigData.*;
-
-public class ScriptConfig extends StringThirdListConfig {
+public class ScriptConfig extends StringThirdListConfig implements IScriptBase {
     @SuppressWarnings("unused")
-    public final MutableConfig<ILPCUniqueConfigBase> triggers = addConfig(new MutableConfig<>(this, "triggers", getFullTranslationKey(), triggerConfigs, null, this::runScript));
-    public final MutableConfig<IScriptRunner> runner = addConfig(new MutableConfig<>(this, "runner", getFullTranslationKey(), runnerConfigs, null));
+    public final TriggerConfig triggers = addConfig(new TriggerConfig(this));
+    public final SubRunners runners = addConfig(new SubRunners(this));
     
-    public ScriptConfig(@NotNull ILPCConfigReadable parent, @NotNull String nameKey) {super(parent, nameKey, null, null);}
+    public ScriptConfig(@NotNull ILPCConfigReadable parent, @NotNull String nameKey) {
+        super(parent, nameKey, null, null);
+    }
     public void runScript(){
         if(scriptRunnable == null) try{
             scriptRunnable = compile();
@@ -33,13 +30,8 @@ public class ScriptConfig extends StringThirdListConfig {
     }
     private Runnable scriptRunnable;
     private Runnable compile() throws CompileFailedException{
-        ArrayList<Consumer<CompiledVariableList>> compiledList = new ArrayList<>();
-        VariableMap map = new VariableMap();
-        for(IScriptRunner runnable : runner.iterateConfigs())
-            compiledList.add(runnable.compile(map));
-        return ()->{
-            CompiledVariableList variableList = new CompiledVariableList();
-            compiledList.forEach(consumer->consumer.accept(variableList));
-        };
+        Consumer<CompiledVariableList> runner = runners.compile(new VariableMap());
+        return ()->runner.accept(new CompiledVariableList());
     }
+    @Override public ScriptConfig getScript() {return this;}
 }
