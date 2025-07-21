@@ -25,11 +25,12 @@
     "HappyGhastRidingTweak.HappyGhastEntityMixin",
     "HappyGhastRidingTweak.PlayerInputC2SPacketMixin",
     "MASAMixins.LayerRangeMixin",
+    "MASAMixins.WidgetConfigOptionBaseMixin",
+    "MASAMixins.WidgetConfigOptionMixin",
+    "MASAMixins.WidgetListConfigOptionsMixin",
     "MASAMixins.litematicaMixin.DataManagerMixin",
     "MASAMixins.MuteMASAConfigMinMaxMixin.ConfigDoubleMixin",
-    "MASAMixins.MuteMASAConfigMinMaxMixin.ConfigIntegerMixin",
-    "MASAMixins.WidgetConfigOptionBaseMixin",
-    "MASAMixins.WidgetConfigOptionMixin"
+    "MASAMixins.MuteMASAConfigMinMaxMixin.ConfigIntegerMixin"
   ],
   "injectors": {
     "defaultRequire": 1

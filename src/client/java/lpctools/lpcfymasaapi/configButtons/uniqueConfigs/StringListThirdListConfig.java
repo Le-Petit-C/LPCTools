@@ -32,6 +32,9 @@ public class StringListThirdListConfig extends UniqueStringListConfig implements
         }
     }
     @Override public @NotNull Collection<ILPCConfig> getConfigs() {return subConfigs.getConfigs();}
+    @Override public void setAlignedIndent(int indent) {subConfigs.setAlignedIndent(indent);}
+    @Override public int getAlignedIndent() {return subConfigs.getAlignedIndent();}
+    
     @Override public @Nullable JsonObject getAsJsonElement() {
         JsonObject object = new JsonObject();
         object.add(propertiesId, subConfigs.getAsJsonElement());

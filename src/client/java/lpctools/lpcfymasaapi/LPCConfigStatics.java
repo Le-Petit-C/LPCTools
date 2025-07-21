@@ -145,10 +145,10 @@ public interface LPCConfigStatics {
     static LimitOperationSpeedConfig addLimitOperationSpeedConfig(ILPCConfigList list, boolean defaultBoolean, double defaultDouble){
         return list.addConfig(new LimitOperationSpeedConfig(list, defaultBoolean, defaultDouble));
     }
-    static <T extends ILPCConfigList> ConfigListOptionListConfigEx<T> addConfigListOptionListConfigEx(ILPCConfigList list, @NotNull String nameKey){
+    static <T> ConfigListOptionListConfigEx<T> addConfigListOptionListConfigEx(ILPCConfigList list, @NotNull String nameKey){
         return list.addConfig(new ConfigListOptionListConfigEx<>(list, nameKey));
     }
-    static <T extends ILPCConfigList> ConfigListOptionListConfigEx<T> addConfigListOptionListConfigEx(ILPCConfigList list, @NotNull String nameKey, @Nullable ILPCValueChangeCallback callback){
+    static <T> ConfigListOptionListConfigEx<T> addConfigListOptionListConfigEx(ILPCConfigList list, @NotNull String nameKey, @Nullable ILPCValueChangeCallback callback){
         return list.addConfig(new ConfigListOptionListConfigEx<>(list, nameKey, callback));
     }
     static <T> ObjectListConfig<T> addObjectListConfig(ILPCConfigList list, @NotNull String nameKey, @Nullable ImmutableList<String> defaultValue, Function<String, T> converter, @Nullable ILPCValueChangeCallback callback){
@@ -349,10 +349,10 @@ public interface LPCConfigStatics {
     static LimitOperationSpeedConfig addLimitOperationSpeedConfig(boolean defaultBoolean, double defaultDouble){
         return addLimitOperationSpeedConfig(peekConfigList(), defaultBoolean, defaultDouble);
     }
-    static <T extends ILPCConfigList> ConfigListOptionListConfigEx<T> addConfigListOptionListConfigEx(@NotNull String nameKey){
+    static <T> ConfigListOptionListConfigEx<T> addConfigListOptionListConfigEx(@NotNull String nameKey){
         return addConfigListOptionListConfigEx(peekConfigList(), nameKey);
     }
-    static <T extends ILPCConfigList> ConfigListOptionListConfigEx<T> addConfigListOptionListConfigEx(@NotNull String nameKey, @Nullable ILPCValueChangeCallback callback){
+    static <T> ConfigListOptionListConfigEx<T> addConfigListOptionListConfigEx(@NotNull String nameKey, @Nullable ILPCValueChangeCallback callback){
         return addConfigListOptionListConfigEx(peekConfigList(), nameKey, callback);
     }
     static <T> ObjectListConfig<T> addObjectListConfig(String nameKey, @Nullable ImmutableList<String> defaultValue, Function<String, T> converter, @Nullable ILPCValueChangeCallback callback){

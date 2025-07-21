@@ -2,20 +2,18 @@ package lpctools.lpcfymasaapi.interfaces;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import fi.dy.masa.malilib.gui.GuiConfigsBase;
 import fi.dy.masa.malilib.util.StringUtils;
 import lpctools.lpcfymasaapi.configButtons.UpdateTodo;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
 import java.util.Collection;
 
 import static lpctools.lpcfymasaapi.LPCConfigUtils.*;
 
 @SuppressWarnings("unused")
 public interface ILPCConfigList extends ILPCConfigBase, ILPCConfigReadable {
-    @NotNull Collection<ILPCConfig> getConfigs();
+    @Override @NotNull Collection<ILPCConfig> getConfigs();
 
     default boolean needAlign(){return true;}
     default <T extends ILPCConfig> T addConfig(T config){
@@ -28,10 +26,6 @@ public interface ILPCConfigList extends ILPCConfigBase, ILPCConfigReadable {
 
     default String getTitleFullTranslationKey(){return getFullTranslationKey() + ".title";}
     default String getTitleDisplayName(){return StringUtils.translate(getTitleFullTranslationKey());}
-    @Override default ArrayList<GuiConfigsBase.ConfigOptionWrapper>
-    buildConfigWrappers(ArrayList<GuiConfigsBase.ConfigOptionWrapper> wrapperList){
-        return ILPCConfigReadable.defaultBuildConfigWrappers(wrapperList, getConfigs(), needAlign());
-    }
     @Override default UpdateTodo setValueFromJsonElementEx(@NotNull JsonElement data){
         UpdateTodo todo = new UpdateTodo();
         if(data instanceof JsonObject jsonObject)

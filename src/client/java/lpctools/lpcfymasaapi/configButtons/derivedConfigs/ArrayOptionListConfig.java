@@ -13,7 +13,7 @@ import java.util.function.Supplier;
 
 public class ArrayOptionListConfig<T> extends OptionListConfig implements Supplier<T> {
     public static class OptionList<T> extends ArrayList<OptionData<T>>{
-        public void addOption(@NotNull String translationKey, @Nullable T userData){
+        public void addOption(@NotNull String translationKey, T userData){
             add(new OptionData<>(this, translationKey, userData, size()));
         }
     }
@@ -21,7 +21,7 @@ public class ArrayOptionListConfig<T> extends OptionListConfig implements Suppli
         OptionList<T> options();
         T userData();
     }
-    public record OptionData<T>(@NotNull OptionList<T> options, @NotNull String translationKey, @Nullable T userData, int index) implements IArrayConfigOptionListEntry<T>{
+    public record OptionData<T>(@NotNull OptionList<T> options, @NotNull String translationKey, T userData, int index) implements IArrayConfigOptionListEntry<T>{
         @Override public String getStringValue() {return translationKey;}
         @Override public String getDisplayName() {return StringUtils.translate(translationKey);}
         @Override public IConfigOptionListEntry cycle(boolean forward) {
@@ -97,9 +97,10 @@ public class ArrayOptionListConfig<T> extends OptionListConfig implements Suppli
         super(parent, nameKey, EmptyOptionData.of(), callback);
         if (values != null) values.forEach(this::addOption);
     }
-    public void addOption(@NotNull String translationKey, T userData){
+    public T addOption(@NotNull String translationKey, T userData){
         OptionList<T> list = getCurrentOptionData().options();
         list.addOption(translationKey, userData);
+        return userData;
     }
     @Override public boolean isModified() {
         return !getOptionListValue().equals(getDefaultOptionListValue());

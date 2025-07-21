@@ -23,12 +23,12 @@ public class ReachDistanceConfig extends DoubleConfig {
     public Iterable<BlockPos> iterateFromFurthest(Vec3d center){
         return AlgorithmUtils.iterateFromFurthestInDistance(center, getAsDouble());
     }
-    @Override public void refreshName(boolean align) {
+    @Override public void refreshName() {
         ClientPlayerEntity player = MinecraftClient.getInstance().player;
         if(GenericConfigs.reachDistanceAlwaysUnlimited.getAsBoolean() || player == null)
             setMax(Double.MAX_VALUE);
         else setMax(player.getBlockInteractionRange());
-        super.refreshName(align);
+        super.refreshName();
     }
     @Override public @NotNull String getFullTranslationKey() {
         return "lpctools.configs.utils.reachDistance";

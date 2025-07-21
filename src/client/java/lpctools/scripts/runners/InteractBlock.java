@@ -1,7 +1,7 @@
 package lpctools.scripts.runners;
 
 import lpctools.lpcfymasaapi.configButtons.uniqueConfigs.ChooseConfig;
-import lpctools.lpcfymasaapi.interfaces.ILPCConfigBase;
+import lpctools.lpcfymasaapi.interfaces.ILPCConfigReadable;
 import lpctools.scripts.CompileFailedException;
 import lpctools.scripts.ScriptConfigData;
 import lpctools.scripts.runners.variables.CompiledVariableList;
@@ -20,7 +20,7 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 
 public class InteractBlock extends ChooseConfig<IScriptSupplier<BlockPos>> implements IScriptRunner{
-	public InteractBlock(ILPCConfigBase parent) {
+	public InteractBlock(ILPCConfigReadable parent) {
 		super(parent, nameKey, ScriptConfigData.blockPosSupplierConfigs, null);
 		setValueChangeCallback(()->getScript().onValueChanged());
 	}

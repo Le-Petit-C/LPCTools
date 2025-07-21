@@ -4,7 +4,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonPrimitive;
 import fi.dy.masa.malilib.config.IConfigValue;
 import lpctools.lpcfymasaapi.configButtons.UpdateTodo;
-import lpctools.lpcfymasaapi.interfaces.ILPCConfigBase;
+import lpctools.lpcfymasaapi.interfaces.ILPCConfigReadable;
 import lpctools.lpcfymasaapi.interfaces.ILPCUniqueConfigBase;
 import lpctools.lpcfymasaapi.interfaces.ILPCValueChangeCallback;
 import org.jetbrains.annotations.NotNull;
@@ -13,7 +13,7 @@ import org.jetbrains.annotations.Nullable;
 public class UniqueStringConfig extends LPCUniqueConfigBase implements IConfigValue {
 	protected String stringValue;
 	public final String defaultStringValue;
-	public UniqueStringConfig(@NotNull ILPCConfigBase parent, @NotNull String nameKey, @Nullable String defaultStringValue, @Nullable ILPCValueChangeCallback callback) {
+	public UniqueStringConfig(@NotNull ILPCConfigReadable parent, @NotNull String nameKey, @Nullable String defaultStringValue, @Nullable ILPCValueChangeCallback callback) {
 		super(parent, nameKey, callback);
 		stringValue = this.defaultStringValue = defaultStringValue == null ? "" : defaultStringValue;
 	}

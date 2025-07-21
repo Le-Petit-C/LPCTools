@@ -4,10 +4,8 @@ import com.google.common.collect.ImmutableMap;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
-import fi.dy.masa.malilib.gui.GuiConfigsBase;
 import lpctools.lpcfymasaapi.configButtons.UpdateTodo;
 import lpctools.lpcfymasaapi.interfaces.ILPCConfig;
-import lpctools.lpcfymasaapi.interfaces.ILPCConfigBase;
 import lpctools.lpcfymasaapi.interfaces.ILPCConfigReadable;
 import lpctools.lpcfymasaapi.interfaces.ILPCValueChangeCallback;
 import lpctools.lpcfymasaapi.screen.ChooseScreen;
@@ -16,7 +14,6 @@ import org.apache.commons.lang3.function.TriFunction;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -25,7 +22,7 @@ import java.util.function.BiFunction;
 public class ChooseConfig<T extends ILPCConfig> extends LPCUniqueConfigBase implements ILPCConfigReadable {
 	private @NotNull T value;
 	private @NotNull String valueKey;
-	public <U> ChooseConfig(ILPCConfigBase parent, String nameKey, ImmutableMap<String, ? extends TriFunction<? super ChooseConfig<T>, String, U, T>> allocatorMap,
+	public <U> ChooseConfig(ILPCConfigReadable parent, String nameKey, ImmutableMap<String, ? extends TriFunction<? super ChooseConfig<T>, String, U, T>> allocatorMap,
 							Map<?, ?> optionTree, ILPCValueChangeCallback callback, U userData) {
 		super(parent, nameKey, callback);
 		allocators = new WrappedAllocators<>(allocatorMap, userData);
@@ -33,15 +30,17 @@ public class ChooseConfig<T extends ILPCConfig> extends LPCUniqueConfigBase impl
 		valueKey = allocatorMap.keySet().iterator().next();
 		value = allocators.allocate(valueKey, this);
 	}
-	public ChooseConfig(ILPCConfigBase parent, String nameKey, ImmutableMap<String, ? extends BiFunction<? super ChooseConfig<T>, String, T>> allocatorMap,
+	@SuppressWarnings("unused")
+	public ChooseConfig(ILPCConfigReadable parent, String nameKey, ImmutableMap<String, ? extends BiFunction<? super ChooseConfig<T>, String, T>> allocatorMap,
 						Map<?, ?> optionTree, ILPCValueChangeCallback callback) {
 		this(parent, nameKey, convert(allocatorMap), optionTree, callback, null);
 	}
-	public <U> ChooseConfig(ILPCConfigBase parent, String nameKey, ImmutableMap<String, ? extends TriFunction<? super ChooseConfig<T>, String, U, T>> allocatorMap,
+	@SuppressWarnings("unused")
+	public <U> ChooseConfig(ILPCConfigReadable parent, String nameKey, ImmutableMap<String, ? extends TriFunction<? super ChooseConfig<T>, String, U, T>> allocatorMap,
 							ILPCValueChangeCallback callback, U userData) {
 		this(parent, nameKey, allocatorMap, defaultOptionTree(allocatorMap.keySet()), callback, userData);
 	}
-	public ChooseConfig(ILPCConfigBase parent, String nameKey, ImmutableMap<String, ? extends BiFunction<? super ChooseConfig<T>, String, T>> allocatorMap,
+	public ChooseConfig(ILPCConfigReadable parent, String nameKey, ImmutableMap<String, ? extends BiFunction<? super ChooseConfig<T>, String, T>> allocatorMap,
 						ILPCValueChangeCallback callback) {
 		this(parent, nameKey, convert(allocatorMap), defaultOptionTree(allocatorMap.keySet()), callback, null);
 	}
@@ -89,9 +88,11 @@ public class ChooseConfig<T extends ILPCConfig> extends LPCUniqueConfigBase impl
 		return res.build();
 	}
 	
-	@Override public ArrayList<GuiConfigsBase.ConfigOptionWrapper> buildConfigWrappers(ArrayList<GuiConfigsBase.ConfigOptionWrapper> wrapperList) {
-		return ILPCConfigReadable.defaultBuildConfigWrappers(wrapperList, List.of(value), true);
-	}
+	@Override public Iterable<ILPCConfig> getConfigs() {return List.of(value);}
+	int indent;
+	@Override public void setAlignedIndent(int indent) {this.indent = indent;}
+	@Override public int getAlignedIndent() {return indent;}
+	
 	private record WrappedAllocators<T extends ILPCConfig, U>(ImmutableMap<String, ? extends TriFunction<? super ChooseConfig<T>, String, U, T>> allocatorMap, U userData){
 		public T allocate(String key, ChooseConfig<T> config){
 			return Objects.requireNonNull(allocatorMap.get(key)).apply(config, key, userData);

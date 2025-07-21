@@ -3,7 +3,6 @@ package lpctools.lpcfymasaapi.configButtons.uniqueConfigs;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
-import fi.dy.masa.malilib.gui.GuiConfigsBase;
 import fi.dy.masa.malilib.gui.LeftRight;
 import fi.dy.masa.malilib.gui.MaLiLibIcons;
 import fi.dy.masa.malilib.gui.button.IButtonActionListener;
@@ -22,13 +21,11 @@ public class ButtonThirdListConfig extends ButtonConfig implements IThirdListBas
     public final LPCConfigList subConfigs;
     public ButtonThirdListConfig(ILPCConfigReadable parent, String nameKey, @Nullable IButtonActionListener listener) {
         super(parent, nameKey, listener);
-        subConfigs = new LPCConfigList(this, getNameKey());
-    }
-    @Override public ArrayList<GuiConfigsBase.ConfigOptionWrapper> buildConfigWrappers(ArrayList<GuiConfigsBase.ConfigOptionWrapper> wrapperList) {
-        if(extended) return subConfigs.buildConfigWrappers(wrapperList);
-        else return wrapperList;
+        subConfigs = new LPCConfigList(parent, getNameKey());
     }
     @Override public @NotNull ArrayList<ILPCConfig> getConfigs() {return subConfigs.getConfigs();}
+    @Override public void setAlignedIndent(int indent) {subConfigs.setAlignedIndent(indent);}
+    @Override public int getAlignedIndent() {return subConfigs.getAlignedIndent();}
     @Override public void getButtonOptions(ButtonOptionArrayList res) {
         res.add(new ButtonOption(-1, (button, mouseButton)->{extended = !extended; getPage().updateIfCurrent();}, null,
             ILPCUniqueConfigBase.iconButtonAllocator(extended ? MaLiLibIcons.ARROW_UP : MaLiLibIcons.ARROW_DOWN, LeftRight.CENTER)));

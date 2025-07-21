@@ -16,7 +16,9 @@ import fi.dy.masa.malilib.gui.button.IButtonActionListener;
 import fi.dy.masa.malilib.gui.button.ButtonBase;
 import fi.dy.masa.malilib.gui.button.ButtonGeneric;
 import lpctools.lpcfymasaapi.configButtons.UpdateTodo;
+import lpctools.lpcfymasaapi.interfaces.ILPCConfig;
 import lpctools.lpcfymasaapi.interfaces.ILPCConfigBase;
+import lpctools.lpcfymasaapi.interfaces.ILPCConfigReadable;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.screen.Screen;
 import org.jetbrains.annotations.NotNull;
@@ -32,15 +34,13 @@ import java.util.function.Supplier;
 import static lpctools.lpcfymasaapi.LPCConfigUtils.*;
 
 //单个总设置页面，就是在设置右上角分列出的不同页面
-public class LPCConfigPage implements IConfigHandler, Supplier<GuiBase>, ILPCConfigBase {
+public class LPCConfigPage implements IConfigHandler, Supplier<GuiBase>, ILPCConfigBase, ILPCConfigReadable {
     //构造函数
     public LPCConfigPage(Reference modReference) {
         this.modReference = modReference;
         configFileName = modReference.modId + "-LPCConfig.json";
         if(LPCAPIInit.MASAInitialized) afterInit();
-        else {
-            uninitializedConfigPages.add(this);
-        }
+        else uninitializedConfigPages.add(this);
     }
     public Reference getModReference(){return modReference;}
     //给当前页面新添一列
@@ -144,16 +144,19 @@ public class LPCConfigPage implements IConfigHandler, Supplier<GuiBase>, ILPCCon
         if(inputHandler == null) inputHandler = new InputHandler(modReference);
     }
 
-    @Override public @NotNull ILPCConfigBase getParent() {return this;}
+    @Override public @NotNull ILPCConfigReadable getParent() {return this;}
     @Override public @NotNull String getNameKey() {return "configs";}
-    @Override public @NotNull String getAlignSpaces(){return "";}
+    @Override public int getAlignLevel(){return -2;}
     //只有LPCConfigPage重载此方法，结束递归
     @Override public @NotNull StringBuilder getFullPath() {
         return new StringBuilder(getModReference().modId).append('.').append(getNameKey());
     }
-    
     @Override public @NotNull LPCConfigPage getPage() {return this;}
-
+    @Override public Iterable<? extends ILPCConfig> getConfigs() {return lists.get(selectedIndex).getConfigs();}
+    int indent;
+    @Override public void setAlignedIndent(int indent) {this.indent = indent;}
+    @Override public int getAlignedIndent() {return indent;}
+    
     public class ConfigPageInstance extends GuiConfigsBase{
         @Override public void initGui() {
             super.initGui();
@@ -172,7 +175,7 @@ public class LPCConfigPage implements IConfigHandler, Supplier<GuiBase>, ILPCCon
         }
         @Override protected void reCreateListWidget() {super.reCreateListWidget();}
         @Override public List<ConfigOptionWrapper> getConfigs() {
-            return lists.get(selectedIndex).buildConfigWrappers(new ArrayList<>());
+            return lists.get(selectedIndex).buildConfigWrappers(this::getStringWidth, new ArrayList<>());
         }
         @Override public void removed(){
             super.removed();

@@ -1,7 +1,7 @@
 package lpctools.scripts.suppliers.staticSuppliers;
 
 import lpctools.lpcfymasaapi.configButtons.uniqueConfigs.BlockPosConfig;
-import lpctools.lpcfymasaapi.interfaces.ILPCConfigBase;
+import lpctools.lpcfymasaapi.interfaces.ILPCConfigReadable;
 import lpctools.scripts.runners.variables.CompiledVariableList;
 import lpctools.scripts.runners.variables.VariableMap;
 import lpctools.scripts.suppliers.interfaces.IScriptBlockPosSupplier;
@@ -11,7 +11,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.function.Function;
 
 public class StaticBlockPos extends BlockPosConfig implements IScriptBlockPosSupplier {
-	public StaticBlockPos(ILPCConfigBase parent) {
+	public StaticBlockPos(ILPCConfigReadable parent) {
 		super(parent, nameKey, BlockPos.ORIGIN, null);
 		setValueChangeCallback(()->getScript().onValueChanged());
 	}

@@ -1,7 +1,7 @@
 package lpctools.scripts.runners.variables;
 
 import lpctools.lpcfymasaapi.configButtons.uniqueConfigs.UniqueStringConfig;
-import lpctools.lpcfymasaapi.interfaces.ILPCConfigBase;
+import lpctools.lpcfymasaapi.interfaces.ILPCConfigReadable;
 import lpctools.scripts.runners.IScriptRunner;
 import org.apache.commons.lang3.mutable.Mutable;
 import org.jetbrains.annotations.NotNull;
@@ -9,7 +9,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.function.Consumer;
 
 public abstract class Variable<T> extends UniqueStringConfig implements IScriptRunner {
-     public Variable(@NotNull ILPCConfigBase parent, @NotNull String nameKey) {
+     public Variable(@NotNull ILPCConfigReadable parent, @NotNull String nameKey) {
           super(parent, nameKey, null, null);
           setValueChangeCallback(()->getScript().onValueChanged());
      }

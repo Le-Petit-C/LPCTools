@@ -5,6 +5,7 @@ import fi.dy.masa.malilib.gui.LeftRight;
 import fi.dy.masa.malilib.gui.MaLiLibIcons;
 
 import java.util.ArrayList;
+import java.util.function.ToIntFunction;
 
 public interface IExpandableThirdList extends IThirdListBase{
     boolean isExpanded();
@@ -15,8 +16,8 @@ public interface IExpandableThirdList extends IThirdListBase{
         return new ILPCUniqueConfigBase.ButtonOption(-1, (button, mouseButton)->config.setExpanded(!config.isExpanded()), null,
             ILPCUniqueConfigBase.iconButtonAllocator(config.isExpanded() ? MaLiLibIcons.ARROW_UP : MaLiLibIcons.ARROW_DOWN, LeftRight.CENTER));
     }
-    @Override default ArrayList<GuiConfigsBase.ConfigOptionWrapper> buildConfigWrappers(ArrayList<GuiConfigsBase.ConfigOptionWrapper> wrapperList) {
-        if(isExpanded()) return IThirdListBase.super.buildConfigWrappers(wrapperList);
+    @Override default ArrayList<GuiConfigsBase.ConfigOptionWrapper> buildConfigWrappers(ToIntFunction<String> getStringWidth, ArrayList<GuiConfigsBase.ConfigOptionWrapper> wrapperList) {
+        if(isExpanded()) return IThirdListBase.super.buildConfigWrappers(getStringWidth, wrapperList);
         else return wrapperList;
     }
 }

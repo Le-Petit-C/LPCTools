@@ -28,7 +28,7 @@ public class ClientPlayerInteractionManagerMixin {
         if(client.world == null) return false;
         if(!BRConfig.getBooleanValue()) return false;
         BlockState state = client.world.getBlockState(pos);
-        if(!blockTestMethod.getCurrentUserdata().canBreak(state.getBlock())) return true;
+        if(!blockTestMethod.getCurrentUserdata().right.applyAsBoolean(state.getBlock())) return true;
         if(!shapeList.testPos(pos)) return true;
         return false;
     }

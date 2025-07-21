@@ -6,10 +6,11 @@ import lpctools.lpcfymasaapi.LPCConfigPage;
 import lpctools.lpcfymasaapi.configButtons.UpdateTodo;
 import org.jetbrains.annotations.NotNull;
 
+import static lpctools.generic.GenericConfigs.*;
+
 public interface ILPCConfig extends ILPCConfigBase, IConfigBase, ILPCConfigNotifiable {
     //当前配置是否有关热键，决定是否启用热键查找
     boolean hasHotkey();
-    @Override @NotNull ILPCConfigBase getParent();
 
     @Override default @NotNull String getNameKey(){return getName();}
     @Override default @NotNull LPCConfigPage getPage(){return getParent().getPage();}
@@ -20,12 +21,12 @@ public interface ILPCConfig extends ILPCConfigBase, IConfigBase, ILPCConfigNotif
     }
     
     //根据是否对齐刷新当前配置名
-    default void refreshName(boolean align){
-        setTranslatedName(align ? getAlignedNameTranslation() : getNameTranslation());
+    default void refreshName(){
+        setTranslatedName(getAlignedNameTranslation());
         setComment(getFullCommentTranslationKey());
     }
     //获取当前配置基于默认parent对齐后的配置名
     default @NotNull String getAlignedNameTranslation(){
-        return getParentSpaces() + getNameTranslation();
+        return " ".repeat(indentSpaces.getAsInt() * getAlignLevel()) + getNameTranslation();
     }
 }

@@ -20,6 +20,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.*;
 import java.util.function.BiFunction;
 import java.util.function.Supplier;
+import java.util.function.ToIntFunction;
 
 import static lpctools.lpcfymasaapi.LPCConfigUtils.*;
 import static lpctools.lpcfymasaapi.interfaces.ILPCUniqueConfigBase.*;
@@ -54,18 +55,21 @@ public class MutableConfig<T extends ILPCUniqueConfigBase> extends LPCUniqueConf
         setSubConfigsValueFromJsonElement(defaultJson);
         getPage().updateIfCurrent();
     }
-    
-    @Override public ArrayList<GuiConfigsBase.ConfigOptionWrapper> buildConfigWrappers(ArrayList<GuiConfigsBase.ConfigOptionWrapper> wrapperList) {
-        if(expanded) return ILPCConfigReadable.defaultBuildConfigWrappers(wrapperList, subConfigs, true);
+    @Override public Iterable<? extends ILPCConfig> getConfigs(){return subConfigs;}
+    @Override public ArrayList<GuiConfigsBase.ConfigOptionWrapper> buildConfigWrappers(ToIntFunction<String> getStringWidth, ArrayList<GuiConfigsBase.ConfigOptionWrapper> wrapperList) {
+        if(expanded) return ILPCConfigReadable.super.buildConfigWrappers(getStringWidth, wrapperList);
         else return wrapperList;
     }
+    int indent;
+    @Override public void setAlignedIndent(int indent) {this.indent = indent;}
+    @Override public int getAlignedIndent() {return indent;}
     
     @Override public void close() {
         for(MutableConfigOption<? extends T> config : subConfigs)
             config.close();
         subConfigs.clear();
     }
-    public MutableConfig(@NotNull ILPCConfigBase parent, @NotNull String nameKey, @NotNull String buttonKeyPrefix,
+    public MutableConfig(@NotNull ILPCConfigReadable parent, @NotNull String nameKey, @NotNull String buttonKeyPrefix,
                          @NotNull ImmutableMap<String, BiFunction<MutableConfig<T>, String, T>> configSuppliers,
                          @Nullable Map<?, ?> optionTree, @Nullable ILPCValueChangeCallback callback){
         super(parent, nameKey, null);
@@ -81,12 +85,12 @@ public class MutableConfig<T extends ILPCUniqueConfigBase> extends LPCUniqueConf
         }
         else this.optionTree = optionTree;
     }
-    public <U> MutableConfig(@NotNull ILPCConfigBase parent, @NotNull String nameKey, @NotNull String buttonKeyPrefix,
+    public <U> MutableConfig(@NotNull ILPCConfigReadable parent, @NotNull String nameKey, @NotNull String buttonKeyPrefix,
                          @NotNull ImmutableMap<String, TriFunction<MutableConfig<T>, String, U, T>> configSuppliers,
                          @Nullable ILPCValueChangeCallback callback, U userData) {
         this(parent, nameKey, buttonKeyPrefix, convertSuppliers(configSuppliers, userData), callback);
     }
-    public MutableConfig(@NotNull ILPCConfigBase parent, @NotNull String nameKey, @NotNull String buttonKeyPrefix,
+    public MutableConfig(@NotNull ILPCConfigReadable parent, @NotNull String nameKey, @NotNull String buttonKeyPrefix,
                          @NotNull ImmutableMap<String, BiFunction<MutableConfig<T>, String, T>> configSuppliers,
                          @Nullable ILPCValueChangeCallback callback){
         this(parent, nameKey, buttonKeyPrefix, configSuppliers, null, callback);
@@ -269,9 +273,12 @@ public class MutableConfig<T extends ILPCUniqueConfigBase> extends LPCUniqueConf
             super(parent, wrappedConfig1);
             this.wrappedConfig2 = wrappedConfig2;
         }
-        @Override public ArrayList<GuiConfigsBase.ConfigOptionWrapper> buildConfigWrappers(ArrayList<GuiConfigsBase.ConfigOptionWrapper> wrapperList) {
-            return wrappedConfig2.buildConfigWrappers(wrapperList);
+        @Override public Iterable<? extends ILPCConfig> getConfigs(){return wrappedConfig2.getConfigs();}
+        @Override public ArrayList<GuiConfigsBase.ConfigOptionWrapper> buildConfigWrappers(ToIntFunction<String> getStringWidth, ArrayList<GuiConfigsBase.ConfigOptionWrapper> wrapperList) {
+            return wrappedConfig2.buildConfigWrappers(getStringWidth, wrapperList);
         }
+        @Override public void setAlignedIndent(int indent) {wrappedConfig2.setAlignedIndent(indent);}
+        @Override public int getAlignedIndent() {return wrappedConfig2.getAlignedIndent();}
     }
     private @NotNull <V extends T> MutableConfig.MutableConfigOption<V> wrapConfig(@NotNull V config){
         if(config instanceof ILPCConfigReadable displayable)

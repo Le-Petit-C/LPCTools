@@ -27,14 +27,20 @@ public class GenericConfigs {
     static {listStack.push(generic);}
     @SuppressWarnings("unused")
     public static final ConfigOpenGuiConfig configOpenGuiConfig = addConfigOpenGuiConfig("Z,C");
+    public static final IntegerConfig labelButtonDistance = addIntegerConfig("labelButtonDistance", 10, 0, 100);
+    public static final IntegerConfig indentAll = addIntegerConfig("indentAll", 0, 0, 100);
+    public static final IntegerConfig indentSpaces = addIntegerConfig("indentSpaces", 4, 0, 20);
+    public static final IntegerConfig indentShift = addIntegerConfig("indentShift", 0, 0, 100);
+    public static final BooleanConfig useLabelIndent = addBooleanConfig("useLabelIndent", false);
+    static {useLabelIndent.setValueChangeCallback(()-> useLabelIndent.getPage().updateIfCurrent());}
+    public static final BooleanThirdListConfig useIndependentThreadPool = addBooleanThirdListConfig("threadPool", true, null);
+    public static final IntegerConfig threadCountConfig = addIntegerConfig(useIndependentThreadPool, "threadCount", 4,
+        1, Runtime.getRuntime().availableProcessors(), GenericConfigs::threadCountConfigCallback);
     public static final IntegerConfig spawnLightLevelLimit = addIntegerConfig("spawnLightLevelLimit", 0, 0, 15, runSpawnConditionChanged);
     public static final BooleanConfig liquidPlacesAsCanSpawn = addBooleanConfig("liquidPlacesAsCanSpawn", false,runSpawnConditionChanged);
     public static final ObjectListConfig.BlockListConfig extraSpawnBlocks = addBlockListConfig("extraSpawnBlocks", defaultExtraSpawnBlocks);
     public static final ObjectListConfig.BlockListConfig extraNoSpawnBlocks = addBlockListConfig("extraNoSpawnBlocks", defaultExtraNoSpawnBlocks);
     public static final BooleanConfig reachDistanceAlwaysUnlimited = addBooleanConfig("reachDistanceAlwaysUnlimited", false);
-    public static final BooleanThirdListConfig useIndependentThreadPool = addBooleanThirdListConfig("threadPool", true, null);
-    public static final IntegerConfig threadCountConfig = addIntegerConfig(useIndependentThreadPool, "threadCount", 4,
-        1, Runtime.getRuntime().availableProcessors(), GenericConfigs::threadCountConfigCallback);
     static {threadCountConfig.onValueChanged();}
     static {listStack.pop();}
     

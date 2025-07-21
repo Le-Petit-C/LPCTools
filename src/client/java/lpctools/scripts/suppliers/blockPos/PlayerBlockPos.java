@@ -1,7 +1,7 @@
 package lpctools.scripts.suppliers.blockPos;
 
 import lpctools.lpcfymasaapi.configButtons.uniqueConfigs.ButtonConfig;
-import lpctools.lpcfymasaapi.interfaces.ILPCConfigBase;
+import lpctools.lpcfymasaapi.interfaces.ILPCConfigReadable;
 import lpctools.scripts.runners.variables.CompiledVariableList;
 import lpctools.scripts.runners.variables.VariableMap;
 import lpctools.scripts.suppliers.interfaces.IScriptBlockPosSupplier;
@@ -13,7 +13,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.function.Function;
 
 public class PlayerBlockPos extends ButtonConfig implements IScriptBlockPosSupplier {
-	public PlayerBlockPos(ILPCConfigBase parent) {super(parent, nameKey, null);}
+	public PlayerBlockPos(ILPCConfigReadable parent) {super(parent, nameKey, null);}
 	@Override public @NotNull String getFullTranslationKey() {return fullKey;}
 	public static final String nameKey = "playerBlockPos";
 	public static final String fullKey = fullPrefix + nameKey;

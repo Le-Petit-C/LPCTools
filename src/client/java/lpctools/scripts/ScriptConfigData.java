@@ -2,7 +2,7 @@ package lpctools.scripts;
 
 import com.google.common.collect.ImmutableMap;
 import lpctools.lpcfymasaapi.configButtons.uniqueConfigs.MutableConfig;
-import lpctools.lpcfymasaapi.interfaces.ILPCConfigBase;
+import lpctools.lpcfymasaapi.interfaces.ILPCConfigReadable;
 import lpctools.lpcfymasaapi.interfaces.ILPCUniqueConfigBase;
 import lpctools.scripts.runners.IScriptRunner;
 import lpctools.scripts.runners.InteractBlock;
@@ -28,8 +28,8 @@ public class ScriptConfigData {
 			.put(InteractBlock.nameKey, (p, k) -> new InteractBlock(p))
 			.put(RunnerMessage.nameKey, (p, k) -> new RunnerMessage(p))
 			.build();
-	public static final ImmutableMap<String, BiFunction<ILPCConfigBase, String, IScriptSupplier<BlockPos>>> blockPosSupplierConfigs =
-		ImmutableMap.<String, BiFunction<ILPCConfigBase, String, IScriptSupplier<BlockPos>>>builder()
+	public static final ImmutableMap<String, BiFunction<ILPCConfigReadable, String, IScriptSupplier<BlockPos>>> blockPosSupplierConfigs =
+		ImmutableMap.<String, BiFunction<ILPCConfigReadable, String, IScriptSupplier<BlockPos>>>builder()
 			.put(StaticBlockPos.nameKey, (p, k) -> new StaticBlockPos(p))
 			.put(PlayerBlockPos.nameKey, (p, k) -> new PlayerBlockPos(p))
 			.build();

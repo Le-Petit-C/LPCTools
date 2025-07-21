@@ -1,7 +1,7 @@
 package lpctools.scripts.runners;
 
 import lpctools.lpcfymasaapi.configButtons.uniqueConfigs.MutableConfig;
-import lpctools.lpcfymasaapi.interfaces.ILPCConfigBase;
+import lpctools.lpcfymasaapi.interfaces.ILPCConfigReadable;
 import lpctools.scripts.CompileFailedException;
 import lpctools.scripts.runners.variables.CompiledVariableList;
 import lpctools.scripts.runners.variables.VariableMap;
@@ -13,7 +13,7 @@ import java.util.function.Consumer;
 import static lpctools.scripts.ScriptConfigData.runnerConfigs;
 
 public class SubRunners extends MutableConfig<IScriptRunner> implements IScriptRunner{
-	public SubRunners(@NotNull ILPCConfigBase parent) {
+	public SubRunners(@NotNull ILPCConfigReadable parent) {
 		super(parent, nameKey, "lpctools.configs.scripts.runners", runnerConfigs, null);
 		setValueChangeCallback(()->getScript().onValueChanged());
 	}

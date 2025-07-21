@@ -3,7 +3,6 @@ package lpctools.lpcfymasaapi.configButtons.uniqueConfigs;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
-import fi.dy.masa.malilib.gui.GuiConfigsBase;
 import fi.dy.masa.malilib.gui.LeftRight;
 import fi.dy.masa.malilib.gui.MaLiLibIcons;
 import lpctools.lpcfymasaapi.LPCConfigList;
@@ -11,16 +10,15 @@ import lpctools.lpcfymasaapi.configButtons.UpdateTodo;
 import lpctools.lpcfymasaapi.interfaces.*;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
 import java.util.Collection;
 
 import static lpctools.lpcfymasaapi.LPCConfigUtils.*;
 
 //第三级列表，配置中切换true或false可以展开或收起内含的配置项
-public class ThirdListConfig extends LPCUniqueConfigBase implements IThirdListBase, IBooleanThirdList {
+public class ThirdListConfig extends LPCUniqueConfigBase implements IExpandableThirdList {
     protected boolean expanded;
     public final String expandedJsonId = "expanded";
-    public ThirdListConfig(ILPCConfigBase parent, String nameKey, ILPCValueChangeCallback callback) {
+    public ThirdListConfig(ILPCConfigReadable parent, String nameKey, ILPCValueChangeCallback callback) {
         super(parent, nameKey, callback);
         subConfigs = new LPCConfigList(parent, nameKey);
     }
@@ -29,10 +27,8 @@ public class ThirdListConfig extends LPCUniqueConfigBase implements IThirdListBa
         super.onValueChanged();
     }
     @Override public @NotNull Collection<ILPCConfig> getConfigs() {return subConfigs.getConfigs();}
-    @Override public ArrayList<GuiConfigsBase.ConfigOptionWrapper> buildConfigWrappers(ArrayList<GuiConfigsBase.ConfigOptionWrapper> wrapperList) {
-        if(isExpanded()) return subConfigs.buildConfigWrappers(wrapperList);
-        else return wrapperList;
-    }
+    @Override public void setAlignedIndent(int indent) {subConfigs.setAlignedIndent(indent);}
+    @Override public int getAlignedIndent() {return subConfigs.getAlignedIndent();}
     @Override public @NotNull JsonObject getAsJsonElement(){
         JsonObject object = new JsonObject();
         object.addProperty(expandedJsonId, expanded);

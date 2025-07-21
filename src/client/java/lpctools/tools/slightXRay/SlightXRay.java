@@ -1,11 +1,9 @@
 package lpctools.tools.slightXRay;
 
 import fi.dy.masa.malilib.util.data.Color4f;
-import lpctools.lpcfymasaapi.LPCConfigList;
 import lpctools.lpcfymasaapi.configButtons.derivedConfigs.ConfigListOptionListConfigEx;
 import lpctools.lpcfymasaapi.configButtons.transferredConfigs.*;
 import lpctools.lpcfymasaapi.configButtons.uniqueConfigs.BooleanHotkeyThirdListConfig;
-import lpctools.lpcfymasaapi.interfaces.ILPCConfigBase;
 import lpctools.lpcfymasaapi.interfaces.ILPCConfigList;
 import lpctools.lpcfymasaapi.configButtons.derivedConfigs.RangeLimitConfig;
 import lpctools.mixin.client.SpriteContentsMixin;
@@ -17,10 +15,10 @@ import net.minecraft.client.render.model.BlockStateModel;
 import net.minecraft.client.texture.NativeImage;
 import net.minecraft.client.texture.Sprite;
 import org.apache.commons.lang3.mutable.MutableInt;
-import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
 import java.util.*;
+import java.util.function.ToIntFunction;
 
 import static lpctools.lpcfymasaapi.LPCConfigStatics.*;
 import static lpctools.tools.ToolUtils.*;
@@ -31,13 +29,12 @@ public class SlightXRay{
     public static final BooleanHotkeyThirdListConfig SXConfig = new BooleanHotkeyThirdListConfig(ToolConfigs.toolConfigs, "SX", SlightXRay::switchChanged);
     static {setLPCToolsToggleText(SXConfig);}
     static {listStack.push(SXConfig);}
-    public static final ConfigListOptionListConfigEx<ConfigListWithColorMethod> defaultColorMethod = addConfigListOptionListConfigEx("defaultColorMethod", SlightXRay::refreshXRayBlocks);
-    public static final ILPCConfigList byTextureColor = defaultColorMethod.addList(
-        new ConfigListWithColorBase(defaultColorMethod, "byTextureColor", SlightXRay::getColorByTextureColor));
+    public static final ConfigListOptionListConfigEx<ToIntFunction<Block>> defaultColorMethod = addConfigListOptionListConfigEx("defaultColorMethod", SlightXRay::refreshXRayBlocks);
+    public static final ILPCConfigList byTextureColor = defaultColorMethod.addList("byTextureColor", SlightXRay::getColorByTextureColor);
     public static final IntegerConfig defaultAlpha = addIntegerConfig(byTextureColor, "defaultAlpha", 127, 0, 255, SlightXRay::refreshXRayBlocks);
     public static final DoubleConfig saturationDelta = addDoubleConfig(byTextureColor, "saturationDelta", 1, -5, 5, SlightXRay::refreshXRayBlocks);
     public static final DoubleConfig brightnessDelta = addDoubleConfig(byTextureColor, "brightnessDelta", 1, -5, 5, SlightXRay::refreshXRayBlocks);
-    public static final ILPCConfigList byDefaultColor = defaultColorMethod.addList(new ConfigListWithColorBase(defaultColorMethod, "byDefaultColor", SlightXRay::getColorByDefaultColor));
+    public static final ILPCConfigList byDefaultColor = defaultColorMethod.addList("byDefaultColor", SlightXRay::getColorByDefaultColor);
     public static final ColorConfig defaultColor = addColorConfig(byDefaultColor, "defaultColor", new Color4f(0.5f, 0.5f, 1.0f, 0.5f), SlightXRay::refreshXRayBlocks);
     public static final StringListConfig XRayBlocksConfig = addStringListConfig("XRayBlocks", defaultXRayBlockIds, SlightXRay::refreshXRayBlocks);
     public static final BooleanConfig useCullFace = addBooleanConfig("useCullFace", true);
@@ -97,7 +94,7 @@ public class SlightXRay{
                         continue;
                     }
                 }
-                if(color == null) color = defaultColorMethod.getCurrentUserdata().getColor(block);
+                if(color == null) color = defaultColorMethod.getCurrentUserdata().right.applyAsInt(block);
                 newBlocks.put(block, new MutableInt(color));
             }
             else warnInvalidString(str);
@@ -128,18 +125,5 @@ public class SlightXRay{
                 renderInstance = null;
             }
         }
-    }
-
-    public interface DefaultColorMethod{ int getColor(Block block); }
-    public interface ConfigListWithColorMethod extends ILPCConfigList, DefaultColorMethod{}
-    public static class ConfigListWithColorBase extends LPCConfigList implements ConfigListWithColorMethod{
-        public ConfigListWithColorBase(ILPCConfigBase parent, String nameKey, @NotNull DefaultColorMethod defaultColorMethod) {
-            super(parent, nameKey);
-            this.defaultColorMethod = defaultColorMethod;
-        }
-        @Override public int getColor(Block block) {
-            return defaultColorMethod.getColor(block);
-        }
-        public final @NotNull DefaultColorMethod defaultColorMethod;
     }
 }
