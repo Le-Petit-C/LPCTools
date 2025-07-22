@@ -75,7 +75,7 @@ public class BlockPosConfig extends ThirdListConfig implements IConfigResettable
     @Override public void resetToDefault() {setPos(getDefaultPos());}
     @Override public void onValueChanged() {
         super.onValueChanged();
-        getPage().updateIfCurrent();
+        getPage().markNeedUpdate();
     }
     
     public static class _INTConfig extends IntegerConfig{
@@ -91,7 +91,7 @@ public class BlockPosConfig extends ThirdListConfig implements IConfigResettable
         }
         @Override public void onValueChanged() {
             super.onValueChanged();
-            getPage().updateIfCurrent();
+            getPage().markNeedUpdate();
         }
     }
 }

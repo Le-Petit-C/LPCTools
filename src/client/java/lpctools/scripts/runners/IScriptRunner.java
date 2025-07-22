@@ -4,10 +4,12 @@ import lpctools.scripts.CompileFailedException;
 import lpctools.scripts.IScriptBase;
 import lpctools.scripts.runners.variables.CompiledVariableList;
 import lpctools.scripts.runners.variables.VariableMap;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.function.Consumer;
 
 public interface IScriptRunner extends IScriptBase {
-    Consumer<CompiledVariableList> compile(VariableMap variableMap) throws CompileFailedException;
-    String fullPrefix = IScriptBase.fullPrefix + "runners.";
+    @NotNull Consumer<CompiledVariableList> compile(VariableMap variableMap) throws CompileFailedException;
+    String fullKey = IScriptBase.fullPrefix + "runners";
+    String fullPrefix = fullKey + '.';
 }

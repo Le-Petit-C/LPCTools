@@ -14,7 +14,7 @@ public class RunnerMessage extends UniqueStringConfig implements IScriptRunner {
 	public RunnerMessage(@NotNull ILPCConfigReadable parent) {
 		super(parent, nameKey, null, null);
 	}
-	@Override public Consumer<CompiledVariableList> compile(VariableMap variableMap) {
+	@Override public @NotNull Consumer<CompiledVariableList> compile(VariableMap variableMap) {
 		return list->notifyPlayer(getStringValue(), false);
 	}
 	@Override public @NotNull String getFullTranslationKey() {return fullKey;}

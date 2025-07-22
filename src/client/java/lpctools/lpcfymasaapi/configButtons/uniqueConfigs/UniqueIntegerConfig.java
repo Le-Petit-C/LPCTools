@@ -75,7 +75,7 @@ public class UniqueIntegerConfig extends LPCUniqueConfigBase implements IConfigI
         else res.add(ILPCUniqueConfigBase.textFieldConfigValuePreset(1, this));
         res.add(new ButtonOption(-1, (button, mouseButton)->{
             useSlider = !useSlider;
-            getPage().updateIfCurrent();
+            getPage().markNeedUpdate();
         }, null, ILPCUniqueConfigBase.iconButtonAllocator( useSlider ? MaLiLibIcons.BTN_TXTFIELD : MaLiLibIcons.BTN_SLIDER, LeftRight.CENTER)));
     }
     @Override public @Nullable JsonPrimitive getAsJsonElement() {return new JsonPrimitive(intValue);}

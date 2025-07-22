@@ -20,6 +20,7 @@ import lpctools.lpcfymasaapi.interfaces.ILPCConfig;
 import lpctools.lpcfymasaapi.interfaces.ILPCConfigBase;
 import lpctools.lpcfymasaapi.interfaces.ILPCConfigReadable;
 import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.Screen;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -66,12 +67,10 @@ public class LPCConfigPage implements IConfigHandler, Supplier<GuiBase>, ILPCCon
         if(MinecraftClient.getInstance().currentScreen != pageInstance)
             GuiBase.openGui(pageInstance);
     }
-    //如果当前页面正在展示中，刷新当前页面
-    public void updateIfCurrent(){
-        if(MinecraftClient.getInstance().currentScreen instanceof ConfigPageInstance instance
-            && instance.getOuter() == this)
-            instance.initGui();
-    }
+    private boolean needUpdate = true;
+    //将当前页面标记为需要刷新
+    public void markNeedUpdate(){needUpdate = true;}
+    public void markNeedUpdate(boolean b){needUpdate |= b;}
     //获取当前列
     public LPCConfigList getList(){return lists.get(selectedIndex);}
     @Override public ConfigPageInstance get() {
@@ -204,7 +203,15 @@ public class LPCConfigPage implements IConfigHandler, Supplier<GuiBase>, ILPCCon
             if(getListWidget() instanceof WidgetListConfigOptions widget)
                 widget.markConfigsModified();
         }
-
+        
+        @Override public void render(DrawContext drawContext, int mouseX, int mouseY, float partialTicks) {
+            if(needUpdate) {
+                initGui();
+                needUpdate = false;
+            }
+            super.render(drawContext, mouseX, mouseY, partialTicks);
+        }
+        
         private record ButtonListener(int index, ConfigPageInstance parent) implements IButtonActionListener {
             @Override public void actionPerformedWithButton(ButtonBase button, int mouseButton) {parent.select(index);}
         }

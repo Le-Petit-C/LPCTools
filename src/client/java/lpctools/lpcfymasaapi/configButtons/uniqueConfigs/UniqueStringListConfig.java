@@ -72,7 +72,7 @@ public class UniqueStringListConfig extends LPCUniqueConfigBase implements IConf
         if(isModified()){
             strings.clear();
             strings.addAll(defaultStrings);
-            getPage().updateIfCurrent();
+            getPage().markNeedUpdate();
             onValueChanged();
         }
     }

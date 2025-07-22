@@ -127,7 +127,7 @@ public class TilingTool {
     static void setConfigBox(Box3i box){
         cornerPos1.setPos(box.pos1);
         cornerPos2.setPos(box.pos2);
-        TTConfig.getPage().updateIfCurrent();
+        TTConfig.getPage().markNeedUpdate();
     }
     static Box3i getConfigBox(Box3i box){
         cornerPos1.getPos(box.pos1);

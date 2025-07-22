@@ -32,7 +32,7 @@ public class GenericConfigs {
     public static final IntegerConfig indentSpaces = addIntegerConfig("indentSpaces", 4, 0, 20);
     public static final IntegerConfig indentShift = addIntegerConfig("indentShift", 0, 0, 100);
     public static final BooleanConfig useLabelIndent = addBooleanConfig("useLabelIndent", false);
-    static {useLabelIndent.setValueChangeCallback(()-> useLabelIndent.getPage().updateIfCurrent());}
+    static {useLabelIndent.setValueChangeCallback(()-> useLabelIndent.getPage().markNeedUpdate());}
     public static final BooleanThirdListConfig useIndependentThreadPool = addBooleanThirdListConfig("threadPool", true, null);
     public static final IntegerConfig threadCountConfig = addIntegerConfig(useIndependentThreadPool, "threadCount", 4,
         1, Runtime.getRuntime().availableProcessors(), GenericConfigs::threadCountConfigCallback);

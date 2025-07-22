@@ -39,20 +39,26 @@ public class ChooseScreen extends GuiBase {
 			MutableInt y = new MutableInt(screen.startY);
 			chooseTree.forEach((key, object)->{
 					if(key instanceof String text){
-						screen.addButton(allocateCenterAt(x, y.getAndAdd(buttonHeightStride), text), (button, mouse)->{
+						screen.addButton(allocateCenterAt(x, y.getAndAdd(buttonHeightStride), Text.translatable(text).getString()), (button, mouse)->{
 							if(object instanceof String optionKey){
 								options.get(optionKey).action(button, mouse, userData);
 								screen.closeGui(true);
 							}
 							else if(object instanceof Map<?, ?> map){
-								MinecraftClient.getInstance().setScreen(
-									new ChooseScreen(screen.getParent(), screen, screen.title, screen.hasCancelButton, options, map, userData));
+								ChooseScreen screen1 = new ChooseScreen(screen.getParent(), screen, screen.title, screen.hasCancelButton, options, map, userData);
+								MinecraftClient.getInstance().setScreen(screen1);
+								screen1.resetY();
+								screen1.initGui();
 							}
 						});
 					}
 				}
 			);
-			if(screen.hasCancelButton) screen.addButton(allocateCenterAt(x, y.intValue(), Text.translatable(cancelKey).getString()), (button, mouse) -> screen.closeGui(true));
+			if(screen.hasCancelButton) screen.addButton(allocateCenterAt(x, y.intValue(), Text.translatable(cancelKey).getString()),
+				(button, mouse) -> {
+				if(screen.chooseParent == null) screen.closeGui(true);
+				else MinecraftClient.getInstance().setScreen(screen.chooseParent);
+			});
 		}
 	}
 	public interface OptionCallback<T>{ void action(ButtonBase button, int mouseButton, T userData);}

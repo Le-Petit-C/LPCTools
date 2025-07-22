@@ -29,7 +29,7 @@ public class BooleanThirdListConfig extends ThirdListConfig implements IBooleanC
     @Override public void setExpanded(boolean expanded) {
         if(expanded != isExpanded()){
             this.expanded = expanded;
-            getPage().updateIfCurrent();
+            getPage().markNeedUpdate();
         }
     }
     @Override public void getButtonOptions(ButtonOptionArrayList res) {

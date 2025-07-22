@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 
 public class VariableMap{
+    //重名变量中上一个变量会覆盖下一个变量
     private final HashMap<String, ArrayList<Variable<?>>> map = new HashMap<>();
     private final Object2IntOpenHashMap<String> indexMap = new Object2IntOpenHashMap<>();
     private final ArrayList<Object2IntOpenHashMap<String>> stack = new ArrayList<>();
@@ -17,6 +18,9 @@ public class VariableMap{
         if(res == null) throw CompileFailedException.undefinedVariable(key);
         if(!instanceofTest.applyAsBoolean(res)) throw CompileFailedException.notExpectedType(key, res, targetTypeDescription);
         return indexMap.getInt(key);
+    }
+    public int get(String key, VariableTestPack testPack) throws CompileFailedException {
+        return get(key, testPack.instanceofTest(), testPack.targetTypeDescription());
     }
     public void put(String key, Variable<?> value){
         Object2IntOpenHashMap<String> stackMap = stack.getLast();

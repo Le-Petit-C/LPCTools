@@ -53,7 +53,7 @@ public class MutableConfig<T extends ILPCUniqueConfigBase> extends LPCUniqueConf
     @Override public boolean isModified() {return !defaultJson.equals(getSubConfigsAsJsonElement());}
     @Override public void resetToDefault() {
         setSubConfigsValueFromJsonElement(defaultJson);
-        getPage().updateIfCurrent();
+        getPage().markNeedUpdate();
     }
     @Override public Iterable<? extends ILPCConfig> getConfigs(){return subConfigs;}
     @Override public ArrayList<GuiConfigsBase.ConfigOptionWrapper> buildConfigWrappers(ToIntFunction<String> getStringWidth, ArrayList<GuiConfigsBase.ConfigOptionWrapper> wrapperList) {
@@ -107,19 +107,19 @@ public class MutableConfig<T extends ILPCUniqueConfigBase> extends LPCUniqueConf
     }
     
     @Override public void getButtonOptions(ButtonOptionArrayList res) {
-        res.add(new ButtonOption(-1, (button, mouseButton)->{expanded = !expanded; getPage().updateIfCurrent();}, null,
+        res.add(new ButtonOption(-1, (button, mouseButton)->{expanded = !expanded; getPage().markNeedUpdate();}, null,
             ILPCUniqueConfigBase.iconButtonAllocator(expanded ? MaLiLibIcons.ARROW_UP : MaLiLibIcons.ARROW_DOWN, LeftRight.CENTER)));
         res.add(new ButtonOption(1, (button, mouseButton)->onAddConfigClicked(subConfigs.size()), ()->buttonName, buttonGenericAllocator));
         if(getParent() instanceof IMutableConfig) return;
         res.add(new ButtonOption(-1, (button, mouseButton)->{
             hideOperationButton = !hideOperationButton;
-            getPage().updateIfCurrent();},
+            getPage().markNeedUpdate();},
             ()->hideOperationButton ? "<" : ">",
             buttonGenericAllocator));
         if(!hideOperationButton)
             res.add(new ButtonOption(-1, (button, mouseButton)->{
                 condenseOperationButton = !condenseOperationButton;
-                getPage().updateIfCurrent();},
+                getPage().markNeedUpdate();},
                 ()->condenseOperationButton ? "<>" : "><",
                 buttonGenericAllocator));
     }
@@ -189,10 +189,12 @@ public class MutableConfig<T extends ILPCUniqueConfigBase> extends LPCUniqueConf
         public final T wrappedConfig;
         public boolean flipPosButton, flipMinusButton;
         public final MutableConfig<? super T> parent;
-        private MutableConfigOption(MutableConfig<? super T> parent, @NotNull T wrappedConfig) {
+        public final String saveKey;
+        private MutableConfigOption(MutableConfig<? super T> parent, @NotNull T wrappedConfig, String saveKey) {
             super(parent, "", parent::onValueChanged);
             this.wrappedConfig = wrappedConfig;
             this.parent = parent;
+            this.saveKey = saveKey;
         }
         @Override public void getButtonOptions(ButtonOptionArrayList res) {
             wrappedConfig.getButtonOptions(res);
@@ -227,7 +229,7 @@ public class MutableConfig<T extends ILPCUniqueConfigBase> extends LPCUniqueConf
                 Collections.swap(parent.subConfigs, position, position + 1);
             }
             else if(mouseButton == 2) flipPosButton = !flipPosButton;
-            getPage().updateIfCurrent();
+            getPage().markNeedUpdate();
         }
         private void minusListener(ButtonBase ignored, int mouseButton){
             int position = getPosition();
@@ -236,17 +238,17 @@ public class MutableConfig<T extends ILPCUniqueConfigBase> extends LPCUniqueConf
             if(mouseButton == 0) {
                 parent.subConfigs.remove(position).close();//删除
                 parent.onValueChanged();
-                getPage().updateIfCurrent();
+                getPage().markNeedUpdate();
             }
             else if(mouseButton == 1) parent.onAddConfigClicked(position);//添加
             else if(mouseButton == 2) {
                 flipMinusButton = !flipMinusButton;
-                getPage().updateIfCurrent();
+                getPage().markNeedUpdate();
             }
         }
         @Override public @Nullable JsonElement getAsJsonElement() {
             JsonObject object = new JsonObject();
-            object.addProperty("supplier", wrappedConfig.getNameKey());
+            object.addProperty("supplier", saveKey);
             object.add("value", wrappedConfig.getAsJsonElement());
             return object;
         }
@@ -269,8 +271,8 @@ public class MutableConfig<T extends ILPCUniqueConfigBase> extends LPCUniqueConf
     }
     public static class ThirdListMutableConfigOption<T extends ILPCUniqueConfigBase, U extends ILPCConfigReadable> extends MutableConfigOption<T> implements ILPCConfigReadable {
         private final U wrappedConfig2;
-        private ThirdListMutableConfigOption(MutableConfig<? super T> parent, @NotNull T wrappedConfig1, @NotNull U wrappedConfig2) {
-            super(parent, wrappedConfig1);
+        private ThirdListMutableConfigOption(MutableConfig<? super T> parent, @NotNull T wrappedConfig1, @NotNull U wrappedConfig2, String saveKey) {
+            super(parent, wrappedConfig1, saveKey);
             this.wrappedConfig2 = wrappedConfig2;
         }
         @Override public Iterable<? extends ILPCConfig> getConfigs(){return wrappedConfig2.getConfigs();}
@@ -280,22 +282,22 @@ public class MutableConfig<T extends ILPCUniqueConfigBase> extends LPCUniqueConf
         @Override public void setAlignedIndent(int indent) {wrappedConfig2.setAlignedIndent(indent);}
         @Override public int getAlignedIndent() {return wrappedConfig2.getAlignedIndent();}
     }
-    private @NotNull <V extends T> MutableConfig.MutableConfigOption<V> wrapConfig(@NotNull V config){
+    private @NotNull <V extends T> MutableConfig.MutableConfigOption<V> wrapConfig(@NotNull V config, String saveKey){
         if(config instanceof ILPCConfigReadable displayable)
-            return new ThirdListMutableConfigOption<>(this, config, displayable);
-        else return new MutableConfigOption<>(this, config);
+            return new ThirdListMutableConfigOption<>(this, config, displayable, saveKey);
+        else return new MutableConfigOption<>(this, config, saveKey);
     }
     private @Nullable MutableConfig.MutableConfigOption<? extends T> allocateConfig(String supplierId){
         BiFunction<MutableConfig<T>, String, T> allocator = configSuppliers.get(supplierId);
         if(allocator == null) return null;
-        return wrapConfig(allocator.apply(this, supplierId));
+        return wrapConfig(allocator.apply(this, supplierId), supplierId);
     }
     private T allocateAndAddConfig(String id, int position){
         MutableConfigOption<? extends T> config = allocateConfig(id);
         if(config == null) return null;
         expanded = true;
         subConfigs.add(position, config);
-        getPage().updateIfCurrent();
+        getPage().markNeedUpdate();
         onValueChanged();
         return config.wrappedConfig;
     }

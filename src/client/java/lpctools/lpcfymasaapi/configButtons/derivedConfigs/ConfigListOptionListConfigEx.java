@@ -43,7 +43,7 @@ public class ConfigListOptionListConfigEx<T> extends ArrayOptionListConfig<@NotN
             todo.combine(super.setValueFromJsonElementEx(superJson));
             for(OptionData<ImmutablePair<ILPCConfigList, T>> list : getCurrentOptionData().options()){
                 ILPCConfigList list1 = list.userData().left;
-                list1.setValueFromParentJsonObject(selections);
+                todo.combine(list1.setValueFromJsonElementEx(selections.get(list.getStringValue())));
             }
         }
         else warnFailedLoadingConfig(this, element);
@@ -51,7 +51,7 @@ public class ConfigListOptionListConfigEx<T> extends ArrayOptionListConfig<@NotN
     }
     @Override public void onValueChanged() {
         super.onValueChanged();
-        getPage().updateIfCurrent();
+        getPage().markNeedUpdate();
     }
     public ILPCConfigList addList(String nameKey, T userData){
         return addOption(nameKey, new ImmutablePair<>(new LPCConfigList(getParent(), getNameKey() + '.' + nameKey), userData)).left;

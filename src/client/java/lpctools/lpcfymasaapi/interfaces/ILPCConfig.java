@@ -16,7 +16,6 @@ public interface ILPCConfig extends ILPCConfigBase, IConfigBase, ILPCConfigNotif
     @Override default @NotNull LPCConfigPage getPage(){return getParent().getPage();}
     @Override default void setValueFromJsonElement(@NotNull JsonElement data){
         UpdateTodo todo = setValueFromJsonElementEx(data);
-        if(todo.updatePage) getPage().updateIfCurrent();
         if(todo.valueChanged) onValueChanged();
     }
     

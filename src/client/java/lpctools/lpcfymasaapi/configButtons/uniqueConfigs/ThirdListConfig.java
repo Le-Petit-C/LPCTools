@@ -23,7 +23,7 @@ public class ThirdListConfig extends LPCUniqueConfigBase implements IExpandableT
         subConfigs = new LPCConfigList(parent, nameKey);
     }
     @Override public void onValueChanged() {
-        getPage().updateIfCurrent();
+        getPage().markNeedUpdate();
         super.onValueChanged();
     }
     @Override public @NotNull Collection<ILPCConfig> getConfigs() {return subConfigs.getConfigs();}
@@ -56,7 +56,7 @@ public class ThirdListConfig extends LPCUniqueConfigBase implements IExpandableT
     @Override public void setExpanded(boolean expanded) {
         if(expanded != this.expanded){
             this.expanded = expanded;
-            getPage().updateIfCurrent();
+            getPage().markNeedUpdate();
             onValueChanged();
         }
     }

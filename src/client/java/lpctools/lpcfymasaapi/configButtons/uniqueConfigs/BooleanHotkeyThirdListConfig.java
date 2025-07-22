@@ -37,7 +37,7 @@ public class BooleanHotkeyThirdListConfig extends BooleanThirdListConfig impleme
         if(isModified()){
             keybind.resetToDefault();
             booleanValue = getDefaultBooleanValue();
-            getPage().updateIfCurrent();
+            getPage().markNeedUpdate();
             onValueChanged();
         }
     }

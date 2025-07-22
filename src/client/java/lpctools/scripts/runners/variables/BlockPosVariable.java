@@ -2,11 +2,16 @@ package lpctools.scripts.runners.variables;
 
 import lpctools.lpcfymasaapi.interfaces.ILPCConfigReadable;
 import net.minecraft.util.math.BlockPos;
-import org.apache.commons.lang3.mutable.Mutable;
-import org.apache.commons.lang3.mutable.MutableObject;
 import org.jetbrains.annotations.NotNull;
 
 public class BlockPosVariable extends Variable<BlockPos>{
-	public BlockPosVariable(@NotNull ILPCConfigReadable parent, @NotNull String nameKey) {super(parent, nameKey);}
-	@Override protected Mutable<BlockPos> allocate() {return new MutableObject<>();}
+	public BlockPosVariable(@NotNull ILPCConfigReadable parent) {super(parent, nameKey);}
+	@Override protected BlockPos allocate() {return BlockPos.ORIGIN;}
+	@Override public @NotNull String getFullTranslationKey() {return fullKey;}
+	public static final String nameKey = "blockPos";
+	public static final String fullKey = fullPrefix + nameKey;
+	public static final VariableTestPack testPack = new VariableTestPack(
+		v->v instanceof BlockPosVariable,
+		fullKey
+	);
 }

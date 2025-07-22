@@ -29,7 +29,7 @@ public class StringThirdListConfig extends UniqueStringConfig implements IExpand
 	@Override public void setExpanded(boolean expanded) {
 		if(this.expanded != expanded){
 			this.expanded = expanded;
-			getPage().updateIfCurrent();
+			getPage().markNeedUpdate();
 		}
 	}
 	@Override public @NotNull Collection<ILPCConfig> getConfigs() {return subConfigs.getConfigs();}
@@ -49,7 +49,7 @@ public class StringThirdListConfig extends UniqueStringConfig implements IExpand
 			if(object.get(expandedKey) instanceof JsonPrimitive primitive){
 				boolean b = expanded;
 				expanded = primitive.getAsBoolean();
-				updateTodo.updatePage(b != expanded);
+				getPage().markNeedUpdate(b != expanded);
 			}
 			updateTodo.combine(subConfigs.setValueFromJsonElementEx(object.get(propertiesId)));
 			return updateTodo;

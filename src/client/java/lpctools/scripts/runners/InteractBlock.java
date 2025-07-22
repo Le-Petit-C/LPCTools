@@ -1,12 +1,10 @@
 package lpctools.scripts.runners;
 
-import lpctools.lpcfymasaapi.configButtons.uniqueConfigs.ChooseConfig;
 import lpctools.lpcfymasaapi.interfaces.ILPCConfigReadable;
 import lpctools.scripts.CompileFailedException;
-import lpctools.scripts.ScriptConfigData;
+import lpctools.scripts.choosers.BlockPosSupplierChooser;
 import lpctools.scripts.runners.variables.CompiledVariableList;
 import lpctools.scripts.runners.variables.VariableMap;
-import lpctools.scripts.suppliers.interfaces.IScriptSupplier;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.client.network.ClientPlayerInteractionManager;
@@ -19,12 +17,12 @@ import org.jetbrains.annotations.NotNull;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
-public class InteractBlock extends ChooseConfig<IScriptSupplier<BlockPos>> implements IScriptRunner{
+public class InteractBlock extends BlockPosSupplierChooser implements IScriptRunner{
 	public InteractBlock(ILPCConfigReadable parent) {
-		super(parent, nameKey, ScriptConfigData.blockPosSupplierConfigs, null);
+		super(parent, nameKey, null);
 		setValueChangeCallback(()->getScript().onValueChanged());
 	}
-	@Override public Consumer<CompiledVariableList> compile(VariableMap variableMap) throws CompileFailedException {
+	@Override public @NotNull Consumer<CompiledVariableList> compile(VariableMap variableMap) throws CompileFailedException {
 		Function<CompiledVariableList, BlockPos> func = get().compile(variableMap);
 		return list->{
 			ClientPlayerInteractionManager itm = MinecraftClient.getInstance().interactionManager;

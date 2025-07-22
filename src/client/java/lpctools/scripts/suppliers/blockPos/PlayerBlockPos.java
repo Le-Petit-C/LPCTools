@@ -4,7 +4,6 @@ import lpctools.lpcfymasaapi.configButtons.uniqueConfigs.ButtonConfig;
 import lpctools.lpcfymasaapi.interfaces.ILPCConfigReadable;
 import lpctools.scripts.runners.variables.CompiledVariableList;
 import lpctools.scripts.runners.variables.VariableMap;
-import lpctools.scripts.suppliers.interfaces.IScriptBlockPosSupplier;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.util.math.BlockPos;
@@ -17,7 +16,7 @@ public class PlayerBlockPos extends ButtonConfig implements IScriptBlockPosSuppl
 	@Override public @NotNull String getFullTranslationKey() {return fullKey;}
 	public static final String nameKey = "playerBlockPos";
 	public static final String fullKey = fullPrefix + nameKey;
-	@Override public Function<CompiledVariableList, BlockPos> compile(VariableMap variableMap) {
+	@Override public @NotNull Function<CompiledVariableList, BlockPos> compile(VariableMap variableMap) {
 		return list->{
 			ClientPlayerEntity player = MinecraftClient.getInstance().player;
 			if(player == null) return BlockPos.ORIGIN;

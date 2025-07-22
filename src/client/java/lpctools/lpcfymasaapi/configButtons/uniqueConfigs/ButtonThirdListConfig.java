@@ -27,7 +27,7 @@ public class ButtonThirdListConfig extends ButtonConfig implements IThirdListBas
     @Override public void setAlignedIndent(int indent) {subConfigs.setAlignedIndent(indent);}
     @Override public int getAlignedIndent() {return subConfigs.getAlignedIndent();}
     @Override public void getButtonOptions(ButtonOptionArrayList res) {
-        res.add(new ButtonOption(-1, (button, mouseButton)->{extended = !extended; getPage().updateIfCurrent();}, null,
+        res.add(new ButtonOption(-1, (button, mouseButton)->{extended = !extended; getPage().markNeedUpdate();}, null,
             ILPCUniqueConfigBase.iconButtonAllocator(extended ? MaLiLibIcons.ARROW_UP : MaLiLibIcons.ARROW_DOWN, LeftRight.CENTER)));
         super.getButtonOptions(res);
     }

@@ -30,7 +30,6 @@ public class ChooseConfig<T extends ILPCConfig> extends LPCUniqueConfigBase impl
 		valueKey = allocatorMap.keySet().iterator().next();
 		value = allocators.allocate(valueKey, this);
 	}
-	@SuppressWarnings("unused")
 	public ChooseConfig(ILPCConfigReadable parent, String nameKey, ImmutableMap<String, ? extends BiFunction<? super ChooseConfig<T>, String, T>> allocatorMap,
 						Map<?, ?> optionTree, ILPCValueChangeCallback callback) {
 		this(parent, nameKey, convert(allocatorMap), optionTree, callback, null);
@@ -40,13 +39,15 @@ public class ChooseConfig<T extends ILPCConfig> extends LPCUniqueConfigBase impl
 							ILPCValueChangeCallback callback, U userData) {
 		this(parent, nameKey, allocatorMap, defaultOptionTree(allocatorMap.keySet()), callback, userData);
 	}
+	@SuppressWarnings("unused")
 	public ChooseConfig(ILPCConfigReadable parent, String nameKey, ImmutableMap<String, ? extends BiFunction<? super ChooseConfig<T>, String, T>> allocatorMap,
 						ILPCValueChangeCallback callback) {
 		this(parent, nameKey, convert(allocatorMap), defaultOptionTree(allocatorMap.keySet()), callback, null);
 	}
 	public @NotNull T get(){return value;}
+	public void openChoose(){allocators.chooseConfig(optionTree, this);}
 	@Override public void getButtonOptions(ButtonOptionArrayList res) {
-		res.add(1, (button, mouseButton)->allocators.chooseConfig(optionTree, this),
+		res.add(1, (button, mouseButton)->openChoose(),
 			()->Text.translatable(chooseButtonKey).getString(), buttonGenericAllocator);
 	}
 	@Override public @Nullable JsonObject getAsJsonElement() {
@@ -102,7 +103,7 @@ public class ChooseConfig<T extends ILPCConfig> extends LPCUniqueConfigBase impl
 			allocatorMap.forEach((key, func)->options.put(key, (button, mouseButton, userData)->{
 				config.value = func.apply(config, key, userData);
 				config.valueKey = key;
-				config.getPage().updateIfCurrent();
+				config.getPage().markNeedUpdate();
 				config.onValueChanged();
 			}));
 			ChooseScreen.openChooseScreen(Text.translatable(chooseTitle).getString(), true, options.build(), optionTree, userData);

@@ -35,8 +35,7 @@ public interface ILPCConfigBase extends ILPCConfigKeyProvider{
         return new UpdateTodo();
     }
     default void setValueFromJsonElement(@NotNull JsonElement data){
-        UpdateTodo todo = setValueFromJsonElementEx(data);
-        if(todo.updatePage) getPage().updateIfCurrent();
+        setValueFromJsonElementEx(data);
     }
     default UpdateTodo setValueFromParentJsonObjectEx(@NotNull JsonObject object){
         return setValueFromJsonElementEx(object.get(getNameKey()));
