@@ -18,15 +18,15 @@ import java.util.function.Supplier;
 @Mixin(InGameHud.class)
 public class InGameHudMixin {
     @Shadow @Final private Map<InGameHud.BarType, Supplier<Bar>> bars;
-    @ModifyExpressionValue(method = "renderMainHud", remap = false,
-        at = @At(value = "INVOKE", target = "Lorg/apache/commons/lang3/tuple/Pair;getValue()Ljava/lang/Object;", ordinal = 0))
+    @ModifyExpressionValue(method = "renderMainHud",
+        at = @At(value = "INVOKE", target = "Lorg/apache/commons/lang3/tuple/Pair;getValue()Ljava/lang/Object;", ordinal = 0, remap = false))
     Object modifyValue0(Object original){
         if(BarTweaks.locatorBarUsesExpBackground.getAsBoolean() && original instanceof LocatorBar)
             return bars.get(InGameHud.BarType.EXPERIENCE).get();
         return original;
     }
-    @ModifyExpressionValue(method = "renderMainHud", remap = false,
-        at = @At(value = "INVOKE", target = "Lorg/apache/commons/lang3/tuple/Pair;getValue()Ljava/lang/Object;", ordinal = 1))
+    @ModifyExpressionValue(method = "renderMainHud",
+        at = @At(value = "INVOKE", target = "Lorg/apache/commons/lang3/tuple/Pair;getValue()Ljava/lang/Object;", ordinal = 1, remap = false))
     Object modifyValue1(Object original){
         if(BarTweaks.expBarDisplaysLocatorPoints.getAsBoolean() && original instanceof ExperienceBar)
             return bars.get(InGameHud.BarType.LOCATOR).get();
