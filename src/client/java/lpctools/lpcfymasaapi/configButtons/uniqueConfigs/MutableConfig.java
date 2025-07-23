@@ -27,7 +27,7 @@ import static lpctools.lpcfymasaapi.interfaces.ILPCUniqueConfigBase.*;
 import static lpctools.util.AlgorithmUtils.*;
 
 public class MutableConfig<T extends ILPCUniqueConfigBase> extends LPCUniqueConfigBase implements ILPCConfigReadable, IMutableConfig, IConfigResettable, AutoCloseable {
-    public final @NotNull ImmutableMap<String, ? extends BiFunction<MutableConfig<T>, String, T>> configSuppliers;
+    public final @NotNull ImmutableMap<String, ? extends BiFunction<? super MutableConfig<T>, String, T>> configSuppliers;
     public final @NotNull String buttonKeyPrefix;
     public @NotNull Map<?, ?> optionTree;
     private boolean condenseOperationButton;
@@ -70,7 +70,7 @@ public class MutableConfig<T extends ILPCUniqueConfigBase> extends LPCUniqueConf
         subConfigs.clear();
     }
     public MutableConfig(@NotNull ILPCConfigReadable parent, @NotNull String nameKey, @NotNull String buttonKeyPrefix,
-                         @NotNull ImmutableMap<String, BiFunction<MutableConfig<T>, String, T>> configSuppliers,
+                         @NotNull ImmutableMap<String, ? extends BiFunction<? super MutableConfig<T>, String, T>> configSuppliers,
                          @Nullable Map<?, ?> optionTree, @Nullable ILPCValueChangeCallback callback){
         super(parent, nameKey, null);
         this.configSuppliers = configSuppliers;
@@ -86,18 +86,18 @@ public class MutableConfig<T extends ILPCUniqueConfigBase> extends LPCUniqueConf
         else this.optionTree = optionTree;
     }
     public <U> MutableConfig(@NotNull ILPCConfigReadable parent, @NotNull String nameKey, @NotNull String buttonKeyPrefix,
-                         @NotNull ImmutableMap<String, TriFunction<MutableConfig<T>, String, U, T>> configSuppliers,
+                         @NotNull ImmutableMap<String, ? extends TriFunction<? super MutableConfig<T>, String, U, T>> configSuppliers,
                          @Nullable ILPCValueChangeCallback callback, U userData) {
         this(parent, nameKey, buttonKeyPrefix, convertSuppliers(configSuppliers, userData), callback);
     }
     public MutableConfig(@NotNull ILPCConfigReadable parent, @NotNull String nameKey, @NotNull String buttonKeyPrefix,
-                         @NotNull ImmutableMap<String, BiFunction<MutableConfig<T>, String, T>> configSuppliers,
+                         @NotNull ImmutableMap<String, ? extends BiFunction<? super MutableConfig<T>, String, T>> configSuppliers,
                          @Nullable ILPCValueChangeCallback callback){
         this(parent, nameKey, buttonKeyPrefix, configSuppliers, null, callback);
     }
-    private static <T extends ILPCUniqueConfigBase, U> ImmutableMap<String, BiFunction<MutableConfig<T>, String, T>>
-    convertSuppliers(Map<String, TriFunction<MutableConfig<T>, String, U, T>> configSuppliers, U userData){
-        ImmutableMap.Builder<String, BiFunction<MutableConfig<T>, String, T>> convertedSuppliers = ImmutableMap.builder();
+    private static <T extends ILPCUniqueConfigBase, U> ImmutableMap<String, ? extends BiFunction<? super MutableConfig<T>, String, T>>
+    convertSuppliers(Map<String, ? extends TriFunction<? super MutableConfig<T>, String, U, T>> configSuppliers, U userData){
+        ImmutableMap.Builder<String, BiFunction<? super MutableConfig<T>, String, T>> convertedSuppliers = ImmutableMap.builder();
         configSuppliers.forEach((k, v)->convertedSuppliers.put(k, (c, s)->v.apply(c, s, userData)));
         return ImmutableSortedMap.copyOf(convertedSuppliers.build());
     }
@@ -288,7 +288,7 @@ public class MutableConfig<T extends ILPCUniqueConfigBase> extends LPCUniqueConf
         else return new MutableConfigOption<>(this, config, saveKey);
     }
     private @Nullable MutableConfig.MutableConfigOption<? extends T> allocateConfig(String supplierId){
-        BiFunction<MutableConfig<T>, String, T> allocator = configSuppliers.get(supplierId);
+        BiFunction<? super MutableConfig<T>, String, T> allocator = configSuppliers.get(supplierId);
         if(allocator == null) return null;
         return wrapConfig(allocator.apply(this, supplierId), supplierId);
     }

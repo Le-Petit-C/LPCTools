@@ -15,13 +15,12 @@ import lpctools.scripts.suppliers.IScriptSupplier;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.function.Consumer;
-import java.util.function.Function;
 
-public abstract class SetVariable<T> extends StringThirdListConfig implements IScriptRunner {
-	public final ChooseConfig<? extends IScriptSupplier<T>> supplier;
-	public SetVariable(@NotNull ILPCConfigReadable parent, String nameKey, ChooseConfig<? extends IScriptSupplier<T>> supplier) {
+public abstract class SetVariable<T extends IScriptSupplier<?>> extends StringThirdListConfig implements IScriptRunner {
+	public final ChooseConfig<T> supplier;
+	public SetVariable(@NotNull ILPCConfigReadable parent, String nameKey, ChooseConfig<T> supplier) {
 		super(parent, nameKey, null, null);
-		setValueChangeCallback(()->getScript().onValueChanged());
+		setValueChangeCallback(this::notifyScriptChanged);
 		this.supplier = supplier;
 		addConfig(supplier.get());
 		supplier.setValueChangeCallback(()->{
@@ -31,8 +30,7 @@ public abstract class SetVariable<T> extends StringThirdListConfig implements IS
 	}
 	@Override public @NotNull Consumer<CompiledVariableList> compile(VariableMap variableMap) throws CompileFailedException{
 		int index = variableMap.get(getStringValue(), testPack());
-		Function<CompiledVariableList, T> compiledFunc = supplier.get().compile(variableMap);
-		return list->list.set(index, compiledFunc.apply(list));
+		return setValue(variableMap, supplier.get(), index);
 	}
 	@Override public void getButtonOptions(ButtonOptionArrayList res) {
 		super.getButtonOptions(res);
@@ -42,6 +40,8 @@ public abstract class SetVariable<T> extends StringThirdListConfig implements IS
 	@Override public int getAlignedIndent() {return supplier.getAlignedIndent();}
 	
 	protected abstract VariableTestPack testPack();
+	protected abstract @NotNull Consumer<CompiledVariableList>
+	setValue(VariableMap variableMap, T src, int index) throws CompileFailedException;
 	public static final String nameKey = "setVariable";
 	public static final String fullKey = IScriptRunner.fullPrefix + nameKey;
 	public static final String fullPrefix = fullKey + '.';

@@ -10,4 +10,6 @@ public class IntVariable extends Variable<MutableInt>{
 	@Override public @NotNull String getFullTranslationKey() {return fullKey;}
 	public static final String nameKey = "int";
 	public static final String fullKey = fullPrefix + nameKey;
+	public static final VariableTestPack testPack =
+		new VariableTestPack(v->v instanceof IntVariable, fullKey);
 }

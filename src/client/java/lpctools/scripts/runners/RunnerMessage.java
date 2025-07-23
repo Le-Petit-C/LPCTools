@@ -18,6 +18,6 @@ public class RunnerMessage extends UniqueStringConfig implements IScriptRunner {
 		return list->notifyPlayer(getStringValue(), false);
 	}
 	@Override public @NotNull String getFullTranslationKey() {return fullKey;}
-	public static final String nameKey = "message";
+	public static final String nameKey = "runnerMessage";
 	public static final String fullKey = IScriptRunner.fullPrefix + nameKey;
 }

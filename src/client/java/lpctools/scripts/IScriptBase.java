@@ -9,8 +9,6 @@ public interface IScriptBase extends ILPCUniqueConfigBase {
 		while(!(script instanceof ScriptConfig config)) script = script.getParent();
 		return config;
 	}
-	default void notifyScriptChanged(){
-		getScript().onValueChanged();
-	}
+	default void notifyScriptChanged(){getScript().onValueChanged();}
 	String fullPrefix = "lpctools.configs.scripts.";
 }

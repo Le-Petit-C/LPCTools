@@ -32,6 +32,7 @@ public class UniqueBooleanConfig extends LPCUniqueConfigBase implements IConfigB
     @Override public void setBooleanValue(boolean b) {
         if(b != booleanValue){
             booleanValue = b;
+            getPage().markNeedUpdate();
             onValueChanged();
         }
     }

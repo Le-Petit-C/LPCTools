@@ -10,7 +10,7 @@ import java.util.function.Consumer;
 public abstract class Variable<T> extends UniqueStringConfig implements IScriptRunner {
      public Variable(@NotNull ILPCConfigReadable parent, @NotNull String nameKey) {
           super(parent, nameKey, null, null);
-          setValueChangeCallback(()->getScript().onValueChanged());
+          setValueChangeCallback(this::notifyScriptChanged);
      }
      @Override public @NotNull Consumer<CompiledVariableList> compile(VariableMap variableMap) {
           variableMap.put(getStringValue(), this);

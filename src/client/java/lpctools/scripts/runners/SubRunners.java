@@ -1,7 +1,5 @@
 package lpctools.scripts.runners;
 
-import com.google.gson.JsonElement;
-import lpctools.lpcfymasaapi.configButtons.UpdateTodo;
 import lpctools.lpcfymasaapi.configButtons.uniqueConfigs.MutableConfig;
 import lpctools.lpcfymasaapi.interfaces.ILPCConfigReadable;
 import lpctools.scripts.CompileFailedException;
@@ -17,9 +15,10 @@ import static lpctools.scripts.ScriptConfigData.*;
 public class SubRunners extends MutableConfig<IScriptRunner> implements IScriptRunner{
 	public SubRunners(@NotNull ILPCConfigReadable parent) {
 		super(parent, nameKey, IScriptRunner.fullKey, runnerConfigs, runnerConfigsTree, null);
-		setValueChangeCallback(()->getScript().onValueChanged());
+		setValueChangeCallback(this::notifyScriptChanged);
 	}
-	@Override public @NotNull Consumer<CompiledVariableList> compile(VariableMap variableMap) throws CompileFailedException {
+	@Override public @NotNull Consumer<CompiledVariableList>
+	compile(VariableMap variableMap) throws CompileFailedException {
 		ArrayList<Consumer<CompiledVariableList>> subCompiled = new ArrayList<>();
 		variableMap.push();
 		for(IScriptRunner subRunner : iterateConfigs())
@@ -30,11 +29,6 @@ public class SubRunners extends MutableConfig<IScriptRunner> implements IScriptR
 			subCompiled.forEach(consumer->consumer.accept(list));
 			list.pop();
 		};
-	}
-	
-	@Override
-	public UpdateTodo setValueFromJsonElementEx(@NotNull JsonElement data) {
-		return super.setValueFromJsonElementEx(data);
 	}
 	
 	@Override public @NotNull String getFullTranslationKey() {return fullKey;}

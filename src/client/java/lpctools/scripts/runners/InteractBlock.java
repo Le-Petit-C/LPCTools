@@ -14,21 +14,23 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
-import java.util.function.Function;
 
 public class InteractBlock extends BlockPosSupplierChooser implements IScriptRunner{
 	public InteractBlock(ILPCConfigReadable parent) {
 		super(parent, nameKey, null);
-		setValueChangeCallback(()->getScript().onValueChanged());
+		setValueChangeCallback(this::notifyScriptChanged);
 	}
 	@Override public @NotNull Consumer<CompiledVariableList> compile(VariableMap variableMap) throws CompileFailedException {
-		Function<CompiledVariableList, BlockPos> func = get().compile(variableMap);
+		BiConsumer<CompiledVariableList, BlockPos.Mutable> func = get().compileToBlockPos(variableMap);
+		BlockPos.Mutable mutable = new BlockPos.Mutable();
 		return list->{
 			ClientPlayerInteractionManager itm = MinecraftClient.getInstance().interactionManager;
 			ClientPlayerEntity player = MinecraftClient.getInstance().player;
 			if(itm != null && player != null){
-				BlockPos pos = func.apply(list).toImmutable();
+				func.accept(list, mutable);
+				BlockPos pos = mutable.toImmutable();
 				BlockHitResult hitResult = new BlockHitResult(pos.toCenterPos(), Direction.UP, pos, false);
 				itm.interactBlock(player, Hand.MAIN_HAND, hitResult);
 			}
@@ -36,6 +38,6 @@ public class InteractBlock extends BlockPosSupplierChooser implements IScriptRun
 	}
 	@Override public @NotNull String getFullTranslationKey() {return fullKey;}
 	public static final String nameKey = "interactBlock";
-	public static final String fullKey = fullPrefix + nameKey;
+	public static final String fullKey = IScriptRunner.fullPrefix + nameKey;
 	//public static final String interactPosButtonKey = fullKey + ".interactPos";
 }
