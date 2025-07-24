@@ -1,10 +1,7 @@
 package lpctools.scripts.suppliers._boolean;
 
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
 import fi.dy.masa.litematica.util.ToBooleanFunction;
-import lpctools.lpcfymasaapi.configButtons.UpdateTodo;
-import lpctools.lpcfymasaapi.configButtons.uniqueConfigs.ThirdListConfig;
+import lpctools.lpcfymasaapi.configButtons.uniqueConfigs.WrappedThirdListConfig;
 import lpctools.lpcfymasaapi.interfaces.ILPCConfigReadable;
 import lpctools.scripts.CompileFailedException;
 import lpctools.scripts.choosers.BlockPosSupplierChooser;
@@ -15,25 +12,14 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.function.BiConsumer;
 
-public class BlockPosEquals extends ThirdListConfig implements IScriptBooleanSupplier {
+public class BlockPosEquals extends WrappedThirdListConfig implements IScriptBooleanSupplier {
 	private final BlockPosSupplierChooser pos1, pos2;
 	public BlockPosEquals(ILPCConfigReadable parent) {
 		super(parent, nameKey, null);
 		pos1 = new BlockPosSupplierChooser(parent, "pos1", this::onValueChanged);
 		pos2 = new BlockPosSupplierChooser(parent, "pos2", this::onValueChanged);
-		refreshConfigList();
-	}
-	private void refreshConfigList(){
-		getConfigs().clear();
-		addConfig(pos1.get());
-		addConfig(pos2.get());
-	}
-	private ThirdListConfig prepareJson(){
-		ThirdListConfig list = new ThirdListConfig(getParent(), nameKey, null);
-		list.setExpanded(isExpanded());
-		list.addConfig(pos1);
-		list.addConfig(pos2);
-		return list;
+		addConfig(pos1);
+		addConfig(pos2);
 	}
 	@Override public void getButtonOptions(ButtonOptionArrayList res) {
 		super.getButtonOptions(res);
@@ -54,18 +40,8 @@ public class BlockPosEquals extends ThirdListConfig implements IScriptBooleanSup
 			return buf1.equals(buf2);
 		};
 	}
-	
-	@Override public @NotNull JsonObject getAsJsonElement() {
-		return prepareJson().getAsJsonElement();
-	}
-	@Override public UpdateTodo setValueFromJsonElementEx(@NotNull JsonElement element) {
-		ThirdListConfig config = prepareJson();
-		UpdateTodo todo = config.setValueFromJsonElementEx(element);
-		setExpanded(config.isExpanded());
-		return todo;
-	}
 	@Override public void onValueChanged() {
-		refreshConfigList();
+		getPage().markNeedUpdate();
 		super.onValueChanged();
 	}
 	@Override public @NotNull String getFullTranslationKey() {return fullKey;}

@@ -73,10 +73,6 @@ public class BlockPosConfig extends ThirdListConfig implements IConfigResettable
     }
     @Override public boolean isModified() {return x.isModified() || y.isModified() || z.isModified();}
     @Override public void resetToDefault() {setPos(getDefaultPos());}
-    @Override public void onValueChanged() {
-        super.onValueChanged();
-        getPage().markNeedUpdate();
-    }
     
     public static class _INTConfig extends IntegerConfig{
         public _INTConfig(BlockPosConfig parent, String nameKey, int defaultInteger) {

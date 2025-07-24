@@ -12,7 +12,7 @@ import java.util.Collection;
 import static lpctools.lpcfymasaapi.LPCConfigUtils.*;
 
 @SuppressWarnings("unused")
-public interface ILPCConfigList extends ILPCConfigBase, ILPCConfigReadable {
+public interface ILPCConfigList extends ILPCConfigBase, ILPCConfigReadable{
     @Override @NotNull Collection<ILPCConfig> getConfigs();
 
     default boolean needAlign(){return true;}
@@ -34,10 +34,14 @@ public interface ILPCConfigList extends ILPCConfigBase, ILPCConfigReadable {
         else warnFailedLoadingConfig(this, data);
         return todo;
     }
-    @Override default @Nullable JsonElement getAsJsonElement(){
+    @Override default @Nullable JsonObject getAsJsonElement(){
         JsonObject listJson = new JsonObject();
         for(ILPCConfig config : getConfigs())
             config.addIntoParentJsonObject(listJson);
         return listJson;
+    }
+    @Override default void close() throws Exception {
+        ILPCConfigReadable.super.close();
+        getConfigs().clear();
     }
 }

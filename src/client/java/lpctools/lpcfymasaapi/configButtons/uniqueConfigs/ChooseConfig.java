@@ -19,7 +19,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.function.BiFunction;
 
-public class ChooseConfig<T extends ILPCConfig> extends LPCUniqueConfigBase implements ILPCConfigReadable {
+public class ChooseConfig<T extends ILPCConfig> extends LPCUniqueConfigBase implements ILPCConfigReadable, AutoCloseable {
 	private @NotNull T value;
 	private @NotNull String valueKey;
 	public <U> ChooseConfig(ILPCConfigReadable parent, String nameKey, ImmutableMap<String, ? extends TriFunction<? super ChooseConfig<T>, String, U, T>> allocatorMap,
@@ -64,6 +64,13 @@ public class ChooseConfig<T extends ILPCConfig> extends LPCUniqueConfigBase impl
 					String valueKey = key.getAsString();
 					if(allocators.allocatorMap.containsKey(valueKey)){
 						this.valueKey = valueKey;
+						if(value instanceof AutoCloseable closeable) {
+							try {
+								closeable.close();
+							} catch (Exception e) {
+								throw new RuntimeException(e);
+							}
+						}
 						value = allocators.allocate(valueKey, this);
 						todo.valueChanged();
 					}
@@ -89,10 +96,15 @@ public class ChooseConfig<T extends ILPCConfig> extends LPCUniqueConfigBase impl
 		return res.build();
 	}
 	
-	@Override public Iterable<ILPCConfig> getConfigs() {return List.of(value);}
+	@Override public @NotNull Iterable<ILPCConfig> getConfigs() {return List.of(value);}
 	int indent;
 	@Override public void setAlignedIndent(int indent) {this.indent = indent;}
 	@Override public int getAlignedIndent() {return indent;}
+	
+	@Override public void close() throws Exception {
+		if(value instanceof AutoCloseable closeable)
+			closeable.close();
+	}
 	
 	private record WrappedAllocators<T extends ILPCConfig, U>(ImmutableMap<String, ? extends TriFunction<? super ChooseConfig<T>, String, U, T>> allocatorMap, U userData){
 		public T allocate(String key, ChooseConfig<T> config){
@@ -101,6 +113,13 @@ public class ChooseConfig<T extends ILPCConfig> extends LPCUniqueConfigBase impl
 		public void chooseConfig(Map<?, ?> optionTree, ChooseConfig<T> config){
 			ImmutableMap.Builder<String, ChooseScreen.OptionCallback<U>> options = ImmutableMap.builder();
 			allocatorMap.forEach((key, func)->options.put(key, (button, mouseButton, userData)->{
+				if(config.value instanceof AutoCloseable closeable) {
+					try {
+						closeable.close();
+					} catch (Exception e) {
+						throw new RuntimeException(e);
+					}
+				}
 				config.value = func.apply(config, key, userData);
 				config.valueKey = key;
 				config.getPage().markNeedUpdate();

@@ -1,6 +1,6 @@
 package lpctools.lpcfymasaapi;
 
-import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import fi.dy.masa.malilib.config.ConfigType;
 import lpctools.lpcfymasaapi.interfaces.ILPCConfig;
 import lpctools.lpcfymasaapi.interfaces.ILPCConfigList;
@@ -46,5 +46,5 @@ public class LPCConfigList implements ILPCConfig, ILPCConfigList {
 	@Override public void setComment(String comment) {this.comment = comment;}
 	@Override public void onValueChanged() {if(callback != null) callback.onValueChanged();}
 	@Override public void setValueChangeCallback(@Nullable ILPCValueChangeCallback callback) {this.callback = callback;}
-	@Override public @Nullable JsonElement getAsJsonElement() {return ILPCConfigList.super.getAsJsonElement();}
+	@Override public @Nullable JsonObject getAsJsonElement() {return ILPCConfigList.super.getAsJsonElement();}
 }

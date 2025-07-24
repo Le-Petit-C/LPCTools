@@ -26,7 +26,7 @@ import static lpctools.lpcfymasaapi.LPCConfigUtils.*;
 import static lpctools.lpcfymasaapi.interfaces.ILPCUniqueConfigBase.*;
 import static lpctools.util.AlgorithmUtils.*;
 
-public class MutableConfig<T extends ILPCUniqueConfigBase> extends LPCUniqueConfigBase implements ILPCConfigReadable, IMutableConfig, IConfigResettable, AutoCloseable {
+public class MutableConfig<T extends ILPCUniqueConfigBase> extends LPCUniqueConfigBase implements ILPCConfigReadable, IMutableConfig, IConfigResettable{
     public final @NotNull ImmutableMap<String, ? extends BiFunction<? super MutableConfig<T>, String, T>> configSuppliers;
     public final @NotNull String buttonKeyPrefix;
     public @NotNull Map<?, ?> optionTree;
@@ -53,9 +53,8 @@ public class MutableConfig<T extends ILPCUniqueConfigBase> extends LPCUniqueConf
     @Override public boolean isModified() {return !defaultJson.equals(getSubConfigsAsJsonElement());}
     @Override public void resetToDefault() {
         setSubConfigsValueFromJsonElement(defaultJson);
-        getPage().markNeedUpdate();
     }
-    @Override public Iterable<? extends ILPCConfig> getConfigs(){return subConfigs;}
+    @Override public @NotNull Iterable<? extends ILPCConfig> getConfigs(){return subConfigs;}
     @Override public ArrayList<GuiConfigsBase.ConfigOptionWrapper> buildConfigWrappers(ToIntFunction<String> getStringWidth, ArrayList<GuiConfigsBase.ConfigOptionWrapper> wrapperList) {
         if(expanded) return ILPCConfigReadable.super.buildConfigWrappers(getStringWidth, wrapperList);
         else return wrapperList;
@@ -63,12 +62,6 @@ public class MutableConfig<T extends ILPCUniqueConfigBase> extends LPCUniqueConf
     int indent;
     @Override public void setAlignedIndent(int indent) {this.indent = indent;}
     @Override public int getAlignedIndent() {return indent;}
-    
-    @Override public void close() {
-        for(MutableConfigOption<? extends T> config : subConfigs)
-            config.close();
-        subConfigs.clear();
-    }
     public MutableConfig(@NotNull ILPCConfigReadable parent, @NotNull String nameKey, @NotNull String buttonKeyPrefix,
                          @NotNull ImmutableMap<String, ? extends BiFunction<? super MutableConfig<T>, String, T>> configSuppliers,
                          @Nullable Map<?, ?> optionTree, @Nullable ILPCValueChangeCallback callback){
@@ -85,6 +78,7 @@ public class MutableConfig<T extends ILPCUniqueConfigBase> extends LPCUniqueConf
         }
         else this.optionTree = optionTree;
     }
+    @SuppressWarnings("unused")
     public <U> MutableConfig(@NotNull ILPCConfigReadable parent, @NotNull String nameKey, @NotNull String buttonKeyPrefix,
                          @NotNull ImmutableMap<String, ? extends TriFunction<? super MutableConfig<T>, String, U, T>> configSuppliers,
                          @Nullable ILPCValueChangeCallback callback, U userData) {
@@ -94,6 +88,11 @@ public class MutableConfig<T extends ILPCUniqueConfigBase> extends LPCUniqueConf
                          @NotNull ImmutableMap<String, ? extends BiFunction<? super MutableConfig<T>, String, T>> configSuppliers,
                          @Nullable ILPCValueChangeCallback callback){
         this(parent, nameKey, buttonKeyPrefix, configSuppliers, null, callback);
+    }
+    public <U> MutableConfig(@NotNull ILPCConfigReadable parent, @NotNull String nameKey, @NotNull String buttonKeyPrefix,
+                             @NotNull ImmutableMap<String, ? extends TriFunction<? super MutableConfig<T>, String, U, T>> configSuppliers,
+                             @Nullable Map<?, ?> optionTree, @Nullable ILPCValueChangeCallback callback, U userData) {
+        this(parent, nameKey, buttonKeyPrefix, convertSuppliers(configSuppliers, userData), optionTree, callback);
     }
     private static <T extends ILPCUniqueConfigBase, U> ImmutableMap<String, ? extends BiFunction<? super MutableConfig<T>, String, T>>
     convertSuppliers(Map<String, ? extends TriFunction<? super MutableConfig<T>, String, U, T>> configSuppliers, U userData){
@@ -275,7 +274,7 @@ public class MutableConfig<T extends ILPCUniqueConfigBase> extends LPCUniqueConf
             super(parent, wrappedConfig1, saveKey);
             this.wrappedConfig2 = wrappedConfig2;
         }
-        @Override public Iterable<? extends ILPCConfig> getConfigs(){return wrappedConfig2.getConfigs();}
+        @Override public @NotNull Iterable<? extends ILPCConfig> getConfigs(){return wrappedConfig2.getConfigs();}
         @Override public ArrayList<GuiConfigsBase.ConfigOptionWrapper> buildConfigWrappers(ToIntFunction<String> getStringWidth, ArrayList<GuiConfigsBase.ConfigOptionWrapper> wrapperList) {
             return wrappedConfig2.buildConfigWrappers(getStringWidth, wrapperList);
         }

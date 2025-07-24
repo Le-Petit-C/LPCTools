@@ -151,7 +151,7 @@ public class LPCConfigPage implements IConfigHandler, Supplier<GuiBase>, ILPCCon
         return new StringBuilder(getModReference().modId).append('.').append(getNameKey());
     }
     @Override public @NotNull LPCConfigPage getPage() {return this;}
-    @Override public Iterable<? extends ILPCConfig> getConfigs() {return lists.get(selectedIndex).getConfigs();}
+    @Override public @NotNull Iterable<? extends ILPCConfig> getConfigs() {return lists.get(selectedIndex).getConfigs();}
     int indent;
     @Override public void setAlignedIndent(int indent) {this.indent = indent;}
     @Override public int getAlignedIndent() {return indent;}
@@ -215,6 +215,5 @@ public class LPCConfigPage implements IConfigHandler, Supplier<GuiBase>, ILPCCon
         private record ButtonListener(int index, ConfigPageInstance parent) implements IButtonActionListener {
             @Override public void actionPerformedWithButton(ButtonBase button, int mouseButton) {parent.select(index);}
         }
-        public LPCConfigPage getOuter(){return LPCConfigPage.this;}
     }
 }

@@ -13,13 +13,17 @@ import lpctools.scripts.runners.variables.BlockPosVariable;
 import lpctools.scripts.runners.variables.BooleanVariable;
 import lpctools.scripts.runners.variables.IntVariable;
 import lpctools.scripts.runners.variables.Variable;
-import lpctools.scripts.suppliers._boolean.BlockPosEquals;
-import lpctools.scripts.suppliers._boolean.FromBooleanVariable;
-import lpctools.scripts.suppliers._boolean.IScriptBooleanSupplier;
-import lpctools.scripts.suppliers._boolean.StaticBoolean;
+import lpctools.scripts.suppliers._boolean.*;
+import lpctools.scripts.suppliers._double.IScriptDoubleSupplier;
+import lpctools.scripts.suppliers._double.PlayerInteractionRange;
+import lpctools.scripts.suppliers._double.StaticDouble;
 import lpctools.scripts.suppliers._int.FromIntVariable;
 import lpctools.scripts.suppliers._int.IScriptIntSupplier;
 import lpctools.scripts.suppliers._int.StaticInt;
+import lpctools.scripts.suppliers.block.FromBlockVariable;
+import lpctools.scripts.suppliers.block.FromWorld;
+import lpctools.scripts.suppliers.block.IScriptBlockSupplier;
+import lpctools.scripts.suppliers.block.StaticBlock;
 import lpctools.scripts.suppliers.blockPos.*;
 import lpctools.scripts.trigger.TriggerHotkey;
 import org.apache.commons.lang3.function.TriFunction;
@@ -27,10 +31,13 @@ import org.apache.commons.lang3.function.TriFunction;
 import java.util.function.BiFunction;
 
 public class ScriptConfigData {
-	static final ImmutableMap<String, TriFunction<MutableConfig<ILPCUniqueConfigBase>, String, Runnable, ILPCUniqueConfigBase>> triggerConfigs =
+	public static final ImmutableMap<String, TriFunction<MutableConfig<ILPCUniqueConfigBase>, String, Runnable, ILPCUniqueConfigBase>> triggerConfigs =
 		ImmutableMap.<String, TriFunction<MutableConfig<ILPCUniqueConfigBase>, String, Runnable, ILPCUniqueConfigBase>>builder()
-			.put(TriggerHotkey.fullKey, (p, k, r)->new TriggerHotkey(p, r))
+			.put(TriggerHotkey.nameKey, (p, k, r)->new TriggerHotkey(p, r))
 			.build();
+	public static final ImmutableMap<String, Object> triggerConfigsTree = treeBuilder()
+		.put(TriggerHotkey.fullKey)
+		.build();
 	public static final ImmutableMap<String, BiFunction<ILPCConfigReadable, String, IScriptRunner>> runnerConfigs =
 		ImmutableMap.<String, BiFunction<ILPCConfigReadable, String, IScriptRunner>>builder()
 			.put(DoNothing.nameKey, (p, k)->new DoNothing(p))
@@ -44,6 +51,7 @@ public class ScriptConfigData {
 			.put(RunIfElse.nameKey, (p, k)->new RunIfElse(p))
 			.put(InteractBlock.nameKey, (p, k)->new InteractBlock(p))
 			.put(RunnerMessage.nameKey, (p, k)->new RunnerMessage(p))
+			.put(IteratePlayerNear.nameKey, (p, k)->new IteratePlayerNear(p))
 			.build();
 	public static final ImmutableMap<String, Object> runnerConfigsTree = treeBuilder()
 		.put(DoNothing.fullKey)
@@ -61,6 +69,29 @@ public class ScriptConfigData {
 		.put(SubRunners.fullKey)
 		.put(InteractBlock.fullKey)
 		.put(RunnerMessage.fullKey)
+		.put(IteratePlayerNear.fullKey)
+		.build();
+	public static final ImmutableMap<String, BiFunction<ILPCConfigReadable, String, IScriptBooleanSupplier>> booleanSupplierConfigs =
+		ImmutableMap.<String, BiFunction<ILPCConfigReadable, String, IScriptBooleanSupplier>>builder()
+			.put(StaticBoolean.nameKey, (p, k) -> new StaticBoolean(p))
+			.put(FromBooleanVariable.nameKey, (p, k)->new FromBooleanVariable(p))
+			.put(BlockPosEquals.nameKey, (p, k)->new BlockPosEquals(p))
+			.put(BlockEquals.nameKey, (p, k)->new BlockEquals(p))
+			.build();
+	public static final ImmutableMap<String, Object> booleanSupplierConfigsTree = treeBuilder()
+		.put(StaticBoolean.fullKey)
+		.put(FromBooleanVariable.fullKey)
+		.put(BlockPosEquals.fullKey)
+		.put(BlockEquals.fullKey)
+		.build();
+	public static final ImmutableMap<String, BiFunction<ILPCConfigReadable, String, IScriptIntSupplier>> intSupplierConfigs =
+		ImmutableMap.<String, BiFunction<ILPCConfigReadable, String, IScriptIntSupplier>>builder()
+			.put(StaticInt.nameKey, (p, k) -> new StaticInt(p))
+			.put(FromIntVariable.nameKey, (p, k)->new FromIntVariable(p))
+			.build();
+	public static final ImmutableMap<String, Object> intSupplierConfigsTree = treeBuilder()
+		.put(StaticInt.fullKey)
+		.put(FromIntVariable.fullKey)
 		.build();
 	public static final ImmutableMap<String, BiFunction<ILPCConfigReadable, String, IScriptBlockPosSupplier>> blockPosSupplierConfigs =
 		ImmutableMap.<String, BiFunction<ILPCConfigReadable, String, IScriptBlockPosSupplier>>builder()
@@ -75,24 +106,25 @@ public class ScriptConfigData {
 		.put(BlockPosAdd.fullKey)
 		.put(PlayerBlockPos.fullKey)
 		.build();
-	public static final ImmutableMap<String, BiFunction<ILPCConfigReadable, String, IScriptBooleanSupplier>> booleanSupplierConfigs =
-		ImmutableMap.<String, BiFunction<ILPCConfigReadable, String, IScriptBooleanSupplier>>builder()
-			.put(StaticBoolean.nameKey, (p, k) -> new StaticBoolean(p))
-			.put(FromBooleanVariable.nameKey, (p, k)->new FromBooleanVariable(p))
-			.put(BlockPosEquals.nameKey, (p, k)->new BlockPosEquals(p))
+	public static final ImmutableMap<String, BiFunction<ILPCConfigReadable, String, IScriptBlockSupplier>> blockSupplierConfigs =
+		ImmutableMap.<String, BiFunction<ILPCConfigReadable, String, IScriptBlockSupplier>>builder()
+			.put(StaticBlock.nameKey, (p, k) -> new StaticBlock(p))
+			.put(FromBlockVariable.nameKey, (p, k) -> new FromBlockVariable(p))
+			.put(FromWorld.nameKey, (p, k) -> new FromWorld(p))
 			.build();
-	public static final ImmutableMap<String, Object> booleanSupplierConfigsTree = treeBuilder()
-		.put(StaticBoolean.fullKey)
-		.put(FromBooleanVariable.fullKey)
+	public static final ImmutableMap<String, Object> blockSupplierConfigsTree = treeBuilder()
+		.put(StaticBlock.fullKey)
+		.put(FromBlockVariable.fullKey)
+		.put(FromWorld.fullKey)
 		.build();
-	public static final ImmutableMap<String, BiFunction<ILPCConfigReadable, String, IScriptIntSupplier>> intSupplierConfigs =
-		ImmutableMap.<String, BiFunction<ILPCConfigReadable, String, IScriptIntSupplier>>builder()
-			.put(StaticInt.nameKey, (p, k) -> new StaticInt(p))
-			.put(FromIntVariable.nameKey, (p, k)->new FromIntVariable(p))
+	public static final ImmutableMap<String, BiFunction<ILPCConfigReadable, String, IScriptDoubleSupplier>> doubleSupplierConfigs =
+		ImmutableMap.<String, BiFunction<ILPCConfigReadable, String, IScriptDoubleSupplier>>builder()
+			.put(StaticDouble.nameKey, (p, k)->new StaticDouble(p))
+			.put(PlayerInteractionRange.nameKey, (p, k)->new PlayerInteractionRange(p))
 			.build();
-	public static final ImmutableMap<String, Object> intSupplierConfigsTree = treeBuilder()
-		.put(StaticInt.fullKey)
-		.put(FromIntVariable.fullKey)
+	public static final ImmutableMap<String, Object> doubleSupplierConfigsTree = treeBuilder()
+		.put(StaticDouble.fullKey)
+		.put(PlayerInteractionRange.fullKey)
 		.build();
 	private static class TreeBuilder extends ImmutableMap.Builder<String, Object>{
 		public TreeBuilder put(String k, ImmutableMap<String, Object> subTree){

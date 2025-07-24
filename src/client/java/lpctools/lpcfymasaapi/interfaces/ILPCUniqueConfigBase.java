@@ -34,11 +34,12 @@ public interface ILPCUniqueConfigBase extends ILPCUniqueConfig{
         int shift = 0;
         for(ButtonOption option : options) {
             float weight = option.widthWeight;
-            if(weight > 0) weightList.add(weightSum += weight);
-            else {
-                weightList.add(weightSum);
-                shift += (int)-(h * weight);
+            switch (option.type){
+                case WIDTH -> shift += (int)weight;
+                case WEIGHT -> weightSum += weight;
+                case HEIGHT -> shift += (int) (h * weight);
             }
+            weightList.add(weightSum);
             shift += 2;
             shiftList.add(shift);
         }
@@ -64,12 +65,40 @@ public interface ILPCUniqueConfigBase extends ILPCUniqueConfig{
         }
     }
     
+    enum ButtonWeightType {
+        WEIGHT,//权重
+        HEIGHT,//高度比率
+        WIDTH//直接作为宽度
+    }
     //allocator为空表示这个位置不创建按钮，只是占位
     //仅在按钮创建时和被按后使用buttonId更新按钮名称，支持翻译键
     //widthWeight为负时表示此配置按钮宽度是相对按钮高度设置的，不再作为宽度占比使用
-    record ButtonOption(float widthWeight, @Nullable IButtonActionListener actionListener, @Nullable Supplier<@Nullable String> buttonId, @Nullable IButtonAllocator allocator){}
+    class ButtonOption{
+        public ButtonWeightType type;
+        public float widthWeight;
+        public @Nullable IButtonActionListener actionListener;
+        public @Nullable Supplier<@Nullable String> buttonId;
+        public @Nullable IButtonAllocator allocator;
+        public ButtonOption(ButtonWeightType type, float widthWeight, @Nullable IButtonActionListener actionListener, @Nullable Supplier<@Nullable String> buttonId, @Nullable IButtonAllocator allocator) {
+            this.type = type;
+            this.widthWeight = widthWeight;
+            this.actionListener = actionListener;
+            this.buttonId = buttonId;
+            this.allocator = allocator;
+        }
+        public ButtonOption(float widthWeight, @Nullable IButtonActionListener actionListener, @Nullable Supplier<@Nullable String> buttonId, @Nullable IButtonAllocator allocator){
+            this(widthWeight < 0 ? ButtonWeightType.HEIGHT : ButtonWeightType.WEIGHT, Math.abs(widthWeight), actionListener, buttonId, allocator);
+        }
+        @SuppressWarnings("unused")
+        public ButtonOption(ButtonWeightType type, float widthWeight, @Nullable IButtonAllocator allocator){
+            this(type, widthWeight, null, null, allocator);
+        }
+    }
     
     class ButtonOptionArrayList extends ArrayList<ButtonOption>{
+        public void add(ButtonWeightType type, float widthWeight, @Nullable IButtonActionListener actionListener, @Nullable Supplier<@Nullable String> buttonId, @Nullable IButtonAllocator allocator){
+            add(new ButtonOption(type, widthWeight, actionListener, buttonId, allocator));
+        }
         public void add(float widthWeight, @Nullable IButtonActionListener actionListener, @Nullable Supplier<@Nullable String> buttonId, @Nullable IButtonAllocator allocator){
             add(new ButtonOption(widthWeight, actionListener, buttonId, allocator));
         }
@@ -88,8 +117,14 @@ public interface ILPCUniqueConfigBase extends ILPCUniqueConfig{
     }
     //presets
     IButtonAllocator buttonGenericAllocator = (x, y, w, h, key, listener, consumer, reset)->consumer.addButton(new ButtonGeneric(x, y, w, h, key), listener);
+    static IButtonAllocator iconButtonAllocator(MaLiLibIcons icon, int height, LeftRight iconAlignment){
+        return (x, y, w, h, key, listener, consumer, reset)-> consumer.addButton(new ButtonGeneric(x, y + (h - height) / 2, w, height, key, icon).setIconAlignment(iconAlignment), listener);
+    }
     static IButtonAllocator iconButtonAllocator(MaLiLibIcons icon, LeftRight iconAlignment){
         return (x, y, w, h, key, listener, consumer, reset)-> consumer.addButton(new ButtonGeneric(x, y, w, h, key, icon).setIconAlignment(iconAlignment), listener);
+    }
+    static ButtonOption iconButtonPreset(MaLiLibIcons icon, @Nullable IButtonActionListener actionListener, @Nullable Supplier<@Nullable String> buttonId){
+        return new ButtonOption(ButtonWeightType.WIDTH, 16, actionListener, buttonId, iconButtonAllocator(icon, 16, LeftRight.CENTER));
     }
     static ButtonOption buttonBooleanPreset(float widthWeight, IConfigBoolean configBoolean){
         return new ButtonOption(widthWeight, null, null,

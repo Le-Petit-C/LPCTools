@@ -26,7 +26,7 @@ public class ConfigListOptionListConfigEx<T> extends ArrayOptionListConfig<@NotN
     
     public static final String superJsonId = "selected";
     public static final String selectionsId = "selections";
-    @Override public @NotNull JsonElement getAsJsonElement() {
+    @Override public @Nullable JsonObject getAsJsonElement() {
         JsonObject baseObject = new JsonObject();
         baseObject.add(superJsonId, super.getAsJsonElement());
         JsonObject listObjects = new JsonObject();

@@ -3,7 +3,6 @@ package lpctools.lpcfymasaapi.configButtons.uniqueConfigs;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonPrimitive;
 import fi.dy.masa.malilib.config.IConfigInteger;
-import fi.dy.masa.malilib.gui.LeftRight;
 import fi.dy.masa.malilib.gui.MaLiLibIcons;
 import fi.dy.masa.malilib.gui.interfaces.ISliderCallback;
 import fi.dy.masa.malilib.gui.widgets.WidgetSlider;
@@ -73,10 +72,8 @@ public class UniqueIntegerConfig extends LPCUniqueConfigBase implements IConfigI
             }));
         }
         else res.add(ILPCUniqueConfigBase.textFieldConfigValuePreset(1, this));
-        res.add(new ButtonOption(-1, (button, mouseButton)->{
-            useSlider = !useSlider;
-            getPage().markNeedUpdate();
-        }, null, ILPCUniqueConfigBase.iconButtonAllocator( useSlider ? MaLiLibIcons.BTN_TXTFIELD : MaLiLibIcons.BTN_SLIDER, LeftRight.CENTER)));
+        res.add(ILPCUniqueConfigBase.iconButtonPreset(useSlider ? MaLiLibIcons.BTN_TXTFIELD : MaLiLibIcons.BTN_SLIDER,
+            (button, mouseButton)->{useSlider = !useSlider;getPage().markNeedUpdate();}, null));
     }
     @Override public @Nullable JsonPrimitive getAsJsonElement() {return new JsonPrimitive(intValue);}
     @Override public UpdateTodo setValueFromJsonElementEx(@NotNull JsonElement element) {
@@ -85,7 +82,9 @@ public class UniqueIntegerConfig extends LPCUniqueConfigBase implements IConfigI
                 int lastInt = intValue;
                 intValue = primitive.getAsInt();
                 return new UpdateTodo().valueChanged(lastInt != intValue);
-            } catch (NumberFormatException ignored){}
+            } catch (NumberFormatException ignored){
+                warnFailedLoadingConfig(this, element);
+            }
         }
         warnFailedLoadingConfig(this, element);
         return new UpdateTodo();
