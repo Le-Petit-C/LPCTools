@@ -219,6 +219,8 @@
   "lpctools.configs.scripts.scripts.script.comment": "脚本",
   "lpctools.configs.scripts.scripts.script.triggers.name": "触发器",
   "lpctools.configs.scripts.scripts.script.triggers.comment": "用于触发脚本的触发器",
+  "lpctools.configs.scripts.guiScale.name": "界面缩放",
+  "lpctools.configs.scripts.guiScale.comment": "原版的配置界面缩放配置\n我想应该会有人想在编辑脚本时把界面缩小点\n所以我添加了这个，只是为了方便",
   "lpctools.configs.scripts.triggers.triggerHotkey.title": "热键",
   "lpctools.configs.scripts.triggers.triggerHotkey.name": "热键触发器",
   "lpctools.configs.scripts.triggers.triggerHotkey.comment": "用热键触发触发器",

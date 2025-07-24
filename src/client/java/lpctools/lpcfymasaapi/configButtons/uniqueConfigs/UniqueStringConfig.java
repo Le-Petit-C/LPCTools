@@ -18,7 +18,10 @@ public class UniqueStringConfig extends LPCUniqueConfigBase implements IConfigVa
 		stringValue = this.defaultStringValue = defaultStringValue == null ? "" : defaultStringValue;
 	}
 	@Override public boolean isModified() {return !stringValue.equals(defaultStringValue);}
-	@Override public void resetToDefault() {stringValue = defaultStringValue;}
+	@Override public void resetToDefault() {
+		stringValue = defaultStringValue;
+		getPage().markNeedUpdate();
+	}
 	@Override public String getDefaultStringValue() {return defaultStringValue;}
 	@Override public void setValueFromString(String s) {
 		if(isModified(s)){
