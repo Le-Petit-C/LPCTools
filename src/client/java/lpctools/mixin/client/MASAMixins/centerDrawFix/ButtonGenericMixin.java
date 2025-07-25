@@ -11,11 +11,10 @@ import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.ModifyArg;
 
-@Mixin(value = ButtonGeneric.class, remap = false)
+@Mixin(value = ButtonGeneric.class)
 public abstract class ButtonGenericMixin extends ButtonBase {
-	@Shadow protected LeftRight alignment;
-	@Shadow @Final @Nullable
-	protected IGuiIcon icon;
+	@Shadow(remap = false) protected LeftRight alignment;
+	@Shadow(remap = false) @Final @Nullable protected IGuiIcon icon;
 	
 	public ButtonGenericMixin(int x, int y, int width, int height) {super(x, y, width, height);}
 	@ModifyArg(method = "drawIcon", index = 2, at = @At(value = "INVOKE",
