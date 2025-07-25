@@ -12,7 +12,9 @@ import lpctools.scripts.suppliers._double.*;
 import lpctools.scripts.suppliers._int.*;
 import lpctools.scripts.suppliers.block.*;
 import lpctools.scripts.suppliers.blockPos.*;
-import lpctools.scripts.suppliers.vector.*;
+import lpctools.scripts.suppliers.direction6.IScriptDirection6Supplier;
+import lpctools.scripts.suppliers.direction6.StaticDirection6;
+import lpctools.scripts.suppliers.vector3d.*;
 import lpctools.scripts.trigger.*;
 import org.apache.commons.lang3.function.TriFunction;
 
@@ -144,6 +146,13 @@ public class ScriptConfigData {
 	public static final ImmutableMap<String, Object> vector3dSupplierConfigsTree = treeBuilder()
 		.put(StaticVector3d.fullKey)
 		.put(FromVector3dVariable.fullKey)
+		.build();
+	public static final ImmutableMap<String, BiFunction<ILPCConfigReadable, String, IScriptDirection6Supplier>> direction6SupplierConfigs =
+		ImmutableMap.<String, BiFunction<ILPCConfigReadable, String, IScriptDirection6Supplier>>builder()
+			.put(StaticDirection6.nameKey, (p, k) -> new StaticDirection6(p))
+			.build();
+	public static final ImmutableMap<String, Object> direction6SupplierConfigsTree = treeBuilder()
+		.put(StaticDirection6.fullKey)
 		.build();
 	public static final ImmutableMap<String, BiFunction<ILPCConfigReadable, String, IScriptBlockSupplier>> blockSupplierConfigs =
 		ImmutableMap.<String, BiFunction<ILPCConfigReadable, String, IScriptBlockSupplier>>builder()

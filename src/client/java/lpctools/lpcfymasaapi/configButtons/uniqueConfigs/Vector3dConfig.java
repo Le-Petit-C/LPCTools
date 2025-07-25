@@ -69,7 +69,7 @@ public class Vector3dConfig extends ThirdListConfig implements IConfigResettable
     
     public static class _DoubleConfig extends DoubleConfig {
         public _DoubleConfig(Vector3dConfig parent, String nameKey, double defaultDouble) {
-            super(parent, nameKey, defaultDouble, parent::onValueChanged);
+            super(parent, nameKey, defaultDouble, -Double.MAX_VALUE / 2, Double.MAX_VALUE / 2, parent::onValueChanged);
         }
         @Override public @NotNull String getNameTranslation() {
             return getName();

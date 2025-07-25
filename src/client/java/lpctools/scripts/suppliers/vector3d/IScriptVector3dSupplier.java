@@ -1,4 +1,4 @@
-package lpctools.scripts.suppliers.vector;
+package lpctools.scripts.suppliers.vector3d;
 
 import lpctools.scripts.CompileFailedException;
 import lpctools.scripts.runners.variables.CompiledVariableList;
@@ -11,7 +11,7 @@ import java.util.function.BiConsumer;
 import java.util.function.Function;
 
 public interface IScriptVector3dSupplier extends IScriptSupplier<Vector3d> {
-	String fullPrefix = IScriptSupplier.fullPrefix + "double.";
+	String fullPrefix = IScriptSupplier.fullPrefix + "vector3d.";
 	@Override @Deprecated @NotNull default Function<CompiledVariableList, Vector3d>
 	compile(VariableMap variableMap) throws CompileFailedException{
 		BiConsumer<CompiledVariableList, Vector3d> func = compileToVector3d(variableMap);

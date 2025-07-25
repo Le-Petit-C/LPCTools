@@ -1,4 +1,4 @@
-package lpctools.scripts.suppliers.vector;
+package lpctools.scripts.suppliers.vector3d;
 
 import lpctools.lpcfymasaapi.configButtons.uniqueConfigs.Vector3dConfig;
 import lpctools.lpcfymasaapi.interfaces.ILPCConfigReadable;

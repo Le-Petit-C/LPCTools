@@ -29,6 +29,7 @@ public class IterateFromClosestInDistance extends WrappedThirdListConfig impleme
 	public IterateFromClosestInDistance(ILPCConfigReadable parent) {super(parent, nameKey, null);}
 	@Override public void getButtonOptions(ButtonOptionArrayList res) {
 		super.getButtonOptions(res);
+		res.add(1, (button, mouseButton) -> center.openChoose(), ()->fullKey + ".center", buttonGenericAllocator);
 		res.add(1, (button, mouseButton) -> distance.openChoose(), ()->fullKey + ".distance", buttonGenericAllocator);
 		res.add(1, (button, mouseButton) -> run.openChoose(), ()->fullKey + ".run", buttonGenericAllocator);
 	}
