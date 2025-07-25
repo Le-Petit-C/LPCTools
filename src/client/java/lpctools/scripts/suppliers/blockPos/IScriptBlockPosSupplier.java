@@ -15,8 +15,8 @@ public interface IScriptBlockPosSupplier extends IScriptSupplier<BlockPos> {
 	@Override @Deprecated @NotNull default Function<CompiledVariableList, BlockPos>
 	compile(VariableMap variableMap) throws CompileFailedException {
 		BiConsumer<CompiledVariableList, BlockPos.Mutable> func = compileToBlockPos(variableMap);
-		BlockPos.Mutable mutable = new BlockPos.Mutable();
 		return list->{
+			BlockPos.Mutable mutable = new BlockPos.Mutable();
 			func.accept(list, mutable);
 			return mutable;
 		};

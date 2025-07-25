@@ -166,7 +166,7 @@ public class LPCConfigPage implements IConfigHandler, Supplier<GuiBase>, ILPCCon
 
             for (int a = 0; a < lists.size(); ++a) {
                 String listName = lists.get(a).getTitleDisplayName();
-                ButtonGeneric button = new ButtonGeneric(x, y, calculateAndAdjustDisplayLength(listName), 20, listName);
+                ButtonGeneric button = new ButtonGeneric(x, y, calculateTextButtonWidth(listName, textRenderer, 20), 20, listName);
                 button.setEnabled(selectedIndex != a);
                 this.addButton(button, new ButtonListener(a, this));
                 x += button.getWidth() + 2;

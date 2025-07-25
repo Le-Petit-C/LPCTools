@@ -7,18 +7,21 @@ import lpctools.scripts.CompileFailedException;
 import lpctools.scripts.choosers.BlockSupplierChooser;
 import lpctools.scripts.runners.variables.CompiledVariableList;
 import lpctools.scripts.runners.variables.VariableMap;
+import lpctools.scripts.suppliers._boolean.comparator.Comparators;
+import lpctools.scripts.suppliers._boolean.comparator.EqualComparatorConfig;
 import net.minecraft.block.Block;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.function.Function;
 
-public class BlockEquals extends WrappedThirdListConfig implements IScriptBooleanSupplier {
-	private final BlockSupplierChooser block1, block2;
-	public BlockEquals(ILPCConfigReadable parent) {
+public class BlockCompare extends WrappedThirdListConfig implements IScriptBooleanSupplier {
+	private final BlockSupplierChooser block1 = new BlockSupplierChooser(parent, "block1", this::onValueChanged);
+	private final EqualComparatorConfig comparator = new EqualComparatorConfig(this);
+	private final BlockSupplierChooser block2 = new BlockSupplierChooser(parent, "block2", this::onValueChanged);
+	public BlockCompare(ILPCConfigReadable parent) {
 		super(parent, nameKey, null);
-		block1 = new BlockSupplierChooser(parent, "block1", this::onValueChanged);
-		block2 = new BlockSupplierChooser(parent, "block2", this::onValueChanged);
 		addConfig(block1);
+		addConfig(comparator);
 		addConfig(block2);
 	}
 	@Override public void getButtonOptions(ButtonOptionArrayList res) {
@@ -29,10 +32,10 @@ public class BlockEquals extends WrappedThirdListConfig implements IScriptBoolea
 	@Override
 	public @NotNull ToBooleanFunction<CompiledVariableList>
 	compileToBoolean(VariableMap variableMap) throws CompileFailedException {
-		Function<CompiledVariableList, Block> pos1, pos2;
-		pos1 = this.block1.get().compile(variableMap);
-		pos2 = this.block2.get().compile(variableMap);
-		return list->pos1.apply(list) == pos2.apply(list);
+		Function<CompiledVariableList, Block> block1 = this.block1.get().compile(variableMap);
+		Comparators.IEqualComparable comparator = this.comparator.get();
+		Function<CompiledVariableList, Block> block2 = this.block2.get().compile(variableMap);
+		return list->comparator.compare(block1.apply(list), block2.apply(list));
 	}
 	
 	@Override public void onValueChanged() {
@@ -40,7 +43,7 @@ public class BlockEquals extends WrappedThirdListConfig implements IScriptBoolea
 		super.onValueChanged();
 	}
 	@Override public @NotNull String getFullTranslationKey() {return fullKey;}
-	public static final String nameKey = "blockEquals";
+	public static final String nameKey = "blockCompare";
 	public static final String fullKey = fullPrefix + nameKey;
 	
 }

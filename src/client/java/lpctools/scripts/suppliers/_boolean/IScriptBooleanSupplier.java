@@ -10,7 +10,8 @@ import org.jetbrains.annotations.NotNull;
 import java.util.function.Function;
 
 public interface IScriptBooleanSupplier extends IScriptSupplier<Boolean> {
-	String fullPrefix = IScriptSupplier.fullPrefix + "boolean.";
+	String fullKey = IScriptSupplier.fullPrefix + "boolean";
+	String fullPrefix = fullKey + '.';
 	@Override @Deprecated @NotNull default Function<CompiledVariableList, Boolean>
 	compile(VariableMap variableMap) throws CompileFailedException{
 		ToBooleanFunction<CompiledVariableList> func = compileToBoolean(variableMap);

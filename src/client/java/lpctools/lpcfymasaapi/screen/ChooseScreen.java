@@ -4,6 +4,7 @@ import fi.dy.masa.malilib.gui.GuiBase;
 import fi.dy.masa.malilib.gui.button.ButtonBase;
 import fi.dy.masa.malilib.gui.button.ButtonGeneric;
 import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.font.TextRenderer;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.text.Text;
@@ -11,7 +12,7 @@ import org.apache.commons.lang3.mutable.MutableInt;
 
 import java.util.Map;
 
-import static lpctools.lpcfymasaapi.LPCConfigUtils.calculateAndAdjustDisplayLength;
+import static lpctools.lpcfymasaapi.LPCConfigUtils.calculateTextButtonWidth;
 
 public class ChooseScreen extends GuiBase {
 	public static <T> ChooseScreen openChooseScreen(Screen parent, String title, boolean hasCancelButton, Map<String, ? extends OptionCallback<? super T>> options, Map<?, ?> chooseTree, T userData){
@@ -34,12 +35,12 @@ public class ChooseScreen extends GuiBase {
 	private final WrappedOptionTree<?> options;
 	private record WrappedOptionTree<T>(Map<String, ? extends OptionCallback<? super T>> options, Map<?, ?> chooseTree, T userData){
 		public int optionCount(){return chooseTree.size();}
-		public void buildButtons(ChooseScreen screen){
+		public void buildButtons(ChooseScreen screen, TextRenderer textRenderer){
 			int x = screen.getScreenWidth() / 2;
 			MutableInt y = new MutableInt(screen.startY);
 			chooseTree.forEach((key, object)->{
 					if(key instanceof String text){
-						screen.addButton(allocateCenterAt(x, y.getAndAdd(buttonHeightStride), Text.translatable(text).getString()), (button, mouse)->{
+						screen.addButton(allocateCenterAt(x, y.getAndAdd(buttonHeightStride), Text.translatable(text).getString(), textRenderer), (button, mouse)->{
 							if(object instanceof String optionKey){
 								options.get(optionKey).action(button, mouse, userData);
 								screen.closeGui(true);
@@ -54,7 +55,7 @@ public class ChooseScreen extends GuiBase {
 					}
 				}
 			);
-			if(screen.hasCancelButton) screen.addButton(allocateCenterAt(x, y.intValue(), Text.translatable(cancelKey).getString()),
+			if(screen.hasCancelButton) screen.addButton(allocateCenterAt(x, y.intValue(), Text.translatable(cancelKey).getString(), textRenderer),
 				(button, mouse) -> {
 				if(screen.chooseParent == null) screen.closeGui(true);
 				else MinecraftClient.getInstance().setScreen(screen.chooseParent);
@@ -78,7 +79,7 @@ public class ChooseScreen extends GuiBase {
 	}
 	@Override public void initGui() {
 		super.initGui();
-		options.buildButtons(this);
+		options.buildButtons(this, textRenderer);
 	}
 	
 	@Override public boolean onMouseScrolled(int mouseX, int mouseY, double horizontalAmount, double verticalAmount) {
@@ -88,8 +89,8 @@ public class ChooseScreen extends GuiBase {
 		return true;
 	}
 	
-	private static ButtonGeneric allocateCenterAt(int centerX, int centerY, String text) {
-		int w = calculateAndAdjustDisplayLength(text);
+	private static ButtonGeneric allocateCenterAt(int centerX, int centerY, String text, TextRenderer textRenderer) {
+		int w = calculateTextButtonWidth(text, textRenderer, 20);
 		return new ButtonGeneric(centerX - w / 2, centerY - buttonHeight / 2, w, buttonHeight, text);
 	}
 	private void renderChooseParents(DrawContext drawContext, int mouseX, int mouseY, float partialTicks){

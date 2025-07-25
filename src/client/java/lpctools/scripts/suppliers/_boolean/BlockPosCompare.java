@@ -7,18 +7,21 @@ import lpctools.scripts.CompileFailedException;
 import lpctools.scripts.choosers.BlockPosSupplierChooser;
 import lpctools.scripts.runners.variables.CompiledVariableList;
 import lpctools.scripts.runners.variables.VariableMap;
+import lpctools.scripts.suppliers._boolean.comparator.Comparators;
+import lpctools.scripts.suppliers._boolean.comparator.EqualComparatorConfig;
 import net.minecraft.util.math.BlockPos;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.function.BiConsumer;
 
-public class BlockPosEquals extends WrappedThirdListConfig implements IScriptBooleanSupplier {
-	private final BlockPosSupplierChooser pos1, pos2;
-	public BlockPosEquals(ILPCConfigReadable parent) {
+public class BlockPosCompare extends WrappedThirdListConfig implements IScriptBooleanSupplier {
+	private final BlockPosSupplierChooser pos1 = new BlockPosSupplierChooser(parent, "pos1", this::onValueChanged);
+	private final EqualComparatorConfig comparator = new EqualComparatorConfig(this);
+	private final BlockPosSupplierChooser pos2 = new BlockPosSupplierChooser(parent, "pos2", this::onValueChanged);
+	public BlockPosCompare(ILPCConfigReadable parent) {
 		super(parent, nameKey, null);
-		pos1 = new BlockPosSupplierChooser(parent, "pos1", this::onValueChanged);
-		pos2 = new BlockPosSupplierChooser(parent, "pos2", this::onValueChanged);
 		addConfig(pos1);
+		addConfig(comparator);
 		addConfig(pos2);
 	}
 	@Override public void getButtonOptions(ButtonOptionArrayList res) {
@@ -29,15 +32,15 @@ public class BlockPosEquals extends WrappedThirdListConfig implements IScriptBoo
 	@Override
 	public @NotNull ToBooleanFunction<CompiledVariableList>
 	compileToBoolean(VariableMap variableMap) throws CompileFailedException {
-		BiConsumer<CompiledVariableList, BlockPos.Mutable> pos1, pos2;
-		pos1 = this.pos1.get().compileToBlockPos(variableMap);
-		pos2 = this.pos2.get().compileToBlockPos(variableMap);
+		BiConsumer<CompiledVariableList, BlockPos.Mutable> pos1 = this.pos1.get().compileToBlockPos(variableMap);
+		Comparators.IEqualComparable comparator = this.comparator.get();
+		BiConsumer<CompiledVariableList, BlockPos.Mutable> pos2 = this.pos2.get().compileToBlockPos(variableMap);
 		BlockPos.Mutable buf1 = new BlockPos.Mutable();
 		BlockPos.Mutable buf2 = new BlockPos.Mutable();
 		return list->{
 			pos1.accept(list, buf1);
 			pos2.accept(list, buf2);
-			return buf1.equals(buf2);
+			return comparator.compare(buf1, buf2);
 		};
 	}
 	@Override public void onValueChanged() {
@@ -45,7 +48,7 @@ public class BlockPosEquals extends WrappedThirdListConfig implements IScriptBoo
 		super.onValueChanged();
 	}
 	@Override public @NotNull String getFullTranslationKey() {return fullKey;}
-	public static final String nameKey = "blockPosEquals";
+	public static final String nameKey = "blockPosCompare";
 	public static final String fullKey = fullPrefix + nameKey;
 	
 }

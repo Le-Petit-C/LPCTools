@@ -1,11 +1,8 @@
 package lpctools.scripts.runners.setVariable;
 
-import fi.dy.masa.malilib.gui.LeftRight;
-import fi.dy.masa.malilib.gui.MaLiLibIcons;
 import lpctools.lpcfymasaapi.configButtons.uniqueConfigs.ChooseConfig;
 import lpctools.lpcfymasaapi.configButtons.uniqueConfigs.StringThirdListConfig;
 import lpctools.lpcfymasaapi.interfaces.ILPCConfigReadable;
-import lpctools.lpcfymasaapi.interfaces.ILPCUniqueConfigBase;
 import lpctools.scripts.CompileFailedException;
 import lpctools.scripts.runners.IScriptRunner;
 import lpctools.scripts.runners.variables.CompiledVariableList;
@@ -34,7 +31,7 @@ public abstract class SetVariable<T extends IScriptSupplier<?>> extends StringTh
 	}
 	@Override public void getButtonOptions(ButtonOptionArrayList res) {
 		super.getButtonOptions(res);
-		res.add(-1, (button, mouseButton)->supplier.openChoose(), null, ILPCUniqueConfigBase.iconButtonAllocator(MaLiLibIcons.SEARCH, LeftRight.CENTER));
+		res.add(-1, (button, mouseButton)->supplier.openChoose(), ()->"R", buttonGenericAllocator);
 	}
 	@Override public void setAlignedIndent(int indent) {supplier.setAlignedIndent(indent);}
 	@Override public int getAlignedIndent() {return supplier.getAlignedIndent();}

@@ -15,4 +15,7 @@ public class CompileFailedException extends Exception {
         return new CompileFailedException(StringUtils.translate("lpctools.configs.scripts.exceptions.notExpectedType",
             expectedVariableDescription, foundVariable.getTitleTranslation(), name));
     }
+    public static CompileFailedException definingVariableInLoop(){
+        return new CompileFailedException(StringUtils.translate("lpctools.configs.scripts.exceptions.definingVariableInLoop"));
+    }
 }
