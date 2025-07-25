@@ -142,10 +142,14 @@ public class ScriptConfigData {
 		ImmutableMap.<String, BiFunction<ILPCConfigReadable, String, IScriptVector3dSupplier>>builder()
 			.put(StaticVector3d.nameKey, (p, k) -> new StaticVector3d(p))
 			.put(FromVector3dVariable.nameKey, (p, k) -> new FromVector3dVariable(p))
+			.put(FromBlockPos.nameKey, (p, k) -> new FromBlockPos(p))
+			.put(BlockCenterPos.nameKey, (p, k) -> new BlockCenterPos(p))
 			.build();
 	public static final ImmutableMap<String, Object> vector3dSupplierConfigsTree = treeBuilder()
 		.put(StaticVector3d.fullKey)
 		.put(FromVector3dVariable.fullKey)
+		.put(FromBlockPos.fullKey)
+		.put(BlockCenterPos.fullKey)
 		.build();
 	public static final ImmutableMap<String, BiFunction<ILPCConfigReadable, String, IScriptDirection6Supplier>> direction6SupplierConfigs =
 		ImmutableMap.<String, BiFunction<ILPCConfigReadable, String, IScriptDirection6Supplier>>builder()
