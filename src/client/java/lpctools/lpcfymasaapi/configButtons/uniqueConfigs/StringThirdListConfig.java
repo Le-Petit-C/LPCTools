@@ -15,7 +15,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Collection;
 
 public class StringThirdListConfig extends UniqueStringConfig implements IExpandableThirdList {
-	boolean expanded;
+	protected boolean expanded;
 	public final LPCConfigList subConfigs;
 	public StringThirdListConfig(@NotNull ILPCConfigReadable parent, @NotNull String nameKey, @Nullable String defaultString, @Nullable ILPCValueChangeCallback callback) {
 		super(parent, nameKey, defaultString, callback);
@@ -38,14 +38,14 @@ public class StringThirdListConfig extends UniqueStringConfig implements IExpand
 	@Override public @Nullable JsonObject getAsJsonElement() {
 		JsonObject object = new JsonObject();
 		object.add(propertiesId, subConfigs.getAsJsonElement());
-		object.add("strings", super.getAsJsonElement());
+		object.add("string", super.getAsJsonElement());
 		object.addProperty(expandedKey, expanded);
 		return object;
 	}
 	@Override public UpdateTodo setValueFromJsonElementEx(@NotNull JsonElement data) {
 		if(data instanceof JsonObject object){
 			UpdateTodo updateTodo = new UpdateTodo();
-			updateTodo.combine(super.setValueFromJsonElementEx(object.get("strings")));
+			updateTodo.combine(super.setValueFromJsonElementEx(object.get("string")));
 			if(object.get(expandedKey) instanceof JsonPrimitive primitive){
 				boolean b = expanded;
 				expanded = primitive.getAsBoolean();

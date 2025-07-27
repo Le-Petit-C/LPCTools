@@ -1,5 +1,9 @@
 package lpctools.scripts.runners.setVariable;
 
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonPrimitive;
+import lpctools.lpcfymasaapi.configButtons.UpdateTodo;
 import lpctools.lpcfymasaapi.configButtons.uniqueConfigs.ChooseConfig;
 import lpctools.lpcfymasaapi.configButtons.uniqueConfigs.StringThirdListConfig;
 import lpctools.lpcfymasaapi.interfaces.ILPCConfigReadable;
@@ -10,6 +14,7 @@ import lpctools.scripts.runners.variables.VariableMap;
 import lpctools.scripts.runners.variables.VariableTestPack;
 import lpctools.scripts.suppliers.IScriptSupplier;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.function.Consumer;
 
@@ -20,10 +25,6 @@ public abstract class SetVariable<T extends IScriptSupplier<?>> extends StringTh
 		setValueChangeCallback(this::notifyScriptChanged);
 		this.supplier = supplier;
 		addConfig(supplier.get());
-		supplier.setValueChangeCallback(()->{
-			getConfigs().clear();
-			addConfig(supplier.get());
-		});
 	}
 	@Override public @NotNull Consumer<CompiledVariableList> compile(VariableMap variableMap) throws CompileFailedException{
 		int index = variableMap.get(getStringValue(), testPack());
@@ -35,7 +36,36 @@ public abstract class SetVariable<T extends IScriptSupplier<?>> extends StringTh
 	}
 	@Override public void setAlignedIndent(int indent) {supplier.setAlignedIndent(indent);}
 	@Override public int getAlignedIndent() {return supplier.getAlignedIndent();}
-	
+	@Override public @Nullable JsonObject getAsJsonElement() {
+		JsonObject object = new JsonObject();
+		object.add(propertiesId, supplier.getAsJsonElement());
+		object.addProperty("string", getStringValue());
+		object.addProperty(expandedKey, expanded);
+		return object;
+	}
+	@Override public UpdateTodo setValueFromJsonElementEx(@NotNull JsonElement data) {
+		if(data instanceof JsonObject object){
+			UpdateTodo updateTodo = new UpdateTodo();
+			if(object.get("string") instanceof JsonPrimitive primitive){
+				String last = stringValue;
+				stringValue = primitive.getAsString();
+				updateTodo.valueChanged(!last.equals(stringValue));
+			}
+			if(object.get(expandedKey) instanceof JsonPrimitive primitive){
+				boolean b = expanded;
+				expanded = primitive.getAsBoolean();
+				getPage().markNeedUpdate(b != expanded);
+			}
+			updateTodo.combine(supplier.setValueFromJsonElementEx(object.get(propertiesId)));
+			return updateTodo;
+		}
+		return setValueFailed(data);
+	}
+	@Override public void onValueChanged() {
+		getConfigs().clear();
+		addConfig(supplier.get());
+		super.onValueChanged();
+	}
 	protected abstract VariableTestPack testPack();
 	protected abstract @NotNull Consumer<CompiledVariableList>
 	setValue(VariableMap variableMap, T src, int index) throws CompileFailedException;

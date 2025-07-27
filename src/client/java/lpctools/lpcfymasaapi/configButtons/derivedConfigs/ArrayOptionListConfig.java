@@ -1,10 +1,10 @@
 package lpctools.lpcfymasaapi.configButtons.derivedConfigs;
 
 import fi.dy.masa.malilib.config.IConfigOptionListEntry;
-import fi.dy.masa.malilib.util.StringUtils;
 import lpctools.lpcfymasaapi.configButtons.transferredConfigs.OptionListConfig;
 import lpctools.lpcfymasaapi.interfaces.ILPCConfigReadable;
 import lpctools.lpcfymasaapi.interfaces.ILPCValueChangeCallback;
+import net.minecraft.text.Text;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -23,7 +23,7 @@ public class ArrayOptionListConfig<T> extends OptionListConfig implements Suppli
     }
     public record OptionData<T>(@NotNull OptionList<T> options, @NotNull String translationKey, T userData, int index) implements IArrayConfigOptionListEntry<T>{
         @Override public String getStringValue() {return translationKey;}
-        @Override public String getDisplayName() {return StringUtils.translate(translationKey);}
+        @Override public String getDisplayName() {return Text.translatable(translationKey).getString();}
         @Override public IConfigOptionListEntry cycle(boolean forward) {
             int n = index;
             if(forward){if(++n >= options.size()) n = 0;}

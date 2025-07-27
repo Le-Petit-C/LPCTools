@@ -12,8 +12,7 @@ import lpctools.scripts.suppliers._double.*;
 import lpctools.scripts.suppliers._int.*;
 import lpctools.scripts.suppliers.block.*;
 import lpctools.scripts.suppliers.blockPos.*;
-import lpctools.scripts.suppliers.direction6.IScriptDirection6Supplier;
-import lpctools.scripts.suppliers.direction6.StaticDirection6;
+import lpctools.scripts.suppliers.direction6.*;
 import lpctools.scripts.suppliers.vector3d.*;
 import lpctools.scripts.trigger.*;
 import org.apache.commons.lang3.function.TriFunction;
@@ -39,7 +38,7 @@ public class ScriptConfigData {
 			.put(BlockVariable.nameKey, (p, k)->new BlockVariable(p))
 			.put(SetBooleanVariable.nameKey, (p, k)->new SetBooleanVariable(p))
 			.put(SetIntVariable.nameKey, (p, k)->new SetIntVariable(p))
-			.put(SetDoubleVariable.nameKey, (p, k)->new DoubleVariable(p))
+			.put(SetDoubleVariable.nameKey, (p, k)->new SetDoubleVariable(p))
 			.put(SetBlockPosVariable.nameKey, (p, k)->new SetBlockPosVariable(p))
 			.put(SetVector3dVariable.nameKey, (p, k)->new SetVector3dVariable(p))
 			.put(SetBlockVariable.nameKey, (p, k)->new SetBlockVariable(p))
@@ -113,45 +112,51 @@ public class ScriptConfigData {
 		ImmutableMap.<String, BiFunction<ILPCConfigReadable, String, IScriptIntSupplier>>builder()
 			.put(StaticInt.nameKey, (p, k) -> new StaticInt(p))
 			.put(FromIntVariable.nameKey, (p, k)->new FromIntVariable(p))
+			.put(IntCalculate.nameKey, (p, k)->new IntCalculate(p))
 			.build();
 	public static final ImmutableMap<String, Object> intSupplierConfigsTree = treeBuilder()
 		.put(StaticInt.fullKey)
 		.put(FromIntVariable.fullKey)
+		.put(IntCalculate.fullKey)
 		.build();
 	public static final ImmutableMap<String, BiFunction<ILPCConfigReadable, String, IScriptDoubleSupplier>> doubleSupplierConfigs =
 		ImmutableMap.<String, BiFunction<ILPCConfigReadable, String, IScriptDoubleSupplier>>builder()
 			.put(StaticDouble.nameKey, (p, k)->new StaticDouble(p))
 			.put(FromDoubleVariable.nameKey, (p, k)->new FromDoubleVariable(p))
+			.put(DoubleCalculate.nameKey, (p, k)->new DoubleCalculate(p))
 			.put(PlayerInteractionRange.nameKey, (p, k)->new PlayerInteractionRange(p))
 			.build();
 	public static final ImmutableMap<String, Object> doubleSupplierConfigsTree = treeBuilder()
 		.put(StaticDouble.fullKey)
 		.put(FromDoubleVariable.fullKey)
+		.put(DoubleCalculate.fullKey)
 		.put(PlayerInteractionRange.fullKey)
 		.build();
 	public static final ImmutableMap<String, BiFunction<ILPCConfigReadable, String, IScriptBlockPosSupplier>> blockPosSupplierConfigs =
 		ImmutableMap.<String, BiFunction<ILPCConfigReadable, String, IScriptBlockPosSupplier>>builder()
 			.put(StaticBlockPos.nameKey, (p, k) -> new StaticBlockPos(p))
 			.put(FromBlockPosVariable.nameKey, (p, k) -> new FromBlockPosVariable(p))
-			.put(BlockPosAdd.nameKey, (p, k) -> new BlockPosAdd(p))
+			.put(lpctools.scripts.suppliers.blockPos.BlockPosCalculate.nameKey, (p, k) -> new BlockPosCalculate(p))
 			.put(PlayerBlockPos.nameKey, (p, k) -> new PlayerBlockPos(p))
 			.build();
 	public static final ImmutableMap<String, Object> blockPosSupplierConfigsTree = treeBuilder()
 		.put(StaticBlockPos.fullKey)
 		.put(FromBlockPosVariable.fullKey)
-		.put(BlockPosAdd.fullKey)
+		.put(lpctools.scripts.suppliers.blockPos.BlockPosCalculate.fullKey)
 		.put(PlayerBlockPos.fullKey)
 		.build();
 	public static final ImmutableMap<String, BiFunction<ILPCConfigReadable, String, IScriptVector3dSupplier>> vector3dSupplierConfigs =
 		ImmutableMap.<String, BiFunction<ILPCConfigReadable, String, IScriptVector3dSupplier>>builder()
 			.put(StaticVector3d.nameKey, (p, k) -> new StaticVector3d(p))
 			.put(FromVector3dVariable.nameKey, (p, k) -> new FromVector3dVariable(p))
+			.put(Vector3dCalculate.nameKey, (p, k) -> new Vector3dCalculate(p))
 			.put(FromBlockPos.nameKey, (p, k) -> new FromBlockPos(p))
 			.put(BlockCenterPos.nameKey, (p, k) -> new BlockCenterPos(p))
 			.build();
 	public static final ImmutableMap<String, Object> vector3dSupplierConfigsTree = treeBuilder()
 		.put(StaticVector3d.fullKey)
 		.put(FromVector3dVariable.fullKey)
+		.put(Vector3dCalculate.fullKey)
 		.put(FromBlockPos.fullKey)
 		.put(BlockCenterPos.fullKey)
 		.build();

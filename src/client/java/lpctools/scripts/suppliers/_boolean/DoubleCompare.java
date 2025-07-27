@@ -7,8 +7,8 @@ import lpctools.scripts.CompileFailedException;
 import lpctools.scripts.choosers.DoubleSupplierChooser;
 import lpctools.scripts.runners.variables.CompiledVariableList;
 import lpctools.scripts.runners.variables.VariableMap;
-import lpctools.scripts.suppliers._boolean.comparator.AllComparatorConfig;
-import lpctools.scripts.suppliers._boolean.comparator.Comparators;
+import lpctools.scripts.utils.comparator.AllComparatorConfig;
+import lpctools.scripts.utils.comparator.Comparators;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.function.ToDoubleFunction;

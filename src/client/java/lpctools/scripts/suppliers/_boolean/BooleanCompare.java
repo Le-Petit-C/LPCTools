@@ -7,8 +7,8 @@ import lpctools.scripts.CompileFailedException;
 import lpctools.scripts.choosers.BooleanSupplierChooser;
 import lpctools.scripts.runners.variables.CompiledVariableList;
 import lpctools.scripts.runners.variables.VariableMap;
-import lpctools.scripts.suppliers._boolean.comparator.Comparators;
-import lpctools.scripts.suppliers._boolean.comparator.EqualComparatorConfig;
+import lpctools.scripts.utils.comparator.Comparators;
+import lpctools.scripts.utils.comparator.EqualComparatorConfig;
 import org.jetbrains.annotations.NotNull;
 
 public class BooleanCompare extends WrappedThirdListConfig implements IScriptBooleanSupplier {

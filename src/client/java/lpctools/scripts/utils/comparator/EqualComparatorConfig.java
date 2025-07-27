@@ -1,17 +1,17 @@
-package lpctools.scripts.suppliers._boolean.comparator;
+package lpctools.scripts.utils.comparator;
 
 import lpctools.lpcfymasaapi.configButtons.derivedConfigs.ArrayOptionListConfig;
 import lpctools.lpcfymasaapi.interfaces.ILPCConfigReadable;
+import lpctools.lpcfymasaapi.interfaces.ILPCUniqueConfigBase;
 import lpctools.scripts.IScriptBase;
-import lpctools.scripts.suppliers._boolean.IScriptBooleanSupplier;
 import org.jetbrains.annotations.NotNull;
 
-import static lpctools.scripts.suppliers._boolean.comparator.Comparators.*;
+import static lpctools.scripts.utils.comparator.Comparators.*;
 
-public class AllComparatorConfig extends ArrayOptionListConfig<IAllComparable> implements IScriptBase {
-	public AllComparatorConfig(@NotNull ILPCConfigReadable parent) {
+public class EqualComparatorConfig extends ArrayOptionListConfig<IEqualComparable> implements IScriptBase {
+	public EqualComparatorConfig(@NotNull ILPCConfigReadable parent) {
 		super(parent, nameKey);
-		for(IAllComparable comparable : allComparable)
+		for(IEqualComparable comparable : equalComparable)
 			addOption(comparable.key(), comparable);
 	}
 	
@@ -20,7 +20,7 @@ public class AllComparatorConfig extends ArrayOptionListConfig<IAllComparable> i
 		super.onValueChanged();
 	}
 	
-	@Override public void getButtonOptions(ButtonOptionArrayList res) {
+	@Override public void getButtonOptions(ILPCUniqueConfigBase.ButtonOptionArrayList res) {
 		/*res.add(1, (button, mouseButton)->{
 			switch (mouseButton){
 				case 0 -> setOptionListValue(getOptionListValue().cycle(true));
@@ -31,5 +31,5 @@ public class AllComparatorConfig extends ArrayOptionListConfig<IAllComparable> i
 	
 	@Override public @NotNull String getFullTranslationKey() {return fullKey;}
 	public static final String nameKey = "comparator";
-	public static final String fullKey = IScriptBooleanSupplier.fullPrefix + nameKey;
+	public static final String fullKey = IScriptBase.fullPrefix + nameKey;
 }

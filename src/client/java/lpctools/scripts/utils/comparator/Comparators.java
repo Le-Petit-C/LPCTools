@@ -1,4 +1,4 @@
-package lpctools.scripts.suppliers._boolean.comparator;
+package lpctools.scripts.utils.comparator;
 
 import net.minecraft.block.Block;
 import net.minecraft.util.math.Vec3i;
