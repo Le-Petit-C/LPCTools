@@ -48,6 +48,7 @@ public class ScriptConfigData {
 			.put(WhileLoop.nameKey, (p, k)->new WhileLoop(p))
 			.put(ForLoop.nameKey, (p, k)->new ForLoop(p))
 			.put(InteractBlock.nameKey, (p, k)->new InteractBlock(p))
+			.put(AttackBlock.nameKey, (p, k)->new AttackBlock(p))
 			.put(RunnerMessage.nameKey, (p, k)->new RunnerMessage(p))
 			.put(IterateFromClosestInDistance.nameKey, (p, k)->new IterateFromClosestInDistance(p))
 			.build();
@@ -73,6 +74,7 @@ public class ScriptConfigData {
 		.put(WhileLoop.fullKey)
 		.put(ForLoop.fullKey)
 		.put(InteractBlock.fullKey)
+		.put(AttackBlock.fullKey)
 		.put(RunnerMessage.fullKey)
 		.put(IterateFromClosestInDistance.fullKey)
 		.build();
@@ -90,6 +92,7 @@ public class ScriptConfigData {
 			.put(BooleanCompare.nameKey, (p, k)->new BooleanCompare(p))
 			.put(BlockPosCompare.nameKey, (p, k)->new BlockPosCompare(p))
 			.put(BlockCompare.nameKey, (p, k)->new BlockCompare(p))
+			.put(CanBreakInstantly.nameKey, (p, k)->new CanBreakInstantly(p))
 			.build();
 	public static final ImmutableMap<String, Object> booleanSupplierConfigsTree = treeBuilder()
 		.put(StaticBoolean.fullKey)
@@ -104,6 +107,7 @@ public class ScriptConfigData {
 		.put(BooleanCompare.fullKey)
 		.put(BlockPosCompare.fullKey)
 		.put(BlockCompare.fullKey)
+		.put(CanBreakInstantly.fullKey)
 		.build();
 	public static final ImmutableMap<String, BiFunction<ILPCConfigReadable, String, IScriptIntSupplier>> intSupplierConfigs =
 		ImmutableMap.<String, BiFunction<ILPCConfigReadable, String, IScriptIntSupplier>>builder()

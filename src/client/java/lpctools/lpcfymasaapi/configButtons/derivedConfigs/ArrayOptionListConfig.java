@@ -110,4 +110,8 @@ public class ArrayOptionListConfig<T> extends OptionListConfig implements Suppli
         } catch (Exception ignored) {}
         return true;
     }
+    @Override public void onValueChanged() {
+        getPage().markNeedUpdate();
+        super.onValueChanged();
+    }
 }

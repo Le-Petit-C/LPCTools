@@ -22,12 +22,12 @@ public class EqualComparatorConfig extends ArrayOptionListConfig<IEqualComparabl
 	}
 	
 	@Override public void getButtonOptions(ILPCUniqueConfigBase.ButtonOptionArrayList res) {
-		res.add(1, (button, mouseButton)->{
+		/*res.add(1, (button, mouseButton)->{
 			switch (mouseButton){
 				case 0 -> setOptionListValue(getOptionListValue().cycle(true));
 				case 1 -> setOptionListValue(getOptionListValue().cycle(false));
 			}
-		}, get()::key, buttonGenericAllocator);
+		}, get()::key, buttonGenericAllocator);*/
 	}
 	
 	@Override public @NotNull String getFullTranslationKey() {return fullKey;}
