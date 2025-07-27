@@ -305,6 +305,8 @@
   "lpctools.configs.scripts.runners.iterateFromClosestInDistance.variable.name": "变量",
   "lpctools.configs.scripts.runners.iterateFromClosestInDistance.variable.comment": "存储遍历坐标的变量\n遍历时自动创建局部变量",
   "lpctools.configs.scripts.runners.iterateFromClosestInDistance.run": "运行内容",
+  "lpctools.configs.scripts.suppliers.boolean.comparator.name": "比较运算符",
+  "lpctools.configs.scripts.suppliers.boolean.comparator.comment": "比较运算符",
   "lpctools.configs.scripts.suppliers.boolean.staticBoolean": "常量布尔值",
   "lpctools.configs.scripts.suppliers.boolean.staticBoolean.name": "常量布尔值",
   "lpctools.configs.scripts.suppliers.boolean.staticBoolean.comment": "由配置设置的布尔值",

@@ -305,6 +305,8 @@
   "lpctools.configs.scripts.runners.iterateFromClosestInDistance.variable.name": "Variable",
   "lpctools.configs.scripts.runners.iterateFromClosestInDistance.variable.comment": "The variable that would store the iterated pos.\nAutomatically defines this variable when iterating.",
   "lpctools.configs.scripts.runners.iterateFromClosestInDistance.run": "Run",
+  "lpctools.configs.scripts.suppliers.boolean.comparator.name": "Comparator",
+  "lpctools.configs.scripts.suppliers.boolean.comparator.comment": "Comparator",
   "lpctools.configs.scripts.suppliers.boolean.staticBoolean": "Static Boolean",
   "lpctools.configs.scripts.suppliers.boolean.staticBoolean.name": "Static Boolean",
   "lpctools.configs.scripts.suppliers.boolean.staticBoolean.comment": "boolean from Boolean config",

@@ -53,6 +53,7 @@ public class MutableConfig<T extends ILPCUniqueConfigBase> extends LPCUniqueConf
     @Override public boolean isModified() {return !defaultJson.equals(getSubConfigsAsJsonElement());}
     @Override public void resetToDefault() {
         setSubConfigsValueFromJsonElement(defaultJson);
+        getPage().markNeedUpdate();
     }
     @Override public @NotNull Iterable<? extends ILPCConfig> getConfigs(){return subConfigs;}
     @Override public ArrayList<GuiConfigsBase.ConfigOptionWrapper> buildConfigWrappers(ToIntFunction<String> getStringWidth, ArrayList<GuiConfigsBase.ConfigOptionWrapper> wrapperList) {
