@@ -5,7 +5,7 @@ import lpctools.lpcfymasaapi.interfaces.ILPCConfigReadable;
 import lpctools.scripts.CompileFailedException;
 import lpctools.scripts.runners.variables.CompiledVariableList;
 import lpctools.scripts.runners.variables.VariableMap;
-import lpctools.scripts.utils.choosers.Axis3SupplierChooser;
+import lpctools.scripts.utils.choosers.AxisSupplierChooser;
 import lpctools.scripts.utils.choosers.Vector3dSupplierChooser;
 import net.minecraft.util.math.Direction;
 import org.jetbrains.annotations.NotNull;
@@ -15,7 +15,7 @@ import java.util.function.*;
 
 public class DoubleFromVector3d extends WrappedThirdListConfig implements IScriptDoubleSupplier {
 	private final Vector3dSupplierChooser vec = addConfig(new Vector3dSupplierChooser(parent, "vec", this::onValueChanged));
-	private final Axis3SupplierChooser axis = addConfig(new Axis3SupplierChooser(parent, "axis", this::onValueChanged));
+	private final AxisSupplierChooser axis = addConfig(new AxisSupplierChooser(parent, "axis", this::onValueChanged));
 	public DoubleFromVector3d(ILPCConfigReadable parent) {super(parent, nameKey, null);}
 	@Override public void getButtonOptions(ButtonOptionArrayList res) {
 		super.getButtonOptions(res);

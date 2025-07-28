@@ -10,11 +10,12 @@ import lpctools.scripts.runners.variables.*;
 import lpctools.scripts.suppliers._boolean.*;
 import lpctools.scripts.suppliers._double.*;
 import lpctools.scripts.suppliers._int.*;
-import lpctools.scripts.suppliers.axis3.IScriptAxis3Supplier;
-import lpctools.scripts.suppliers.axis3.StaticAxis3;
+import lpctools.scripts.suppliers.axis.FromAxisVariable;
+import lpctools.scripts.suppliers.axis.IScriptAxisSupplier;
+import lpctools.scripts.suppliers.axis.StaticAxis;
 import lpctools.scripts.suppliers.block.*;
 import lpctools.scripts.suppliers.blockPos.*;
-import lpctools.scripts.suppliers.direction6.*;
+import lpctools.scripts.suppliers.direction.*;
 import lpctools.scripts.suppliers.vector3d.*;
 import lpctools.scripts.trigger.*;
 import org.apache.commons.lang3.function.TriFunction;
@@ -42,12 +43,16 @@ public class ScriptConfigData {
 			.put(BlockPosVariable.nameKey, (p, k)->new BlockPosVariable(p))
 			.put(Vector3dVariable.nameKey, (p, k)->new Vector3dVariable(p))
 			.put(BlockVariable.nameKey, (p, k)->new BlockVariable(p))
+			.put(DirectionVariable.nameKey, (p, k)->new DirectionVariable(p))
+			.put(AxisVariable.nameKey, (p, k)->new AxisVariable(p))
 			.put(SetBooleanVariable.nameKey, (p, k)->new SetBooleanVariable(p))
 			.put(SetIntVariable.nameKey, (p, k)->new SetIntVariable(p))
 			.put(SetDoubleVariable.nameKey, (p, k)->new SetDoubleVariable(p))
 			.put(SetBlockPosVariable.nameKey, (p, k)->new SetBlockPosVariable(p))
 			.put(SetVector3dVariable.nameKey, (p, k)->new SetVector3dVariable(p))
 			.put(SetBlockVariable.nameKey, (p, k)->new SetBlockVariable(p))
+			.put(SetDirectionVariable.nameKey, (p, k)->new SetDirectionVariable(p))
+			.put(SetAxisVariable.nameKey, (p, k)->new SetAxisVariable(p))
 			.put(SubRunners.nameKey, (p, k)->new SubRunners(p))
 			.put(RunIfElse.nameKey, (p, k)->new RunIfElse(p))
 			.put(WhileLoop.nameKey, (p, k)->new WhileLoop(p))
@@ -65,6 +70,9 @@ public class ScriptConfigData {
 			.put(DoubleVariable.fullKey)
 			.put(BlockPosVariable.fullKey)
 			.put(Vector3dVariable.fullKey)
+			.put(BlockVariable.fullKey)
+			.put(DirectionVariable.fullKey)
+			.put(AxisVariable.fullKey)
 			.build())
 		.put(SetVariable.fullKey, treeBuilder()
 			.put(SetBooleanVariable.fullKey)
@@ -73,6 +81,8 @@ public class ScriptConfigData {
 			.put(SetBlockPosVariable.fullKey)
 			.put(SetVector3dVariable.fullKey)
 			.put(SetBlockVariable.fullKey)
+			.put(SetDirectionVariable.fullKey)
+			.put(SetAxisVariable.fullKey)
 			.build())
 		.put(RunIfElse.fullKey)
 		.put(SubRunners.fullKey)
@@ -180,6 +190,9 @@ public class ScriptConfigData {
 			.put(Vector3dCrossProduct.nameKey, (p, k) -> new Vector3dCrossProduct(p))
 			.put(Vector3dFromBlockPos.nameKey, (p, k) -> new Vector3dFromBlockPos(p))
 			.put(BlockCenterPos.nameKey, (p, k) -> new BlockCenterPos(p))
+			.put(PlayerPos.nameKey, (p, k) -> new PlayerPos(p))
+			.put(PlayerEyePos.nameKey, (p, k) -> new PlayerEyePos(p))
+			.put(PlayerRotationVector.nameKey, (p, k) -> new PlayerRotationVector(p))
 			.build();
 	public static final ImmutableMap<String, Object> vector3dSupplierConfigsTree = treeBuilder()
 		.put(StaticVector3d.fullKey)
@@ -189,20 +202,27 @@ public class ScriptConfigData {
 		.put(Vector3dCrossProduct.fullKey)
 		.put(Vector3dFromBlockPos.fullKey)
 		.put(BlockCenterPos.fullKey)
+		.put(PlayerPos.fullKey)
+		.put(PlayerEyePos.fullKey)
+		.put(PlayerRotationVector.fullKey)
 		.build();
-	public static final ImmutableMap<String, BiFunction<ILPCConfigReadable, String, IScriptDirection6Supplier>> direction6SupplierConfigs =
-		ImmutableMap.<String, BiFunction<ILPCConfigReadable, String, IScriptDirection6Supplier>>builder()
-			.put(StaticDirection6.nameKey, (p, k) -> new StaticDirection6(p))
+	public static final ImmutableMap<String, BiFunction<ILPCConfigReadable, String, IScriptDirectionSupplier>> directionSupplierConfigs =
+		ImmutableMap.<String, BiFunction<ILPCConfigReadable, String, IScriptDirectionSupplier>>builder()
+			.put(StaticDirection.nameKey, (p, k) -> new StaticDirection(p))
+			.put(FromDirectionVariable.nameKey, (p, k) -> new FromDirectionVariable(p))
 			.build();
-	public static final ImmutableMap<String, Object> direction6SupplierConfigsTree = treeBuilder()
-		.put(StaticDirection6.fullKey)
+	public static final ImmutableMap<String, Object> directionSupplierConfigsTree = treeBuilder()
+		.put(StaticDirection.fullKey)
+		.put(FromDirectionVariable.fullKey)
 		.build();
-	public static final ImmutableMap<String, BiFunction<ILPCConfigReadable, String, IScriptAxis3Supplier>> axis3SupplierConfigs =
-		ImmutableMap.<String, BiFunction<ILPCConfigReadable, String, IScriptAxis3Supplier>>builder()
-			.put(StaticAxis3.nameKey, (p, k) -> new StaticAxis3(p))
+	public static final ImmutableMap<String, BiFunction<ILPCConfigReadable, String, IScriptAxisSupplier>> axisSupplierConfigs =
+		ImmutableMap.<String, BiFunction<ILPCConfigReadable, String, IScriptAxisSupplier>>builder()
+			.put(StaticAxis.nameKey, (p, k) -> new StaticAxis(p))
+			.put(FromAxisVariable.nameKey, (p, k) -> new FromAxisVariable(p))
 			.build();
-	public static final ImmutableMap<String, Object> axis3SupplierConfigsTree = treeBuilder()
-		.put(StaticAxis3.fullKey)
+	public static final ImmutableMap<String, Object> axisSupplierConfigsTree = treeBuilder()
+		.put(StaticAxis.fullKey)
+		.put(FromAxisVariable.fullKey)
 		.build();
 	public static final ImmutableMap<String, BiFunction<ILPCConfigReadable, String, IScriptBlockSupplier>> blockSupplierConfigs =
 		ImmutableMap.<String, BiFunction<ILPCConfigReadable, String, IScriptBlockSupplier>>builder()

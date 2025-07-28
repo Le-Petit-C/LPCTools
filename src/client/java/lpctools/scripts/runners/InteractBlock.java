@@ -6,7 +6,7 @@ import lpctools.lpcfymasaapi.interfaces.ILPCConfigReadable;
 import lpctools.scripts.CompileFailedException;
 import lpctools.scripts.utils.choosers.BlockPosSupplierChooser;
 import lpctools.scripts.utils.choosers.BooleanSupplierChooser;
-import lpctools.scripts.utils.choosers.Direction6SupplierChooser;
+import lpctools.scripts.utils.choosers.DirectionSupplierChooser;
 import lpctools.scripts.utils.choosers.Vector3dSupplierChooser;
 import lpctools.scripts.runners.variables.CompiledVariableList;
 import lpctools.scripts.runners.variables.VariableMap;
@@ -27,7 +27,7 @@ import java.util.function.Function;
 
 public class InteractBlock extends WrappedThirdListConfig implements IScriptRunner{
 	Vector3dSupplierChooser pos = addConfig(new Vector3dSupplierChooser(parent, "pos", null));
-	Direction6SupplierChooser side = addConfig(new Direction6SupplierChooser(parent, "side", null));
+	DirectionSupplierChooser side = addConfig(new DirectionSupplierChooser(parent, "side", null));
 	BlockPosSupplierChooser blockPos = addConfig(new BlockPosSupplierChooser(parent, "blockPos", null));
 	BooleanSupplierChooser mainHand = addConfig(new BooleanSupplierChooser(parent, "mainHand", null));
 	public InteractBlock(ILPCConfigReadable parent) {

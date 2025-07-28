@@ -4,13 +4,13 @@ import lpctools.lpcfymasaapi.configButtons.uniqueConfigs.ChooseConfig;
 import lpctools.lpcfymasaapi.interfaces.ILPCConfigReadable;
 import lpctools.lpcfymasaapi.interfaces.ILPCValueChangeCallback;
 import lpctools.scripts.IScriptBase;
-import lpctools.scripts.suppliers.axis3.IScriptAxis3Supplier;
+import lpctools.scripts.suppliers.axis.IScriptAxisSupplier;
 
 import static lpctools.scripts.ScriptConfigData.*;
 
-public class Axis3SupplierChooser extends ChooseConfig<IScriptAxis3Supplier> implements IScriptBase {
-	public Axis3SupplierChooser(ILPCConfigReadable parent, String nameKey, ILPCValueChangeCallback callback) {
-		super(parent, nameKey, axis3SupplierConfigs, axis3SupplierConfigsTree, callback);
+public class AxisSupplierChooser extends ChooseConfig<IScriptAxisSupplier> implements IScriptBase {
+	public AxisSupplierChooser(ILPCConfigReadable parent, String nameKey, ILPCValueChangeCallback callback) {
+		super(parent, nameKey, axisSupplierConfigs, axisSupplierConfigsTree, callback);
 		setValueChangeCallback(this::notifyScriptChanged);
 	}
 	@Override public void onValueChanged() {

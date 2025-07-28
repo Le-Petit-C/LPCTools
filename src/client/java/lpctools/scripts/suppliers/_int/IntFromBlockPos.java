@@ -5,7 +5,7 @@ import lpctools.lpcfymasaapi.interfaces.ILPCConfigReadable;
 import lpctools.scripts.CompileFailedException;
 import lpctools.scripts.runners.variables.CompiledVariableList;
 import lpctools.scripts.runners.variables.VariableMap;
-import lpctools.scripts.utils.choosers.Axis3SupplierChooser;
+import lpctools.scripts.utils.choosers.AxisSupplierChooser;
 import lpctools.scripts.utils.choosers.BlockPosSupplierChooser;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
@@ -17,7 +17,7 @@ import java.util.function.ToIntFunction;
 
 public class IntFromBlockPos extends WrappedThirdListConfig implements IScriptIntSupplier {
 	private final BlockPosSupplierChooser pos = addConfig(new BlockPosSupplierChooser(parent, "pos", this::onValueChanged));
-	private final Axis3SupplierChooser axis = addConfig(new Axis3SupplierChooser(parent, "axis", this::onValueChanged));
+	private final AxisSupplierChooser axis = addConfig(new AxisSupplierChooser(parent, "axis", this::onValueChanged));
 	public IntFromBlockPos(ILPCConfigReadable parent) {super(parent, nameKey, null);}
 	@Override public void getButtonOptions(ButtonOptionArrayList res) {
 		super.getButtonOptions(res);

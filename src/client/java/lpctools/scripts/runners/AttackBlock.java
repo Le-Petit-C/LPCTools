@@ -4,7 +4,7 @@ import lpctools.lpcfymasaapi.configButtons.uniqueConfigs.WrappedThirdListConfig;
 import lpctools.lpcfymasaapi.interfaces.ILPCConfigReadable;
 import lpctools.scripts.CompileFailedException;
 import lpctools.scripts.utils.choosers.BlockPosSupplierChooser;
-import lpctools.scripts.utils.choosers.Direction6SupplierChooser;
+import lpctools.scripts.utils.choosers.DirectionSupplierChooser;
 import lpctools.scripts.runners.variables.CompiledVariableList;
 import lpctools.scripts.runners.variables.VariableMap;
 import net.minecraft.client.MinecraftClient;
@@ -20,7 +20,7 @@ import java.util.function.Function;
 
 public class AttackBlock extends WrappedThirdListConfig implements IScriptRunner{
 	BlockPosSupplierChooser blockPos = addConfig(new BlockPosSupplierChooser(parent, "blockPos", null));
-	Direction6SupplierChooser direction = addConfig(new Direction6SupplierChooser(parent, "direction", null));
+	DirectionSupplierChooser direction = addConfig(new DirectionSupplierChooser(parent, "direction", null));
 	public AttackBlock(ILPCConfigReadable parent) {
 		super(parent, nameKey, null);
 		setValueChangeCallback(this::notifyScriptChanged);

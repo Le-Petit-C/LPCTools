@@ -1,4 +1,4 @@
-package lpctools.scripts.suppliers.axis3;
+package lpctools.scripts.suppliers.direction;
 
 import lpctools.lpcfymasaapi.configButtons.derivedConfigs.ArrayOptionListConfig;
 import lpctools.lpcfymasaapi.interfaces.ILPCConfigReadable;
@@ -9,20 +9,20 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.function.Function;
 
-public class StaticAxis3 extends ArrayOptionListConfig<Direction.Axis> implements IScriptAxis3Supplier {
-	public StaticAxis3(ILPCConfigReadable parent) {
+public class StaticDirection extends ArrayOptionListConfig<Direction> implements IScriptDirectionSupplier {
+	public StaticDirection(ILPCConfigReadable parent) {
 		super(parent, nameKey);
-		for(Direction.Axis axis : Direction.Axis.values())
-			addOption(axis.asString(), axis);
+		for(Direction direction : Direction.values())
+			addOption(direction.asString(), direction);
 		setValueChangeCallback(this::notifyScriptChanged);
 	}
 	@Override public @NotNull String getFullTranslationKey() {return fullKey;}
 	public static final String nameKey = "static";
 	public static final String fullKey = fullPrefix + nameKey;
-	@Override public @NotNull Function<CompiledVariableList, Direction.Axis>
+	@Override public @NotNull Function<CompiledVariableList, Direction>
 	compile(VariableMap variableMap){
-		Direction.Axis axis = get();
-		return list->axis;
+		Direction direction = get();
+		return list->direction;
 	}
 	@Override public void getButtonOptions(ButtonOptionArrayList res) {}
 }
