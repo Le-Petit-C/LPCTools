@@ -10,6 +10,6 @@ public class TriggerHotkey extends UniqueHotkeyConfig implements IScriptTrigger{
 		getKeybind().setCallback(((action, key) -> {runScript.run();return true;}));
 	}
 	@Override public @NotNull String getFullTranslationKey() {return fullKey;}
-	public static final String nameKey = "triggerHotkey";
+	public static final String nameKey = "hotkey";
 	public static final String fullKey = fullPrefix + nameKey;
 }

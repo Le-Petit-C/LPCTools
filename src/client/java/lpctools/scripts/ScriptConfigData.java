@@ -25,9 +25,13 @@ public class ScriptConfigData {
 	public static final ImmutableMap<String, TriFunction<MutableConfig<ILPCUniqueConfigBase>, String, Runnable, ILPCUniqueConfigBase>> triggerConfigs =
 		ImmutableMap.<String, TriFunction<MutableConfig<ILPCUniqueConfigBase>, String, Runnable, ILPCUniqueConfigBase>>builder()
 			.put(TriggerHotkey.nameKey, (p, k, r)->new TriggerHotkey(p, r))
+			.put(TriggerClientTickStart.nameKey, (p, k, r)->new TriggerClientTickStart(p, r))
+			.put(TriggerClientTickEnd.nameKey, (p, k, r)->new TriggerClientTickEnd(p, r))
 			.build();
 	public static final ImmutableMap<String, Object> triggerConfigsTree = treeBuilder()
 		.put(TriggerHotkey.fullKey)
+		.put(TriggerClientTickStart.fullKey)
+		.put(TriggerClientTickEnd.fullKey)
 		.build();
 	public static final ImmutableMap<String, BiFunction<ILPCConfigReadable, String, IScriptRunner>> runnerConfigs =
 		ImmutableMap.<String, BiFunction<ILPCConfigReadable, String, IScriptRunner>>builder()
