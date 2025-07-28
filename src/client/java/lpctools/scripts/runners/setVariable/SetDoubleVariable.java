@@ -2,7 +2,7 @@ package lpctools.scripts.runners.setVariable;
 
 import lpctools.lpcfymasaapi.interfaces.ILPCConfigReadable;
 import lpctools.scripts.CompileFailedException;
-import lpctools.scripts.choosers.DoubleSupplierChooser;
+import lpctools.scripts.utils.choosers.DoubleSupplierChooser;
 import lpctools.scripts.runners.variables.*;
 import lpctools.scripts.suppliers._double.IScriptDoubleSupplier;
 import org.apache.commons.lang3.mutable.MutableDouble;

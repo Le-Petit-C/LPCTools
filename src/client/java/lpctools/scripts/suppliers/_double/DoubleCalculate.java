@@ -3,7 +3,7 @@ package lpctools.scripts.suppliers._double;
 import lpctools.lpcfymasaapi.configButtons.uniqueConfigs.WrappedThirdListConfig;
 import lpctools.lpcfymasaapi.interfaces.ILPCConfigReadable;
 import lpctools.scripts.CompileFailedException;
-import lpctools.scripts.choosers.DoubleSupplierChooser;
+import lpctools.scripts.utils.choosers.DoubleSupplierChooser;
 import lpctools.scripts.runners.variables.CompiledVariableList;
 import lpctools.scripts.runners.variables.VariableMap;
 import lpctools.scripts.utils.operators.BasicOperatorConfig;
@@ -30,6 +30,6 @@ public class DoubleCalculate extends WrappedThirdListConfig implements IScriptDo
 		return list->operator.operate(double1.applyAsDouble(list), double2.applyAsDouble(list));
 	}
 	@Override public @NotNull String getFullTranslationKey() {return fullKey;}
-	public static final String nameKey = "doubleCalculate";
+	public static final String nameKey = "calculate";
 	public static final String fullKey = fullPrefix + nameKey;
 }

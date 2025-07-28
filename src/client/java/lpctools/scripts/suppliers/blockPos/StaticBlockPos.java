@@ -15,9 +15,8 @@ public class StaticBlockPos extends BlockPosConfig implements IScriptBlockPosSup
 		setValueChangeCallback(this::notifyScriptChanged);
 	}
 	@Override public @NotNull String getFullTranslationKey() {return fullKey;}
-	public static final String nameKey = "staticBlockPos";
+	public static final String nameKey = "static";
 	public static final String fullKey = fullPrefix + nameKey;
-	
 	@Override public @NotNull BiConsumer<CompiledVariableList, BlockPos.Mutable>
 	compileToBlockPos(VariableMap variableMap) {
 		BlockPos staticPos = getPos().toImmutable();

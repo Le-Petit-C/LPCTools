@@ -20,7 +20,7 @@ public class FromIntVariable extends UniqueStringConfig implements IScriptIntSup
 		return list->list.<MutableInt>getVariable(index).intValue();
 	}
 	@Override public @NotNull String getFullTranslationKey() {return fullKey;}
-	public static final String nameKey = "fromIntVariable";
+	public static final String nameKey = "fromVariable";
 	public static final String fullKey = fullPrefix + nameKey;
 	
 }

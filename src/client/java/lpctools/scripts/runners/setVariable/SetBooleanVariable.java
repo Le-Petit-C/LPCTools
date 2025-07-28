@@ -3,7 +3,7 @@ package lpctools.scripts.runners.setVariable;
 import fi.dy.masa.litematica.util.ToBooleanFunction;
 import lpctools.lpcfymasaapi.interfaces.ILPCConfigReadable;
 import lpctools.scripts.CompileFailedException;
-import lpctools.scripts.choosers.BooleanSupplierChooser;
+import lpctools.scripts.utils.choosers.BooleanSupplierChooser;
 import lpctools.scripts.runners.variables.*;
 import lpctools.scripts.suppliers._boolean.IScriptBooleanSupplier;
 import org.apache.commons.lang3.mutable.MutableBoolean;

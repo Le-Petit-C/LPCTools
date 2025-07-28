@@ -19,6 +19,6 @@ public class FromBlockPosVariable extends UniqueStringConfig implements IScriptB
 		return (list, pos)->pos.set(list.getVariable(index));
 	}
 	@Override public @NotNull String getFullTranslationKey() {return fullKey;}
-	public static final String nameKey = "fromBlockPosVariable";
+	public static final String nameKey = "fromVariable";
 	public static final String fullKey = fullPrefix + nameKey;
 }

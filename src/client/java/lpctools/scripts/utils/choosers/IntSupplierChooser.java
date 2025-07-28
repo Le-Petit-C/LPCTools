@@ -1,4 +1,4 @@
-package lpctools.scripts.choosers;
+package lpctools.scripts.utils.choosers;
 
 import lpctools.lpcfymasaapi.configButtons.uniqueConfigs.ChooseConfig;
 import lpctools.lpcfymasaapi.interfaces.ILPCConfigReadable;

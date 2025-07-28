@@ -19,7 +19,7 @@ public class FromVector3dVariable extends UniqueStringConfig implements IScriptV
 		return (list, res)->res.set(list.<Vector3d>getVariable(index));
 	}
 	@Override public @NotNull String getFullTranslationKey() {return fullKey;}
-	public static final String nameKey = "fromVector3dVariable";
+	public static final String nameKey = "fromVariable";
 	public static final String fullKey = fullPrefix + nameKey;
 	
 }

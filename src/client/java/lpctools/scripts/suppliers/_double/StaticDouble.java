@@ -14,7 +14,7 @@ public class StaticDouble extends UniqueDoubleConfig implements IScriptDoubleSup
 		setValueChangeCallback(this::notifyScriptChanged);
 	}
 	@Override public @NotNull String getFullTranslationKey() {return fullKey;}
-	public static final String nameKey = "staticDouble";
+	public static final String nameKey = "static";
 	public static final String fullKey = fullPrefix + nameKey;
 	@Override public @NotNull ToDoubleFunction<CompiledVariableList>
 	compileToDouble(VariableMap variableMap) {

@@ -18,6 +18,6 @@ public class FromBooleanVariable extends UniqueStringConfig implements IScriptBo
 		return list->list.<MutableBoolean>getVariable(index).booleanValue();
 	}
 	@Override public @NotNull String getFullTranslationKey() {return fullKey;}
-	public static final String nameKey = "fromBooleanVariable";
+	public static final String nameKey = "fromVariable";
 	public static final String fullKey = fullPrefix + nameKey;
 }

@@ -3,7 +3,7 @@ package lpctools.scripts.suppliers.vector3d;
 import lpctools.lpcfymasaapi.configButtons.uniqueConfigs.WrappedThirdListConfig;
 import lpctools.lpcfymasaapi.interfaces.ILPCConfigReadable;
 import lpctools.scripts.CompileFailedException;
-import lpctools.scripts.choosers.BlockPosSupplierChooser;
+import lpctools.scripts.utils.choosers.BlockPosSupplierChooser;
 import lpctools.scripts.runners.variables.CompiledVariableList;
 import lpctools.scripts.runners.variables.VariableMap;
 import net.minecraft.util.math.BlockPos;
@@ -12,9 +12,9 @@ import org.joml.Vector3d;
 
 import java.util.function.BiConsumer;
 
-public class FromBlockPos extends WrappedThirdListConfig implements IScriptVector3dSupplier {
+public class Vector3dFromBlockPos extends WrappedThirdListConfig implements IScriptVector3dSupplier {
 	private final BlockPosSupplierChooser pos = addConfig(new BlockPosSupplierChooser(parent, "pos", this::onValueChanged));
-	public FromBlockPos(ILPCConfigReadable parent) {super(parent, nameKey, null);}
+	public Vector3dFromBlockPos(ILPCConfigReadable parent) {super(parent, nameKey, null);}
 	@Override public void getButtonOptions(ButtonOptionArrayList res) {
 		super.getButtonOptions(res);
 		res.add(1, (button, mouseButton) -> pos.openChoose(), ()->fullKey + ".pos", buttonGenericAllocator);

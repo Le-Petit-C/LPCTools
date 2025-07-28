@@ -3,7 +3,7 @@ package lpctools.scripts.suppliers._int;
 import lpctools.lpcfymasaapi.configButtons.uniqueConfigs.WrappedThirdListConfig;
 import lpctools.lpcfymasaapi.interfaces.ILPCConfigReadable;
 import lpctools.scripts.CompileFailedException;
-import lpctools.scripts.choosers.IntSupplierChooser;
+import lpctools.scripts.utils.choosers.IntSupplierChooser;
 import lpctools.scripts.runners.variables.CompiledVariableList;
 import lpctools.scripts.runners.variables.VariableMap;
 import lpctools.scripts.utils.operators.BasicOperatorConfig;
@@ -13,9 +13,9 @@ import org.jetbrains.annotations.NotNull;
 import java.util.function.ToIntFunction;
 
 public class IntCalculate extends WrappedThirdListConfig implements IScriptIntSupplier {
-	private final IntSupplierChooser int1 = addConfig(new IntSupplierChooser(parent, "int1", this::onValueChanged));
+	private final IntSupplierChooser int1 = addConfig(new IntSupplierChooser(parent, "int1", null));
 	private final BasicOperatorConfig operator = addConfig(new BasicOperatorConfig(this));
-	private final IntSupplierChooser int2 = addConfig(new IntSupplierChooser(parent, "int2", this::onValueChanged));
+	private final IntSupplierChooser int2 = addConfig(new IntSupplierChooser(parent, "int2", null));
 	public IntCalculate(ILPCConfigReadable parent) {super(parent, nameKey, null);}
 	@Override public void getButtonOptions(ButtonOptionArrayList res) {
 		super.getButtonOptions(res);
@@ -30,6 +30,6 @@ public class IntCalculate extends WrappedThirdListConfig implements IScriptIntSu
 		return list->operator.operate(int1.applyAsInt(list), int2.applyAsInt(list));
 	}
 	@Override public @NotNull String getFullTranslationKey() {return fullKey;}
-	public static final String nameKey = "intCalculate";
+	public static final String nameKey = "calculate";
 	public static final String fullKey = fullPrefix + nameKey;
 }

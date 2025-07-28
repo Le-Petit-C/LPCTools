@@ -24,6 +24,7 @@ public abstract class SetVariable<T extends IScriptSupplier<?>> extends StringTh
 		super(parent, nameKey, null, null);
 		setValueChangeCallback(this::notifyScriptChanged);
 		this.supplier = supplier;
+		supplier.setValueChangeCallback(this::onValueChanged);
 		addConfig(supplier.get());
 	}
 	@Override public @NotNull Consumer<CompiledVariableList> compile(VariableMap variableMap) throws CompileFailedException{

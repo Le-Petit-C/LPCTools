@@ -13,7 +13,7 @@ public class StaticBoolean extends UniqueBooleanConfig implements IScriptBoolean
 		setValueChangeCallback(this::notifyScriptChanged);
 	}
 	@Override public @NotNull String getFullTranslationKey() {return fullKey;}
-	public static final String nameKey = "staticBoolean";
+	public static final String nameKey = "static";
 	public static final String fullKey = fullPrefix + nameKey;
 	@Override public @NotNull ToBooleanFunction<CompiledVariableList>
 	compileToBoolean(VariableMap variableMap) {

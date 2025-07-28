@@ -4,7 +4,7 @@ import fi.dy.masa.litematica.util.ToBooleanFunction;
 import lpctools.lpcfymasaapi.configButtons.uniqueConfigs.WrappedThirdListConfig;
 import lpctools.lpcfymasaapi.interfaces.ILPCConfigReadable;
 import lpctools.scripts.CompileFailedException;
-import lpctools.scripts.choosers.BlockPosSupplierChooser;
+import lpctools.scripts.utils.choosers.BlockPosSupplierChooser;
 import lpctools.scripts.runners.variables.CompiledVariableList;
 import lpctools.scripts.runners.variables.VariableMap;
 import lpctools.util.BlockUtils;

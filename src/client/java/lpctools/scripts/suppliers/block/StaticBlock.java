@@ -21,6 +21,6 @@ public class StaticBlock extends BlockConfig implements IScriptBlockSupplier {
 		return list->block;
 	}
 	@Override public @NotNull String getFullTranslationKey() {return fullKey;}
-	public static final String nameKey = "staticBlock";
+	public static final String nameKey = "static";
 	public static final String fullKey = fullPrefix + nameKey;
 }

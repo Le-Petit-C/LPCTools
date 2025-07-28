@@ -2,7 +2,7 @@ package lpctools.scripts.runners.setVariable;
 
 import lpctools.lpcfymasaapi.interfaces.ILPCConfigReadable;
 import lpctools.scripts.CompileFailedException;
-import lpctools.scripts.choosers.IntSupplierChooser;
+import lpctools.scripts.utils.choosers.IntSupplierChooser;
 import lpctools.scripts.runners.variables.CompiledVariableList;
 import lpctools.scripts.runners.variables.IntVariable;
 import lpctools.scripts.runners.variables.VariableMap;

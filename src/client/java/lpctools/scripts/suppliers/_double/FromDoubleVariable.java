@@ -19,6 +19,6 @@ public class FromDoubleVariable extends UniqueStringConfig implements IScriptDou
 		return list->list.<MutableDouble>getVariable(index).doubleValue();
 	}
 	@Override public @NotNull String getFullTranslationKey() {return fullKey;}
-	public static final String nameKey = "fromDoubleVariable";
+	public static final String nameKey = "fromVariable";
 	public static final String fullKey = fullPrefix + nameKey;
 }

@@ -16,7 +16,7 @@ public class StaticVector3d extends Vector3dConfig implements IScriptVector3dSup
 		setValueChangeCallback(this::notifyScriptChanged);
 	}
 	@Override public @NotNull String getFullTranslationKey() {return fullKey;}
-	public static final String nameKey = "staticVector3d";
+	public static final String nameKey = "static";
 	public static final String fullKey = fullPrefix + nameKey;
 	
 	@Override public @NotNull BiConsumer<CompiledVariableList, Vector3d>

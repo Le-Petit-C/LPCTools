@@ -2,7 +2,7 @@ package lpctools.scripts.runners.setVariable;
 
 import lpctools.lpcfymasaapi.interfaces.ILPCConfigReadable;
 import lpctools.scripts.CompileFailedException;
-import lpctools.scripts.choosers.BlockSupplierChooser;
+import lpctools.scripts.utils.choosers.BlockSupplierChooser;
 import lpctools.scripts.runners.variables.*;
 import lpctools.scripts.suppliers.block.IScriptBlockSupplier;
 import net.minecraft.block.Block;
