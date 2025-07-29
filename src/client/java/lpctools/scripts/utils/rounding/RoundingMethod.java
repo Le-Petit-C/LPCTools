@@ -3,6 +3,16 @@ package lpctools.scripts.utils.rounding;
 import lpctools.scripts.IScriptBase;
 
 public enum RoundingMethod {
+	FLOOR("floor") {
+		@Override public int round(double value) {
+			return (int)Math.floor(value);
+		}
+	},
+	CEILING("ceiling") {
+		@Override public int round(double value) {
+			return (int)Math.ceil(value);
+		}
+	},
 	TOWARDS_ZERO("towards_zero") {
 		@Override public int round(double value) {
 			return (int)value;
@@ -11,16 +21,6 @@ public enum RoundingMethod {
     HALF_UP("half_up") {
 		@Override public int round(double value) {
 			return (int)Math.round(value);
-		}
-	},
-    FLOOR("floor") {
-		@Override public int round(double value) {
-			return (int)Math.floor(value);
-		}
-	},
-    CEILING("ceiling") {
-		@Override public int round(double value) {
-			return (int)Math.ceil(value);
 		}
 	};
 	public final String fullKey;
