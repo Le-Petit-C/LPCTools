@@ -11,7 +11,6 @@ import static lpctools.scripts.ScriptConfigData.*;
 public class Vector3dSupplierChooser extends ChooseConfig<IScriptVector3dSupplier> implements IScriptBase {
 	public Vector3dSupplierChooser(ILPCConfigReadable parent, String nameKey, ILPCValueChangeCallback callback) {
 		super(parent, nameKey, vector3dSupplierConfigs, vector3dSupplierConfigsTree, callback);
-		setValueChangeCallback(this::notifyScriptChanged);
 	}
 	@Override public void onValueChanged() {
 		super.onValueChanged();

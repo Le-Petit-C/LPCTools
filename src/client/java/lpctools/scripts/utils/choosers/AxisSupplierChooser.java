@@ -11,7 +11,6 @@ import static lpctools.scripts.ScriptConfigData.*;
 public class AxisSupplierChooser extends ChooseConfig<IScriptAxisSupplier> implements IScriptBase {
 	public AxisSupplierChooser(ILPCConfigReadable parent, String nameKey, ILPCValueChangeCallback callback) {
 		super(parent, nameKey, axisSupplierConfigs, axisSupplierConfigsTree, callback);
-		setValueChangeCallback(this::notifyScriptChanged);
 	}
 	@Override public void onValueChanged() {
 		super.onValueChanged();

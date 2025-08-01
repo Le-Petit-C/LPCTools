@@ -16,9 +16,9 @@ import org.jetbrains.annotations.NotNull;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 
-public class FromWorld extends WrappedThirdListConfig implements IScriptBlockSupplier {
+public class BlockFromWorld extends WrappedThirdListConfig implements IScriptBlockSupplier {
 	private final BlockPosSupplierChooser pos;
-	public FromWorld(ILPCConfigReadable parent) {
+	public BlockFromWorld(ILPCConfigReadable parent) {
 		super(parent, nameKey, null);
 		pos = addConfig(new BlockPosSupplierChooser(parent, "pos", this::onValueChanged));
 	}

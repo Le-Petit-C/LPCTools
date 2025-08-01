@@ -8,11 +8,14 @@ import lpctools.scripts.runners.*;
 import lpctools.scripts.runners.setVariable.*;
 import lpctools.scripts.runners.variables.*;
 import lpctools.scripts.suppliers._boolean.*;
+import lpctools.scripts.suppliers._boolean.blockBoolean.*;
+import lpctools.scripts.suppliers._boolean.blockStateBoolean.*;
 import lpctools.scripts.suppliers._double.*;
 import lpctools.scripts.suppliers._int.*;
 import lpctools.scripts.suppliers.axis.*;
 import lpctools.scripts.suppliers.block.*;
 import lpctools.scripts.suppliers.blockPos.*;
+import lpctools.scripts.suppliers.blockState.*;
 import lpctools.scripts.suppliers.direction.*;
 import lpctools.scripts.suppliers.vector3d.*;
 import lpctools.scripts.trigger.*;
@@ -40,6 +43,7 @@ public class ScriptConfigData {
 			.put(DoubleVariable.nameKey, (p, k)->new DoubleVariable(p))
 			.put(BlockPosVariable.nameKey, (p, k)->new BlockPosVariable(p))
 			.put(Vector3dVariable.nameKey, (p, k)->new Vector3dVariable(p))
+			.put(BlockStateVariable.nameKey, (p, k)->new BlockStateVariable(p))
 			.put(BlockVariable.nameKey, (p, k)->new BlockVariable(p))
 			.put(DirectionVariable.nameKey, (p, k)->new DirectionVariable(p))
 			.put(AxisVariable.nameKey, (p, k)->new AxisVariable(p))
@@ -48,6 +52,7 @@ public class ScriptConfigData {
 			.put(SetDoubleVariable.nameKey, (p, k)->new SetDoubleVariable(p))
 			.put(SetBlockPosVariable.nameKey, (p, k)->new SetBlockPosVariable(p))
 			.put(SetVector3dVariable.nameKey, (p, k)->new SetVector3dVariable(p))
+			.put(SetBlockStateVariable.nameKey, (p, k)->new SetBlockStateVariable(p))
 			.put(SetBlockVariable.nameKey, (p, k)->new SetBlockVariable(p))
 			.put(SetDirectionVariable.nameKey, (p, k)->new SetDirectionVariable(p))
 			.put(SetAxisVariable.nameKey, (p, k)->new SetAxisVariable(p))
@@ -68,6 +73,7 @@ public class ScriptConfigData {
 			.put(DoubleVariable.fullKey)
 			.put(BlockPosVariable.fullKey)
 			.put(Vector3dVariable.fullKey)
+			.put(BlockStateVariable.fullKey)
 			.put(BlockVariable.fullKey)
 			.put(DirectionVariable.fullKey)
 			.put(AxisVariable.fullKey)
@@ -78,6 +84,7 @@ public class ScriptConfigData {
 			.put(SetDoubleVariable.fullKey)
 			.put(SetBlockPosVariable.fullKey)
 			.put(SetVector3dVariable.fullKey)
+			.put(SetBlockStateVariable.fullKey)
 			.put(SetBlockVariable.fullKey)
 			.put(SetDirectionVariable.fullKey)
 			.put(SetAxisVariable.fullKey)
@@ -105,6 +112,13 @@ public class ScriptConfigData {
 			.put(BooleanCompare.nameKey, (p, k)->new BooleanCompare(p))
 			.put(BlockPosCompare.nameKey, (p, k)->new BlockPosCompare(p))
 			.put(BlockCompare.nameKey, (p, k)->new BlockCompare(p))
+			.put(BlockIsPlant.nameKey, (p, k)->new BlockIsPlant(p))
+			.put(BlockIsFluid.nameKey, (p, k)->new BlockIsFluid(p))
+			.put(BlockIsWaterloggable.nameKey, (p, k)->new BlockIsWaterloggable(p))
+			.put(StateIsAir.nameKey, (p, k)->new StateIsAir(p))
+			.put(StateIsOpaque.nameKey, (p, k)->new StateIsOpaque(p))
+			.put(StateIsReplaceable.nameKey, (p, k)->new StateIsReplaceable(p))
+			.put(StateIsWaterloggable.nameKey, (p, k)->new StateIsWaterloggable(p))
 			.put(CanBreakInstantly.nameKey, (p, k)->new CanBreakInstantly(p))
 			.build();
 	public static final ImmutableMap<String, Object> booleanSupplierConfigsTree = treeBuilder()
@@ -120,6 +134,17 @@ public class ScriptConfigData {
 		.put(BooleanCompare.fullKey)
 		.put(BlockPosCompare.fullKey)
 		.put(BlockCompare.fullKey)
+		.put(BlockBoolean.fullKey, treeBuilder()
+			.put(BlockIsPlant.fullKey)
+			.put(BlockIsFluid.fullKey)
+			.put(BlockIsWaterloggable.fullKey)
+			.build())
+		.put(BlockStateBoolean.fullKey, treeBuilder()
+			.put(StateIsAir.fullKey)
+			.put(StateIsOpaque.fullKey)
+			.put(StateIsReplaceable.fullKey)
+			.put(StateIsWaterloggable.fullKey)
+			.build())
 		.put(CanBreakInstantly.fullKey)
 		.build();
 	public static final ImmutableMap<String, BiFunction<ILPCConfigReadable, String, IScriptIntSupplier>> intSupplierConfigs =
@@ -131,6 +156,10 @@ public class ScriptConfigData {
 			.put(RoundingDouble.nameKey, (p, k)->new RoundingDouble(p))
 			.put(IntFromBlockPos.nameKey, (p, k)->new IntFromBlockPos(p))
 			.put(BlockPosDotProduct.nameKey, (p, k)->new BlockPosDotProduct(p))
+			.put(LiquidLevel.nameKey, (p, k)->new LiquidLevel(p))
+			.put(LightLevel.nameKey, (p, k)->new LightLevel(p))
+			.put(BlockLightLevel.nameKey, (p, k)->new BlockLightLevel(p))
+			.put(SkyLightLevel.nameKey, (p, k)->new SkyLightLevel(p))
 			.build();
 	public static final ImmutableMap<String, Object> intSupplierConfigsTree = treeBuilder()
 		.put(StaticInt.fullKey)
@@ -140,6 +169,10 @@ public class ScriptConfigData {
 		.put(RoundingDouble.fullKey)
 		.put(IntFromBlockPos.fullKey)
 		.put(BlockPosDotProduct.fullKey)
+		.put(LiquidLevel.fullKey)
+		.put(LightLevel.fullKey)
+		.put(BlockLightLevel.fullKey)
+		.put(SkyLightLevel.fullKey)
 		.build();
 	public static final ImmutableMap<String, BiFunction<ILPCConfigReadable, String, IScriptDoubleSupplier>> doubleSupplierConfigs =
 		ImmutableMap.<String, BiFunction<ILPCConfigReadable, String, IScriptDoubleSupplier>>builder()
@@ -150,6 +183,10 @@ public class ScriptConfigData {
 			.put(FromInt.nameKey, (p, k)->new FromInt(p))
 			.put(DoubleFromVector3d.nameKey, (p, k)->new DoubleFromVector3d(p))
 			.put(Vector3dDotProduct.nameKey, (p, k)->new Vector3dDotProduct(p))
+			.put(Vector3dDistance.nameKey, (p, k)->new Vector3dDistance(p))
+			.put(Vector3dDistanceSquared.nameKey, (p, k)->new Vector3dDistanceSquared(p))
+			.put(BlockPosDistance.nameKey, (p, k)->new BlockPosDistance(p))
+			.put(BlockPosDistanceSquared.nameKey, (p, k)->new BlockPosDistanceSquared(p))
 			.put(PlayerInteractionRange.nameKey, (p, k)->new PlayerInteractionRange(p))
 			.build();
 	public static final ImmutableMap<String, Object> doubleSupplierConfigsTree = treeBuilder()
@@ -161,6 +198,10 @@ public class ScriptConfigData {
 		.put(DoubleFromVector3d.fullKey)
 		.put(Vector3dDotProduct.fullKey)
 		.put(PlayerInteractionRange.fullKey)
+		.put(Vector3dDistance.fullKey)
+		.put(Vector3dDistanceSquared.fullKey)
+		.put(BlockPosDistance.fullKey)
+		.put(BlockPosDistanceSquared.fullKey)
 		.build();
 	public static final ImmutableMap<String, BiFunction<ILPCConfigReadable, String, IScriptBlockPosSupplier>> blockPosSupplierConfigs =
 		ImmutableMap.<String, BiFunction<ILPCConfigReadable, String, IScriptBlockPosSupplier>>builder()
@@ -240,16 +281,29 @@ public class ScriptConfigData {
 		.put(FromAxisVariable.fullKey)
 		.put(DirectionAxis.fullKey)
 		.build();
+	public static final ImmutableMap<String, BiFunction<ILPCConfigReadable, String, IScriptBlockStateSupplier>> blockStateSupplierConfigs =
+		ImmutableMap.<String, BiFunction<ILPCConfigReadable, String, IScriptBlockStateSupplier>>builder()
+			.put(BlockDefaultState.nameKey, (p, k) -> new BlockDefaultState(p))
+			.put(FromBlockStateVariable.nameKey, (p, k) -> new FromBlockStateVariable(p))
+			.put(BlockStateFromWorld.nameKey, (p, k) -> new BlockStateFromWorld(p))
+			.build();
+	public static final ImmutableMap<String, Object> blockStateSupplierConfigsTree = treeBuilder()
+		.put(BlockDefaultState.fullKey)
+		.put(FromBlockStateVariable.fullKey)
+		.put(BlockStateFromWorld.fullKey)
+		.build();
 	public static final ImmutableMap<String, BiFunction<ILPCConfigReadable, String, IScriptBlockSupplier>> blockSupplierConfigs =
 		ImmutableMap.<String, BiFunction<ILPCConfigReadable, String, IScriptBlockSupplier>>builder()
 			.put(StaticBlock.nameKey, (p, k) -> new StaticBlock(p))
 			.put(FromBlockVariable.nameKey, (p, k) -> new FromBlockVariable(p))
-			.put(FromWorld.nameKey, (p, k) -> new FromWorld(p))
+			.put(BlockFromWorld.nameKey, (p, k) -> new BlockFromWorld(p))
+			.put(BlockFromBlockState.nameKey, (p, k) -> new BlockFromBlockState(p))
 			.build();
 	public static final ImmutableMap<String, Object> blockSupplierConfigsTree = treeBuilder()
 		.put(StaticBlock.fullKey)
 		.put(FromBlockVariable.fullKey)
-		.put(FromWorld.fullKey)
+		.put(BlockFromWorld.fullKey)
+		.put(BlockFromBlockState.fullKey)
 		.build();
 	private static class TreeBuilder extends ImmutableMap.Builder<String, Object>{
 		public TreeBuilder put(String k, ImmutableMap<String, Object> subTree){

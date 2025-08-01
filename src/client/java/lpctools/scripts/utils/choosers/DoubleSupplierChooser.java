@@ -11,7 +11,6 @@ import static lpctools.scripts.ScriptConfigData.*;
 public class DoubleSupplierChooser extends ChooseConfig<IScriptDoubleSupplier> implements IScriptBase {
 	public DoubleSupplierChooser(ILPCConfigReadable parent, String nameKey, ILPCValueChangeCallback callback) {
 		super(parent, nameKey, doubleSupplierConfigs, doubleSupplierConfigsTree, callback);
-		setValueChangeCallback(this::notifyScriptChanged);
 	}
 	@Override public void onValueChanged() {
 		super.onValueChanged();

@@ -11,7 +11,6 @@ import static lpctools.scripts.ScriptConfigData.*;
 public class BlockSupplierChooser extends ChooseConfig<IScriptBlockSupplier> implements IScriptBase {
 	public BlockSupplierChooser(ILPCConfigReadable parent, String nameKey, ILPCValueChangeCallback callback) {
 		super(parent, nameKey, blockSupplierConfigs, blockSupplierConfigsTree, callback);
-		setValueChangeCallback(this::notifyScriptChanged);
 	}
 	@Override public void onValueChanged() {
 		super.onValueChanged();

@@ -11,7 +11,6 @@ import static lpctools.scripts.ScriptConfigData.*;
 public class DirectionSupplierChooser extends ChooseConfig<IScriptDirectionSupplier> implements IScriptBase {
 	public DirectionSupplierChooser(ILPCConfigReadable parent, String nameKey, ILPCValueChangeCallback callback) {
 		super(parent, nameKey, directionSupplierConfigs, directionSupplierConfigsTree, callback);
-		setValueChangeCallback(this::notifyScriptChanged);
 	}
 	@Override public void onValueChanged() {
 		super.onValueChanged();

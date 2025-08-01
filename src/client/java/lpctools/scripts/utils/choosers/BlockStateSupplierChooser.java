@@ -4,13 +4,13 @@ import lpctools.lpcfymasaapi.configButtons.uniqueConfigs.ChooseConfig;
 import lpctools.lpcfymasaapi.interfaces.ILPCConfigReadable;
 import lpctools.lpcfymasaapi.interfaces.ILPCValueChangeCallback;
 import lpctools.scripts.IScriptBase;
-import lpctools.scripts.suppliers.blockPos.IScriptBlockPosSupplier;
+import lpctools.scripts.suppliers.blockState.IScriptBlockStateSupplier;
 
 import static lpctools.scripts.ScriptConfigData.*;
 
-public class BlockPosSupplierChooser extends ChooseConfig<IScriptBlockPosSupplier> implements IScriptBase {
-	public BlockPosSupplierChooser(ILPCConfigReadable parent, String nameKey, ILPCValueChangeCallback callback) {
-		super(parent, nameKey, blockPosSupplierConfigs, blockPosSupplierConfigsTree, callback);
+public class BlockStateSupplierChooser extends ChooseConfig<IScriptBlockStateSupplier> implements IScriptBase {
+	public BlockStateSupplierChooser(ILPCConfigReadable parent, String nameKey, ILPCValueChangeCallback callback) {
+		super(parent, nameKey, blockStateSupplierConfigs, blockStateSupplierConfigsTree, callback);
 	}
 	@Override public void onValueChanged() {
 		super.onValueChanged();
