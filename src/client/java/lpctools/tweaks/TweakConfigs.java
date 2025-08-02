@@ -8,9 +8,7 @@ public class TweakConfigs {
     public static final LPCConfigList tweaks = new LPCConfigList(LPCTools.page, "tweaks");
     static {
         tweaks.addConfigs(
-            BlockReplaceHotkey.blockReplaceHotkey,
-            HappyGhastRidingTweak.happyGhastRidingTweak,
-            BarTweaks.barTweaks
+            BlockReplaceHotkey.blockReplaceHotkey
         );
     }
 }

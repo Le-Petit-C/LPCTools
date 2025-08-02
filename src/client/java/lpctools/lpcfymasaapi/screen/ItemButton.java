@@ -15,8 +15,8 @@ public class ItemButton extends ButtonBase {
 		setHoverStrings(hoverStrings);
 	}
 	
-	@Override public void render(DrawContext drawContext, int mouseX, int mouseY, boolean selected) {
-		super.render(drawContext, mouseX, mouseY, selected);
+	@Override public void render(int mouseX, int mouseY, boolean selected, DrawContext drawContext) {
+		super.render(mouseX, mouseY, selected, drawContext);
 		hovered = isMouseOver(mouseX, mouseY);
 		if(hovered) drawContext.fill(x, y, x + 16, y + 16, 0x3fffffff);
 		drawContext.drawItem(stack, getX(), getY());
