@@ -8,6 +8,7 @@ import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.client.network.ClientPlayerInteractionManager;
 import net.minecraft.client.world.ClientWorld;
+import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.text.Text;
 import net.minecraft.util.Hand;
@@ -43,7 +44,9 @@ public class FurnaceMaintainerRunner implements AutoCloseable, ClientTickEvents.
             return;
         }
         boolean hasEmptyStack = false;
-        for(ItemStack stack : player.getInventory().getMainStacks()){
+        PlayerInventory inventory = player.getInventory();
+        for(int a = 0; a < inventory.size(); ++a){
+            ItemStack stack = inventory.getStack(a);
             if(stack.isEmpty()){
                 hasEmptyStack = true;
                 break;

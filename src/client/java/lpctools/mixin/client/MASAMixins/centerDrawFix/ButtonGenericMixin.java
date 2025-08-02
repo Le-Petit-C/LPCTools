@@ -18,7 +18,7 @@ public abstract class ButtonGenericMixin extends ButtonBase {
 	
 	public ButtonGenericMixin(int x, int y, int width, int height) {super(x, y, width, height);}
 	@ModifyArg(method = "render", index = 1, at = @At(value = "INVOKE",
-		target = "Lfi/dy/masa/malilib/render/RenderUtils;drawTexturedRectAndDraw(Lnet/minecraft/util/Identifier;IIIIIILnet/minecraft/client/gui/DrawContext;)V"))
+		target = "Lfi/dy/masa/malilib/render/RenderUtils;drawTexturedRect(Lnet/minecraft/util/Identifier;IIIIIILnet/minecraft/client/gui/DrawContext;)V"))
 	int onDrawTexturedRect(int value){
 		if(icon != null && alignment == LeftRight.CENTER)
 			return x + (width - icon.getWidth()) / 2;

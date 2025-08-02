@@ -1,6 +1,6 @@
 package lpctools.tools.canSpawnDisplay;
 
-import fi.dy.masa.malilib.util.data.Color4f;
+import fi.dy.masa.malilib.util.Color4f;
 import lpctools.lpcfymasaapi.configButtons.derivedConfigs.ArrayOptionListConfig;
 import lpctools.lpcfymasaapi.configButtons.derivedConfigs.RangeLimitConfig;
 import lpctools.lpcfymasaapi.configButtons.transferredConfigs.BooleanConfig;
@@ -18,6 +18,7 @@ public class CanSpawnDisplay{
     public static final BooleanHotkeyThirdListConfig CSConfig = new BooleanHotkeyThirdListConfig(ToolConfigs.toolConfigs, "CS", CanSpawnDisplay::switchCallback);
     static {setLPCToolsToggleText(CSConfig);}
     static {listStack.push(CSConfig);}
+    @SuppressWarnings("deprecation")
     public static final ColorConfig displayColor = addColorConfig("displayColor", Color4f.fromColor(0x7fffffff));
     public static final RangeLimitConfig rangeLimit = addRangeLimitConfig();
     static {rangeLimit.setValueChangeCallback(CanSpawnDisplay::onRenderRangeChanged);}
