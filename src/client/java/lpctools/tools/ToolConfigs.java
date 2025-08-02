@@ -7,6 +7,7 @@ import lpctools.tools.antiSpawner.AntiSpawner;
 import lpctools.tools.autoReconnect.AutoReconnect;
 import lpctools.tools.breakRestriction.BreakRestriction;
 import lpctools.tools.canSpawnDisplay.CanSpawnDisplay;
+import lpctools.tools.entityHighlight.EntityHighlight;
 import lpctools.tools.furnaceMaintainer.FurnaceMaintainer;
 import lpctools.tools.mossBorer.MossBorer;
 import lpctools.tools.slightXRay.SlightXRay;
@@ -28,5 +29,6 @@ public class ToolConfigs {
         toolConfigs.addConfig(FurnaceMaintainer.FMConfig);
         toolConfigs.addConfig(MossBorer.MBConfig);
         toolConfigs.addConfig(AutoReconnect.ARConfig);
+        toolConfigs.addConfig(EntityHighlight.EHConfig);
     }
 }

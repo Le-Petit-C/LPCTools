@@ -10,7 +10,6 @@ import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.item.Item;
 import net.minecraft.registry.Registries;
 import net.minecraft.util.Identifier;
-import net.minecraft.util.InvalidIdentifierException;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -28,13 +27,10 @@ public class ChooseItemScreen extends GuiBase {
 	private record ChooseItemData<T>(List<T> items, Function<T, Item> toItem, Function<T, Identifier> toIdentifier, Function<T, String> toDisplayString, Consumer<T> callback) {
 		public void refreshSearchedItems(String text, ArrayList<SearchResult> searchedItems){
 			ToBooleanFunction<Identifier> idTest;
-			try {
-				Identifier id = Identifier.of(text);
-				idTest = obj->obj.getNamespace().contains(id.getNamespace())
-					&& obj.getPath().contains(id.getPath());
-			} catch (InvalidIdentifierException ignored){
-				idTest = o->false;
-			}
+			Identifier testId = Identifier.tryParse(text);
+			if(testId != null) idTest = obj->obj.getNamespace().contains(testId.getNamespace())
+				&& obj.getPath().contains(testId.getPath());
+			else idTest = o->false;
 			searchedItems.clear();
 			for(T obj : items){
 				Item item = toItem.apply(obj);

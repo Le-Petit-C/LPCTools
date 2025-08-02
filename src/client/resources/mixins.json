@@ -36,6 +36,7 @@
     "defaultRequire": 1
   },
   "mixins": [
+    "EntityHighlight.EntityMixin",
     "MASAMixins.centerDrawFix.ButtonGenericMixin"
   ]
 }
