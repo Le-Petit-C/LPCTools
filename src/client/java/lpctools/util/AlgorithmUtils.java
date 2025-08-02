@@ -1,8 +1,7 @@
 package lpctools.util;
 
 import com.google.common.collect.ImmutableList;
-import lpctools.util.javaex.NamedFunction;
-import lpctools.util.javaex.NamedObject2BooleanFunction;
+import lpctools.util.javaex.Object2BooleanFunction;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.ChunkPos;
 import net.minecraft.util.math.Direction;
@@ -19,6 +18,7 @@ import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
+import java.util.function.Function;
 
 import static lpctools.util.MathUtils.*;
 
@@ -37,10 +37,10 @@ public class AlgorithmUtils {
     }
     //从近到远遍历方块
     public static Iterable<BlockPos> iterateFromClosest(Vec3d center){
-        return () -> new NearstIterator3D(center);
+        return () -> new ClosestIterator3D(center);
     }
     public static Iterable<BlockPos> iterateFromClosestInDistance(Vec3d center, double distance){
-        return () -> new InNearstIterator3D(center, distance);
+        return () -> new InClosestIterator3D(center, distance);
     }
     //从远到近遍历方块
     public static Iterable<BlockPos> iterateFromFurthestInDistance(Vec3d center, double distance){
@@ -52,10 +52,10 @@ public class AlgorithmUtils {
     }
     //从近到远遍历格点
     public static Iterable<Vector2i> iterateFromClosest(Vector2i center){
-        return () -> new NearstIterator2i(center);
+        return () -> new ClosestIterator2i(center);
     }
     public static Iterable<Vector2i> iterateFromClosestInDistance(Vector2i center, double distance){
-        return () -> new InNearstIterator2i(center, distance);
+        return () -> new InClosestIterator2I(center, distance);
     }
     //从远到近遍历格点
     public static ArrayList<Vector2i> iterateFromFurthestInDistance(Vector2i center, double distance){
@@ -190,11 +190,11 @@ public class AlgorithmUtils {
         }
     }
     
-    public static class NearstIterator3D implements Iterator<BlockPos>{
+    public static class ClosestIterator3D implements Iterator<BlockPos>{
         private final @NotNull Vec3d center;
         protected final PriorityQueue<BlockPos> poses;
         protected final HashSet<BlockPos> posSet;
-        NearstIterator3D(@NotNull Vec3d center){
+        ClosestIterator3D(@NotNull Vec3d center){
             this.center = center;
             poses = new PriorityQueue<>(
                     (o1, o2) -> {
@@ -231,19 +231,19 @@ public class AlgorithmUtils {
             return ret;
         }
     }
-    public static class InNearstIterator3D extends NearstIterator3D {
+    public static class InClosestIterator3D extends ClosestIterator3D {
         public final double maxSquaredDistance;
-        InNearstIterator3D(@NotNull Vec3d center, double maxDistance) {
+        InClosestIterator3D(@NotNull Vec3d center, double maxDistance) {
             super(center);
             maxSquaredDistance = maxDistance * maxDistance;
         }
         @Override public boolean hasNext() {return getNextDistance() <= maxSquaredDistance;}
     }
-    public static class NearstIterator2i implements Iterator<Vector2i>{
+    public static class ClosestIterator2i implements Iterator<Vector2i>{
         private final @NotNull Vector2i center;
         protected final PriorityQueue<Vector2i> poses;
         protected final HashSet<Vector2i> posSet;
-        NearstIterator2i(@NotNull Vector2i center){
+        ClosestIterator2i(@NotNull Vector2i center){
             this.center = center;
             poses = new PriorityQueue<>(
                 (o1, o2) -> {
@@ -275,24 +275,24 @@ public class AlgorithmUtils {
             }
             return ret;
         }
-        Vector2i[] directions = {
+        static final Vector2i[] directions = {
             new Vector2i(1, 0),
             new Vector2i(0, 1),
             new Vector2i(-1, 0),
             new Vector2i(0, -1)};
     }
-    public static class InNearstIterator2i extends NearstIterator2i {
+    public static class InClosestIterator2I extends ClosestIterator2i {
         public final double maxSquaredDistance;
-        InNearstIterator2i(@NotNull Vector2i center, double maxDistance) {
+        InClosestIterator2I(@NotNull Vector2i center, double maxDistance) {
             super(center);
             maxSquaredDistance = maxDistance * maxDistance;
         }
         @Override public boolean hasNext() {return getNextDistance() <= maxSquaredDistance;}
     }
     //快速从ArrayList中移除内容，但是不保序
-    public static <T> void fastRemove(ArrayList<T> source, NamedObject2BooleanFunction<T> shouldRemove){
+    public static <T> void fastRemove(ArrayList<T> source, Object2BooleanFunction<T> shouldRemove){
         for(int a = 0; a < source.size(); ++a){
-            while (shouldRemove.booleanApply(source.get(a))){
+            while (shouldRemove.getBoolean(source.get(a))){
                 Collections.swap(source, a, source.size() - 1);
                 source.removeLast();
                 if(a >= source.size()) break;
@@ -307,7 +307,7 @@ public class AlgorithmUtils {
         }catch (Exception ignored){}
     }
     //软取消元素关联的所有任务，清空原始集合并阻塞等待剩余任务完成
-    public static <T> void cancelTasks(Collection<T> collection, NamedFunction<T, @Nullable CompletableFuture<?>> futureGetter){
+    public static <T> void cancelTasks(Collection<T> collection, Function<T, @Nullable CompletableFuture<?>> futureGetter){
         CompletableFuture<?>[] futures = new CompletableFuture<?>[collection.size()];
         int a = 0;
         for(T futureT : collection){
@@ -320,7 +320,7 @@ public class AlgorithmUtils {
         try{CompletableFuture.allOf(futures).join();
         }catch (Exception ignored){}
     }
-    public static <T> void cancelTasks(Collection<@Nullable CompletableFuture<T>> collection){
+    public static void cancelTasks(Collection<? extends @Nullable CompletableFuture<?>> collection){
         CompletableFuture<?>[] futures = new CompletableFuture<?>[collection.size()];
         int a = 0;
         for(CompletableFuture<?> future : collection){
@@ -333,7 +333,7 @@ public class AlgorithmUtils {
         }catch (Exception ignored){}
     }
     //处理并移除所有已完成的任务
-    public static <T> void consumeCompletedTasks(Collection<CompletableFuture<T>> tasks, Consumer<T> consumer){
+    public static <T> void consumeCompletedTasks(Collection<? extends CompletableFuture<T>> tasks, Consumer<T> consumer){
         ArrayList<CompletableFuture<T>> completedTasks = new ArrayList<>();
         for(CompletableFuture<T> task : tasks){
             if(!task.isDone()) continue;
@@ -342,7 +342,7 @@ public class AlgorithmUtils {
         }
         completedTasks.forEach(tasks::remove);
     }
-    public static <T> void consumeCompletedTasks(ArrayList<CompletableFuture<T>> tasks, Consumer<T> consumer){
+    public static <T> void consumeCompletedTasks(ArrayList<? extends CompletableFuture<T>> tasks, Consumer<T> consumer){
         HashSet<CompletableFuture<T>> completedTasks = new HashSet<>();
         for(CompletableFuture<T> task : tasks){
             if(!task.isDone()) continue;
@@ -351,7 +351,7 @@ public class AlgorithmUtils {
         }
         fastRemove(tasks, completedTasks::contains);
     }
-    public static <T, U> void consumeCompletedTasks(Map<T, CompletableFuture<U>> tasks, BiConsumer<T, U> consumer){
+    public static <T, U> void consumeCompletedTasks(Map<T, ? extends CompletableFuture<U>> tasks, BiConsumer<T, U> consumer){
         ArrayList<T> completedTasks = new ArrayList<>();
         tasks.forEach((t, task)->{
             if(!task.isDone()) return;
@@ -368,14 +368,25 @@ public class AlgorithmUtils {
         if(closeable != null) try{closeable.close();}catch(Exception ignored){}
     }
     //转换集合内元素
-    public static <T, U, V extends Collection<U>> @NotNull V convert(@NotNull V collection, @Nullable Iterable<T> values, NamedFunction<T, U> converter){
+    public static <T, U, V extends Collection<? super U>> @NotNull V convert(@NotNull V collection, @Nullable Iterable<T> values, Function<? super T, U> converter){
         if(values != null) values.forEach(value->collection.add(converter.apply(value)));
         return collection;
     }
-    public static <T, U> @NotNull ImmutableList<U> convertToImmutableList(@Nullable Iterable<T> values, NamedFunction<T, U> converter){
+    public static <T, U> @NotNull ImmutableList<U> convertToImmutableList(@Nullable Iterable<T> values, Function<? super T, U> converter){
         return ImmutableList.copyOf(convert(new ArrayList<>(), values, converter));
     }
-    public static <T, U> @NotNull HashSet<U> convertToHashSet(@Nullable Iterable<T> values, NamedFunction<T, U> converter){
+    public static <T, U> @NotNull HashSet<U> convertToHashSet(@Nullable Iterable<T> values, Function<T, U> converter){
         return convert(new HashSet<>(), values, converter);
+    }
+    public static <T, U> @NotNull Iterable<U> convertIterable(@NotNull Iterable<T> iterable, Function<T, U> converter){
+        return new Iterable<>() {
+            @Override public @NotNull Iterator<U> iterator() {
+                return new Iterator<>() {
+                    final Iterator<T> iterator = iterable.iterator();
+                    @Override public boolean hasNext() {return iterator.hasNext();}
+                    @Override public U next() {return converter.apply(iterator.next());}
+                };
+            }
+        };
     }
 }

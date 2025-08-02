@@ -7,13 +7,22 @@
     "BlockReplaceAction",
     "ClientPlayNetworkHandlerMixin",
     "DisplayClickSlotArguments",
+    "FurnaceMaintainer",
     "MinecraftWindowMixin",
     "MinecraftWindowMixin$GLFWVersionRecord",
     "OnMouseButtonReturnMixin",
     "SplashTextResourceSupplierMixin",
     "SpriteContentsMixin",
     "WorldChunkMixin",
+    "AutoReconnect.ConnectScreenMixin",
+    "AutoReconnect.DisconnectedScreenMixin",
+    "AutoReconnect.MinecraftClientMixin",
+    "blockBreakRestriction.ClientPlayerInteractionManagerMixin",
     "events.OnScreenChanged",
+    "MASAMixins.LayerRangeMixin",
+    "MASAMixins.WidgetConfigOptionBaseMixin",
+    "MASAMixins.WidgetConfigOptionMixin",
+    "MASAMixins.WidgetListConfigOptionsMixin",
     "MASAMixins.litematicaMixin.DataManagerMixin",
     "MASAMixins.MuteMASAConfigMinMaxMixin.ConfigDoubleMixin",
     "MASAMixins.MuteMASAConfigMinMaxMixin.ConfigIntegerMixin"
@@ -22,6 +31,7 @@
     "defaultRequire": 1
   },
   "mixins": [
-    "MASAMixins.LayerRangeMixin"
+    "EntityHighlight.EntityMixin",
+    "MASAMixins.centerDrawFix.ButtonGenericMixin"
   ]
 }
