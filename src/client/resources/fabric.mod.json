@@ -17,7 +17,7 @@
 	"entrypoints": {
 		"client": [
 			"lpctools.lpcfymasaapi.LPCAPIInit",
-			"lpctools.LPCTools"
+			"lpctools.LPCToolsInitializer"
 		],
 		"modmenu": [
 			"lpctools.compact.ModMenu.ModMenu"
@@ -29,11 +29,12 @@
 			"environment": "client"
 		}
 	],
+	"accessWidener" : "lpctools.accesswidener",
 	"depends": {
 		"fabricloader": ">=0.16.2",
 		"minecraft": "1.21.2",
 		"java": ">=21",
-		"malilib": "0.22.6",
+		"malilib": "0.22.7",
 		"fabric-api": "*"
 	},
 	"suggests": {
