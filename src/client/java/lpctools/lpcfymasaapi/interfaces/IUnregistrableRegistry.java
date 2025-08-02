@@ -2,6 +2,7 @@ package lpctools.lpcfymasaapi.interfaces;
 
 import lpctools.lpcfymasaapi.UnregistrableRegistry;
 
+@SuppressWarnings("UnusedReturnValue")
 public interface IUnregistrableRegistry<T> {
     boolean register(T callback, boolean register);
     boolean isEmpty();

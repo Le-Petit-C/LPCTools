@@ -15,8 +15,13 @@ import fi.dy.masa.malilib.gui.GuiConfigsBase;
 import fi.dy.masa.malilib.gui.button.IButtonActionListener;
 import fi.dy.masa.malilib.gui.button.ButtonBase;
 import fi.dy.masa.malilib.gui.button.ButtonGeneric;
+import lpctools.lpcfymasaapi.configButtons.UpdateTodo;
+import lpctools.lpcfymasaapi.interfaces.ILPCConfig;
 import lpctools.lpcfymasaapi.interfaces.ILPCConfigBase;
+import lpctools.lpcfymasaapi.interfaces.ILPCConfigReadable;
 import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.gui.DrawContext;
+import net.minecraft.client.gui.screen.Screen;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -30,45 +35,50 @@ import java.util.function.Supplier;
 import static lpctools.lpcfymasaapi.LPCConfigUtils.*;
 
 //单个总设置页面，就是在设置右上角分列出的不同页面
-public class LPCConfigPage implements IConfigHandler, Supplier<GuiBase>, ILPCConfigBase {
+public class LPCConfigPage implements IConfigHandler, Supplier<GuiBase>, ILPCConfigBase, ILPCConfigReadable {
     //构造函数
     public LPCConfigPage(Reference modReference) {
         this.modReference = modReference;
         configFileName = modReference.modId + "-LPCConfig.json";
         if(LPCAPIInit.MASAInitialized) afterInit();
-        else {
-            uninitializedConfigPages.add(this);
-        }
+        else uninitializedConfigPages.add(this);
     }
     public Reference getModReference(){return modReference;}
     //给当前页面新添一列
-    public LPCConfigList addList(String nameKey){
-        lists.add(new LPCConfigList(this, nameKey));
+    public <T extends LPCConfigList> T addList(T list){
+        lists.add(list);
         widgetPosition.add(0);
-        return lists.getLast();
+        return list;
+    }
+    @SuppressWarnings("unused")
+    public LPCConfigList addList(String nameKey){
+        return addList(new LPCConfigList(this, nameKey));
     }
     @NotNull public InputHandler getInputHandler(){
         if(inputHandler == null) inputHandler = new InputHandler(modReference);
         return inputHandler;
     }
+    @Override public void onConfigsChanged() {save();}
     //显示当前页面
-    public void showPage(){
-        if(pageInstance != null) pageInstance.initGui();
-        else pageInstance = new ConfigPageInstance(this);
+    public void showPage(Screen parent){
+        if(pageInstance != null) pageInstance.close();
+        pageInstance = new ConfigPageInstance();
+        pageInstance.setParent(parent);
         if(MinecraftClient.getInstance().currentScreen != pageInstance)
             GuiBase.openGui(pageInstance);
     }
-    //如果当前页面正在展示中，刷新当前页面
-    public void updateIfCurrent(){
-        if(pageInstance != null && MinecraftClient.getInstance().currentScreen == pageInstance)
-            pageInstance.initGui();
-    }
+    private boolean needUpdate = true;
+    //将当前页面标记为需要刷新
+    public void markNeedUpdate(){needUpdate = true;}
+    public void markNeedUpdate(boolean b){needUpdate |= b;}
     //获取当前列
     public LPCConfigList getList(){return lists.get(selectedIndex);}
-    @Override public GuiBase get() {
-        if(pageInstance == null) pageInstance = new ConfigPageInstance(this);
+    @Override public ConfigPageInstance get() {
+        if(pageInstance == null) pageInstance = new ConfigPageInstance();
+        pageInstance.setTitle(String.format(getTitleTranslation(), modReference.getModVersion()));
         return pageInstance;
     }
+    public @Nullable ConfigPageInstance getPageInstance(){return pageInstance;}
     //保存和加载已有的全部配置文件内容
     //如果文件中有目前未注册的配置项，不理它但是保留
     @Override public void load() {
@@ -102,12 +112,14 @@ public class LPCConfigPage implements IConfigHandler, Supplier<GuiBase>, ILPCCon
             list.addIntoParentJsonObject(pageJson);
         return pageJson;
     }
-    @Override public void setValueFromJsonElement(@NotNull JsonElement data) {
-        if(data instanceof JsonObject jsonObject){
+    
+    @Override public UpdateTodo setValueFromJsonElementEx(@NotNull JsonElement data) {
+        UpdateTodo todo = new UpdateTodo();
+        if(data instanceof JsonObject jsonObject)
             for(LPCConfigList list : lists)
-                list.setValueFromParentJsonObject(jsonObject);
-        }
+                todo.combine(list.setValueFromParentJsonObjectEx(jsonObject));
         else warnFailedLoadingConfig(this, data);
+        return todo;
     }
     
     static void staticAfterInit(){
@@ -131,74 +143,75 @@ public class LPCConfigPage implements IConfigHandler, Supplier<GuiBase>, ILPCCon
         if(inputHandler == null) inputHandler = new InputHandler(modReference);
     }
 
-    @Override public @NotNull ILPCConfigBase getParent() {return this;}
+    @Override public @NotNull ILPCConfigReadable getParent() {return this;}
     @Override public @NotNull String getNameKey() {return "configs";}
-    @Override public @NotNull String getAlignSpaces(){return "";}
+    @Override public int getAlignLevel(){return -2;}
     //只有LPCConfigPage重载此方法，结束递归
     @Override public @NotNull StringBuilder getFullPath() {
         return new StringBuilder(getModReference().modId).append('.').append(getNameKey());
     }
-    
     @Override public @NotNull LPCConfigPage getPage() {return this;}
-
-    private static class ConfigPageInstance extends GuiConfigsBase{
+    @Override public @NotNull Iterable<? extends ILPCConfig> getConfigs() {return lists.get(selectedIndex).getConfigs();}
+    int indent;
+    @Override public void setAlignedIndent(int indent) {this.indent = indent;}
+    @Override public int getAlignedIndent() {return indent;}
+    
+    public class ConfigPageInstance extends GuiConfigsBase{
         @Override public void initGui() {
             super.initGui();
             this.clearOptions();
-
+            
             int x = 10;
             int y = 26;
 
-            for (int a = 0; a < parent.lists.size(); ++a) {
-                String listName = parent.lists.get(a).getTitleDisplayName();
-                ButtonGeneric button = new ButtonGeneric(x, y, calculateDisplayLength(listName) * 7, 20, listName);
-                button.setEnabled(parent.selectedIndex != a);
+            for (int a = 0; a < lists.size(); ++a) {
+                String listName = lists.get(a).getTitleDisplayName();
+                ButtonGeneric button = new ButtonGeneric(x, y, calculateTextButtonWidth(listName, textRenderer, 20), 20, listName);
+                button.setEnabled(selectedIndex != a);
                 this.addButton(button, new ButtonListener(a, this));
                 x += button.getWidth() + 2;
             }
         }
+        @Override protected void reCreateListWidget() {super.reCreateListWidget();}
         @Override public List<ConfigOptionWrapper> getConfigs() {
-            return parent.lists.get(parent.selectedIndex).buildConfigWrappers(new ArrayList<>());
+            return lists.get(selectedIndex).buildConfigWrappers(this::getStringWidth, new ArrayList<>());
         }
         @Override public void removed(){
             super.removed();
-            parent.pageInstance = null;
             //malilib中并不总会更新热键，比如如果退出配置界面时有配置被ThirdListConfig收起了就不会更新，这样子能强制它更新一下
             InputEventHandler.getKeybindManager().updateUsedKeys();
         }
 
-        @Override protected boolean useKeybindSearch() {return parent.lists.get(parent.selectedIndex).hasHotkeyConfig();}
+        @Override protected boolean useKeybindSearch() {return lists.get(selectedIndex).hasHotkeyConfig();}
 
-        ConfigPageInstance(LPCConfigPage parent) {
-            super(10, 50, parent.modReference.modId, null, parent.getFullTranslationKey() + ".title", parent.modReference.getModVersion());
-            this.parent = parent;
+        ConfigPageInstance() {
+            super(10, 50, modReference.modId, null, "");
         }
         void select(int index){
-            if(index == parent.selectedIndex) return;
+            if(index == selectedIndex) return;
             WidgetListConfigOptions widget = getListWidget();
             if(widget != null){
-                parent.widgetPosition.set(parent.selectedIndex, widget.getScrollbar().getValue());
+                widgetPosition.set(selectedIndex, widget.getScrollbar().getValue());
                 reCreateListWidget(); // apply the new config width
             }
-            parent.selectedIndex = index;
+            selectedIndex = index;
             initGui();
-            if(widget != null) widget.getScrollbar().setValue(parent.widgetPosition.get(index));
+            if(widget != null) widget.getScrollbar().setValue(widgetPosition.get(index));
         }
-
-        private static int calculateDisplayLength(String str) {
-            int length = 0;
-            for (char c : str.toCharArray()) {
-                // 检查字符是否是 ASCII 打印字符（半角字符）
-                if (c >= 0x20 && c <= 0x7E) {
-                    length += 1;
-                } else {
-                    length += 2;
-                }
+        
+        public void markConfigsModified(){
+            if(getListWidget() instanceof WidgetListConfigOptions widget)
+                widget.markConfigsModified();
+        }
+        
+        @Override public void render(DrawContext drawContext, int mouseX, int mouseY, float partialTicks) {
+            if(needUpdate) {
+                initGui();
+                needUpdate = false;
             }
-            return length;
+            super.render(drawContext, mouseX, mouseY, partialTicks);
         }
-        private final LPCConfigPage parent;
-
+        
         private record ButtonListener(int index, ConfigPageInstance parent) implements IButtonActionListener {
             @Override public void actionPerformedWithButton(ButtonBase button, int mouseButton) {parent.select(index);}
         }

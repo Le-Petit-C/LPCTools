@@ -1,92 +1,48 @@
 package lpctools.tools.slightXRay;
 
-import com.google.common.collect.ImmutableList;
-import com.google.gson.JsonElement;
 import fi.dy.masa.malilib.util.data.Color4f;
-import lpctools.lpcfymasaapi.LPCConfigList;
-import lpctools.lpcfymasaapi.configbutton.derivedConfigs.ConfigListOptionListConfigEx;
-import lpctools.lpcfymasaapi.configbutton.derivedConfigs.ThirdListConfig;
-import lpctools.lpcfymasaapi.configbutton.transferredConfigs.*;
-import lpctools.lpcfymasaapi.interfaces.ILPCConfigBase;
+import lpctools.lpcfymasaapi.configButtons.derivedConfigs.ConfigListOptionListConfigEx;
+import lpctools.lpcfymasaapi.configButtons.transferredConfigs.*;
+import lpctools.lpcfymasaapi.configButtons.uniqueConfigs.BooleanHotkeyThirdListConfig;
 import lpctools.lpcfymasaapi.interfaces.ILPCConfigList;
-import lpctools.lpcfymasaapi.configbutton.derivedConfigs.RangeLimitConfig;
+import lpctools.lpcfymasaapi.configButtons.derivedConfigs.RangeLimitConfig;
 import lpctools.mixin.client.SpriteContentsMixin;
+import lpctools.tools.ToolConfigs;
 import lpctools.util.DataUtils;
 import net.minecraft.block.Block;
-import net.minecraft.block.Blocks;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.render.model.BlockStateModel;
 import net.minecraft.client.texture.NativeImage;
 import net.minecraft.client.texture.Sprite;
 import org.apache.commons.lang3.mutable.MutableInt;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
-import java.lang.Math;
 import java.util.*;
+import java.util.function.ToIntFunction;
 
 import static lpctools.lpcfymasaapi.LPCConfigStatics.*;
 import static lpctools.tools.ToolUtils.*;
+import static lpctools.tools.slightXRay.SlightXRayData.*;
 import static lpctools.util.DataUtils.*;
 
-public class SlightXRay extends ThirdListConfig{
-    static final @NotNull ImmutableList<Block> defaultXRayBlocks = ImmutableList.of(
-        Blocks.DIAMOND_ORE, Blocks.DEEPSLATE_DIAMOND_ORE,
-        Blocks.DEEPSLATE_COAL_ORE, Blocks.EMERALD_ORE, Blocks.DEEPSLATE_EMERALD_ORE,
-        Blocks.OBSIDIAN, Blocks.CRYING_OBSIDIAN, Blocks.ENDER_CHEST, Blocks.REINFORCED_DEEPSLATE,
-        Blocks.BUDDING_AMETHYST, Blocks.CALCITE,
-        Blocks.ANCIENT_DEBRIS
-    );
-    static final @NotNull HashMap<Block, MutableInt> XRayBlocks;
-    static final @NotNull ImmutableList<String> defaultXRayBlockIds = idListFromBlockList(defaultXRayBlocks);
-    public final BooleanHotkeyConfig slightXRay;
-    public final ConfigListOptionListConfigEx<ConfigListWithColorMethod> defaultColorMethod;
-    public final ColorConfig defaultColor;
-    public final StringListConfig XRayBlocksConfig;
-    public final RangeLimitConfig displayRange;
-    public final DoubleConfig saturationDelta;
-    public final DoubleConfig brightnessDelta;
-    public final IntegerConfig defaultAlpha;
-    public final BooleanConfig useCullFace;
-    static {
-        XRayBlocks = new HashMap<>();
-        for(Block block : defaultXRayBlocks)
-            XRayBlocks.put(block, new MutableInt(0));
-    }
+public class SlightXRay{
+    public static final BooleanHotkeyThirdListConfig SXConfig = new BooleanHotkeyThirdListConfig(ToolConfigs.toolConfigs, "SX", SlightXRay::switchChanged);
+    static {setLPCToolsToggleText(SXConfig);}
+    static {listStack.push(SXConfig);}
+    public static final ConfigListOptionListConfigEx<ToIntFunction<Block>> defaultColorMethod = addConfigListOptionListConfigEx("defaultColorMethod", SlightXRay::refreshXRayBlocks);
+    public static final ILPCConfigList byTextureColor = defaultColorMethod.addList("byTextureColor", SlightXRay::getColorByTextureColor);
+    public static final IntegerConfig defaultAlpha = addIntegerConfig(byTextureColor, "defaultAlpha", 127, 0, 255, SlightXRay::refreshXRayBlocks);
+    public static final DoubleConfig saturationDelta = addDoubleConfig(byTextureColor, "saturationDelta", 1, -5, 5, SlightXRay::refreshXRayBlocks);
+    public static final DoubleConfig brightnessDelta = addDoubleConfig(byTextureColor, "brightnessDelta", 1, -5, 5, SlightXRay::refreshXRayBlocks);
+    public static final ILPCConfigList byDefaultColor = defaultColorMethod.addList("byDefaultColor", SlightXRay::getColorByDefaultColor);
+    public static final ColorConfig defaultColor = addColorConfig(byDefaultColor, "defaultColor", new Color4f(0.5f, 0.5f, 1.0f, 0.5f), SlightXRay::refreshXRayBlocks);
+    public static final StringListConfig XRayBlocksConfig = addStringListConfig("XRayBlocks", defaultXRayBlockIds, SlightXRay::refreshXRayBlocks);
+    public static final BooleanConfig useCullFace = addBooleanConfig("useCullFace", true);
+    public static final RangeLimitConfig displayRange = addRangeLimitConfig();
+    static {displayRange.setValueChangeCallback(()->{if(renderInstance != null) renderInstance.onRenderRangeChanged(displayRange);});}
+    static {listStack.pop();}
     
-    public SlightXRay(ILPCConfigList parent) {
-        super(parent, "SX", false);
-        try(ConfigListLayer ignored = new ConfigListLayer(this)){
-            slightXRay = addBooleanHotkeyConfig("slightXRay", false, null, this::switchChanged);
-            setLPCToolsToggleText(slightXRay);
-            defaultColorMethod = peekConfigList().addConfig(
-                new ConfigListOptionListConfigEx<>(peekConfigList(), "defaultColorMethod", this::refreshXRayBlocks){
-                    @Override public void setValueFromJsonElement(@NotNull JsonElement element) {
-                        super.setValueFromJsonElement(element);
-                        onValueChanged();
-                    }
-                });
-            ILPCConfigList byTextureColor = defaultColorMethod.addList(
-                new ConfigListWithColorBase(defaultColorMethod, "byTextureColor", this::getColorByTextureColor)
-            );
-            defaultAlpha = addIntegerConfig(byTextureColor, "defaultAlpha", 127, 0, 255, this::refreshXRayBlocks);
-            saturationDelta = addDoubleConfig(byTextureColor, "saturationDelta", 1, -5, 5, this::refreshXRayBlocks);
-            brightnessDelta = addDoubleConfig(byTextureColor, "brightnessDelta", 1, -5, 5, this::refreshXRayBlocks);
-            ILPCConfigList byDefaultColor = defaultColorMethod.addList(
-                new ConfigListWithColorBase(defaultColorMethod, "byDefaultColor", this::getColorByDefaultColor) {}
-            );
-            defaultColor = addColorConfig(byDefaultColor, "defaultColor", new Color4f(0.5f, 0.5f, 1.0f, 0.5f), this::refreshXRayBlocks);
-            XRayBlocksConfig = addStringListConfig("XRayBlocks", defaultXRayBlockIds, this::refreshXRayBlocks);
-            useCullFace = addBooleanConfig("useCullFace", true);
-            displayRange = addRangeLimitConfig(false);
-            displayRange.setValueChangeCallback(()->{if(renderInstance != null) renderInstance.onRenderRangeChanged(displayRange);});
-        }
-    }
-    private int getColorByDefaultColor(Block block){
-        return DataUtils.argb2agbr(defaultColor.getIntegerValue());
-    }
-    private int getColorByTextureColor(Block block) {
+    private static int getColorByTextureColor(Block block) {
         int alphaMask = defaultAlpha.getAsInt() << 24;
         try{
             BlockStateModel model = MinecraftClient.getInstance().getBlockRenderManager()
@@ -114,13 +70,14 @@ public class SlightXRay extends ThirdListConfig{
         }
         catch (Exception e){return alphaMask;}
     }
+    private static int getColorByDefaultColor(Block block){return DataUtils.argb2agbr(defaultColor.getIntegerValue());}
     
     public static double atanh(double x) {
         if (Math.abs(x) > 1) throw new IllegalArgumentException("atanh: input value out of bound [-1, 1]");
         return 0.5 * Math.log((1 + x) / (1 - x));
     }
 
-    private void refreshXRayBlocks(){
+    private static void refreshXRayBlocks(){
         if(XRayBlocksConfig == null) return;
         HashMap<Block, MutableInt> newBlocks = new HashMap<>();
         for(String str : XRayBlocksConfig){
@@ -137,7 +94,7 @@ public class SlightXRay extends ThirdListConfig{
                         continue;
                     }
                 }
-                if(color == null) color = defaultColorMethod.getCurrentUserdata().getColor(block);
+                if(color == null) color = defaultColorMethod.getCurrentUserdata().right.applyAsInt(block);
                 newBlocks.put(block, new MutableInt(color));
             }
             else warnInvalidString(str);
@@ -157,10 +114,10 @@ public class SlightXRay extends ThirdListConfig{
     private static void warnInvalidString(String str){
         notifyPlayer(String.format("§eWarning: Invalid string \"%s\"", str), false);
     }
-    private void switchChanged() {
-        if(slightXRay.getAsBoolean()){
+    private static void switchChanged() {
+        if(SXConfig.getBooleanValue()){
             if(renderInstance == null)
-                renderInstance = new RenderInstance(this, MinecraftClient.getInstance());
+                renderInstance = new RenderInstance(MinecraftClient.getInstance());
         }
         else {
             if(renderInstance != null) {
@@ -169,20 +126,4 @@ public class SlightXRay extends ThirdListConfig{
             }
         }
     }
-
-    public interface DefaultColorMethod{
-        int getColor(Block block);
-    }
-    public interface ConfigListWithColorMethod extends ILPCConfigList, DefaultColorMethod{}
-    public static class ConfigListWithColorBase extends LPCConfigList implements ConfigListWithColorMethod{
-        public ConfigListWithColorBase(ILPCConfigBase parent, String nameKey, @NotNull DefaultColorMethod defaultColorMethod) {
-            super(parent, nameKey);
-            this.defaultColorMethod = defaultColorMethod;
-        }
-        @Override public int getColor(Block block) {
-            return defaultColorMethod.getColor(block);
-        }
-        @NotNull DefaultColorMethod defaultColorMethod;
-    }
-    private static @Nullable RenderInstance renderInstance;
 }
