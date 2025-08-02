@@ -13,6 +13,8 @@ base {
 repositories {
 	maven { url = 'https://jitpack.io' }
 	maven { url = 'https://maven.terraformersmc.com/releases/' }
+	maven { url = "https://api.modrinth.com/maven" }
+	maven { url = "https://cursemaven.com"}
 	// Add repositories to retrieve artifacts from in here.
 	// You should only use this when depending on other mods because
 	// Loom adds the essential maven repositories to download Minecraft and libraries from automatically.
@@ -22,14 +24,13 @@ repositories {
 
 loom {
 	splitEnvironmentSourceSets()
-
 	mods {
-		"LPCTweaks" {
+		"LPCTools" {
 			sourceSet sourceSets.main
 			sourceSet sourceSets.client
 		}
 	}
-
+	accessWidenerPath = file("src/client/resources/lpctools.accesswidener")
 }
 
 dependencies {
@@ -40,12 +41,18 @@ dependencies {
 	modImplementation "com.github.sakura-ryoko:malilib:${project.malilib_version}"
 
 	//Suggested mods
-	modCompileOnly "com.github.sakura-ryoko:minihud:${project.minihud_version}"
-	modRuntimeOnly "com.github.sakura-ryoko:minihud:${project.minihud_version}"
+	modCompileOnly "maven.modrinth:minihud:${project.minihud_version}"
+	modRuntimeOnly "maven.modrinth:minihud:${project.minihud_version}"
 	modCompileOnly "com.github.sakura-ryoko:litematica:${project.litematica_version}"
 	modRuntimeOnly "com.github.sakura-ryoko:litematica:${project.litematica_version}"
 	modCompileOnly "com.terraformersmc:modmenu:${project.mod_menu_version}"
 	modRuntimeOnly "com.terraformersmc:modmenu:${project.mod_menu_version}"
+
+	//Test mods
+	//modImplementation files("local/mods/1.21.4/MagicLib-mc1.21.4-fabric-0.8.710-stable.jar")
+	//modImplementation files("local/mods/1.21.4/MagicLib-mc1.21.4-fabric-0.8.702-stable.jar")
+	//modImplementation files("local/mods/1.21.4/tweakeroo-fabric-1.21.4-0.23.4.jar")
+	//modImplementation files("local/mods/1.21.4/MasaGadget-mc1.21.4-fabric-4.0.395-stable.jar")
 
 	// Fabric API. This is technically optional, but you probably want it anyway.
 	modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
