@@ -7,7 +7,6 @@ import lpctools.scripts.runners.variables.CompiledVariableList;
 import lpctools.scripts.runners.variables.VariableMap;
 import lpctools.scripts.utils.choosers.DirectionSupplierChooser;
 import net.minecraft.util.math.Direction;
-import net.minecraft.util.math.Vec3d;
 import org.jetbrains.annotations.NotNull;
 import org.joml.Vector3d;
 
@@ -24,10 +23,7 @@ public class Vector3dFromDirection extends WrappedThirdListConfig implements ISc
 	@Override public @NotNull BiConsumer<CompiledVariableList, Vector3d>
 	compileToVector3d(VariableMap variableMap) throws CompileFailedException {
 		Function<CompiledVariableList, Direction> direction = this.direction.get().compile(variableMap);
-		return (list, res)->{
-			Vec3d vec = direction.apply(list).getDoubleVector();
-			res.set(vec.getX(), vec.getY(), vec.getZ());
-		};
+		return (list, res)->res.set(direction.apply(list).getUnitVector());
 	}
 	@Override public @NotNull String getFullTranslationKey() {return fullKey;}
 	public static final String nameKey = "fromDirection";

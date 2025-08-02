@@ -28,7 +28,7 @@ public class DirectionFromAxis extends WrappedThirdListConfig implements IScript
 		ToBooleanFunction<CompiledVariableList> positive = this.positive.get().compileToBoolean(variableMap);
 		return list->{
 			Direction.Axis _axis = axis.apply(list);
-			return positive.applyAsBoolean(list) ? _axis.getPositiveDirection() : _axis.getNegativeDirection();
+			return Direction.get(positive.applyAsBoolean(list) ? Direction.AxisDirection.POSITIVE : Direction.AxisDirection.NEGATIVE, _axis);
 		};
 	}
 	@Override public @NotNull String getFullTranslationKey() {return fullKey;}

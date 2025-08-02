@@ -3,7 +3,6 @@ package lpctools.mixin.client;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.ingame.AbstractFurnaceScreen;
-import net.minecraft.client.gui.screen.ingame.RecipeBookScreen;
 import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.client.network.ClientPlayerInteractionManager;
 import net.minecraft.screen.slot.SlotActionType;
@@ -13,7 +12,7 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import static lpctools.tools.furnaceMaintainer.FurnaceMaintainer.*;
 
-@Mixin(RecipeBookScreen.class)
+@Mixin(AbstractFurnaceScreen.class)
 public class FurnaceMaintainer {
     @Inject(method = "render", at = @At("HEAD"), cancellable = true)
     void mixinScreenRender(DrawContext context, int mouseX, int mouseY, float deltaTicks, CallbackInfo ci){
@@ -25,7 +24,6 @@ public class FurnaceMaintainer {
             FMConfig.setBooleanValue(false);
             return;
         }
-        if(!((RecipeBookScreen<?>)(Object)this instanceof AbstractFurnaceScreen<?>)) return;
         ci.cancel();
         itm.clickSlot(player.currentScreenHandler.syncId, 0, 0, SlotActionType.QUICK_MOVE, player);
         MinecraftClient.getInstance().setScreen(null);
