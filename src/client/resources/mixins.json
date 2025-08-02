@@ -7,23 +7,36 @@
     "BlockReplaceAction",
     "ClientPlayNetworkHandlerMixin",
     "DisplayClickSlotArguments",
-    "HappyGhastEntityMixin",
+    "FurnaceMaintainer",
     "MinecraftWindowMixin",
     "MinecraftWindowMixin$GLFWVersionRecord",
     "OnMouseButtonReturnMixin",
     "SplashTextResourceSupplierMixin",
     "SpriteContentsMixin",
     "WorldChunkMixin",
+    "AutoReconnect.ConnectScreenMixin",
+    "AutoReconnect.DisconnectedScreenMixin",
+    "AutoReconnect.MinecraftClientMixin",
+    "BarTweakMixin.ClientPlayerInteractionManagerMixin",
+    "BarTweakMixin.InGameHudMixin",
+    "blockBreakRestriction.ClientPlayerInteractionManagerMixin",
     "events.OnScreenChanged",
+    "HappyGhastRidingTweak.ClientPlayerEntityMixin",
+    "HappyGhastRidingTweak.HappyGhastEntityMixin",
+    "HappyGhastRidingTweak.PlayerInputC2SPacketMixin",
+    "MASAMixins.LayerRangeMixin",
+    "MASAMixins.WidgetConfigOptionBaseMixin",
+    "MASAMixins.WidgetConfigOptionMixin",
+    "MASAMixins.WidgetListConfigOptionsMixin",
     "MASAMixins.litematicaMixin.DataManagerMixin",
     "MASAMixins.MuteMASAConfigMinMaxMixin.ConfigDoubleMixin",
-    "MASAMixins.MuteMASAConfigMinMaxMixin.ConfigIntegerMixin",
-    "PlayerInputC2SPacketMixin",
-    "MASAMixins.LayerRangeMixin"
+    "MASAMixins.MuteMASAConfigMinMaxMixin.ConfigIntegerMixin"
   ],
   "injectors": {
     "defaultRequire": 1
   },
   "mixins": [
+    "EntityHighlight.EntityMixin",
+    "MASAMixins.centerDrawFix.ButtonGenericMixin"
   ]
 }

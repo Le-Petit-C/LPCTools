@@ -4,7 +4,7 @@ import com.google.common.collect.Sets;
 import lpctools.compact.derived.ShapeList;
 import lpctools.generic.GenericUtils;
 import lpctools.lpcfymasaapi.Registries;
-import lpctools.lpcfymasaapi.configbutton.derivedConfigs.RangeLimitConfig;
+import lpctools.lpcfymasaapi.configButtons.derivedConfigs.RangeLimitConfig;
 import lpctools.lpcfymasaapi.gl.*;
 import lpctools.shader.ShaderPrograms;
 import lpctools.util.AlgorithmUtils;
@@ -32,16 +32,16 @@ import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 
+import static lpctools.tools.slightXRay.SlightXRay.*;
+
 //TODO:不使用形状索引而是合并重合顶点的索引（比如相邻矩形）以节省空间
 
 public class RenderInstance extends DataInstance implements WorldRenderEvents.End, WorldRenderEvents.Start {
-    public final SlightXRay parent;
-    RenderInstance(SlightXRay parent, MinecraftClient client){
+    RenderInstance(MinecraftClient client){
         super(client);
-        this.parent = parent;
         Registries.WORLD_RENDER_END.register(this);
         Registries.WORLD_RENDER_START.register(this);
-        shapeList = parent.displayRange.buildShapeList();
+        shapeList = displayRange.buildShapeList();
     }
     @Override public void close(){
         Registries.WORLD_RENDER_START.unregister(this);
@@ -190,7 +190,7 @@ public class RenderInstance extends DataInstance implements WorldRenderEvents.En
         RenderPrepareResult result = renderTask.join();
         ensureIndexBufferSize(result.maxShapeCount);
         try(MaskLayer layer = new MaskLayer()){
-            layer.enableBlend().enableCullFace(parent.useCullFace.getBooleanValue()).disableDepthTest();
+            layer.enableBlend().enableCullFace(useCullFace.getBooleanValue()).disableDepthTest();
             ShaderPrograms.PositionColorProgram program = ShaderPrograms.POSITION_COLOR_PROGRAM;
             for(CompletableFuture<ChunkRenderPrepareResult> future : result.futures){
                 ChunkRenderPrepareResult chunkResult = future.join();
