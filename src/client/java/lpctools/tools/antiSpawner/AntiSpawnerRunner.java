@@ -42,7 +42,7 @@ public class AntiSpawnerRunner implements ClientTickEvents.EndTick {
                     pos.toCenterPos().add(0, -0.5, 0), Direction.UP, hitPos, false);
                 if (!mc.player.isSneaking()) {
                     BlockState below = mc.world.getBlockState(pos.down());
-                    ActionResult result = below.onUse(mc.world, mc.player, hitResult);
+                    ActionResult result = below.onUse(mc.world, mc.player, Hand.MAIN_HAND, hitResult);
                     if (result == ActionResult.SUCCESS) {
                         notifyPlayer(String.format("onUse at %s", pos.down().toString()), false);
                         return NO_OPERATION;

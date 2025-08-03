@@ -34,7 +34,7 @@ public class AutoReconnect {
         reconnectTask = new Timer();
         reconnectTask.schedule(new TimerTask() {
             @Override public void run() {
-                serverData.mc().send(()->ConnectScreen.connect(null, serverData.mc(), serverData.address(), serverData.info(), serverData.quickPlay(), serverData.cookieStorage()));
+                serverData.mc().send(()->ConnectScreen.connect(null, serverData.mc(), serverData.address(), serverData.info(), serverData.quickPlay()));
             }
         }, (long)(seconds * 1000));
     }
