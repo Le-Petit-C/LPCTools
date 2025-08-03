@@ -1,12 +1,12 @@
 package lpctools.debugs;
 
 import lpctools.lpcfymasaapi.Registries;
-import lpctools.lpcfymasaapi.configbutton.derivedConfigs.ThirdListConfig;
-import lpctools.lpcfymasaapi.configbutton.transferredConfigs.DoubleConfig;
-import lpctools.lpcfymasaapi.configbutton.transferredConfigs.IntegerConfig;
+import lpctools.lpcfymasaapi.configButtons.uniqueConfigs.BooleanThirdListConfig;
+import lpctools.lpcfymasaapi.configButtons.transferredConfigs.DoubleConfig;
+import lpctools.lpcfymasaapi.configButtons.transferredConfigs.IntegerConfig;
 import lpctools.lpcfymasaapi.gl.*;
 import lpctools.lpcfymasaapi.gl.furtherWarpped.ArrayListCachedRenderBuffer;
-import lpctools.lpcfymasaapi.interfaces.ILPCConfigList;
+import lpctools.lpcfymasaapi.interfaces.ILPCConfigReadable;
 import lpctools.shader.ShaderPrograms;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents;
@@ -21,11 +21,11 @@ import static lpctools.lpcfymasaapi.gl.furtherWarpped.VertexAttribElements.*;
 import static lpctools.shader.FragmentShaders.*;
 import static lpctools.shader.VertexShaders.*;
 
-public class MandelbrotSetRender extends ThirdListConfig implements WorldRenderEvents.AfterTranslucent {
+public class MandelbrotSetRender extends BooleanThirdListConfig implements WorldRenderEvents.AfterTranslucent {
     public final IntegerConfig maxDepth;
     public final DoubleConfig stretch;
-    public MandelbrotSetRender(ILPCConfigList parent) {
-        super(parent, "mandelbrotSet", false);
+    public MandelbrotSetRender(ILPCConfigReadable parent) {
+        super(parent, "mandelbrotSet", false, null);
         try(ConfigListLayer ignored = new ConfigListLayer(this)){
             maxDepth = addIntegerConfig("maxDepth", 128, 0, 65536);
             stretch = addDoubleConfig("stretch", 1);
@@ -34,7 +34,7 @@ public class MandelbrotSetRender extends ThirdListConfig implements WorldRenderE
     
     @Override public void onValueChanged() {
         super.onValueChanged();
-        Registries.WORLD_RENDER_AFTER_TRANSLUCENT.register(this, getAsBoolean());
+        Registries.WORLD_RENDER_AFTER_TRANSLUCENT.register(this, getBooleanValue());
     }
     
     @Override public void afterTranslucent(WorldRenderContext context) {
