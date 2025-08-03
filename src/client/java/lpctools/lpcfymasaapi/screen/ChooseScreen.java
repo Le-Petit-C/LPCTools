@@ -58,7 +58,7 @@ public class ChooseScreen extends GuiBase {
 			return new WrappedOptionTree<>(options, chooseTreeBuilder.build(), userData);
 		}
 		public void buildButtons(ChooseScreen screen, TextRenderer textRenderer){
-			int x = screen.getScreenWidth() / 2;
+			int x = screen.width / 2;
 			MutableInt y = new MutableInt(screen.startY);
 			chooseTree.forEach((key, object)->{
 					if(key instanceof String text){
@@ -95,8 +95,8 @@ public class ChooseScreen extends GuiBase {
 	}
 	private void resetY(){
 		int size = searchedOptions.optionCount() + (hasCancelButton ? 1 : 0);
-		minY = maxY = (getScreenHeight() - buttonHeightStride * size) / 2;
-		minY = Math.min(minY, getScreenHeight() - reservedDistance - buttonHeightStride * size);
+		minY = maxY = (super.width - buttonHeightStride * size) / 2;
+		minY = Math.min(minY, super.height - reservedDistance - buttonHeightStride * size);
 		maxY = Math.max(maxY, reservedDistance);
 		startY = maxY;
 	}
@@ -104,9 +104,9 @@ public class ChooseScreen extends GuiBase {
 		super.initGui();
 		searchedOptions.buildButtons(this, textRenderer);
 		if(hasSearchBar){
-			int w = (int)Math.round(getScreenWidth() * 0.5);
+			int w = (int)Math.round(super.width * 0.5);
 			int h = 14;
-			int x = (int)Math.round((getScreenWidth() - w) * 0.5);
+			int x = (int)Math.round((super.width - w) * 0.5);
 			int y = 26;
 			GuiTextFieldGeneric textField = new GuiTextFieldGeneric(x, y, w, h, textRenderer);
 			textField.setText(searchText);

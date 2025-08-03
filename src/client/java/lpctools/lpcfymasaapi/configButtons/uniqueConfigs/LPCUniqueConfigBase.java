@@ -13,22 +13,18 @@ public abstract class LPCUniqueConfigBase implements ILPCUniqueConfigBase {
     public @Nullable ILPCValueChangeCallback callback;
     public @NotNull String translatedName = "";
     public @NotNull String comment = "";
-    public @NotNull String prettyName;
     public LPCUniqueConfigBase(@NotNull ILPCConfigReadable parent, @NotNull String nameKey, @Nullable ILPCValueChangeCallback callback){
         this.parent = parent;
         this.nameKey = nameKey;
         this.callback = callback;
-        this.prettyName = nameKey;
     }
     
     @Override public boolean hasHotkey() {return false;}
     @Override public @NotNull ILPCConfigReadable getParent() {return parent;}
     @Override public ConfigType getType() {return null;}
     @Override public String getName() {return nameKey;}
-    @Override public @NotNull String getPrettyName() {return prettyName;}
     @Override public @NotNull String getComment() {return comment;}
     @Override public @NotNull String getTranslatedName() {return translatedName;}
-    @Override public void setPrettyName(@NotNull String prettyName) {this.prettyName = prettyName;}
     @Override public void setTranslatedName(@NotNull String translatedName) {this.translatedName = translatedName;}
     @Override public void setComment(@NotNull String comment) {this.comment = comment;}
     @Override public void onValueChanged() {

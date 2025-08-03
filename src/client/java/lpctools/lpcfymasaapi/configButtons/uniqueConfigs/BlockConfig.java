@@ -43,7 +43,7 @@ public class BlockConfig extends LPCUniqueConfigBase {
 	public UpdateTodo setValueFromJsonElementEx(@NotNull JsonElement element) {
 		try {
 			Block lastBlock = block;
-			block = Registries.BLOCK.get(Identifier.of(element.getAsString()));
+			block = Registries.BLOCK.get(new Identifier(element.getAsString()));
 			return new UpdateTodo().valueChanged(lastBlock != block);
 		} catch (Exception e){
 			return setValueFailed(element);

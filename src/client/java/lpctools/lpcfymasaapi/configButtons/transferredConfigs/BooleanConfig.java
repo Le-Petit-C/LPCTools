@@ -18,7 +18,7 @@ public class BooleanConfig extends ConfigBoolean implements ILPC_MASAConfigWrapp
         this(parent, nameKey, defaultBoolean, null);
     }
     public BooleanConfig(@NotNull ILPCConfigReadable parent, @NotNull String nameKey, boolean defaultBoolean, @Nullable ILPCValueChangeCallback callback){
-        super(nameKey, defaultBoolean);
+        super(nameKey, defaultBoolean, "");
         data = new LPCConfigData(parent, false);
         ILPC_MASAConfigWrapperDefaultInit(callback);
     }

@@ -13,8 +13,7 @@ public interface ILPCConfig extends ILPCConfigBase, IConfigBase, ILPCConfigNotif
     boolean hasHotkey();
     String getTranslatedName();
     void setTranslatedName(String name);
-    
-    @Override @NotNull ILPCConfigList getParent();
+    void setComment(String comment);
 
     @Override default @NotNull String getNameKey(){return getName();}
     @Override default @NotNull LPCConfigPage getPage(){return getParent().getPage();}

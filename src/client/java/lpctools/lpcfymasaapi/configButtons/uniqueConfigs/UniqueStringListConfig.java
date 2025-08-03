@@ -38,7 +38,6 @@ public class UniqueStringListConfig extends LPCUniqueConfigBase implements IConf
             onValueChanged();
         }
     }
-    @Override public void setModified() {onValueChanged();}
     @Override public void getButtonOptions(ButtonOptionArrayList res) {
         res.add(ILPCUniqueConfigBase.buttonStringListPreset(1, this));
     }

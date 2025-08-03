@@ -18,7 +18,6 @@ public class LPCConfigList implements ILPCConfig, ILPCConfigList {
 	private int indent = 0;
 	private String comment;
 	private String translatedName;
-	private String prettyName;
 	private ILPCValueChangeCallback callback;
 	public LPCConfigList(ILPCConfigReadable parent, String nameKey){
 		this.parent = parent;
@@ -40,8 +39,6 @@ public class LPCConfigList implements ILPCConfig, ILPCConfigList {
 	@Override public String getName() {return getNameKey();}
 	@Override public String getComment() {return comment;}
 	@Override public String getTranslatedName() {return translatedName;}
-	@Override public String getPrettyName() {return prettyName;}
-	@Override public void setPrettyName(String prettyName) {this.prettyName = prettyName;}
 	@Override public void setTranslatedName(String translatedName) {this.translatedName = translatedName;}
 	@Override public void setComment(String comment) {this.comment = comment;}
 	@Override public void onValueChanged() {if(callback != null) callback.onValueChanged();}

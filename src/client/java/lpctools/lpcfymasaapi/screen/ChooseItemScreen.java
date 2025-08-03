@@ -69,8 +69,8 @@ public class ChooseItemScreen extends GuiBase {
 	}
 	@Override public void initGui() {
 		super.initGui();
-		int y0 = (getScreenHeight() - h * (height - 1)) / 2;
-		int x0 = (getScreenWidth() - w * (width - 1)) / 2;
+		int y0 = (super.height - h * (height - 1)) / 2;
+		int x0 = (super.width - w * (width - 1)) / 2;
 		if(searchBar == null) searchBar = new GuiTextFieldGeneric(0, 0, w * width, 15, textRenderer);
 		searchBar.setPosition(x0 - w / 2, y0 - h / 2 - 16);
 		addTextField(searchBar, textField -> {

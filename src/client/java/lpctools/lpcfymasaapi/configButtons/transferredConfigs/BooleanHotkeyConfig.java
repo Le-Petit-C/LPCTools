@@ -20,7 +20,7 @@ public class BooleanHotkeyConfig extends ConfigBooleanHotkeyed implements ILPC_M
         this(parent, nameKey, defaultBoolean, defaultStorageString, null);
     }
     public BooleanHotkeyConfig(@NotNull ILPCConfigReadable parent, @NotNull String nameKey, boolean defaultBoolean, @Nullable String defaultStorageString, @Nullable ILPCValueChangeCallback callback){
-        super(nameKey, defaultBoolean, defaultStorageString == null ? "" : defaultStorageString);
+        super(nameKey, defaultBoolean, defaultStorageString == null ? "" : defaultStorageString, "");
         data = new LPCConfigData(parent, true);
         ILPC_MASAConfigWrapperDefaultInit(callback);
         parent.getPage().getInputHandler().addHotkey(this);

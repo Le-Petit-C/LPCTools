@@ -21,7 +21,7 @@ public class ColorConfig extends ConfigColor implements ILPC_MASAConfigWrapper<C
         this(parent, nameKey, defaultColor, null);
     }
     public ColorConfig(@NotNull ILPCConfigReadable parent, @NotNull String nameKey, Color4f defaultColor, @Nullable ILPCValueChangeCallback callback){
-        super(nameKey, defaultColor.toString());
+        super(nameKey, defaultColor.toString(), "");
         data = new LPCConfigData(parent, false);
         ILPC_MASAConfigWrapperDefaultInit(callback);
     }

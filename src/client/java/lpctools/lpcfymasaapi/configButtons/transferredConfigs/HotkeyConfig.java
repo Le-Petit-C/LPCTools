@@ -24,7 +24,7 @@ import java.util.function.IntSupplier;
 
 public class HotkeyConfig extends ConfigHotkey implements ILPC_MASAConfigWrapper<ConfigHotkey>, AutoCloseable {
     public HotkeyConfig(@NotNull ILPCConfigReadable parent, @NotNull String nameKey, @Nullable String defaultStorageString, @Nullable IHotkeyCallback hotkeyCallback){
-        super(nameKey, defaultStorageString != null ? defaultStorageString : "");
+        super(nameKey, defaultStorageString != null ? defaultStorageString : "", "");
         data = new LPCConfigData(parent, true);
         ILPC_MASAConfigWrapperDefaultInit(null);
         parent.getPage().getInputHandler().addHotkey(this);
