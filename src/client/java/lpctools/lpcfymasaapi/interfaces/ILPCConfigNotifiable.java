@@ -6,5 +6,5 @@ public interface ILPCConfigNotifiable{
     //调用回调函数
     void onValueChanged();
     //设置回调函数
-    void setValueChangeCallback(@Nullable ILPCValueChangeCallback callBack);
+    void setValueChangeCallback(@Nullable ILPCValueChangeCallback callback);
 }
