@@ -17,7 +17,7 @@
 	"entrypoints": {
 		"client": [
 			"lpctools.lpcfymasaapi.LPCAPIInit",
-			"lpctools.LPCTools"
+			"lpctools.LPCToolsInitializer"
 		],
 		"modmenu": [
 			"lpctools.compact.ModMenu.ModMenu"
@@ -29,6 +29,7 @@
 			"environment": "client"
 		}
 	],
+	"accessWidener" : "lpctools.accesswidener",
 	"depends": {
 		"fabricloader": ">=0.16.2",
 		"minecraft": [

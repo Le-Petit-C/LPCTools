@@ -4,8 +4,7 @@ import com.google.common.collect.ImmutableList;
 import it.unimi.dsi.fastutil.objects.Object2DoubleOpenHashMap;
 import lpctools.LPCTools;
 import lpctools.lpcfymasaapi.LPCAPIInit;
-import lpctools.util.javaex.NamedFunction;
-import lpctools.util.javaex.NamedObject2BooleanFunction;
+import lpctools.util.javaex.Object2BooleanFunction;
 import net.minecraft.block.Block;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ClientPlayerEntity;
@@ -18,13 +17,19 @@ import net.minecraft.resource.Resource;
 import net.minecraft.resource.ResourceManager;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.Vec3i;
+import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.joml.Vector3i;
 import org.joml.Vector4f;
 import org.lwjgl.opengl.GL30;
 
 import java.io.IOException;
 import java.util.*;
+import java.util.function.Consumer;
+import java.util.function.Function;
 
 @SuppressWarnings("unused")
 public class DataUtils {
@@ -42,23 +47,30 @@ public class DataUtils {
         ClientPlayerEntity player = MinecraftClient.getInstance().player;
         if(player != null) player.sendMessage(message, overlay);
     }
-    public static <T> void notifyPlayerIf(T value, NamedFunction<T, String> converter, NamedObject2BooleanFunction<T> condition, boolean overlay){
-        if(condition.booleanApply(value)) notifyPlayer(converter.apply(value), overlay);
+    public static <T> void notifyPlayerIf(T value, Function<T, String> converter, Object2BooleanFunction<T> condition, boolean overlay){
+        if(condition.getBoolean(value)) notifyPlayer(converter.apply(value), overlay);
     }
     public static String getItemId(Item item){return Registries.ITEM.getEntry(item).getIdAsString();}
     public static String getBlockId(Block block){return Registries.BLOCK.getEntry(block).getIdAsString();}
     public static @NotNull ImmutableList<String> idListFromBlockList(@Nullable Iterable<Block> list){
         ArrayList<String> ret = new ArrayList<>();
-        if(list != null)
-            for(Block block : list)
-                ret.add(getBlockId(block));
+        if(list != null) list.forEach(block->ret.add(getBlockId(block)));
         return ImmutableList.copyOf(ret);
     }
-    public static @NotNull ImmutableList<String> idListFromItemList(@Nullable Iterable<Item> list){
+    public static @NotNull ImmutableList<BlockItem> blockItemListFromItemList(@Nullable Iterable<? extends Item> list, Consumer<? super Item> warn){
+        ArrayList<BlockItem> ret = new ArrayList<>();
+        if(list != null) list.forEach(item->{
+            if(item instanceof BlockItem blockItem) ret.add(blockItem);
+            else warn.accept(item);
+        });
+        return ImmutableList.copyOf(ret);
+    }
+    public static @NotNull ImmutableList<BlockItem> blockItemListFromItemList(@Nullable Iterable<? extends Item> list, Logger warn){
+        return blockItemListFromItemList(list, item->warn.warn("{} not instanceof blockItem", item));
+    }
+    public static @NotNull ImmutableList<String> idListFromItemList(@Nullable Iterable<? extends Item> list){
         ArrayList<String> ret = new ArrayList<>();
-        if(list != null)
-            for(Item item : list)
-                ret.add(getItemId(item));
+        if(list != null) list.forEach(item->ret.add(getItemId(item)));
         return ImmutableList.copyOf(ret);
     }
     public interface ClassCaster<T, U>{U cast(T v) throws ClassCastException;}
@@ -141,6 +153,7 @@ public class DataUtils {
             default -> def;
         };
     }
+    @SuppressWarnings("SpellCheckingInspection")
     public static int argb2agbr(int color){
         int s = color & 0x00ff00ff;
         return (color & 0xff00ff00) | (s >> 16) | (s << 16);
@@ -152,5 +165,15 @@ public class DataUtils {
             (color & 0xff) / 255.0f,
             ((color >>> 24) & 0xff) / 255.0f
         );
+    }
+    public static Vector3i toVector3i(Vec3i vec){
+        return new Vector3i(vec.getX(), vec.getY(), vec.getZ());
+    }
+    public static BlockPos toBlockPos(Vector3i vec){
+        return new BlockPos(vec.x, vec.y, vec.z);
+    }
+    public static StringBuilder appendNodeIfNotEmpty(StringBuilder builder, String str){
+        if(str.isEmpty()) return builder;
+        return builder.append('.').append(str);
     }
 }

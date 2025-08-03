@@ -3,7 +3,7 @@ package lpctools.tools.canSpawnDisplay;
 import lpctools.compact.derived.ShapeList;
 import lpctools.generic.GenericUtils;
 import lpctools.lpcfymasaapi.Registries;
-import lpctools.lpcfymasaapi.configbutton.derivedConfigs.RangeLimitConfig;
+import lpctools.lpcfymasaapi.configButtons.derivedConfigs.RangeLimitConfig;
 import lpctools.lpcfymasaapi.gl.*;
 import lpctools.lpcfymasaapi.gl.furtherWarpped.BlendPresets;
 import lpctools.util.AlgorithmUtils;
@@ -30,13 +30,13 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.concurrent.CompletableFuture;
 
+import static lpctools.tools.canSpawnDisplay.CanSpawnDisplay.*;
+
 public class RenderInstance extends DataInstance implements WorldRenderEvents.Last, WorldRenderEvents.DebugRender{
-    public final CanSpawnDisplay parent;
-    public RenderInstance(MinecraftClient client, CanSpawnDisplay parent) {
+    public RenderInstance(MinecraftClient client) {
         super(client);
-        this.parent = parent;
-        renderMethod = parent.renderMethod.get();
-        shapeList = parent.rangeLimit.buildShapeList();
+        renderMethod = CanSpawnDisplay.renderMethod.get();
+        shapeList = rangeLimit.buildShapeList();
     }
     public void setRenderMethod(@NotNull IRenderMethod renderMethod) {
         this.renderMethod = renderMethod;
@@ -81,8 +81,8 @@ public class RenderInstance extends DataInstance implements WorldRenderEvents.La
         AlgorithmUtils.closeNoExcept(bufferCache.remove(pos));
     }
     
-    @Override public void onLast(WorldRenderContext context) {if(parent.renderXRays.getAsBoolean()) render(context);}
-    @Override public void beforeDebugRender(WorldRenderContext context) {if(!parent.renderXRays.getAsBoolean()) render(context);}
+    @Override public void onLast(WorldRenderContext context) {if(renderXRays.getAsBoolean()) render(context);}
+    @Override public void beforeDebugRender(WorldRenderContext context) {if(!renderXRays.getAsBoolean()) render(context);}
     @Override protected void onChunkDataLoaded(ChunkPos pos, double distanceSquared) {buildBufferAsync(pos, distanceSquared);}
     @Override public void onStartTick(MinecraftClient mc) {
         super.onStartTick(mc);
@@ -116,8 +116,8 @@ public class RenderInstance extends DataInstance implements WorldRenderEvents.La
     private @NotNull IRenderMethod renderMethod;
     private final HashMap<ChunkPos, RenderBuffer> bufferCache = new HashMap<>();
     private void render(WorldRenderContext context){
-        double distanceSquared = MathUtils.square(parent.renderDistance.getAsDouble());
-        double distanceLimit = MathUtils.square(parent.renderDistance.getAsDouble() + Math.sqrt(2) * 8);
+        double distanceSquared = MathUtils.square(renderDistance.getAsDouble());
+        double distanceLimit = MathUtils.square(renderDistance.getAsDouble() + Math.sqrt(2) * 8);
         Vec3d camPos = context.camera().getPos();
         Iterable<Chunk> poses = AlgorithmUtils.iterateLoadedChunksFromClosest(context.world(), camPos);
         ArrayList<RenderBuffer> buffersToRender = new ArrayList<>();
@@ -136,11 +136,11 @@ public class RenderInstance extends DataInstance implements WorldRenderEvents.La
             finalMatrixList.add(finalMatrix);
         }
         try(MaskLayer layer = new MaskLayer()){
-            int color = DataUtils.argb2agbr(parent.displayColor.getIntegerValue());
+            int color = DataUtils.argb2agbr(displayColor.getIntegerValue());
             boolean hasAlpha = (color >>> 24) != 0xff;
-            layer.enableBlend(hasAlpha).disableCullFace().enableDepthTest(!parent.renderXRays.getAsBoolean());
+            layer.enableBlend(hasAlpha).disableCullFace().enableDepthTest(!renderXRays.getAsBoolean());
             layer.blendState(BlendPresets.STANDARD_ALPHA);
-            if(parent.renderXRays.getAsBoolean() || !hasAlpha){
+            if(renderXRays.getAsBoolean() || !hasAlpha){
                 for(int a = 0; a < buffersToRender.size(); ++a)
                     buffersToRender.get(a).render(finalMatrixList.get(a), modelMatrixList.get(a), color, distanceSquared, layer);
             }

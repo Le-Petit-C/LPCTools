@@ -25,13 +25,13 @@ import java.util.List;
 public class AutoGrindstone {
     @Inject(method = "render", at = @At("HEAD"), cancellable = true)
     void mixinScreenRender(CallbackInfo ci){
-        if(!lpctools.tools.autoGrindstone.AutoGrindstone.autoGrindstoneConfig.getAsBoolean()) return;
+        if(!lpctools.tools.autoGrindstone.AutoGrindstone.AGConfig.getBooleanValue()) return;
         ci.cancel();
         MinecraftClient client = MinecraftClient.getInstance();
         ClientPlayerEntity player = client.player;
         ClientPlayerInteractionManager itm = client.interactionManager;
         if(player == null || itm == null) {
-            lpctools.tools.autoGrindstone.AutoGrindstone.autoGrindstoneConfig.setBooleanValue(false);
+            lpctools.tools.autoGrindstone.AutoGrindstone.AGConfig.setBooleanValue(false);
             return;
         }
         PlayerInventory inventory = player.getInventory();

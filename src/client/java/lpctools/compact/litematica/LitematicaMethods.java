@@ -2,15 +2,19 @@ package lpctools.compact.litematica;
 
 import fi.dy.masa.litematica.data.DataManager;
 import fi.dy.masa.litematica.schematic.placement.SchematicPlacement;
+import fi.dy.masa.litematica.selection.AreaSelection;
 import fi.dy.masa.malilib.util.LayerRange;
 import lpctools.compact.derived.SimpleTestableShape;
 import lpctools.compact.interfaces.ITestableShape;
+import lpctools.util.data.Box3i;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Box;
 import net.minecraft.util.math.Direction;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
+
+import static lpctools.util.DataUtils.toVector3i;
 
 public class LitematicaMethods {
     public void addSchematicShapes(Collection<ITestableShape> list, String namePrefix){
@@ -31,6 +35,13 @@ public class LitematicaMethods {
             new LayerRangeTester(currentRange.getAxis(), currentRange.getLayerMin(), currentRange.getLayerMax())
             , testType));
     }
+    public @Nullable Box3i getSelectionBox(){
+        AreaSelection selection = DataManager.getSelectionManager().getCurrentSelection();
+        if(selection == null) return null;
+        fi.dy.masa.litematica.selection.Box box = selection.getSelectedSubRegionBox();
+        if(box == null) return null;
+        return toBox3i(box);
+    }
     private record LayerRangeTester(Direction.Axis axis, int layerMin, int layerMax) implements SimpleTestableShape.ShapeTester {
         @Override public boolean isInsideShape(BlockPos pos) {
             int component = axis.choose(pos.getX(), pos.getY(), pos.getZ());
@@ -47,5 +58,10 @@ public class LitematicaMethods {
         BlockPos pos1 = box.getPos1(), pos2 = box.getPos2();
         if(pos1 == null || pos2 == null) return null;
         return new Box(pos1.toCenterPos(), pos2.toCenterPos()).expand(0.5);
+    }
+    @Nullable private static Box3i toBox3i(fi.dy.masa.litematica.selection.Box box){
+        BlockPos pos1 = box.getPos1(), pos2 = box.getPos2();
+        if(pos1 == null || pos2 == null) return null;
+        return new Box3i(toVector3i(pos1), toVector3i(pos2));
     }
 }
