@@ -17,7 +17,7 @@ public abstract class ButtonGenericMixin extends ButtonBase {
 	@Shadow(remap = false) @Final @Nullable protected IGuiIcon icon;
 	
 	public ButtonGenericMixin(int x, int y, int width, int height) {super(x, y, width, height);}
-	@ModifyArg(method = "render", index = 0, at = @At(value = "INVOKE", remap = false,
+	@ModifyArg(method = "render", index = 0, at = @At(value = "INVOKE", remap = false, ordinal = 2,
 		target = "Lfi/dy/masa/malilib/render/RenderUtils;drawTexturedRect(IIIIII)V"))
 	int onDrawTexturedRect(int value){
 		if(icon != null && alignment == LeftRight.CENTER)

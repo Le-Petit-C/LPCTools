@@ -39,7 +39,8 @@ dependencies {
 	minecraft "com.mojang:minecraft:${project.minecraft_version}"
 	mappings "net.fabricmc:yarn:${project.yarn_mappings}:v2"
 	modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
-	modImplementation "fi.dy.masa.malilib:malilib-fabric-${project.masa_mc}:${project.malilib_version}"
+	modImplementation "curse.maven:malilib-303119:${project.malilib_version}"
+	//modImplementation "fi.dy.masa.malilib:malilib-fabric-${project.masa_mc}:${project.malilib_version}"
 
 	//Suggested mods
 	//minihud
