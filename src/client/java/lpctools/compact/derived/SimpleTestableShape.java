@@ -12,8 +12,8 @@ import static lpctools.compact.interfaces.ITestableShape.ShapeTestResult.*;
 
 public class SimpleTestableShape implements ITestableShape {
     public interface ShapeTester{ boolean isInsideShape(BlockPos pos);}
-    @NotNull public ShapeTester tester;
-    TestType testType;
+    public final @NotNull ShapeTester tester;
+    public final TestType testType;
     public SimpleTestableShape(@NotNull ShapeTester tester, TestType testType){
         this.tester = tester;
         this.testType = testType;
