@@ -4,7 +4,7 @@ import lpctools.lpcfymasaapi.configButtons.transferredConfigs.DoubleConfig;
 import lpctools.lpcfymasaapi.configButtons.transferredConfigs.IntegerConfig;
 import lpctools.lpcfymasaapi.configButtons.uniqueConfigs.BooleanHotkeyThirdListConfig;
 import lpctools.tools.ToolConfigs;
-import net.minecraft.client.gui.screen.multiplayer.ConnectScreen;
+import net.minecraft.client.gui.screen.ConnectScreen;
 
 import java.util.Timer;
 import java.util.TimerTask;
