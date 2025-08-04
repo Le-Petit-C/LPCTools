@@ -21,18 +21,18 @@ public class ScriptConfigs {
     ), null);
     static {listStack.pop();}
     public static class ConfigSizeConfig extends UniqueIntegerConfig {
-        boolean initialized = false;
         public ConfigSizeConfig(ILPCConfigReadable parent) {
             super(parent, "guiScale", 0, 0, 10, null);
         }
         @Override public void addButtons(int x, int y, float zLevel, int labelWidth, int configWidth, ButtonConsumer consumer) {
             super.addButtons(x, y, zLevel, labelWidth, configWidth, consumer);
             intValue = MinecraftClient.getInstance().options.getGuiScale().getValue();
-            initialized = true;
         }
         @Override public void onValueChanged() {
             super.onValueChanged();
-            if(initialized) MinecraftClient.getInstance().options.getGuiScale().setValue(intValue);
+            int value = intValue;
+            MinecraftClient mc = MinecraftClient.getInstance();
+            mc.send(()->mc.options.getGuiScale().setValue(value));
         }
     }
 }
