@@ -5,9 +5,14 @@ import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientChunkEvents;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientWorldEvents;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents;
+import net.fabricmc.fabric.api.resource.ResourceManagerHelper;
+import net.fabricmc.fabric.api.resource.SimpleSynchronousResourceReloadListener;
 import net.minecraft.block.BlockState;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.world.ClientWorld;
+import net.minecraft.resource.ResourceManager;
+import net.minecraft.resource.ResourceType;
+import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.chunk.WorldChunk;
 import org.jetbrains.annotations.NotNull;
@@ -62,6 +67,8 @@ public class Registries {
             @Override public void updateBetweenZ(int minZ, int maxZ) {
                 callbacks.forEach(callback->callback.updateBetweenX(minZ, maxZ));}
         });
+    public static final UnregistrableRegistry<ResourceReloadCallback> CLIENT_RESOURCE_RELOAD = new UnregistrableRegistry<>(
+        callbacks->manager->callbacks.forEach(callback->callback.onResourceReload(manager)));
     
     static{
         ClientWorldEvents.AFTER_CLIENT_WORLD_CHANGE.register(AFTER_CLIENT_WORLD_CHANGE.run());
@@ -80,6 +87,14 @@ public class Registries {
         WorldRenderEvents.LAST.register(WORLD_RENDER_LAST.run());
         WorldRenderEvents.END.register(WORLD_RENDER_END.run());
     }
+    static {
+        Identifier lpcRegistryClientResourceReloadCallbackId = Identifier.of("lpctools", "lpcfymasaapi_reload");
+        ResourceManagerHelper.get(ResourceType.CLIENT_RESOURCES)
+            .registerReloadListener(new SimpleSynchronousResourceReloadListener(){
+                @Override public Identifier getFabricId() {return lpcRegistryClientResourceReloadCallbackId;}
+                @Override public void reload(ResourceManager manager) {CLIENT_RESOURCE_RELOAD.run().onResourceReload(manager);}
+            });
+    }
     
     public interface ClientWorldChunkSetBlockState {//at RETURN
         void onClientWorldChunkSetBlockState(WorldChunk chunk, BlockPos pos, BlockState lastState, BlockState newState);
@@ -92,5 +107,8 @@ public class Registries {
     }
     public interface InGameEndMouse {
         void onInGameEndMouse(int button, int action, int mods);
+    }
+    public interface ResourceReloadCallback{
+        void onResourceReload(ResourceManager manager);
     }
 }

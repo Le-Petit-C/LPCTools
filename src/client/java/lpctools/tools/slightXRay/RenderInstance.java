@@ -14,6 +14,7 @@ import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents;
 import net.minecraft.block.BlockState;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.world.ClientWorld;
+import net.minecraft.resource.ResourceManager;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.ChunkPos;
 import net.minecraft.util.math.Direction;
@@ -32,24 +33,29 @@ import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 
+import static lpctools.lpcfymasaapi.Registries.CLIENT_RESOURCE_RELOAD;
 import static lpctools.tools.slightXRay.SlightXRay.*;
 
 //TODO:不使用形状索引而是合并重合顶点的索引（比如相邻矩形）以节省空间
 
-public class RenderInstance extends DataInstance implements WorldRenderEvents.End, WorldRenderEvents.Start {
+public class RenderInstance extends DataInstance implements WorldRenderEvents.End, WorldRenderEvents.Start, Registries.ResourceReloadCallback {
     RenderInstance(MinecraftClient client){
         super(client);
-        Registries.WORLD_RENDER_END.register(this);
-        Registries.WORLD_RENDER_START.register(this);
+        registerAll(true);
         shapeList = displayRange.buildShapeList();
+        onResourceReload(MinecraftClient.getInstance().getResourceManager());
     }
     @Override public void close(){
-        Registries.WORLD_RENDER_START.unregister(this);
-        Registries.WORLD_RENDER_END.unregister(this);
+        registerAll(false);
         for(QuadBuffer buffer : vertexBuffers.values())
             buffer.close();
         vertexBuffers.clear();
         super.close();
+    }
+    private void registerAll(boolean b){
+        CLIENT_RESOURCE_RELOAD.register(this, b);
+        Registries.WORLD_RENDER_START.register(this, b);
+        Registries.WORLD_RENDER_END.register(this, b);
     }
     public void onRenderRangeChanged(RangeLimitConfig rangeLimit){
         ShapeList newList = rangeLimit.buildShapeList();
@@ -167,6 +173,10 @@ public class RenderInstance extends DataInstance implements WorldRenderEvents.En
         }
         return new RenderPrepareResult(renderBufferBuilders, maxShapeCount);
     }
+    @Override public void onResourceReload(ResourceManager manager) {
+        defaultColorMethod.onValueChanged();
+    }
+    
     private record ChunkRenderPrepareResult(int shapeCount, Matrix4f finalMatrix, Consumer<MaskLayer> bindOperation){
         ChunkRenderPrepareResult(int size, Consumer<MaskLayer> bindOperation, Vec3d camPos, ChunkPos pos, Matrix4f projection_view_matrix){
             this(size, getFinalMatrix(camPos, pos, projection_view_matrix), bindOperation);
