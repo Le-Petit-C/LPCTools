@@ -13,12 +13,17 @@ public class TriggerClientTickStart extends UniqueBooleanHotkeyConfig implements
 		super(parent, nameKey, false, null, null);
 		this.runScript = runScript;
 	}
+	private void registerAll(boolean b){Registries.START_CLIENT_TICK.register(this, b);}
 	@Override public void onValueChanged() {
-		Registries.START_CLIENT_TICK.register(this, booleanValue);
+		registerAll(booleanValue);
 		super.onValueChanged();
 	}
 	@Override public @NotNull String getFullTranslationKey() {return fullKey;}
 	public static final String nameKey = "clientTickStart";
 	public static final String fullKey = fullPrefix + nameKey;
 	@Override public void onStartTick(MinecraftClient mc) {runScript.run();}
+	@Override public void close() {
+		super.close();
+		registerAll(false);
+	}
 }
