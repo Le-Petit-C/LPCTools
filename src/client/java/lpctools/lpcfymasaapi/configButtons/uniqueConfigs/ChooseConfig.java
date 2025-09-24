@@ -22,7 +22,7 @@ import java.util.function.BiFunction;
 public class ChooseConfig<T extends ILPCConfig> extends LPCUniqueConfigBase implements ILPCConfigReadable, AutoCloseable {
 	private @NotNull T value;
 	private @NotNull String valueKey;
-	public <U> ChooseConfig(ILPCConfigReadable parent, String nameKey, ImmutableMap<String, ? extends TriFunction<? super ChooseConfig<T>, String, U, T>> allocatorMap,
+	public <U> ChooseConfig(ILPCConfigReadable parent, String nameKey, ImmutableMap<String, ? extends TriFunction<? super ChooseConfig<T>, String, U, ? extends T>> allocatorMap,
 							Map<?, ?> optionTree, ILPCValueChangeCallback callback, U userData) {
 		super(parent, nameKey, callback);
 		allocators = new WrappedAllocators<>(allocatorMap, userData);
@@ -30,17 +30,17 @@ public class ChooseConfig<T extends ILPCConfig> extends LPCUniqueConfigBase impl
 		valueKey = allocatorMap.keySet().iterator().next();
 		value = allocators.allocate(valueKey, this);
 	}
-	public ChooseConfig(ILPCConfigReadable parent, String nameKey, ImmutableMap<String, ? extends BiFunction<? super ChooseConfig<T>, String, T>> allocatorMap,
+	public ChooseConfig(ILPCConfigReadable parent, String nameKey, ImmutableMap<String, ? extends BiFunction<? super ChooseConfig<T>, String, ? extends T>> allocatorMap,
 						Map<?, ?> optionTree, ILPCValueChangeCallback callback) {
 		this(parent, nameKey, convert(allocatorMap), optionTree, callback, null);
 	}
 	@SuppressWarnings("unused")
-	public <U> ChooseConfig(ILPCConfigReadable parent, String nameKey, ImmutableMap<String, ? extends TriFunction<? super ChooseConfig<T>, String, U, T>> allocatorMap,
+	public <U> ChooseConfig(ILPCConfigReadable parent, String nameKey, ImmutableMap<String, ? extends TriFunction<? super ChooseConfig<T>, String, U, ? extends T>> allocatorMap,
 							ILPCValueChangeCallback callback, U userData) {
 		this(parent, nameKey, allocatorMap, defaultOptionTree(allocatorMap.keySet()), callback, userData);
 	}
 	@SuppressWarnings("unused")
-	public ChooseConfig(ILPCConfigReadable parent, String nameKey, ImmutableMap<String, ? extends BiFunction<? super ChooseConfig<T>, String, T>> allocatorMap,
+	public ChooseConfig(ILPCConfigReadable parent, String nameKey, ImmutableMap<String, ? extends BiFunction<? super ChooseConfig<T>, String, ? extends T>> allocatorMap,
 						ILPCValueChangeCallback callback) {
 		this(parent, nameKey, convert(allocatorMap), defaultOptionTree(allocatorMap.keySet()), callback, null);
 	}
@@ -85,7 +85,7 @@ public class ChooseConfig<T extends ILPCConfig> extends LPCUniqueConfigBase impl
 	}
 	
 	private static <T extends ILPCConfig> ImmutableMap<String, TriFunction<? super ChooseConfig<T>, String, Object, T>>
-	convert(ImmutableMap<String, ? extends BiFunction<? super ChooseConfig<T>, String, T>> allocatorMap){
+	convert(ImmutableMap<String, ? extends BiFunction<? super ChooseConfig<T>, String, ? extends T>> allocatorMap){
 		ImmutableMap.Builder<String, TriFunction<? super ChooseConfig<T>, String, Object, T>> res = ImmutableMap.builder();
 		allocatorMap.forEach((k, f)->res.put(k, (config, key, obj)->f.apply(config, k)));
 		return res.build();
@@ -106,7 +106,7 @@ public class ChooseConfig<T extends ILPCConfig> extends LPCUniqueConfigBase impl
 			closeable.close();
 	}
 	
-	private record WrappedAllocators<T extends ILPCConfig, U>(ImmutableMap<String, ? extends TriFunction<? super ChooseConfig<T>, String, U, T>> allocatorMap, U userData){
+	private record WrappedAllocators<T extends ILPCConfig, U>(ImmutableMap<String, ? extends TriFunction<? super ChooseConfig<T>, String, U, ? extends T>> allocatorMap, U userData){
 		public T allocate(String key, ChooseConfig<T> config){
 			return Objects.requireNonNull(allocatorMap.get(key)).apply(config, key, userData);
 		}

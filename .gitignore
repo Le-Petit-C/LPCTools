@@ -39,3 +39,4 @@ replay_*.log
 *.hprof
 *.jfr
 /local/
+/scripts/

@@ -13,6 +13,7 @@
     "OnMouseButtonReturnMixin",
     "SplashTextResourceSupplierMixin",
     "SpriteContentsMixin",
+    "TextFieldWidgetAccessor",
     "WorldChunkMixin",
     "AutoReconnect.ConnectScreenMixin",
     "AutoReconnect.DisconnectedScreenMixin",
@@ -24,19 +25,23 @@
     "HappyGhastRidingTweak.ClientPlayerEntityMixin",
     "HappyGhastRidingTweak.HappyGhastEntityMixin",
     "HappyGhastRidingTweak.PlayerInputC2SPacketMixin",
+    "MASAMixins.GuiBaseAccessor",
     "MASAMixins.LayerRangeMixin",
     "MASAMixins.WidgetConfigOptionBaseMixin",
     "MASAMixins.WidgetConfigOptionMixin",
     "MASAMixins.WidgetListConfigOptionsMixin",
     "MASAMixins.litematicaMixin.DataManagerMixin",
     "MASAMixins.MuteMASAConfigMinMaxMixin.ConfigDoubleMixin",
-    "MASAMixins.MuteMASAConfigMinMaxMixin.ConfigIntegerMixin"
+    "MASAMixins.MuteMASAConfigMinMaxMixin.ConfigIntegerMixin",
+    "enchantmentLevelFix.TestMixin",
+    "EntityHighlight.EntityMixin",
+    "MASAMixins.ButtonGenericMixin",
+    "MASAMixins.ConfigButtonKeybindMixin",
+    "MASAMixins.centerDrawFix.ButtonGenericMixin"
   ],
   "injectors": {
     "defaultRequire": 1
   },
   "mixins": [
-    "EntityHighlight.EntityMixin",
-    "MASAMixins.centerDrawFix.ButtonGenericMixin"
   ]
 }

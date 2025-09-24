@@ -53,4 +53,40 @@ public class MathUtils {
         src.setZ(src.getZ() % vec.getZ());
         if(src.getZ() < 0 ) src.setZ(src.getZ() + vec.getZ());
     }
+    //转换整数为罗马数字字符串
+    public static String romanNumerals(int n) {
+        //数值过大时返回阿拉伯数字字符串
+        if (n < 1 || n > 3999) return String.valueOf(n);
+        
+        // 定义所有可能的罗马数字组合（包含减法规则）
+        enum RomanNumeralPart{
+            M("M", 1000),
+            CM("CM", 900),
+            D("D", 500),
+            CD("CD", 400),
+            C("C", 100),
+            XC("XC", 90),
+            L("L", 50),
+            XL("XL", 40),
+            X("X", 10),
+            IX("IX", 9),
+            V("V", 5),
+            IV("IV", 4),
+            I("I", 1);
+            RomanNumeralPart(String symbol, int value){
+                this.symbol = symbol;
+                this.value = value;
+            }
+            public final String symbol;
+            public final int value;
+        }
+        StringBuilder result = new StringBuilder();
+        for(RomanNumeralPart part : RomanNumeralPart.values()){
+            while(n >= part.value){
+                result.append(part.symbol);
+                n -= part.value;
+            }
+        }
+        return result.toString();
+    }
 }

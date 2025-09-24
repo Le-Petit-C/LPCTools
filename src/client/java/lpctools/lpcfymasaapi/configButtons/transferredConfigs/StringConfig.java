@@ -15,7 +15,7 @@ import java.util.function.Supplier;
 
 public class StringConfig extends ConfigString implements ILPC_MASAConfigWrapper<ConfigString>, Supplier<String>, Consumer<String> {
     public StringConfig(@NotNull ILPCConfigList parent, @NotNull String nameKey, @Nullable String defaultString, @Nullable ILPCValueChangeCallback callback) {
-        super(nameKey, defaultString);
+        super(nameKey, defaultString == null ? "" : defaultString);
         data = new LPCConfigData(parent, false);
         ILPC_MASAConfigWrapperDefaultInit(callback);
     }

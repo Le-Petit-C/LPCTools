@@ -27,7 +27,7 @@ import static lpctools.lpcfymasaapi.interfaces.ILPCUniqueConfigBase.*;
 import static lpctools.util.AlgorithmUtils.*;
 
 public class MutableConfig<T extends ILPCUniqueConfigBase> extends LPCUniqueConfigBase implements ILPCConfigReadable, IMutableConfig, IConfigResettable{
-    public final @NotNull ImmutableMap<String, ? extends BiFunction<? super MutableConfig<T>, String, T>> configSuppliers;
+    public final @NotNull ImmutableMap<String, ? extends BiFunction<? super MutableConfig<T>, String, ? extends T>> configSuppliers;
     public final @NotNull String buttonKeyPrefix;
     public @NotNull Map<?, ?> optionTree;
     private boolean condenseOperationButton;
@@ -65,7 +65,7 @@ public class MutableConfig<T extends ILPCUniqueConfigBase> extends LPCUniqueConf
     @Override public void setAlignedIndent(int indent) {this.indent = indent;}
     @Override public int getAlignedIndent() {return indent;}
     public MutableConfig(@NotNull ILPCConfigReadable parent, @NotNull String nameKey, @NotNull String buttonKeyPrefix,
-                         @NotNull ImmutableMap<String, ? extends BiFunction<? super MutableConfig<T>, String, T>> configSuppliers,
+                         @NotNull ImmutableMap<String, ? extends BiFunction<? super MutableConfig<T>, String, ? extends T>> configSuppliers,
                          @Nullable Map<?, ?> optionTree, @Nullable ILPCValueChangeCallback callback){
         super(parent, nameKey, null);
         this.configSuppliers = configSuppliers;
@@ -289,7 +289,7 @@ public class MutableConfig<T extends ILPCUniqueConfigBase> extends LPCUniqueConf
         else return new MutableConfigOption<>(this, config, saveKey);
     }
     private @Nullable MutableConfig.MutableConfigOption<? extends T> allocateConfig(String supplierId){
-        BiFunction<? super MutableConfig<T>, String, T> allocator = configSuppliers.get(supplierId);
+        BiFunction<? super MutableConfig<T>, String, ? extends T> allocator = configSuppliers.get(supplierId);
         if(allocator == null) return null;
         return wrapConfig(allocator.apply(this, supplierId), supplierId);
     }

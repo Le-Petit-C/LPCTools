@@ -10,7 +10,8 @@ public class TweakConfigs {
         tweaks.addConfigs(
             BlockReplaceHotkey.blockReplaceHotkey,
             HappyGhastRidingTweak.happyGhastRidingTweak,
-            BarTweaks.barTweaks
+            BarTweaks.barTweaks,
+            EnchantmentLevelFix.enchantmentLevelFix
         );
     }
 }

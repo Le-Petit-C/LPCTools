@@ -22,8 +22,11 @@ public interface LPCConfigUtils {
     static int muteMinValue(ConfigInteger config, int value){
         return ((MuteMASAConfigMinMaxInteger)config).lPCTools$setMin(value);
     }
+    static void warnFailedLoadingConfig(String configKey, @NotNull JsonElement element){
+        LPCAPIInit.LOGGER.warn("Failed to set config value for '{}' from the JSON element '{}'", configKey, element);
+    }
     static void warnFailedLoadingConfig(ILPCConfigBase configThis, @NotNull JsonElement element){
-        LPCAPIInit.LOGGER.warn("Failed to set config value for '{}' from the JSON element '{}'", configThis.getNameKey(), element);
+        warnFailedLoadingConfig(configThis.getNameKey(), element);
     }
     static int calculateTextButtonWidth(String str, TextRenderer textRenderer, int barHeight){
 		return (int)Math.round((textRenderer.getWidth(str) + ((barHeight - textRenderer.fontHeight) * 1.414213562)) / 2) * 2;
