@@ -2,252 +2,260 @@ package lpctools.script.editScreen;
 
 import com.google.gson.JsonElement;
 import fi.dy.masa.malilib.gui.*;
-import fi.dy.masa.malilib.gui.button.ButtonBase;
 import fi.dy.masa.malilib.gui.button.ButtonGeneric;
-import fi.dy.masa.malilib.gui.button.ConfigButtonKeybind;
-import fi.dy.masa.malilib.gui.widgets.WidgetBase;
-import fi.dy.masa.malilib.util.position.Vec2i;
-import lpctools.mixin.client.MASAMixins.GuiBaseAccessor;
-import lpctools.mixin.client.TextFieldWidgetAccessor;
-import lpctools.mixinInterfaces.MASAMixins.IButtonGenericMixin;
-import lpctools.mixinInterfaces.MASAMixins.IConfigButtonKeybindMixin;
-import lpctools.script.IScript;
-import lpctools.script.ISubScriptMutable;
-import lpctools.script.Script;
-import lpctools.script.ScriptConfig;
-import lpctools.util.data.AvlTreeList;
-import lpctools.util.data.Rect2i;
+import fi.dy.masa.malilib.util.position.Vec2d;
+import lpctools.script.*;
+import lpctools.util.data.Rect2d;
 import net.minecraft.client.gui.DrawContext;
+import net.minecraft.client.gui.Element;
 import net.minecraft.text.Text;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Objects;
-import java.util.function.BiConsumer;
-
-import static lpctools.lpcfymasaapi.LPCConfigUtils.calculateTextButtonWidth;
+import java.util.*;
 
 public class ScriptEditScreen extends GuiConfigsBase {
 	public final ScriptConfig config;
 	private final JsonElement startJson;
+	@Nullable ScriptHoldingData scriptHoldingData;
+	//鼠标左键按下抓住背景时移动鼠标应当能够移动整个界面
+	//此变量为鼠标按下时鼠标按下位置相对于显示区域左上角的坐标，为null表示未按下
+	private Vec2d holdingScreenBackground = null;
+	//移动后左上角坐标
+	private double x = reserve, y = topReserve;
+	private @Nullable Element scriptFocused;
+	private final ButtonGeneric copyButton = createGenericSquareButton("C", "lpctools.script.trigger.chooseScreen.copy");
+	private final ButtonGeneric pasteButton = createGenericSquareButton("P", "lpctools.script.trigger.chooseScreen.paste");
+	private final ButtonGeneric dragButton = createGenericSquareButton("≡", "lpctools.script.trigger.chooseScreen.drag");
+	private final ButtonGeneric removeButton = createGenericSquareButton("-", "lpctools.script.trigger.chooseScreen.remove");
+	
+	private static final int reserve = 10, topReserve = 40;
+	
 	public ScriptEditScreen(Script script) {
 		super(0, 0, "lpctools", null, "lpctools.script.editScreen.title");
 		this.config = script.config;
 		startJson = script.getAsJsonElement();
 		//setTitle(Text.translatable("lpctools.script.editScreen.title").getString());
 	}
-	//鼠标左键按下抓住背景时移动鼠标应当能够移动整个界面
-	//此变量为鼠标按下时的坐标，为null表示未按下
-	private Vec2i holdingScreenBackground = null;
-	@Override public boolean onMouseClicked(int mouseX, int mouseY, int mouseButton) {
-		boolean res = super.onMouseClicked(mouseX, mouseY, mouseButton);
-		if (!res && mouseButton == 0) {
-			holdingScreenBackground = new Vec2i(mouseX, mouseY);
+	private @NotNull ScriptWithSubScriptDisplayWidget getRootDisplayWidget(){
+		return config.script.getDisplayWidget();
+	}
+	@Override public boolean mouseClicked(double mouseX, double mouseY, int mouseButton) {
+		if(super.mouseClicked(mouseX, mouseY, mouseButton)) {
+			setScriptFocused(null);
 			return true;
 		}
-		return res;
+		double fixedMouseX = mouseX - x;
+		double fixedMouseY = mouseY - y;
+		var widget = getRootDisplayWidget().getByLine((int)Math.floor(fixedMouseY / 22));
+		if(widget != null){
+			if(widget.mouseClicked(fixedMouseX, fixedMouseY, mouseButton))
+				return true;
+		}
+		setScriptFocused(null);
+		if (mouseButton == 0) {
+			holdingScreenBackground = new Vec2d(mouseX - x, mouseY - y);
+			return true;
+		}
+		return false;
 	}
-	@Override public boolean onMouseReleased(int mouseX, int mouseY, int state) {
-		boolean res = super.onMouseReleased(mouseX, mouseY, state);
-		if (holdingScreenBackground != null && state == 0) {
+	
+	public void setScriptFocused(@Nullable Element element){
+		if(scriptFocused != null) scriptFocused.setFocused(false);
+		scriptFocused = element;
+		if (element != null) element.setFocused(true);
+	}
+	
+	public @Nullable Element getScriptFocused(){
+		return scriptFocused;
+	}
+	
+	@Override public void mouseMoved(double mouseX, double mouseY) {
+		double fixedMouseX = mouseX - x;
+		double fixedMouseY = mouseY - y;
+		if(scriptFocused != null) scriptFocused.mouseMoved(fixedMouseX, fixedMouseY);
+		//移动显示区域
+		if (holdingScreenBackground != null) {
+			var root = getRootDisplayWidget();
+			x = mouseX - holdingScreenBackground.x;
+			y = mouseY - holdingScreenBackground.y;
+			int width = root.getRight();
+			int height = root.getSize() * 22;
+			Rect2d bound = new Rect2d(x - reserve, y - topReserve, x + width + reserve, y + height + reserve);
+			int SCRW = getScreenWidth(), SCRH = getScreenHeight();
+			boolean b1 = bound.right - bound.left > SCRW;
+			boolean b2 = bound.bottom - bound.top > SCRW;
+			if((bound.left > 0) == b1) x -= bound.left;
+			else if((bound.right < SCRW) == b1) x -= bound.right - SCRW;
+			if((bound.top > 0) == b2) y -= bound.top;
+			else if((bound.bottom < SCRH) == b2) y -= bound.bottom - SCRH;
+		}
+		else {
+			var widget = getRootDisplayWidget().getByLine((int)Math.floor(fixedMouseY / 22));
+			if(widget != null) widget.mouseMoved(fixedMouseX, fixedMouseY);
+		}
+	}
+	
+	@Override public boolean mouseReleased(double mouseX, double mouseY, int mouseButton) {
+		double fixedMouseX = mouseX - x;
+		double fixedMouseY = mouseY - y;
+		if (holdingScreenBackground != null && mouseButton == 0) {
 			holdingScreenBackground = null;
 			return true;
 		}
-		return res;
-	}
-	@Override public boolean onKeyTyped(int keyCode, int scanCode, int modifiers) {
-		for (ButtonBase button : ((GuiBaseAccessor)this).getButtons())
-			if (button.onKeyTyped(keyCode, scanCode, modifiers))
-				return true;
-		return super.onKeyTyped(keyCode, scanCode, modifiers);
+		if(scriptFocused != null && scriptFocused.mouseReleased(fixedMouseX, fixedMouseY, mouseButton)) return true;
+		var widget = getRootDisplayWidget().getByLine((int)Math.floor(fixedMouseY / 22));
+		if(widget != null && widget.mouseReleased(fixedMouseX, fixedMouseY, mouseButton)) return true;
+		return super.mouseReleased(mouseX, mouseY, mouseButton);
 	}
 	
-	private <T> void calcWidgetsBound(Rect2i res, Iterable<T> widgets, BiConsumer<? super T, Rect2i> getBound){
-		Rect2i buf = new Rect2i();
-		for(T widget : widgets){
-			getBound.accept(widget, buf);
-			res.expandToInclude(buf);
-		}
-	}
-	private Rect2i calcWidgetsBound(){
-		Rect2i res = new Rect2i();
-		GuiBaseAccessor accessor = (GuiBaseAccessor)this;
-		BiConsumer<WidgetBase, Rect2i> widgetRectCalc = (widget, rect)->{
-			int midY = widget.getY() + widget.getHeight() / 2;
-			rect.set(
-				widget.getX(), midY - 10,
-				widget.getX() + widget.getWidth(),
-				midY + 10
-			);
-		};
-		calcWidgetsBound(res, accessor.getButtons(), widgetRectCalc);
-		calcWidgetsBound(res, accessor.getWidgets(), widgetRectCalc);
-		calcWidgetsBound(res, accessor.getTextFields(),
-			(widget, rect)->{
-				GuiTextFieldGeneric textField = widget.getTextField();
-				int midY = textField.getY() + textField.getHeight() / 2;
-				rect.set(
-					textField.getX(), midY - 10,
-					textField.getX() + textField.getWidth(),
-					midY + 10
-				);
-			}
-		);
-		return res;
+	@Override public boolean mouseDragged(double mouseX, double mouseY, int button, double deltaX, double deltaY) {
+		double fixedMouseX = mouseX - x;
+		double fixedMouseY = mouseY - y;
+		if(scriptFocused != null && scriptFocused.mouseDragged(fixedMouseX, fixedMouseY, button, deltaX, deltaY)) return true;
+		var widget = getRootDisplayWidget().getByLine((int)Math.floor(fixedMouseY / 22));
+		if(widget != null && widget.mouseDragged(fixedMouseX, fixedMouseY, button, deltaX, deltaY)) return true;
+		return super.mouseDragged(mouseX, mouseY, button, deltaX, deltaY);
 	}
 	
-	private static final int reserve = 10, topReserve = 40;
-	//移动后左上角坐标
-	private int x = 0, y = 0;
+	@Override public boolean mouseScrolled(double mouseX, double mouseY, double horizontalAmount, double verticalAmount) {
+		double fixedMouseX = mouseX - x;
+		double fixedMouseY = mouseY - y;
+		if(scriptFocused != null && scriptFocused.mouseScrolled(fixedMouseX, fixedMouseY, horizontalAmount, verticalAmount)) return true;
+		return super.mouseScrolled(mouseX, mouseY, horizontalAmount, verticalAmount);
+	}
+	
+	@Override public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
+		if(scriptFocused != null && scriptFocused.keyPressed(keyCode, scanCode, modifiers)) return true;
+		return super.keyPressed(keyCode, scanCode, modifiers);
+	}
+	
+	@Override public boolean keyReleased(int keyCode, int scanCode, int modifiers) {
+		if(scriptFocused != null && scriptFocused.keyReleased(keyCode, scanCode, modifiers)) return true;
+		return super.keyReleased(keyCode, scanCode, modifiers);
+	}
+	
+	@Override public boolean charTyped(char charIn, int modifiers) {
+		if(scriptFocused != null && scriptFocused.charTyped(charIn, modifiers)) return true;
+		return super.charTyped(charIn, modifiers);
+	}
+	
+	//以父screen为背景
 	@Override public void render(DrawContext drawContext, int mouseX, int mouseY, float partialTicks) {
-		if(needUpdate){
-			needUpdate = false;
-			initGui();
-		}
-		if (holdingScreenBackground != null) {
-			int deltaX = mouseX - holdingScreenBackground.x;
-			int deltaY = mouseY - holdingScreenBackground.y;
-			holdingScreenBackground = new Vec2i(mouseX, mouseY);
-			Rect2i bound = calcWidgetsBound();
-			if(bound.isValid()){
-				//为组件到边界保留一些距离
-				bound.left -= reserve + 1;
-				bound.top -= topReserve + 1;//因为有标题栏，所以上方留更多
-				bound.right += reserve + 1;
-				bound.bottom += reserve + 1;
-				if(bound.width() > getScreenWidth()) {
-					deltaX = Math.min(deltaX, -bound.left);
-					deltaX = Math.max(deltaX, getScreenWidth() - bound.right);
-				}
-				else{
-					deltaX = Math.max(deltaX, -bound.left);
-					deltaX = Math.min(deltaX, getScreenWidth() - bound.right);
-				}
-				if(bound.height() > getScreenHeight()) {
-					deltaY = Math.min(deltaY, -bound.top);
-					deltaY = Math.max(deltaY, getScreenHeight() - bound.bottom);
-				}
-				else{
-					deltaY = Math.max(deltaY, -bound.top);
-					deltaY = Math.min(deltaY, getScreenHeight() - bound.bottom);
-				}
-			}
-			//移动所有组件
-			GuiBaseAccessor accessor = (GuiBaseAccessor) this;
-			for (var widget : accessor.getButtons())
-				widget.setPosition(widget.getX() + deltaX, widget.getY() + deltaY);
-			for (var widget : accessor.getWidgets())
-				widget.setPosition(widget.getX() + deltaX, widget.getY() + deltaY);
-			for (var widget : accessor.getTextFields()){
-				GuiTextFieldGeneric textField = widget.getTextField();
-				textField.setPosition(textField.getX() + deltaX, textField.getY() + deltaY);
-				((TextFieldWidgetAccessor)textField).invokeUpdateTextPosition();
-			}
-			x = bound.left + deltaX;
-			y = bound.top + deltaY;
-			drawContext.fill(x, y, bound.right + deltaX, bound.bottom + deltaY, 0x7fffffff);
-		}
 		if(getParent() != null)
 			getParent().render(drawContext, -1, -1, partialTicks);
 		super.render(drawContext, mouseX, mouseY, partialTicks);
 	}
-	@Override public void initGui() {
-		super.initGui();
-		buildButtons(config.script, x + reserve, y + topReserve + 11, true);
-	}
-	public <T extends ButtonBase> T addButton(T button) {
-		((GuiBaseAccessor)this).getButtons().add(button);
-		return button;
-	}
-	public void realignWidgetsByNameButton(IScript script){
-		var nameButton = getExtraData(script).nameButton;
-		realignWidgets(script, nameButton.getX() - 23, nameButton.getY() + nameButton.getHeight() / 2);
-	}
-	public void realignWidgets(IScript script, int startX, int startY){
-		buildButtons(script, startX, startY, false);
-	}
-	//返回值：添加了多少行按钮
-	private int buildButtons(IScript script, int startX, int startY, boolean needAddWidget) {
-		int res = 1;
-		int x = startX + 22;
-		var data = getExtraData(script);
-		String name = script.getName();
-		int width = calculateTextButtonWidth(name, textRenderer, 20);
-		data.nameButton.setPosition(x + 1, startY - 10);
-		addWidget(data.nameButton);
-		x += width + 2;
-		if(script.getWidgets() instanceof Iterable<?> widgets){
-			for(Object object : widgets){
-				if(object instanceof ConfigButtonKeybind keybind)
-					((IConfigButtonKeybindMixin)keybind).setHost(this);
-				switch (object) {
-					case ButtonBase button -> {
-						button.setPosition(x + 1, startY - button.getHeight() / 2);
-						x += button.getWidth() + 2;
-						if(needAddWidget) addButton(button);
-					}
-					case WidgetBase widget -> {
-						widget.setPosition(x + 1, startY - widget.getHeight() / 2);
-						x += widget.getWidth() + 2;
-						if(needAddWidget) addWidget(widget);
-					}
-					case GuiTextFieldGeneric textField -> {
-						textField.setPosition(x + 1, startY - textField.getHeight() / 2);
-						((TextFieldWidgetAccessor)textField).invokeUpdateTextPosition();
-						x += textField.getWidth() + 2;
-						if(needAddWidget) addTextField(textField, null);
-					}
-					case null, default -> throw new IllegalStateException("Illegal object type");
-				}
+	//渲染内容，选择重载drawTitle只是因为渲染顺序
+	@Override public void drawTitle(DrawContext drawContext, int mouseX, int mouseY, float partialTicks) {
+		//渲染内容
+		var root = getRootDisplayWidget();
+		var matrices = drawContext.getMatrices();
+		//位置修正
+		matrices.pushMatrix().translate((float)x, (float)y);
+		int fixedMouseX = (int)Math.round(mouseX - x), fixedMouseY = (int)Math.round(mouseY - y);
+		if(holdingScreenBackground != null)
+			drawContext.fill(-reserve, -topReserve, root.getRight() + reserve, root.getSize() * 22 + reserve, 0x7fffffff);
+		int minLineIndex = Math.max((int)Math.floor(-y / 22), 0);
+		int maxLineIndex = Math.min((int)Math.floor((getScreenHeight() - y - 1) / 22), root.getSize() - 1);
+		int line = minLineIndex;
+		//移动中的配置仅在目标位置绘制高亮框
+		int hideMinLineIndex, hideMaxLineIndex;
+		if(scriptHoldingData != null){
+			var widget = scriptHoldingData.widget;
+			hideMinLineIndex = widget.getLine();
+			hideMaxLineIndex = hideMinLineIndex + widget.getSize();
+		}
+		else hideMinLineIndex = hideMaxLineIndex = 0;
+		for(int i = minLineIndex; i <= maxLineIndex; ++i){
+			var w = root.getByLine(i);
+			if(w == null) break;
+			if(line >= hideMinLineIndex && line < hideMaxLineIndex)
+				drawContext.fill(w.getX() + 1, w.getY() + 1, w.getX() + w.getWidth() - 1, w.getY() + w.getHeight() - 1, 0x7fffffff);
+			else {
+				w.update();
+				w.render(drawContext, fixedMouseX, fixedMouseY, partialTicks);
+			}
+			++line;
+		}
+		//绘制左侧引导线
+		if(root.getByLine(minLineIndex) instanceof ScriptDisplayWidget w){
+			var widget = w.parent;
+			while (widget != null) {
+				widget.tryUpdate();
+				widget.renderExpandGuidelines(drawContext);
+				widget = widget.parent;
 			}
 		}
-		if(script.getSubScripts() instanceof Iterable<? extends IScript> subScripts){
-			var button = addButton(data.expandButton);
-			button.clearGuides();
-			if(data.extended()){
-				((IButtonGenericMixin)button).setIcon(MaLiLibIcons.ARROW_UP);
-				for(IScript subScript : subScripts){
-					button.nextGuide(res);
-					res += buildButtons(subScript, startX + 22, startY + res * 22, needAddWidget);
-				}
-				data.lines = res;
+		
+		//光标处在的widget，用于后续移动和绘制拓展功能按钮
+		ScriptDisplayWidget hoverWidget;
+		//绘制移动中的配置的目标位置高亮框及其抓在手上的样子
+		if(scriptHoldingData != null){
+			//修正移动
+			var holdingPos = scriptHoldingData.holdingPos;
+			hoverWidget = scriptHoldingData.widget;
+			double dx = mouseX - holdingPos.x - x - hoverWidget.getX();
+			double dy = mouseY - holdingPos.y - y - hoverWidget.getY();
+			matrices.translate((float)dx, (float)dy);
+			fixedMouseX = (int)Math.round(holdingPos.x + hoverWidget.getX());
+			fixedMouseY = (int)Math.round(holdingPos.y + hoverWidget.getY());
+			//绘制
+			double startY = mouseY - holdingPos.y;
+			for(int i = 0; startY < getScreenHeight(); ++i){
+				var w = hoverWidget.getByLine(i);
+				if(w == null) break;
+				w.update();
+				w.render(drawContext, fixedMouseX, fixedMouseY, partialTicks);
+				startY += 22;
 			}
-			else ((IButtonGenericMixin)button).setIcon(MaLiLibIcons.ARROW_DOWN);
 		}
-		return res;
+		else hoverWidget = root.getByLine(Math.floorDiv(fixedMouseY, 22));
+		//绘制拖动按钮
+		if(hoverWidget != null){
+			int x = hoverWidget.getX() + hoverWidget.getWidth() + 1, y = hoverWidget.getY() + 1;
+			copyButton.setPosition(x, y);
+			pasteButton.setPosition(x + 22, y);
+			copyButton.render(drawContext, fixedMouseX, fixedMouseY, copyButton.isMouseOver(fixedMouseX, fixedMouseY));
+			pasteButton.render(drawContext, fixedMouseX, fixedMouseY, pasteButton.isMouseOver(fixedMouseX, fixedMouseY));
+			var parentScript = hoverWidget.script.getParent();
+			if(parentScript != null && parentScript.isSubScriptMutable()){
+				dragButton.setPosition(x + 44, y);
+				removeButton.setPosition(x + 66, y);
+				dragButton.render(drawContext, fixedMouseX, fixedMouseY, dragButton.isMouseOver(fixedMouseX, fixedMouseY));
+				removeButton.render(drawContext, fixedMouseX, fixedMouseY, removeButton.isMouseOver(fixedMouseX, fixedMouseY));
+			}
+		}
+		matrices.popMatrix();
+		
+		super.drawTitle(drawContext, mouseX, mouseY, partialTicks);
 	}
 	@Override public List<ConfigOptionWrapper> getConfigs() {return List.of();}
-	private boolean needUpdate = false;
-	public void markNeedUpdate(){needUpdate = true;}
-	
-	@Nullable ScriptExtraOptionButton extendedExtra;
-	ISubScriptMutable holdingMutableScript;
-	int holdingSubScriptIndex;
-	private Vec2i holdingPos;
 	private static ButtonGeneric createGenericSquareButton(String text, String hoverKey){
 		return new ButtonGeneric(0, 0, 20, 20, text, Text.translatable(hoverKey).getString());
 	}
-	private final ButtonGeneric copyButton = createGenericSquareButton("C", "lpctools.script.trigger.chooseScreen.copy");
-	private final ButtonGeneric pasteButton = createGenericSquareButton("P", "lpctools.script.trigger.chooseScreen.paste");
-	private final ButtonGeneric removeButton = createGenericSquareButton("-", "lpctools.script.trigger.chooseScreen.remove");
 	
-	@NotNull ScriptExtraData getExtraData(IScript script){
-		return scriptScreenExtraDate.computeIfAbsent(script, ScriptExtraData::new);
-	}
-	private final HashMap<IScript, ScriptExtraData> scriptScreenExtraDate = new HashMap<>();
-	private final AvlTreeList<ScriptExtraData> scriptDisplayList = new AvlTreeList<>();
 	@Override public void removed() {
 		if(!Objects.equals(config.script.getAsJsonElement(), startJson))
 			config.getPage().get().markConfigsModified();
 		super.removed();
 	}
 	@Override protected void buildConfigSwitcher() {}
-	@Override public boolean mouseClicked(double mouseX, double mouseY, int mouseButton) {
-		boolean res = super.mouseClicked(mouseX, mouseY, mouseButton);
-		if(!res) extendedExtra = null;
-		return res;
-	}
 	
+	//抓住按钮拖动ScriptDisplayWidget时的记录数据
+	private static class ScriptHoldingData{
+		final @NotNull Vec2d holdingPos;// 鼠标抓住的位置，相对于ScriptDisplayWidget左上坐标
+		final @NotNull ScriptDisplayWidget widget;
+		final @NotNull IScriptWithSubScript parent;
+		int subScriptIndex;
+		ScriptHoldingData(@NotNull Vec2d holdingPos, @NotNull ScriptDisplayWidget widget){
+			this.holdingPos = holdingPos;
+			this.widget = widget;
+			var v = widget.script.getParent();
+			if(v != null) parent = v;
+			else throw new IllegalArgumentException();
+			subScriptIndex = parent.getSubScripts().indexOf(widget.script);
+			if(subScriptIndex < 0) throw new IllegalStateException();
+		}
+	}
 }

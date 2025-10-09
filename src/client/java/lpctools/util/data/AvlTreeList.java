@@ -5,7 +5,9 @@ package lpctools.util.data;
  * 
  * Copyright (c) 2018 Project Nayuki. (MIT License)
  * https://www.nayuki.io/page/avl-tree-list
- * 
+ *
+ * Modifications copyright (c) 2025 Le_Petit_C (MIT License)
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
  * the Software without restriction, including without limitation the rights to
@@ -21,32 +23,29 @@ package lpctools.util.data;
  *   liability, whether in an action of contract, tort or otherwise, arising from,
  *   out of or in connection with the Software or the use or other dealings in the
  *   Software.
- *
- * 来自Le_Petit_C的修改：假设文件没有问题，添加了@SuppressWarnings("ALL")
  */
 
-import java.util.AbstractList;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.NoSuchElementException;
-import java.util.Objects;
-import java.util.Set;
-import java.util.Stack;
+import org.apache.commons.lang3.mutable.MutableObject;
+import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-@SuppressWarnings("ALL")
-public final class AvlTreeList<E> extends AbstractList<E> {
+import java.util.*;
+import java.util.function.Consumer;
+
+public class AvlTreeList<E> extends AbstractList<E> {
 	
 	/*---- Fields ----*/
 	
-	private Node<E> root;  // Never null
+	protected @NotNull Node<E> root;
 	
 	
 	
 	/*---- Constructors ----*/
 	
 	public AvlTreeList() {
-		clear();
+		//noinspection unchecked
+		root = (Node<E>) Node.EMPTY_LEAF;
 	}
 	
 	
@@ -54,6 +53,10 @@ public final class AvlTreeList<E> extends AbstractList<E> {
 		this();
 		Objects.requireNonNull(coll);
 		addAll(coll);
+	}
+	
+	protected AvlTreeList(@NotNull Node<E> root){
+		this.root = root;
 	}
 	
 	
@@ -88,43 +91,42 @@ public final class AvlTreeList<E> extends AbstractList<E> {
 			throw new IndexOutOfBoundsException();
 		if (size() == Integer.MAX_VALUE)
 			throw new IllegalStateException("Maximum size reached");
-		root = root.insertAt(index, val);
+		root = root.insertAt(index, val, null);
 	}
 	
 	
 	public E remove(int index) {
 		if (index < 0 || index >= size())
 			throw new IndexOutOfBoundsException();
-		E result = get(index);
-		root = root.removeAt(index);
-		return result;
+		MutableObject<E> result = new MutableObject<>();
+		root = root.removeAt(index, v->result.setValue(v.value));
+		return result.getValue();
 	}
 	
 	
-	@SuppressWarnings("unchecked")
 	public void clear() {
-		root = (Node<E>)Node.EMPTY_LEAF;
+		root = root.getEmptyLeaf();
 	}
 	
 	
-	public Iterator<E> iterator() {
+	public @NotNull Iterator<E> iterator() {
 		return new Iter();
 	}
 	
 	
 	// For unit tests.
-	void checkStructure() {
-		root.checkStructure(new HashSet<Node<E>>());
+	public void checkStructure() {
+		root.checkStructure(new HashSet<>());
 	}
 	
 	
 	
 	/*---- Helper class: AVL tree node ----*/
 	
-	private static final class Node<E> {
+	protected static class Node<E> {
 		
 		// A bit of a hack, but more elegant than using null values as leaf nodes.
-		public static final Node<?> EMPTY_LEAF = new Node<Object>();
+		public static final Node<?> EMPTY_LEAF = new Node<>();
 		
 		
 		/*-- Fields --*/
@@ -134,39 +136,38 @@ public final class AvlTreeList<E> extends AbstractList<E> {
 		
 		// The height of the tree rooted at this node. Empty nodes have height 0.
 		// This node has height equal to max(left.height, right.height) + 1.
-		private int height;
+		protected int height;
 		
 		// The number of non-empty nodes in the tree rooted at this node, including this node.
 		// Empty nodes have size 0. This node has size equal to left.size + right.size + 1.
 		public int size;
 		
 		// The root node of the left subtree.
-		public Node<E> left;
+		public @NotNull Node<E> left;
 		
 		// The root node of the right subtree.
-		public Node<E> right;
+		public @NotNull Node<E> right;
 		
 		
 		/*-- Constructors --*/
 		
 		// For the singleton empty leaf node.
-		private Node() {
+		protected Node() {
 			value  = null;
 			height = 0;
 			size   = 0;
-			left   = null;
-			right  = null;
+			left   = this;
+			right  = this;
 		}
 		
 		
 		// Normal non-leaf nodes.
-		@SuppressWarnings("unchecked")
-		private Node(E val) {
+		protected Node(E val) {
 			value  = val;
 			height = 1;
 			size   = 1;
-			left   = (Node<E>)EMPTY_LEAF;
-			right  = (Node<E>)EMPTY_LEAF;
+			left   = getEmptyLeaf();
+			right  = getEmptyLeaf();
 		}
 		
 		
@@ -175,63 +176,71 @@ public final class AvlTreeList<E> extends AbstractList<E> {
 		public Node<E> getNodeAt(int index) {
 			assert 0 <= index && index < size;  // Automatically implies this != EMPTY_LEAF, because EMPTY_LEAF.size == 0
 			int leftSize = left.size;
-			if (index < leftSize)
-				return left.getNodeAt(index);
-			else if (index > leftSize)
-				return right.getNodeAt(index - leftSize - 1);
-			else
-				return this;
+			if (index < leftSize) return left.getNodeAt(index);
+			else if (index > leftSize) return right.getNodeAt(index - leftSize - 1);
+			else return this;
 		}
 		
 		
-		public Node<E> insertAt(int index, E obj) {
+		public Node<E> insertAt(int index, E obj, @Nullable Consumer<Node<E>> result) {
 			assert 0 <= index && index <= size;
-			if (this == EMPTY_LEAF)  // Automatically implies index == 0, because EMPTY_LEAF.size == 0
-				return new Node<>(obj);
+			if (this == getEmptyLeaf()){// Automatically implies index == 0, because EMPTY_LEAF.size == 0
+				var res = allocate(obj);
+				if (result != null) result.accept(res);
+				return res;
+			}
 			int leftSize = left.size;
-			if (index <= leftSize)
-				left = left.insertAt(index, obj);
-			else
-				right = right.insertAt(index - leftSize - 1, obj);
+			if (index <= leftSize) left = left.insertAt(index, obj, result);
+			else right = right.insertAt(index - leftSize - 1, obj, result);
 			recalculate();
 			return balance();
 		}
 		
 		
-		@SuppressWarnings("unchecked")
-		public Node<E> removeAt(int index) {
+		public Node<E> removeAt(int index, @Nullable Consumer<Node<E>> removed) {
 			assert 0 <= index && index < size;  // Automatically implies this != EMPTY_LEAF, because EMPTY_LEAF.size == 0
 			int leftSize = left.size;
-			if (index < leftSize)
-				left = left.removeAt(index);
-			else if (index > leftSize)
-				right = right.removeAt(index - leftSize - 1);
-			else if (left == EMPTY_LEAF && right == EMPTY_LEAF)
-				return (Node<E>)EMPTY_LEAF;
-			else if (left != EMPTY_LEAF && right == EMPTY_LEAF)
-				return left;
-			else if (left == EMPTY_LEAF && right != EMPTY_LEAF)
-				return right;
+			if (index < leftSize) left = left.removeAt(index, removed);
+			else if (index > leftSize) right = right.removeAt(index - leftSize - 1, removed);
 			else {
-				// Find successor node. (Using the predecessor is valid too.)
-				Node<E> temp = right;
-				while (temp.left != EMPTY_LEAF)
-					temp = temp.left;
-				value = temp.value;  // Replace value by successor
-				right = right.removeAt(0);  // Remove successor node
+				if (removed != null) removed.accept(this);
+				if (left == getEmptyLeaf() && right == getEmptyLeaf())
+					return getEmptyLeaf();
+				else if (left != getEmptyLeaf() && right == getEmptyLeaf())
+					return left;
+				else if (left == getEmptyLeaf() /*&& right != getEmptyLeaf()(需要满足但是冗余的判断)*/)
+					return right;
+				else {
+					MutableObject<Node<E>> res = new MutableObject<>();
+					right = right.removeAt(0, res::setValue);
+					var node = res.getValue();
+					replaceByNode(node);
+					node.recalculate();
+					return node.balance();
+				}
 			}
 			recalculate();
 			return balance();
 		}
 		
+		//让node替换自己的位置（仅替换位置但是值不变，以及parent的左右节点由parent自己设置）
+		@Contract("_->param1")
+		public Node<E> replaceByNode(Node<E> node){
+			node.left = left;
+			node.right = right;
+			node.size = size;
+			node.height = height;
+			return node;
+		}
 		
-		public String toString() {
+		
+		@Override public String toString() {
 			return String.format("AvlTreeNode(size=%d, height=%d, val=%s)", size, height, value);
 		}
 		
 		
 		// Balances the subtree rooted at this node and returns the new root.
-		private Node<E> balance() {
+		protected Node<E> balance() {
 			int bal = getBalance();
 			assert Math.abs(bal) <= 2;
 			Node<E> result = this;
@@ -258,8 +267,8 @@ public final class AvlTreeList<E> extends AbstractList<E> {
 		 *    / \      / \
 		 *   1   2    0   1
 		 */
-		private Node<E> rotateLeft() {
-			assert right != EMPTY_LEAF;
+		protected Node<E> rotateLeft() {
+			assert right != getEmptyLeaf();
 			Node<E> root = this.right;
 			this.right = root.left;
 			root.left = this;
@@ -276,8 +285,8 @@ public final class AvlTreeList<E> extends AbstractList<E> {
 		 *  / \            / \
 		 * 0   1          1   2
 		 */
-		private Node<E> rotateRight() {
-			assert left != EMPTY_LEAF;
+		protected Node<E> rotateRight() {
+			assert left != getEmptyLeaf();
 			Node<E> root = this.left;
 			this.left = root.right;
 			root.right = this;
@@ -289,8 +298,8 @@ public final class AvlTreeList<E> extends AbstractList<E> {
 		
 		// Needs to be called every time the left or right subtree is changed.
 		// Assumes the left and right subtrees have the correct values computed already.
-		private void recalculate() {
-			assert this != EMPTY_LEAF;
+		protected void recalculate() {
+			assert this != getEmptyLeaf();
 			assert left.height >= 0 && right.height >= 0;
 			assert left.size >= 0 && right.size >= 0;
 			height = Math.max(left.height, right.height) + 1;
@@ -306,20 +315,45 @@ public final class AvlTreeList<E> extends AbstractList<E> {
 		
 		// For unit tests, invokable by the outer class.
 		void checkStructure(Set<Node<E>> visitedNodes) {
-			if (this == EMPTY_LEAF)
-				return;
-			
+			if (this == getEmptyLeaf()) return;
 			if (!visitedNodes.add(this))
 				throw new AssertionError("AVL tree structure violated: Not a tree");
 			left .checkStructure(visitedNodes);
 			right.checkStructure(visitedNodes);
-			
 			if (height != Math.max(left.height, right.height) + 1)
 				throw new AssertionError("AVL tree structure violated: Incorrect cached height");
 			if (size != left.size + right.size + 1)
 				throw new AssertionError("AVL tree structure violated: Incorrect cached size");
 			if (Math.abs(getBalance()) > 1)
 				throw new AssertionError("AVL tree structure violated: Height imbalance");
+		}
+		
+		//为子类保持子类性质添加的一些方法
+		
+		protected Node<E> getEmptyLeaf(){
+			//noinspection unchecked
+			return (Node<E>) EMPTY_LEAF;
+		}
+		
+		protected Node<E> allocate(E obj){
+			return new Node<>(obj);
+		}
+		
+		public void testBuild(StringBuilder builder, int depth){
+			builder.append("    ".repeat(depth));
+			builder.append("{\n");
+			if(left != left.getEmptyLeaf()) {
+				builder.append("left");
+				builder.append(":\n");
+				left.testBuild(builder, depth + 1);
+			}
+			if(right != right.getEmptyLeaf()) {
+				builder.append("right");
+				builder.append(":\n");
+				right.testBuild(builder, depth + 1);
+			}
+			builder.append("    ".repeat(depth));
+			builder.append("}\n");
 		}
 		
 	}
@@ -334,7 +368,7 @@ public final class AvlTreeList<E> extends AbstractList<E> {
 		/*-- Fields --*/
 		
 		private int index;
-		private Stack<Node<E>> stack;
+		private final Stack<Node<E>> stack;
 		
 		
 		/*-- Constructors --*/
@@ -351,7 +385,7 @@ public final class AvlTreeList<E> extends AbstractList<E> {
 		private void initPath() {
 			stack.clear();
 			int idx = index;
-			for (Node<E> node = root; node != Node.EMPTY_LEAF; ) {
+			for (Node<E> node = root; node != node.getEmptyLeaf(); ) {
 				assert 0 <= idx && idx <= node.size;
 				if (idx <= node.left.size) {
 					stack.push(node);
@@ -379,7 +413,7 @@ public final class AvlTreeList<E> extends AbstractList<E> {
 			Node<E> node = stack.pop();
 			E result = node.value;
 			node = node.right;
-			while (node != Node.EMPTY_LEAF) {
+			while (node != node.getEmptyLeaf()) {
 				stack.push(node);
 				node = node.left;
 			}
@@ -387,13 +421,10 @@ public final class AvlTreeList<E> extends AbstractList<E> {
 			return result;
 		}
 		
-		
 		public void remove() {
 			index--;
 			AvlTreeList.this.remove(index);
 			initPath();
 		}
-		
 	}
-	
 }

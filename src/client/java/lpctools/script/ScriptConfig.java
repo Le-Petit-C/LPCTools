@@ -29,7 +29,7 @@ public class ScriptConfig extends WrappedThirdListConfig{
 		addConfig(scriptId);
 		addConfig(editButton);
 		script = new Script(this);
-		scriptId.setValueChangeCallback(()->script.id.setText(scriptId.getStringValue()));
+		scriptId.setValueChangeCallback(()->script.getId().setText(scriptId.getStringValue()));
 		isEnabled.setValueChangeCallback(()->script.enable(isEnabled.getBooleanValue()));
 		editButton.setListener((button, mouseButton) -> script.openEditScreen());
 	}

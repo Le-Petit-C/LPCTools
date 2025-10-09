@@ -781,6 +781,7 @@
   "lpctools.script.trigger.chooseScreen.title": "Choose a trigger option",
   "lpctools.script.trigger.chooseScreen.copy": "Copy",
   "lpctools.script.trigger.chooseScreen.paste": "Paste",
+  "lpctools.script.trigger.chooseScreen.drag": "Drag",
   "lpctools.script.trigger.chooseScreen.remove": "Remove",
   "lpctools.script.trigger.hotkey": "Hotkey"
 }

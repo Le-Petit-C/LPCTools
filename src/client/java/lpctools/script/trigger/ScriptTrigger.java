@@ -8,9 +8,7 @@ import fi.dy.masa.malilib.gui.button.ButtonBase;
 import fi.dy.masa.malilib.gui.button.ButtonGeneric;
 import fi.dy.masa.malilib.gui.button.IButtonActionListener;
 import lpctools.lpcfymasaapi.screen.ChooseScreen;
-import lpctools.script.IScript;
-import lpctools.script.ISubScriptMutable;
-import lpctools.script.Script;
+import lpctools.script.*;
 import net.minecraft.text.Text;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -26,12 +24,12 @@ import static lpctools.script.trigger.TriggerOption.triggerOptionFactories;
 //TODO:选择添加触发选项
 //TODO:AutoCloseable清理
 //脚本触发器
-public class ScriptTrigger implements ISubScriptMutable, AutoCloseable, IButtonActionListener {
+public class ScriptTrigger extends AbstractScriptWithSubScript implements IScriptWithSubScript, AutoCloseable, IButtonActionListener {
 	public final Script script;
 	public ScriptTrigger(Script script){
 		this.script = script;
 	}
-	@Override public @NotNull IScript getParent() {return script;}
+	@Override public @NotNull IScriptWithSubScript getParent() {return script;}
 	@Override public @NotNull Script getScript() {return script;}
 	private final ArrayList<TriggerOption> triggers = new ArrayList<>();
 	private final ButtonBase AddTriggerOptionButton = new ButtonGeneric(0, 0, 20, 20, "+").setActionListener(this);
@@ -75,7 +73,10 @@ public class ScriptTrigger implements ISubScriptMutable, AutoCloseable, IButtonA
 	public void registerAll(boolean register) {
 		triggers.forEach((option)->option.registerScript(register));
 	}
-	@Override public @NotNull ArrayList<? extends TriggerOption> getSubScripts() {return triggers;}
+	@Override public @NotNull List<? extends TriggerOption> getSubScripts() {return triggers;}
+	
+	@Override public boolean isSubScriptMutable() {return true;}
+	
 	@Override public void close() {while (!triggers.isEmpty()) triggers.removeLast().close();}
 	@Override public @Nullable Iterable<?> getWidgets() {return widgets;}
 	@Override public void actionPerformedWithButton(ButtonBase button, int mouseButton) {

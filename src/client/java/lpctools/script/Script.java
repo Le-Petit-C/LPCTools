@@ -14,28 +14,33 @@ import java.util.List;
 
 import static lpctools.lpcfymasaapi.LPCConfigUtils.warnFailedLoadingConfig;
 
-public class Script implements IScript {
-	public final ScriptEditScreen editScreen;
+public class Script extends AbstractScriptWithSubScript implements IScriptWithSubScript {
+	private @Nullable ScriptEditScreen editScreen;
 	public final ScriptConfig config;
 	private String name = "script";
 	private boolean enabled = false;
 	private final ScriptTrigger trigger = new ScriptTrigger(this);
 	private final List<IScript> subScripts = List.of(trigger);
-	final ScriptFitTextField id;
-	private final List<Object> widgets;
+	private @Nullable ScriptFitTextField id;
+	private @Nullable List<Object> widgets;
 	public boolean isEnabled() {return enabled;}
-	public Script(ScriptConfig config){
-		this.config = config;
-		id = new ScriptFitTextField(this, 100, text->{
-			config.scriptId.setValueFromString(text);
-			config.getPage().markNeedUpdate();
-		});
-		widgets = List.of(id);
-		editScreen = new ScriptEditScreen(this);
+	public Script(ScriptConfig config){this.config = config;}
+	public @NotNull ScriptFitTextField getId(){
+		if(id == null)
+			id = new ScriptFitTextField(getDisplayWidget(), 100, text->{
+				config.scriptId.setValueFromString(text);
+				config.getPage().markNeedUpdate();
+			});
+		return id;
+	}
+	public @NotNull ScriptEditScreen getEditScreen(){
+		if(editScreen == null) editScreen = new ScriptEditScreen(this);
+		return editScreen;
 	}
 	public void openEditScreen() {
-		editScreen.setParent(MinecraftClient.getInstance().currentScreen);
-		MinecraftClient.getInstance().setScreen(editScreen);
+		var screen = getEditScreen();
+		screen.setParent(MinecraftClient.getInstance().currentScreen);
+		MinecraftClient.getInstance().setScreen(screen);
 	}
 	//启用脚本
 	public void enable(boolean enable) {
@@ -61,9 +66,16 @@ public class Script implements IScript {
 		}
 		else if(element != null) warnFailedLoadingConfig(getName(), element);
 	}
-	@Override public @Nullable Iterable<IScript> getSubScripts() {return subScripts;}
-	@Override public @Nullable Iterable<Object> getWidgets() {return widgets;}
-	@Override public @NotNull IScript getParent() {return this;}
+	@Override public @NotNull List<IScript> getSubScripts() {return subScripts;}
+	
+	@Override public boolean isSubScriptMutable() {return false;}
+	
+	@Override public @Nullable Iterable<Object> getWidgets() {
+		if(widgets == null)
+			widgets = List.of(getId());
+		return widgets;
+	}
+	@Override public @Nullable IScriptWithSubScript getParent() {return null;}
 	@Override public @NotNull Script getScript(){return this;}
 	//运行脚本
 	public void runScript(){//TODO
