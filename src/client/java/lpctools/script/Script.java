@@ -17,21 +17,26 @@ import static lpctools.lpcfymasaapi.LPCConfigUtils.warnFailedLoadingConfig;
 public class Script extends AbstractScriptWithSubScript implements IScriptWithSubScript {
 	private @Nullable ScriptEditScreen editScreen;
 	public final ScriptConfig config;
-	private String name = "script";
 	private boolean enabled = false;
 	private final ScriptTrigger trigger = new ScriptTrigger(this);
 	private final List<IScript> subScripts = List.of(trigger);
-	private @Nullable ScriptFitTextField id;
+	private @Nullable ScriptFitTextField idWidget;
 	private @Nullable List<Object> widgets;
+	private String id = "script";
+	private static final String triggerJsonKey = "trigger";
+	private static final String enableJsonKey = "enabled";
+	private static final String idJsonKey = "id";
 	public boolean isEnabled() {return enabled;}
 	public Script(ScriptConfig config){this.config = config;}
-	public @NotNull ScriptFitTextField getId(){
-		if(id == null)
-			id = new ScriptFitTextField(getDisplayWidget(), 100, text->{
+	public @NotNull ScriptFitTextField getIdWidget(){
+		if(idWidget == null){
+			idWidget = new ScriptFitTextField(getDisplayWidget(), 100, text->{
 				config.scriptId.setValueFromString(text);
 				config.getPage().markNeedUpdate();
 			});
-		return id;
+			idWidget.setText(id);
+		}
+		return idWidget;
 	}
 	public @NotNull ScriptEditScreen getEditScreen(){
 		if(editScreen == null) editScreen = new ScriptEditScreen(this);
@@ -44,17 +49,25 @@ public class Script extends AbstractScriptWithSubScript implements IScriptWithSu
 	}
 	//启用脚本
 	public void enable(boolean enable) {
-		this.enabled = enable;
-		trigger.registerAll(enable);
+		if(this.enabled != enable){
+			this.enabled = enable;
+			config.isEnabled.setBooleanValue(enabled);
+			trigger.registerAll(enable);
+		}
 	}
-	@Override public String getName() {return name;}
-	public void setName(String name) {this.name = name;}
-	private static final String triggerJsonKey = "trigger";
-	private static final String enableJsonKey = "enabled";
-	@Override public @Nullable JsonElement getAsJsonElement() {
+	@Override public @Nullable String getName() {return null;}
+	public String getId(){return id;}
+	public void setId(String id){
+		if(id.equals(this.id)) return;
+		this.id = id;
+		if(idWidget != null) idWidget.setText(id);
+		config.scriptId.setValueFromString(id);
+	}
+	@Override public @NotNull JsonObject getAsJsonElement() {
 		JsonObject object = new JsonObject();
 		object.add(triggerJsonKey, trigger.getAsJsonElement());
 		object.addProperty(enableJsonKey, enabled);
+		object.addProperty(idJsonKey, id);
 		return object;
 	}
 	@Override public void setValueFromJsonElement(@Nullable JsonElement element) {
@@ -63,6 +76,8 @@ public class Script extends AbstractScriptWithSubScript implements IScriptWithSu
 			trigger.setValueFromJsonElement(object.get(triggerJsonKey));
 			if(object.get(enableJsonKey) instanceof JsonPrimitive enableJson)
 				if(enableJson.getAsBoolean()) enable(true);
+			if(object.get(idJsonKey) instanceof JsonPrimitive nameJson)
+				setId(nameJson.getAsString());
 		}
 		else if(element != null) warnFailedLoadingConfig(getName(), element);
 	}
@@ -71,8 +86,7 @@ public class Script extends AbstractScriptWithSubScript implements IScriptWithSu
 	@Override public boolean isSubScriptMutable() {return false;}
 	
 	@Override public @Nullable Iterable<Object> getWidgets() {
-		if(widgets == null)
-			widgets = List.of(getId());
+		if(widgets == null) widgets = List.of(getIdWidget());
 		return widgets;
 	}
 	@Override public @Nullable IScriptWithSubScript getParent() {return null;}

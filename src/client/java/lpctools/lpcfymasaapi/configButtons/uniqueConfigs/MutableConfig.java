@@ -36,6 +36,8 @@ public class MutableConfig<T extends ILPCUniqueConfigBase> extends LPCUniqueConf
     private final ArrayList<MutableConfigOption<? extends T>> subConfigs = new ArrayList<>();
     @Nullable public String buttonName;
     public boolean expanded;
+    private boolean isModified = false;
+    private boolean needUpdateModified = true;
     
     //getConfigs()获取到的是包装后的配置，如果要遍历被包装的配置，应该调用这个
     public Iterable<T> iterateConfigs(){return convertIterable(subConfigs, config->config.wrappedConfig);}
@@ -50,7 +52,13 @@ public class MutableConfig<T extends ILPCUniqueConfigBase> extends LPCUniqueConf
             return config.doHideOperationButton();
         else return hideOperationButton;
     }
-    @Override public boolean isModified() {return !defaultJson.equals(getSubConfigsAsJsonElement());}
+    @Override public boolean isModified() {
+        if(needUpdateModified) {
+            needUpdateModified = false;
+            isModified = !defaultJson.equals(getSubConfigsAsJsonElement());
+        }
+        return isModified;
+    }
     @Override public void resetToDefault() {
         setSubConfigsValueFromJsonElement(defaultJson);
         getPage().markNeedUpdate();
@@ -104,6 +112,7 @@ public class MutableConfig<T extends ILPCUniqueConfigBase> extends LPCUniqueConf
     }
     public void setCurrentAsDefault(boolean expanded){
         defaultJson = getSubConfigsAsJsonElement();
+        needUpdateModified = true;
         this.expanded = expanded;
     }
     
@@ -312,4 +321,8 @@ public class MutableConfig<T extends ILPCUniqueConfigBase> extends LPCUniqueConf
         }
     }
     private static final String titleKey = "lpcfymasaapi.configs.mutableConfig.title";
+    @Override public void onValueChanged() {
+        needUpdateModified = true;
+        super.onValueChanged();
+    }
 }

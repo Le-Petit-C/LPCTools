@@ -1,5 +1,9 @@
 package lpctools.script;
 
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonPrimitive;
+import lpctools.lpcfymasaapi.configButtons.UpdateTodo;
 import lpctools.lpcfymasaapi.configButtons.uniqueConfigs.ButtonConfig;
 import lpctools.lpcfymasaapi.configButtons.uniqueConfigs.UniqueBooleanConfig;
 import lpctools.lpcfymasaapi.configButtons.uniqueConfigs.UniqueStringConfig;
@@ -11,8 +15,7 @@ import org.jetbrains.annotations.NotNull;
 public class ScriptConfig extends WrappedThirdListConfig{
 	public final Script script;
 	public final UniqueBooleanConfig isEnabled = new UniqueBooleanConfig(this, "enabled", false, null){
-		@Override
-		public void getButtonOptions(ButtonOptionArrayList res) {
+		@Override public void getButtonOptions(ButtonOptionArrayList res) {
 			res.add(new ButtonOption(
 				1,
 				((button, mouseButton) -> toggleBooleanValue()),
@@ -29,7 +32,8 @@ public class ScriptConfig extends WrappedThirdListConfig{
 		addConfig(scriptId);
 		addConfig(editButton);
 		script = new Script(this);
-		scriptId.setValueChangeCallback(()->script.getId().setText(scriptId.getStringValue()));
+		scriptId.setValueFromString(script.getId());
+		scriptId.setValueChangeCallback(()->script.setId(scriptId.getStringValue()));
 		isEnabled.setValueChangeCallback(()->script.enable(isEnabled.getBooleanValue()));
 		editButton.setListener((button, mouseButton) -> script.openEditScreen());
 	}
@@ -45,5 +49,16 @@ public class ScriptConfig extends WrappedThirdListConfig{
 			);
 			scriptId.getButtonOptions(res);
 		}
+	}
+	@Override public @NotNull JsonObject getAsJsonElement() {
+		var res = script.getAsJsonElement();
+		res.addProperty(expandedKey, isExpanded());
+		return res;
+	}
+	@Override public UpdateTodo setValueFromJsonElementEx(@NotNull JsonElement data) {
+		script.setValueFromJsonElement(data);
+		if(data instanceof JsonObject object && object.get(expandedKey) instanceof JsonPrimitive primitive)
+			setExpanded(primitive.getAsBoolean());
+		return new UpdateTodo().valueChanged();
 	}
 }

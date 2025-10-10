@@ -8,7 +8,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Objects;
 
 public interface IScript {
-	String getName();
+	@Nullable String getName();
 	//获取Buttons, Widgets和TextFields
 	default @Nullable Iterable<?> getWidgets(){return null;}
 	@Nullable JsonElement getAsJsonElement();

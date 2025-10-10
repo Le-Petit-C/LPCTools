@@ -42,14 +42,9 @@ public class InputHandler implements IKeybindProvider {
             manager.addKeybindToMap(keybind);
     }
     @Override public void addHotkeys(IKeybindManager manager) {
-        //TODO:测试keybind是否还正常
         if(keysToAdd == null) return;
-        //IKeybind[] array = new IKeybind[keysToAdd.size()];
-        //int a = 0;
         for(IKeybind keybind : keysToAdd)
             manager.addKeybindToMap(keybind);
-            //array[a++] = keybind;
-        //manager.addHotkeysForCategory(modReference.modName, "lpctools.hotkeys", List.of(array));
     }
     private static void markNeedUpdateKeys(){markRegisteredTask(taskKey);}
     private static final TaskUtils.TaskKey taskKey = registerTask(()->InputEventHandler.getKeybindManager().updateUsedKeys());

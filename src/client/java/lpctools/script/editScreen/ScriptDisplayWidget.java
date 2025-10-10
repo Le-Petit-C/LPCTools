@@ -24,10 +24,11 @@ public class ScriptDisplayWidget extends ClickableWidget{
 	public final ScriptEditScreen editScreen;
 	public final int depth;
 	protected final @NotNull IScript script;
-	protected final @NotNull ButtonGeneric nameButton;
+	protected final @Nullable ButtonGeneric nameButton;
 	protected final @NotNull ArrayList<ClickableWidget> widgets = new ArrayList<>();
 	private int right; //此widget及其子widget的最大right
 	private boolean needUpdate = true;
+	private boolean updating = false;
 	
 	/* 构造函数 */
 	
@@ -40,8 +41,9 @@ public class ScriptDisplayWidget extends ClickableWidget{
 		if(parent != null) depth = parent.depth + 1;
 		else depth = 0;
 		String name = script.getName();
-		nameButton = new ButtonGeneric(0, 0, calculateTextButtonWidth(name, editScreen.textRenderer, 20), 20, name)
+		if(name != null) nameButton = new ButtonGeneric(0, 0, calculateTextButtonWidth(name, editScreen.textRenderer, 20), 20, name)
 			.setRenderDefaultBackground(false);
+		else nameButton = null;
 	}
 	
 	/* 成员方法 */
@@ -97,6 +99,22 @@ public class ScriptDisplayWidget extends ClickableWidget{
 	//此Widget及子行占多少行，未展开或无subScript时始终为1
 	public int getSize(){return 1;}
 	public void markNeedUpdate(){needUpdate = true;}
+	public void markParentUpdateChain(){
+		var widget = parent;
+		while(widget != null){
+			if(widget.needUpdate()) break;
+			widget.markNeedUpdate();
+			widget = widget.parent;
+		}
+	}
+	public void markUpdateChain(){
+		var widget = this;
+		do {
+			if(widget.needUpdate()) break;
+			widget.markNeedUpdate();
+			widget = widget.parent;
+		} while(widget != null);
+	}
 	public boolean needUpdate(){return needUpdate;}
 	public int getLine(){
 		int res = 0;
@@ -110,18 +128,20 @@ public class ScriptDisplayWidget extends ClickableWidget{
 	}
 	
 	public void tryUpdate(){
-		if(needUpdate) {
-			needUpdate = false;
+		if(needUpdate && !updating) {
+			updating = true;
 			update();
+			updating = false;
+			needUpdate = false;
 		}
 	}
 	
-	protected void update(){
-		//更新widgets
+	//更新widgets位置
+	public void updateDisplayWidgets(){
 		int midY = 11 + getLine() * 22;
 		int x = depth * 22;
 		int newRight = x + 22;
-		newRight += buildWidget(newRight, midY, WidgetWrapper.wrap(nameButton, editScreen));
+		if (nameButton != null) newRight += buildWidget(newRight, midY, WidgetWrapper.wrap(nameButton, editScreen));
 		widgets.clear();
 		if(script.getWidgets() instanceof Iterable<?> _widgets){
 			for(Object o : _widgets){
@@ -146,24 +166,30 @@ public class ScriptDisplayWidget extends ClickableWidget{
 		}
 		setPosition(x, getLine() * 22);
 		setWidth(newRight - x);
-		newRight += 44;
+	}
+	
+	protected void update(){
+		updateDisplayWidgets();
+		int newRight = getX() + getWidth() + 44;
 		if(parent != null && parent.getIScript().isSubScriptMutable()) newRight += 44;
 		
 		//更新right
 		if (right != newRight) {
-			if (parent != null) parent.markUpdateChain();
+			markParentUpdateChain();
 			right = newRight;
 		}
 	}
 	
 	//渲染时并不渲染所有而是只渲染自己这一行，应当由ScriptEditScreen来决定具体渲染哪些行
 	@Override public void renderWidget(DrawContext context, int mouseX, int mouseY, float deltaTicks) {
-		nameButton.render(context, mouseX, mouseY, nameButton.isMouseOver(mouseX, mouseY));
+		updateDisplayWidgets();
+		if (nameButton != null) nameButton.render(context, mouseX, mouseY, nameButton.isMouseOver(mouseX, mouseY));
 		for (var widget : widgets) widget.render(context, mouseX, mouseY, deltaTicks);
 	}
 	
 	protected Iterable<ClickableWidget> getAllWidgets(){
-		return Iterables.concat(List.of(WidgetWrapper.wrap(nameButton, editScreen)), widgets);
+		if (nameButton != null) return Iterables.concat(List.of(WidgetWrapper.wrap(nameButton, editScreen)), widgets);
+		else return widgets;
 	}
 	
 	//根据line获取其下第line行的ScriptDisplayWidget，自身line为0

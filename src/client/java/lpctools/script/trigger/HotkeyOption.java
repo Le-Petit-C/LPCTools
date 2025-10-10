@@ -8,14 +8,14 @@ import fi.dy.masa.malilib.hotkeys.KeybindSettings;
 import lpctools.LPCTools;
 import lpctools.lpcfymasaapi.InputHandler;
 import lpctools.script.IScriptWithSubScript;
+import lpctools.script.editScreen.WidthAutoAdjustButtonKeybind;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
-import static lpctools.lpcfymasaapi.LPCConfigUtils.calculateTextButtonWidth;
-
 class HotkeyOption extends TriggerOptionBase {
+	private @Nullable WidthAutoAdjustButtonKeybind keybindButton;
 	static class HotkeyOptionFactory implements TriggerOptionFactory {
 		@Override
 		public TriggerOption allocateOption(ScriptTrigger trigger) {return new HotkeyOption(trigger, this);}
@@ -38,22 +38,22 @@ class HotkeyOption extends TriggerOptionBase {
 		else inputHandler.removeKeybind(hotkey);
 	}
 	
+	public @NotNull WidthAutoAdjustButtonKeybind getKeybindButton(){
+		if(keybindButton == null) keybindButton = new WidthAutoAdjustButtonKeybind(0, 0, 20, hotkey, getDisplayWidget());
+		return keybindButton;
+	}
+	
 	@Override public @Nullable Iterable<?> getWidgets() {
-		if(buttons == null) buttons = List.of(new ConfigButtonKeybind(0, 0, 20, 20, hotkey, getScript().getEditScreen()) {
-			@Override public void updateDisplayString() {
-				super.updateDisplayString();
-				setWidth(calculateTextButtonWidth(displayString, textRenderer, getHeight()));
-			}
-		});
+		if(buttons == null) buttons = List.of(getKeybindButton());
 		return buttons;
 	}
 	
-	@Override
-	public @Nullable JsonElement getAsJsonElement() {return hotkey.getAsJsonElement();}
+	@Override public @Nullable JsonElement getAsJsonElement() {return hotkey.getAsJsonElement();}
 	
-	@Override
-	public void setValueFromJsonElement(@Nullable JsonElement element) {hotkey.setValueFromJsonElement(element);}
+	@Override public void setValueFromJsonElement(@Nullable JsonElement element) {
+		hotkey.setValueFromJsonElement(element);
+		if(keybindButton != null) keybindButton.updateDisplayString();
+	}
 	
-	@Override
-	public @NotNull IScriptWithSubScript getParent() {return trigger;}
+	@Override public @NotNull IScriptWithSubScript getParent() {return trigger;}
 }

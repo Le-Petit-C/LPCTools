@@ -34,15 +34,19 @@ public class ScriptTrigger extends AbstractScriptWithSubScript implements IScrip
 	private final ArrayList<TriggerOption> triggers = new ArrayList<>();
 	private final ButtonBase AddTriggerOptionButton = new ButtonGeneric(0, 0, 20, 20, "+").setActionListener(this);
 	private final Iterable<?> widgets = List.of(AddTriggerOptionButton);
-	@Override public String getName() {
+	
+	public static final String triggerKeyJsonKey = "key";
+	public static final String triggerValueJsonKey = "value";
+	
+	@Override public @Nullable String getName() {
 		return Text.translatable("lpctools.script.trigger").getString();
 	}
 	@Override public @Nullable JsonElement getAsJsonElement() {
 		JsonArray array = new JsonArray();
 		for(var trigger : triggers){
 			JsonObject object = new JsonObject();
-			object.addProperty("key", trigger.getFactory().getKey());
-			object.add("value", trigger.getAsJsonElement());
+			object.addProperty(triggerKeyJsonKey, trigger.getFactory().getKey());
+			object.add(triggerValueJsonKey, trigger.getAsJsonElement());
 			array.add(object);
 		}
 		return array;
@@ -56,14 +60,16 @@ public class ScriptTrigger extends AbstractScriptWithSubScript implements IScrip
 		if(element instanceof JsonArray array){
 			array.forEach(e->{
 				if(!(e instanceof JsonObject object)) return;
-				if(!(object.get("id") instanceof JsonPrimitive primitive)) return;
-				String id = primitive.getAsString();
-				TriggerOption.TriggerOptionFactory factory = triggerOptionFactories.get(id);
+				if(!(object.get(triggerKeyJsonKey) instanceof JsonPrimitive primitive)) return;
+				String key = primitive.getAsString();
+				TriggerOption.TriggerOptionFactory factory = triggerOptionFactories.get(key);
+				var optionJson = object.get(triggerValueJsonKey);
 				if(factory != null) {
 					TriggerOption option = factory.allocateOption(this);
-					option.setValueFromJsonElement(e);
+					option.setValueFromJsonElement(optionJson);
+					triggers.add(option);
 				}
-				else warnFailedLoadingConfig(getName() + "." + id, object.get("value"));
+				else warnFailedLoadingConfig(getName() + "." + key, optionJson);
 			});
 		}
 		else if(element != null)
@@ -90,7 +96,10 @@ public class ScriptTrigger extends AbstractScriptWithSubScript implements IScrip
 		HashMap<String, String> chooseTree = new HashMap<>();
 		triggerOptionFactories.forEach((key, factory)->{
 			if(containedFactories.contains(factory)) return;
-			options.put(key, (b, m, u)->u.triggers.add(factory.allocateOption(u)));
+			options.put(key, (b, m, u)->{
+				u.triggers.add(factory.allocateOption(u));
+				u.getDisplayWidget().markUpdateChain();
+			});
 			chooseTree.put("lpctools.script.trigger." + key, key);
 		});
 		ChooseScreen.openChooseScreen(

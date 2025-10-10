@@ -4,6 +4,7 @@ import com.google.common.collect.Iterables;
 import fi.dy.masa.malilib.gui.LeftRight;
 import fi.dy.masa.malilib.gui.MaLiLibIcons;
 import fi.dy.masa.malilib.gui.button.ButtonGeneric;
+import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import lpctools.mixinInterfaces.MASAMixins.IButtonGenericMixin;
 import lpctools.script.IScriptWithSubScript;
@@ -20,8 +21,9 @@ public class ScriptWithSubScriptDisplayWidget extends ScriptDisplayWidget{
 	public final @NotNull ButtonGeneric expandButton;
 	boolean extended = false;
 	private final ArrayList<ScriptDisplayWidget> subWidgets = new ArrayList<>();
+	private final IntArrayList lineList = new IntArrayList();
+	private final Object2IntOpenHashMap<ScriptDisplayWidget> indexMap = new Object2IntOpenHashMap<>();
 	private int subSize = 0, subRight = 0;
-	private final Object2IntOpenHashMap<ScriptDisplayWidget> lineMap = new Object2IntOpenHashMap<>();
 	public ScriptWithSubScriptDisplayWidget(IScriptWithSubScript script) {
 		super(script);
 		expandButton = new ButtonGeneric(0, 0, 20, 20, "");
@@ -30,34 +32,39 @@ public class ScriptWithSubScriptDisplayWidget extends ScriptDisplayWidget{
 		updateIcon();
 	}
 	
+	@Override public void updateDisplayWidgets() {
+		buildWidget(getX(), getLine() * 22 + 11, WidgetWrapper.wrap(expandButton, editScreen));
+		super.updateDisplayWidgets();
+	}
+	
 	@Override protected void update(){
 		super.update();
-		buildWidget(getX(), getLine() * 22 + 11, WidgetWrapper.wrap(expandButton, editScreen));
 		subRight = subSize = 0;
-		lineMap.clear();
+		indexMap.clear();
+		lineList.clear();
 		subWidgets.clear();
 		for(var s : getIScript().getSubScripts())
 			subWidgets.add(s.getDisplayWidget());
 		for(var w : subWidgets){
-			lineMap.put(w, subSize);
+			indexMap.put(w, lineList.size());
+			lineList.add(subSize);
+			w.tryUpdate();
 			subSize += w.getSize();
 			subRight = Math.max(subRight, w.getRight());
-		}
-	}
-	
-	public void markUpdateChain(){
-		var widget = this;
-		while(widget != null){
-			if(needUpdate()) break;
-			markNeedUpdate();
-			widget = widget.parent;
 		}
 	}
 	
 	//widget相对于起始位置的line index（第一个为0）
 	public int lineOf(ScriptDisplayWidget widget){
 		tryUpdate();
-		return lineMap.getOrDefault(widget, -1);
+		int i = indexMap.getOrDefault(widget, -1);
+		if(i >= 0) return lineList.getInt(i);
+		else return -1;
+	}
+	public int lineOf(int index){return lineList.getInt(index);}
+	public int indexOf(ScriptDisplayWidget widget){
+		tryUpdate();
+		return indexMap.getOrDefault(widget, -1);
 	}
 	int subCount(){
 		tryUpdate();
@@ -121,7 +128,8 @@ public class ScriptWithSubScriptDisplayWidget extends ScriptDisplayWidget{
 	
 	@Override protected Iterable<ClickableWidget> getAllWidgets() {
 		tryUpdate();
-		return Iterables.concat(List.of(WidgetWrapper.wrap(expandButton, editScreen), WidgetWrapper.wrap(nameButton, editScreen)), widgets);
+		if (nameButton != null) return Iterables.concat(List.of(WidgetWrapper.wrap(expandButton, editScreen), WidgetWrapper.wrap(nameButton, editScreen)), widgets);
+		else return Iterables.concat(List.of(WidgetWrapper.wrap(expandButton, editScreen)), widgets);
 	}
 	
 	@Override @Nullable ScriptDisplayWidget getByLine(int line) {
