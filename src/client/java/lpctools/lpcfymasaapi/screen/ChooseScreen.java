@@ -14,6 +14,7 @@ import org.apache.commons.lang3.mutable.MutableInt;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Map;
+import java.util.function.Supplier;
 
 import static lpctools.lpcfymasaapi.LPCConfigUtils.calculateTextButtonWidth;
 
@@ -61,22 +62,24 @@ public class ChooseScreen extends GuiBase {
 			int x = screen.getScreenWidth() / 2;
 			MutableInt y = new MutableInt(screen.startY);
 			chooseTree.forEach((key, object)->{
-					if(key instanceof String text){
-						screen.addButton(allocateCenterAt(x, y.getAndAdd(buttonHeightStride), Text.translatable(text).getString(), textRenderer), (button, mouse)->{
-							if(object instanceof String optionKey){
-								options.get(optionKey).action(button, mouse, userData);
-								screen.closeGui(true);
-							}
-							else if(object instanceof Map<?, ?> map){
-								ChooseScreen screen1 = new ChooseScreen(screen.getParent(), screen, screen.title, screen.hasCancelButton, screen.hasSearchBar, options, map, userData);
-								MinecraftClient.getInstance().setScreen(screen1);
-								screen1.resetY();
-								screen1.initGui();
-							}
-						});
-					}
+				if(key instanceof String text){
+					Object obj;
+					if(object instanceof Supplier<?> supplier) obj = supplier.get();
+					else obj = object;
+					screen.addButton(allocateCenterAt(x, y.getAndAdd(buttonHeightStride), Text.translatable(text).getString(), textRenderer), (button, mouse)->{
+						if(obj instanceof String optionKey){
+							options.get(optionKey).action(button, mouse, userData);
+							screen.closeGui(true);
+						}
+						else if(obj instanceof Map<?, ?> map){
+							ChooseScreen screen1 = new ChooseScreen(screen.getParent(), screen, screen.title, screen.hasCancelButton, screen.hasSearchBar, options, map, userData);
+							MinecraftClient.getInstance().setScreen(screen1);
+							screen1.resetY();
+							screen1.initGui();
+						}
+					});
 				}
-			);
+			});
 			if(screen.hasCancelButton) screen.addButton(allocateCenterAt(x, y.intValue(), Text.translatable(cancelKey).getString(), textRenderer),
 				(button, mouse) -> {
 				if(screen.chooseParent == null) screen.closeGui(true);

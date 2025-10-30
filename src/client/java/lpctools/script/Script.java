@@ -5,6 +5,8 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 import lpctools.script.editScreen.ScriptEditScreen;
 import lpctools.script.editScreen.ScriptFitTextField;
+import lpctools.script.runtimeInterfaces.ScriptRunnable;
+import lpctools.script.suppliers.voids.RunMultiple;
 import lpctools.script.trigger.ScriptTrigger;
 import net.minecraft.client.MinecraftClient;
 import org.jetbrains.annotations.NotNull;
@@ -19,15 +21,24 @@ public class Script extends AbstractScriptWithSubScript implements IScriptWithSu
 	public final ScriptConfig config;
 	private boolean enabled = false;
 	private final ScriptTrigger trigger = new ScriptTrigger(this);
-	private final List<IScript> subScripts = List.of(trigger);
+	private final RunMultiple operations = new RunMultiple(this);
+	private final List<IScript> subScripts = List.of(trigger, operations);
 	private @Nullable ScriptFitTextField idWidget;
 	private @Nullable List<Object> widgets;
 	private String id = "script";
 	private static final String triggerJsonKey = "trigger";
+	private static final String operationsJsonKey = "operations";
 	private static final String enableJsonKey = "enabled";
 	private static final String idJsonKey = "id";
+	private boolean needRecompile = true;
+	private @Nullable ScriptRunnable runnable;
+	
+	public void markNeedRecompile(){needRecompile = true;}
 	public boolean isEnabled() {return enabled;}
-	public Script(ScriptConfig config){this.config = config;}
+	public Script(ScriptConfig config){
+		super(null);
+		this.config = config;
+	}
 	public @NotNull ScriptFitTextField getIdWidget(){
 		if(idWidget == null){
 			idWidget = new ScriptFitTextField(getDisplayWidget(), 100, text->{
@@ -51,7 +62,7 @@ public class Script extends AbstractScriptWithSubScript implements IScriptWithSu
 	public void enable(boolean enable) {
 		if(this.enabled != enable){
 			this.enabled = enable;
-			config.isEnabled.setBooleanValue(enabled);
+			config.isEnabled.setBooleanValue(enable);
 			trigger.registerAll(enable);
 		}
 	}
@@ -66,6 +77,7 @@ public class Script extends AbstractScriptWithSubScript implements IScriptWithSu
 	@Override public @NotNull JsonObject getAsJsonElement() {
 		JsonObject object = new JsonObject();
 		object.add(triggerJsonKey, trigger.getAsJsonElement());
+		object.add(operationsJsonKey, operations.getAsJsonElement());
 		object.addProperty(enableJsonKey, enabled);
 		object.addProperty(idJsonKey, id);
 		return object;
@@ -74,6 +86,7 @@ public class Script extends AbstractScriptWithSubScript implements IScriptWithSu
 		if(element instanceof JsonObject object){
 			if(enabled) enable(false);
 			trigger.setValueFromJsonElement(object.get(triggerJsonKey));
+			operations.setValueFromJsonElement(object.get(operationsJsonKey));
 			if(object.get(enableJsonKey) instanceof JsonPrimitive enableJson)
 				if(enableJson.getAsBoolean()) enable(true);
 			if(object.get(idJsonKey) instanceof JsonPrimitive nameJson)
@@ -83,17 +96,26 @@ public class Script extends AbstractScriptWithSubScript implements IScriptWithSu
 	}
 	@Override public @NotNull List<IScript> getSubScripts() {return subScripts;}
 	
-	@Override public boolean isSubScriptMutable() {return false;}
-	
 	@Override public @Nullable Iterable<Object> getWidgets() {
 		if(widgets == null) widgets = List.of(getIdWidget());
 		return widgets;
 	}
-	@Override public @Nullable IScriptWithSubScript getParent() {return null;}
 	@Override public @NotNull Script getScript(){return this;}
+	
 	//运行脚本
 	public void runScript(){//TODO
-	
+		if(needRecompile) runnable = compile();
+		if(runnable != null) {
+			try{
+				runnable.scriptRun();
+			} catch (ScriptRuntimeException e){
+			
+			}
+		}
 	}
 	
+	private ScriptRunnable compile(){
+		var func = operations.compile(new CompileTimeVariableMap());
+		return ()->func.scriptApply(new RuntimeVariableMap());
+	}
 }

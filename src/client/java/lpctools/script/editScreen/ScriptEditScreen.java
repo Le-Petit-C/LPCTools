@@ -1,10 +1,8 @@
 package lpctools.script.editScreen;
 
-import com.google.gson.JsonElement;
 import fi.dy.masa.malilib.gui.*;
 import fi.dy.masa.malilib.gui.button.ButtonGeneric;
 import fi.dy.masa.malilib.util.position.Vec2d;
-import lpctools.LPCTools;
 import lpctools.script.*;
 import lpctools.util.data.Rect2d;
 import net.minecraft.client.MinecraftClient;
@@ -19,8 +17,7 @@ import java.util.*;
 import static lpctools.lpcfymasaapi.LPCConfigUtils.calculateTextButtonWidth;
 
 public class ScriptEditScreen extends GuiConfigsBase {
-	public final ScriptConfig config;
-	private final JsonElement startJson;
+	public final Script script;
 	@Nullable ScriptHoldingData scriptHoldingData;
 	//鼠标左键按下抓住背景时移动鼠标应当能够移动整个界面
 	//此变量为鼠标按下时鼠标按下位置相对于显示区域左上角的坐标，为null表示未按下
@@ -31,21 +28,22 @@ public class ScriptEditScreen extends GuiConfigsBase {
 	private final ButtonGeneric copyButton = createGenericSquareButton("C", "lpctools.script.trigger.chooseScreen.copy");
 	private final ButtonGeneric pasteButton = createGenericSquareButton("P", "lpctools.script.trigger.chooseScreen.paste");
 	private final ButtonGeneric dragButton = createGenericSquareButton("≡", "lpctools.script.trigger.chooseScreen.drag");
+	private final ButtonGeneric insertButton = createGenericSquareButton("+", "lpctools.script.trigger.chooseScreen.insert");
 	private final ButtonGeneric removeButton = createGenericSquareButton("-", "lpctools.script.trigger.chooseScreen.remove");
 	private final ButtonGeneric infoButton = new ButtonGeneric(0, 0, 22, 22, "");
 	private long infoDisplayEndTime = 0;
+	private final HashMap<IScript, ArrayList<ScriptRuntimeException>> runtimeExceptions = new HashMap<>();
 	
 	private static final int reserve = 10, topReserve = 40;
 	
 	public ScriptEditScreen(Script script) {
 		super(0, 0, "lpctools", null, "lpctools.script.editScreen.title");
-		this.config = script.config;
+		this.script = script;
 		infoButton.setRenderDefaultBackground(false);
-		startJson = script.getAsJsonElement();
 		//setTitle(Text.translatable("lpctools.script.editScreen.title").getString());
 	}
 	private @NotNull ScriptWithSubScriptDisplayWidget getRootDisplayWidget(){
-		return config.script.getDisplayWidget();
+		return script.getDisplayWidget();
 	}
 	
 	public void displayInfo(String text){
@@ -69,6 +67,11 @@ public class ScriptEditScreen extends GuiConfigsBase {
 	}
 	
 	public @Nullable Element getScriptFocused(){return scriptFocused;}
+	
+	public void clearRuntimeExceptions(){runtimeExceptions.clear();}
+	public void putRuntimeException(IScript script, ScriptRuntimeException runtimeException){
+		runtimeExceptions.computeIfAbsent(script, v->new ArrayList<>()).add(runtimeException);
+	}
 	
 	@Override public boolean mouseClicked(double mouseX, double mouseY, int mouseButton) {
 		if(super.mouseClicked(mouseX, mouseY, mouseButton)) {
@@ -100,12 +103,16 @@ public class ScriptEditScreen extends GuiConfigsBase {
 					else displayInfo("Failed to paste");
 					return true;
 				}
-				else if(widget.parent instanceof ScriptWithSubScriptDisplayWidget parent && parent.getIScript().isSubScriptMutable()) {
+				else if(widget.parent instanceof ScriptWithSubScriptMutableDisplayWidget<?> parent) {
 					if(dragButton.onMouseClicked(mx, my, mouseButton)){
 						scriptHoldingData = new ScriptHoldingData(
 							new Vec2d(fixedMouseX - widget.getX(), fixedMouseY - widget.getY()),
 							widget
 						);
+						return true;
+					}
+					else if(insertButton.onMouseClicked(mx, my, mouseButton)){
+						insertionButtonClicked(widget, parent);
 						return true;
 					}
 					else if(removeButton.onMouseClicked(mx, my, mouseButton)){
@@ -150,17 +157,16 @@ public class ScriptEditScreen extends GuiConfigsBase {
 			var widget = scriptHoldingData.widget;
 			var parent = scriptHoldingData.parent;
 			double heldLine = (fixedMouseY - scriptHoldingData.holdingPos.y) / 22 - parent.getLine() - 1;
-			LPCTools.LOGGER.info(heldLine);
 			int currIndex = parent.indexOf(widget);
 			int currLine = parent.lineOf(widget);
 			int targetIndex;
 			if(heldLine < currLine){
-				if(currIndex > 0 && heldLine - parent.lineOf(currIndex - 1) < currLine - heldLine)
+				if(currIndex > 0 && currLine - heldLine > parent.getSub(currIndex - 1).getSize() * 0.5)
 					targetIndex = currIndex - 1;
 				else targetIndex = -1;
 			}
 			else {
-				if(currIndex + 1 < parent.subCount() && parent.lineOf(currIndex + 1) - heldLine < heldLine - currLine)
+				if(currIndex + 1 < parent.subCount() && heldLine - currLine > parent.getSub(currIndex + 1).getSize() * 0.5)
 					targetIndex = currIndex + 1;
 				else targetIndex = -1;
 			}
@@ -301,10 +307,12 @@ public class ScriptEditScreen extends GuiConfigsBase {
 			copyButton.render(drawContext, fixedMouseX, fixedMouseY, copyButton.isMouseOver(fixedMouseX, fixedMouseY));
 			pasteButton.render(drawContext, fixedMouseX, fixedMouseY, pasteButton.isMouseOver(fixedMouseX, fixedMouseY));
 			var parentScript = hoverWidget.script.getParent();
-			if(parentScript != null && parentScript.isSubScriptMutable()){
+			if(parentScript instanceof IScriptWithSubScriptMutable<?>){
 				dragButton.setPosition(x + 44, y);
-				removeButton.setPosition(x + 66, y);
+				insertButton.setPosition(x + 66, y);
+				removeButton.setPosition(x + 88, y);
 				dragButton.render(drawContext, fixedMouseX, fixedMouseY, dragButton.isMouseOver(fixedMouseX, fixedMouseY));
+				insertButton.render(drawContext, fixedMouseX, fixedMouseY, insertButton.isMouseOver(fixedMouseX, fixedMouseY));
 				removeButton.render(drawContext, fixedMouseX, fixedMouseY, removeButton.isMouseOver(fixedMouseX, fixedMouseY));
 			}
 		}
@@ -321,11 +329,21 @@ public class ScriptEditScreen extends GuiConfigsBase {
 	}
 	
 	@Override public void removed() {
-		if(!Objects.equals(config.script.getAsJsonElement(), startJson))
-			config.getPage().get().markConfigsModified();
+		script.config.getPage().get().markConfigsModified();
 		super.removed();
+		script.markNeedRecompile();
 	}
 	@Override protected void buildConfigSwitcher() {}
+	
+	private <T extends IScript> void insertionButtonClicked(ScriptDisplayWidget widget, ScriptWithSubScriptMutableDisplayWidget<T> parent){
+		parent.getIScript().notifyInsertion(sub->{
+			int i = parent.indexOf(widget);
+			if (i >= 0) {
+				parent.getIScript().getSubScripts().add(i + 1, sub);
+				parent.markUpdateChain();
+			} else displayInfo("???为什么会这样？。。出现了一个index为-1的问题，本来不该这样的");
+		});
+	}
 	
 	//抓住按钮拖动ScriptDisplayWidget时的记录数据
 	private static class ScriptHoldingData{

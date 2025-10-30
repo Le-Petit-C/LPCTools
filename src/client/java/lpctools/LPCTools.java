@@ -12,6 +12,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 public class LPCTools {
+	public static final long startTimeMillis = System.currentTimeMillis();
 	public static void init(){}
 	public static final Logger LOGGER = LogManager.getLogger("LPCTools");
 	static {LOGGER.info("Initializing");}

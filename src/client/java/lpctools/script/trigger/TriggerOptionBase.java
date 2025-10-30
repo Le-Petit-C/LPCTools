@@ -7,11 +7,10 @@ import net.minecraft.text.Text;
 import org.jetbrains.annotations.Nullable;
 
 abstract class TriggerOptionBase extends AbstractScript implements TriggerOption {
-	protected final ScriptTrigger trigger;
 	protected final TriggerOptionFactory factory;
 	
 	protected TriggerOptionBase(ScriptTrigger trigger, TriggerOptionFactory factory) {
-		this.trigger = trigger;
+		super(trigger);
 		this.factory = factory;
 	}
 	
@@ -26,4 +25,8 @@ abstract class TriggerOptionBase extends AbstractScript implements TriggerOption
 	
 	@Override
 	public @Nullable String getName() {return Text.translatable("lpctools.script.trigger." + getFactory().getKey()).getString();}
+	
+	@Override public @Nullable ScriptTrigger getParent() {
+		return (ScriptTrigger)super.getParent();
+	}
 }

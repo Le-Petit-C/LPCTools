@@ -54,6 +54,9 @@ public class DebugConfigs {
     private static ImmutableMap<String, BiFunction<MutableConfig<ILPCUniqueConfigBase>, String, ILPCUniqueConfigBase>> getConfigSuppliers(){return configSuppliers;}
     static {Registries.ON_SCREEN_CHANGED.register(newScreen -> buttonConfigTest.buttonName = null);}
     static {listStack.pop();}
+    static {
+        debugs.addConfig(TimeTest.timeTest);
+    }
     
     private static void booleanHotkeyThirdListTestCallback(){
         if(booleanHotkeyThirdListTest.isExpanded())

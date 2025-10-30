@@ -185,7 +185,7 @@ public class MutableConfig<T extends ILPCUniqueConfigBase> extends LPCUniqueConf
             return null;
         };
         if(data instanceof JsonObject object){
-            if(!(object.get("supplier") instanceof JsonPrimitive primitive)) return fail.get();
+            if(!(object.get("suppliers") instanceof JsonPrimitive primitive)) return fail.get();
             MutableConfigOption<? extends T> config = allocateConfig(primitive.getAsString());
             if(config == null) return fail.get();
             if(object.get("value") instanceof JsonElement element)
@@ -258,7 +258,7 @@ public class MutableConfig<T extends ILPCUniqueConfigBase> extends LPCUniqueConf
         }
         @Override public @Nullable JsonElement getAsJsonElement() {
             JsonObject object = new JsonObject();
-            object.addProperty("supplier", saveKey);
+            object.addProperty("suppliers", saveKey);
             object.add("value", wrappedConfig.getAsJsonElement());
             return object;
         }

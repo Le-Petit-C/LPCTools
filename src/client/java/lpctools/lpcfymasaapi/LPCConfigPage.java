@@ -36,6 +36,9 @@ import static lpctools.lpcfymasaapi.LPCConfigUtils.*;
 
 //单个总设置页面，就是在设置右上角分列出的不同页面
 public class LPCConfigPage implements IConfigHandler, Supplier<GuiBase>, ILPCConfigBase, ILPCConfigReadable {
+    
+    public boolean shouldPause = false;
+    
     //构造函数
     public LPCConfigPage(Reference modReference) {
         this.modReference = modReference;
@@ -187,6 +190,9 @@ public class LPCConfigPage implements IConfigHandler, Supplier<GuiBase>, ILPCCon
         ConfigPageInstance() {
             super(10, 50, modReference.modId, null, "");
         }
+        
+        @Override public boolean shouldPause() {return shouldPause;}
+        
         void select(int index){
             if(index == selectedIndex) return;
             WidgetListConfigOptions widget = getListWidget();

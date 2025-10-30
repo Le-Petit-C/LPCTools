@@ -7,7 +7,6 @@ import fi.dy.masa.malilib.hotkeys.KeybindMulti;
 import fi.dy.masa.malilib.hotkeys.KeybindSettings;
 import lpctools.LPCTools;
 import lpctools.lpcfymasaapi.InputHandler;
-import lpctools.script.IScriptWithSubScript;
 import lpctools.script.editScreen.WidthAutoAdjustButtonKeybind;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -30,11 +29,17 @@ class HotkeyOption extends TriggerOptionBase {
 	private final IKeybind hotkey = KeybindMulti.fromStorageString("", KeybindSettings.DEFAULT);
 	private @Nullable List<ConfigButtonKeybind> buttons;
 	
-	private HotkeyOption(ScriptTrigger trigger, HotkeyOptionFactory factory) {super(trigger, factory);}
+	private HotkeyOption(ScriptTrigger trigger, HotkeyOptionFactory factory) {
+		super(trigger, factory);
+		hotkey.setCallback((action, key)->{
+			trigger.getScript().runScript();
+			return true;
+		});
+	}
 	
 	@Override public void registerScript(boolean b) {
 		InputHandler inputHandler = LPCTools.page.getInputHandler();
-		if (b) inputHandler.addKeybind(hotkey);
+		if(b) inputHandler.addKeybind(hotkey);
 		else inputHandler.removeKeybind(hotkey);
 	}
 	
@@ -54,6 +59,4 @@ class HotkeyOption extends TriggerOptionBase {
 		hotkey.setValueFromJsonElement(element);
 		if(keybindButton != null) keybindButton.updateDisplayString();
 	}
-	
-	@Override public @NotNull IScriptWithSubScript getParent() {return trigger;}
 }

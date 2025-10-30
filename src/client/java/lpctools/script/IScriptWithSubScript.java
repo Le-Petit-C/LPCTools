@@ -8,5 +8,4 @@ import java.util.List;
 public interface IScriptWithSubScript extends IScript{
 	@NotNull List<? extends IScript> getSubScripts();
 	@NotNull ScriptWithSubScriptDisplayWidget getDisplayWidget();
-	boolean isSubScriptMutable();
 }

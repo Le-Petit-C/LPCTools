@@ -27,6 +27,8 @@ public class GenericConfigs {
     static {listStack.push(generic);}
     @SuppressWarnings("unused")
     public static final ConfigOpenGuiConfig configOpenGuiConfig = addConfigOpenGuiConfig("Z,C");
+    public static final BooleanConfig pauseOnConfigPage = addBooleanConfig("pauseOnConfigPage", false);
+    static {pauseOnConfigPage.setValueChangeCallback(()->pauseOnConfigPage.getPage().shouldPause = pauseOnConfigPage.getAsBoolean());}
     public static final IntegerConfig labelButtonDistance = addIntegerConfig("labelButtonDistance", 10, 0, 100);
     public static final IntegerConfig indentAll = addIntegerConfig("indentAll", 0, 0, 100);
     public static final IntegerConfig indentSpaces = addIntegerConfig("indentSpaces", 4, 0, 20);

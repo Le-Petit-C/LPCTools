@@ -171,7 +171,7 @@ public class ScriptDisplayWidget extends ClickableWidget{
 	protected void update(){
 		updateDisplayWidgets();
 		int newRight = getX() + getWidth() + 44;
-		if(parent != null && parent.getIScript().isSubScriptMutable()) newRight += 44;
+		if(parent instanceof ScriptWithSubScriptMutableDisplayWidget<?>) newRight += 66;
 		
 		//更新right
 		if (right != newRight) {
