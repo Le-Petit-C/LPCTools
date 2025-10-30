@@ -1,6 +1,5 @@
 package lpctools.tools.breakRestriction;
 
-import fi.dy.masa.litematica.util.ToBooleanFunction;
 import lpctools.lpcfymasaapi.configButtons.derivedConfigs.ConfigListOptionListConfigEx;
 import lpctools.lpcfymasaapi.configButtons.derivedConfigs.ObjectListConfig;
 import lpctools.lpcfymasaapi.configButtons.derivedConfigs.RangeLimitConfig;
@@ -8,6 +7,7 @@ import lpctools.lpcfymasaapi.configButtons.uniqueConfigs.BooleanHotkeyThirdListC
 import lpctools.lpcfymasaapi.interfaces.ILPCConfigList;
 import lpctools.tools.ToolConfigs;
 import lpctools.tools.ToolUtils;
+import lpctools.util.javaex.ToBooleanFunction;
 import net.minecraft.block.Block;
 import org.jetbrains.annotations.NotNull;
 

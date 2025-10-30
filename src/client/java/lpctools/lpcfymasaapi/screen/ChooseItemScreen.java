@@ -1,8 +1,8 @@
 package lpctools.lpcfymasaapi.screen;
 
-import fi.dy.masa.litematica.util.ToBooleanFunction;
 import fi.dy.masa.malilib.gui.GuiBase;
 import fi.dy.masa.malilib.gui.GuiTextFieldGeneric;
+import lpctools.util.javaex.ToBooleanFunction;
 import net.minecraft.block.Block;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawContext;
