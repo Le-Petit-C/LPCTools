@@ -23,7 +23,7 @@ import java.util.function.*;
 
 import static lpctools.lpcfymasaapi.configButtons.derivedConfigs.ObjectListConfig.*;
 
-@SuppressWarnings({"unused", "UnusedReturnValue"})
+@SuppressWarnings({"unused", "UnusedReturnValue", "resource"})
 public interface LPCConfigStatics {
     //加入的配置无法删除
     //加入的配置不会立刻从文件中加载已有的设定，直到loadFromConfigPageJson被调用（一般来自LPCConfigPage中的load()），
@@ -124,10 +124,10 @@ public interface LPCConfigStatics {
     static <T> ArrayOptionListConfig<T> addArrayOptionListConfig(ILPCConfigList list, @NotNull String nameKey, ILPCValueChangeCallback callback){
         return list.addConfig(new ArrayOptionListConfig<>(list, nameKey, callback));
     }
-    static <T> ArrayOptionListConfig<T> addArrayOptionListConfig(ILPCConfigList list, @NotNull String nameKey, Map<? extends String, ? extends T> values){
+    static <T> ArrayOptionListConfig<T> addArrayOptionListConfig(ILPCConfigList list, @NotNull String nameKey, Map<String, ? extends T> values){
         return list.addConfig(new ArrayOptionListConfig<>(list, nameKey, values));
     }
-    static <T> ArrayOptionListConfig<T> addArrayOptionListConfig(ILPCConfigList list, @NotNull String nameKey, Map<? extends String, ? extends T> values, ILPCValueChangeCallback callback){
+    static <T> ArrayOptionListConfig<T> addArrayOptionListConfig(ILPCConfigList list, @NotNull String nameKey, Map<String, ? extends T> values, ILPCValueChangeCallback callback){
         return list.addConfig(new ArrayOptionListConfig<>(list, nameKey, values, callback));
     }
     static ConfigListOptionListConfig addConfigListOptionListConfig(ILPCConfigList list, @NotNull String nameKey){
@@ -211,7 +211,7 @@ public interface LPCConfigStatics {
     //不带List版本的，使用栈存储当前list，方便操作
     @NotNull Stack<ILPCConfigList> listStack = new Stack<>();
     static ILPCConfigList peekConfigList(){return listStack.peek();}
-    class ConfigListLayer implements Supplier<ILPCConfigList>, Consumer<ILPCConfigList>, AutoCloseable {
+	class ConfigListLayer implements Supplier<ILPCConfigList>, Consumer<ILPCConfigList>, AutoCloseable {
         public ConfigListLayer(ILPCConfigList parent){listStack.push(parent);}
         public ConfigListLayer(){listStack.push(null);}
         @Override public void close(){listStack.pop();}
@@ -328,10 +328,10 @@ public interface LPCConfigStatics {
     static <T> ArrayOptionListConfig<T> addArrayOptionListConfig(@NotNull String nameKey, ILPCValueChangeCallback callback){
         return addArrayOptionListConfig(peekConfigList(), nameKey, callback);
     }
-    static <T> ArrayOptionListConfig<T> addArrayOptionListConfig(@NotNull String nameKey, Map<? extends String, ? extends T> values){
+    static <T> ArrayOptionListConfig<T> addArrayOptionListConfig(@NotNull String nameKey, Map<String, ? extends T> values){
         return addArrayOptionListConfig(peekConfigList(), nameKey, values);
     }
-    static <T> ArrayOptionListConfig<T> addArrayOptionListConfig(@NotNull String nameKey, Map<? extends String, ? extends T> values, ILPCValueChangeCallback callback){
+    static <T> ArrayOptionListConfig<T> addArrayOptionListConfig(@NotNull String nameKey, Map<String, ? extends T> values, ILPCValueChangeCallback callback){
         return addArrayOptionListConfig(peekConfigList(), nameKey, values, callback);
     }
     static ConfigListOptionListConfig addConfigListOptionListConfig(@NotNull String nameKey){

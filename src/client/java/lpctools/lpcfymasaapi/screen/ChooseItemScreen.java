@@ -114,4 +114,9 @@ public class ChooseItemScreen extends GuiBase {
 		if(parent != null) parent.render(drawContext, 0, 0, partialTicks);
 		super.render(drawContext, mouseX, mouseY, partialTicks);
 	}
+	@Override public boolean shouldPause() {
+		var parent = getParent();
+		if(parent != null) return parent.shouldPause();
+		else return super.shouldPause();
+	}
 }

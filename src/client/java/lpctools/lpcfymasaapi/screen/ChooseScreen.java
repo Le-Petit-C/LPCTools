@@ -19,6 +19,9 @@ import java.util.function.Supplier;
 import static lpctools.lpcfymasaapi.LPCConfigUtils.calculateTextButtonWidth;
 
 public class ChooseScreen extends GuiBase {
+	
+	private static final String cancelKey = "lpcfymasaapi.screen.chooseScreen.cancel";
+	
 	public static <T> ChooseScreen openChooseScreen(Screen parent, String title, boolean hasCancelButton, boolean hasSearchBar, Map<String, ? extends OptionCallback<? super T>> options, Map<?, ?> chooseTree, T userData){
 		ChooseScreen screen = new ChooseScreen(parent, null, title, hasCancelButton, hasSearchBar, options, chooseTree, userData);
 		MinecraftClient.getInstance().setScreen(screen);
@@ -143,5 +146,9 @@ public class ChooseScreen extends GuiBase {
 		if (this.getParent() != null) this.getParent().render(drawContext, 0, 0, partialTicks);
 		renderChooseParents(drawContext, mouseX, mouseY, partialTicks);
 	}
-	private static final String cancelKey = "lpcfymasaapi.screen.chooseScreen.cancel";
+	@Override public boolean shouldPause() {
+		var parent = getParent();
+		if(parent != null) return parent.shouldPause();
+		else return super.shouldPause();
+	}
 }

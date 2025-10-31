@@ -13,16 +13,16 @@ import java.util.function.Supplier;
 
 public class ArrayOptionListConfig<T> extends OptionListConfig implements Supplier<T> {
     public static class OptionList<T> extends ArrayList<OptionData<T>>{
-        public void addOption(@NotNull String translationKey, T userData){
-            add(new OptionData<>(this, translationKey, userData, size()));
+        public void addOption(@NotNull String translationKey, @NotNull String storageKey, T userData){
+            add(new OptionData<>(this, translationKey, storageKey, userData, size()));
         }
     }
     public interface IArrayConfigOptionListEntry<T> extends IConfigOptionListEntry{
         OptionList<T> options();
         T userData();
     }
-    public record OptionData<T>(@NotNull OptionList<T> options, @NotNull String translationKey, T userData, int index) implements IArrayConfigOptionListEntry<T>{
-        @Override public String getStringValue() {return translationKey;}
+    public record OptionData<T>(@NotNull OptionList<T> options, @NotNull String translationKey, @NotNull String storageKey, T userData, int index) implements IArrayConfigOptionListEntry<T>{
+        @Override public String getStringValue() {return storageKey;}
         @Override public String getDisplayName() {return Text.translatable(translationKey).getString();}
         @Override public IConfigOptionListEntry cycle(boolean forward) {
             int n = index;
@@ -90,16 +90,19 @@ public class ArrayOptionListConfig<T> extends OptionListConfig implements Suppli
     public ArrayOptionListConfig(@NotNull ILPCConfigReadable parent, @NotNull String nameKey, @Nullable ILPCValueChangeCallback callback) {
         this(parent, nameKey, null, callback);
     }
-    public ArrayOptionListConfig(@NotNull ILPCConfigReadable parent, @NotNull String nameKey, @Nullable Map<? extends String, ? extends T> values) {
+    public ArrayOptionListConfig(@NotNull ILPCConfigReadable parent, @NotNull String nameKey, @Nullable Map<String, ? extends T> values) {
         this(parent, nameKey, values, null);
     }
-    public ArrayOptionListConfig(@NotNull ILPCConfigReadable parent, @NotNull String nameKey, @Nullable Map<? extends String, ? extends T> values, @Nullable ILPCValueChangeCallback callback) {
+    public ArrayOptionListConfig(@NotNull ILPCConfigReadable parent, @NotNull String nameKey, @Nullable Map<String, ? extends T> values, @Nullable ILPCValueChangeCallback callback) {
         super(parent, nameKey, EmptyOptionData.of(), callback);
         if (values != null) values.forEach(this::addOption);
     }
     public T addOption(@NotNull String translationKey, T userData){
+        return addOption(translationKey, translationKey, userData);
+    }
+    public T addOption(@NotNull String translationKey, @NotNull String storageKey, T userData){
         OptionList<T> list = getCurrentOptionData().options();
-        list.addOption(translationKey, userData);
+        list.addOption(translationKey, storageKey, userData);
         return userData;
     }
     @Override public boolean isModified() {

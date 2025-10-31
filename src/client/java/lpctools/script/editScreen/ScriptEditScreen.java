@@ -15,6 +15,8 @@ import org.jetbrains.annotations.Nullable;
 import java.util.*;
 
 import static lpctools.lpcfymasaapi.LPCConfigUtils.calculateTextButtonWidth;
+import static lpctools.script.ScriptConfigs.dragBoundaryConstraint;
+import static lpctools.script.ScriptConfigs.dragVisualMode;
 
 public class ScriptEditScreen extends GuiConfigsBase {
 	public final Script script;
@@ -284,8 +286,14 @@ public class ScriptEditScreen extends GuiConfigsBase {
 			var client = MinecraftClient.getInstance();
 			var window = client.getWindow();
 			var mouse = client.mouse;
-			double dx = mouse.getScaledX(window) - holdingPos.x - x - hoverWidget.getX();
-			double dy = mouse.getScaledY(window) - holdingPos.y - y - hoverWidget.getY();
+			var method = dragVisualMode.get();
+			double dx = method.moveX ? mouse.getScaledX(window) - holdingPos.x - x - hoverWidget.getX() : 0;
+			double dy = method.moveY ? mouse.getScaledY(window) - holdingPos.y - y - hoverWidget.getY() : 0;
+			if(dragBoundaryConstraint.getAsBoolean() && hoverWidget.parent instanceof ScriptWithSubScriptDisplayWidget parent){
+				int l = parent.indexOf(hoverWidget);
+				if(l == parent.subCount() - 1 && dy > 0) dy = 0;
+				if(l == 0 && dy < 0) dy = 0;
+			}
 			matrices.translate((float)dx, (float)dy);
 			fixedMouseX = (int)Math.round(holdingPos.x + hoverWidget.getX());
 			fixedMouseY = (int)Math.round(holdingPos.y + hoverWidget.getY());
@@ -324,6 +332,12 @@ public class ScriptEditScreen extends GuiConfigsBase {
 		super.drawTitle(drawContext, mouseX, mouseY, partialTicks);
 	}
 	@Override public List<ConfigOptionWrapper> getConfigs() {return List.of();}
+	@Override public boolean shouldPause() {
+		var parent = getParent();
+		if(parent != null) return parent.shouldPause();
+		else return super.shouldPause();
+	}
+	
 	private static ButtonGeneric createGenericSquareButton(String text, String hoverKey){
 		return new ButtonGeneric(0, 0, 20, 20, text, Text.translatable(hoverKey).getString());
 	}
