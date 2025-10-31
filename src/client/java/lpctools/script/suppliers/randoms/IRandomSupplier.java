@@ -14,7 +14,7 @@ public interface IRandomSupplier<T> extends IScriptSupplier<T> {
 		var targetClass = getSuppliedClass();
 		return runtimeVariableMap->{
 			var res = func.scriptApply(runtimeVariableMap);
-			if(targetClass.isInstance(res))
+			if(res == null || targetClass.isInstance(res))
 				//noinspection unchecked
 				return (T)res;
 			else throw ScriptRuntimeException.notInstanceOf(this, res, targetClass);

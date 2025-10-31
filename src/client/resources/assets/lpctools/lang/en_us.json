@@ -330,6 +330,7 @@
   "lpctools.script.trigger.hotkey": "Hotkey",
   "lpctools.script.exception.compile.undefinedVariable": "Undefined variable:",
   "lpctools.script.exception.runtime.notInstanceOf": "Script runtime exception: notInstanceOf (expected \"%s\" but given \"%s\")",
+  "lpctools.script.suppliers.randoms.null.name": "Null",
   "lpctools.script.suppliers.voids.doNothing.name": "Do Nothing",
   "lpctools.script.suppliers.voids.runMultiple.name": "Run Multiple",
   "lpctools.script.suppliers.voids.doAttack.name": "Do Attack",

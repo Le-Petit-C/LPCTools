@@ -10,7 +10,7 @@ import org.jetbrains.annotations.Nullable;
 public interface IScriptSupplier<T> extends IScript {
 	@Nullable String getName();
 	
-	Class<T> getSuppliedClass();
+	Class<? extends T> getSuppliedClass();
 	@NotNull ScriptFunction<RuntimeVariableMap, T>
 	compile(CompileTimeVariableMap variableMap);
 }
