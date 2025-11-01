@@ -2,7 +2,7 @@ package lpctools.script.suppliers;
 
 import fi.dy.masa.malilib.gui.button.ButtonBase;
 import lpctools.lpcfymasaapi.screen.ChooseScreen;
-import lpctools.script.suppliers.randoms.IRandomSupplierAllocator;
+import lpctools.script.suppliers.Random.IRandomSupplierAllocator;
 import net.minecraft.text.Text;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;

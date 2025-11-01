@@ -11,8 +11,6 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
-import java.util.function.Supplier;
 
 public abstract class AbstractSupplierWithTypeDeterminedSubSuppliers extends AbstractScriptWithSubScript {
 	
@@ -21,7 +19,7 @@ public abstract class AbstractSupplierWithTypeDeterminedSubSuppliers extends Abs
 	
 	protected AbstractSupplierWithTypeDeterminedSubSuppliers(IScriptWithSubScript parent){super(parent);}
 	
-	protected abstract List<SubSupplierEntry<?>> getSubSuppliers();
+	protected abstract SubSupplierEntry<?>[] getSubSuppliers();
 	
 	@Override public @Nullable Iterable<?> getWidgets() {
 		if(widgets == null) widgets = buildWidgets(new ArrayList<>());
@@ -36,7 +34,7 @@ public abstract class AbstractSupplierWithTypeDeterminedSubSuppliers extends Abs
 	
 	protected ArrayList<Object> buildWidgets(ArrayList<Object> res){
 		for(var entry : getSubSuppliers()){
-			ButtonBase button = new WidthAutoAdjustButtonGeneric(getDisplayWidget(), 0, 0, 20, entry.storageSupplier.get().argumentName.getString(), null);
+			ButtonBase button = new WidthAutoAdjustButtonGeneric(getDisplayWidget(), 0, 0, 20, entry.storage.argumentName.getString(), null);
 			button.setActionListener((b, m)->entry.chooseSupplier(this));
 			res.add(button);
 			//但是这样的问题是用户更改语言后按钮名称不会更新
@@ -45,16 +43,24 @@ public abstract class AbstractSupplierWithTypeDeterminedSubSuppliers extends Abs
 		return res;
 	}
 	
-	public record SubSupplierEntry<T>(Class<T> suppliedClass, Supplier<SupplierStorage<T>> storageSupplier) {
+	public record SubSupplierEntry<T>(Class<T> suppliedClass, SupplierStorage<T> storage) {
 		public void chooseSupplier(IScriptWithSubScript parent){
 			ScriptSupplierLake.chooseSupplier(suppliedClass, parent, s -> {
-				storageSupplier.get().set(s);
+				storage.set(s);
 				parent.applyToDisplayWidgetIfNotNull(ScriptDisplayWidget::markUpdateChain);
 			});
 		}
 	}
 	
-	public class SupplierStorage<T> {
+	protected final <T> SupplierStorage<T> ofStorage(IScriptSupplier<? extends T> supplier, Text argumentName){
+		return new SupplierStorage<>(supplier, argumentName);
+	}
+	
+	protected final SubSupplierBuilder subSupplierBuilder(){
+		return new SubSupplierBuilder();
+	}
+	
+	protected class SupplierStorage<T> {
 		private IScriptSupplier<? extends T> supplier;
 		public final Text argumentName;
 		public void set(IScriptSupplier<? extends T> supplier){
@@ -70,7 +76,14 @@ public abstract class AbstractSupplierWithTypeDeterminedSubSuppliers extends Abs
 		}
 	}
 	
-	public <T> SupplierStorage<T> ofStorage(IScriptSupplier<? extends T> supplier, Text argumentName){
-		return new SupplierStorage<>(supplier, argumentName);
+	protected static class SubSupplierBuilder{
+		ArrayList<SubSupplierEntry<?>> entries = new ArrayList<>();
+		public <T> SubSupplierBuilder addEntry(Class<T> suppliedClass, SupplierStorage<T> storage) {
+			entries.add(new SubSupplierEntry<>(suppliedClass, storage));
+			return this;
+		}
+		public SubSupplierEntry<?>[] build(){
+			return entries.toArray(new SubSupplierEntry<?>[0]);
+		}
 	}
 }

@@ -4,11 +4,11 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 import lpctools.script.editScreen.ScriptEditScreen;
-import lpctools.script.editScreen.ScriptFitTextField;
+import lpctools.script.editScreen.WidthAutoAdjustTextField;
 import lpctools.script.exceptions.ScriptException;
 import lpctools.script.exceptions.ScriptRuntimeException;
 import lpctools.script.runtimeInterfaces.ScriptRunnable;
-import lpctools.script.suppliers.voids.NamedRunMultiple;
+import lpctools.script.suppliers.Void.NamedRunMultiple;
 import lpctools.script.trigger.ScriptTrigger;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.text.Text;
@@ -28,7 +28,7 @@ public class Script extends AbstractScriptWithSubScript implements IScriptWithSu
 	private final ScriptTrigger trigger = new ScriptTrigger(this);
 	private final NamedRunMultiple operations = new NamedRunMultiple(this, Text.translatable("lpctools.script.operations.name"));
 	private final List<IScript> subScripts = List.of(trigger, operations);
-	private @Nullable ScriptFitTextField idWidget;
+	private @Nullable WidthAutoAdjustTextField idWidget;
 	private @Nullable List<Object> widgets;
 	private String id = "script";
 	private static final String triggerJsonKey = "trigger";
@@ -45,9 +45,9 @@ public class Script extends AbstractScriptWithSubScript implements IScriptWithSu
 		super(null);
 		this.config = config;
 	}
-	public @NotNull ScriptFitTextField getIdWidget(){
+	public @NotNull WidthAutoAdjustTextField getIdWidget(){
 		if(idWidget == null){
-			idWidget = new ScriptFitTextField(getDisplayWidget(), 100, text->{
+			idWidget = new WidthAutoAdjustTextField(getDisplayWidget(), 100, text->{
 				config.scriptId.setValueFromString(text);
 				config.getPage().markNeedUpdate();
 			});

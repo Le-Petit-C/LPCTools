@@ -15,4 +15,7 @@ public class ScriptRuntimeException extends ScriptException {
 	public static ScriptRuntimeException nullPointer(IScript source) {
 		return ofTranslate(source, "lpctools.script.exception.runtime.nullPointer");
 	}
+	public static ScriptRuntimeException indexOutOfBounds(IScript source, int index, int size) {
+		return ofTranslate(source, "lpctools.script.exception.runtime.indexOutOfBounds", index, size);
+	}
 }

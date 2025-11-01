@@ -7,20 +7,27 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 import lpctools.lpcfymasaapi.screen.ChooseScreen;
 import lpctools.script.IScriptWithSubScript;
-import lpctools.script.suppliers.booleans.And;
-import lpctools.script.suppliers.booleans.Equals;
-import lpctools.script.suppliers.booleans.Or;
-import lpctools.script.suppliers.entities.VehicleEntity;
-import lpctools.script.suppliers.entities.playerEntities.MainPlayerEntity;
-import lpctools.script.suppliers.randoms.FromVariable;
-import lpctools.script.suppliers.randoms.IRandomSupplierAllocator;
-import lpctools.script.suppliers.randoms.Null;
-import lpctools.script.suppliers.types.ConstantType;
-import lpctools.script.suppliers.types.ObjectType;
-import lpctools.script.suppliers.voids.*;
+import lpctools.script.suppliers.Array.NewArray;
+import lpctools.script.suppliers.Boolean.And;
+import lpctools.script.suppliers.Boolean.Equals;
+import lpctools.script.suppliers.Boolean.Or;
+import lpctools.script.suppliers.Double.ConstantDouble;
+import lpctools.script.suppliers.Entity.VehicleEntity;
+import lpctools.script.suppliers.Entity.PlayerEntity.MainPlayerEntity;
+import lpctools.script.suppliers.Integer.ConstantInteger;
+import lpctools.script.suppliers.Random.FromArray;
+import lpctools.script.suppliers.Random.FromVariable;
+import lpctools.script.suppliers.Random.IRandomSupplierAllocator;
+import lpctools.script.suppliers.Random.Null;
+import lpctools.script.suppliers.Type.ConstantType;
+import lpctools.script.suppliers.Type.ObjectType;
+import lpctools.script.suppliers.Vec3d.EntityEyePos;
+import lpctools.script.suppliers.Vec3d.EntityPos;
+import lpctools.script.suppliers.Void.*;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.text.Text;
+import net.minecraft.util.math.Vec3d;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -141,10 +148,14 @@ public class ScriptSupplierLake {
 	static{
 		registerType(Object.class, 			Text.translatable("lpctools.script.typeName.Object"), "object");
 		registerType(Void.class, 			Text.translatable("lpctools.script.typeName.Void"), "void");
+		registerType(Boolean.class, 		Text.translatable("lpctools.script.typeName.Boolean"), "boolean");
+		registerType(Integer.class, 		Text.translatable("lpctools.script.typeName.Integer"), "integer");
+		registerType(Double.class, 			Text.translatable("lpctools.script.typeName.Double"), "double");
+		registerType(Object[].class, 		Text.translatable("lpctools.script.typeName.Array"), "array");
+		registerType(ScriptType.class, 		Text.translatable("lpctools.script.typeName.ScriptType"), "type");
+		registerType(Vec3d.class, 			Text.translatable("lpctools.script.typeName.Vec3d"), "vec3d");
 		registerType(Entity.class, 			Text.translatable("lpctools.script.typeName.Entity"), "entity");
 		registerType(PlayerEntity.class, 	Text.translatable("lpctools.script.typeName.PlayerEntity"), "playerEntity");
-		registerType(Boolean.class, 		Text.translatable("lpctools.script.typeName.Boolean"), "boolean");
-		registerType(ScriptType.class, 		Text.translatable("lpctools.script.typeName.ScriptType"), "type");
 	}
 	
 	//注册suppliers
@@ -152,25 +163,36 @@ public class ScriptSupplierLake {
 		//注册random suppliers，也就是无类型限制的Object类suppliers
 		registerRandom("null", 				Text.translatable("lpctools.script.suppliers.randoms.null.name"), Null.class, Null::new);
 		registerRandom("fromVariable", 		Text.translatable("lpctools.script.suppliers.randoms.fromVariable.name"), FromVariable.class, FromVariable::new);
+		registerRandom("fromArray", 		Text.translatable("lpctools.script.suppliers.randoms.fromArray.name"), FromArray.class, FromArray::new);
 		//注册void suppliers，也就是无返回值的基础操作
 		registerPrecise("doNothing", 		Text.translatable("lpctools.script.suppliers.voids.doNothing.name"), Void.class, DoNothing.class, DoNothing::new);
 		registerPrecise("runMultiple", 		Text.translatable("lpctools.script.suppliers.voids.runMultiple.name"), Void.class, RunMultiple.class, RunMultiple::new);
 		registerPrecise("runIfElse", 		Text.translatable("lpctools.script.suppliers.voids.runIfElse.name"), Void.class, RunIfElse.class, RunIfElse::new);
+		registerPrecise("setVariable", 		Text.translatable("lpctools.script.suppliers.voids.setVariable.name"), Void.class, SetVariable.class, SetVariable::new);
+		registerPrecise("setArray", 		Text.translatable("lpctools.script.suppliers.voids.setArray.name"), Void.class, SetArray.class, SetArray::new);
 		registerPrecise("doAttack", 		Text.translatable("lpctools.script.suppliers.voids.doAttack.name"), Void.class, DoAttack.class, DoAttack::new);
 		registerPrecise("doItemUse", 		Text.translatable("lpctools.script.suppliers.voids.doItemUse.name"), Void.class, DoItemUse.class, DoItemUse::new);
-		registerPrecise("setVariable", 		Text.translatable("lpctools.script.suppliers.voids.setVariable.name"), Void.class, SetVariable.class, SetVariable::new);
+		//注册boolean suppliers
+		registerPrecise("notNull", 			Text.translatable("lpctools.script.suppliers.booleans.notNull.name"), Boolean.class, lpctools.script.suppliers.Boolean.NotNull.class, lpctools.script.suppliers.Boolean.NotNull::new);
+		registerPrecise("and", 				Text.translatable("lpctools.script.suppliers.booleans.and.name"), Boolean.class, And.class, And::new);
+		registerPrecise("or", 				Text.translatable("lpctools.script.suppliers.booleans.or.name"), Boolean.class, Or.class, Or::new);
+		registerPrecise("equals", 			Text.translatable("lpctools.script.suppliers.booleans.equals.name"), Boolean.class, Equals.class, Equals::new);
+		//注册integer suppliers
+		registerPrecise("constantInteger", 	Text.translatable("lpctools.script.suppliers.integers.constantInteger.name"), Integer.class, ConstantInteger.class, ConstantInteger::new);
+		//注册double suppliers
+		registerPrecise("constantDouble", 	Text.translatable("lpctools.script.suppliers.doubles.constantDouble.name"), Double.class, ConstantDouble.class, ConstantDouble::new);
+		//注册array suppliers
+		registerPrecise("newArray", 		Text.translatable("lpctools.script.suppliers.arrays.newArray.name"), Object[].class, NewArray.class, NewArray::new);
+		//注册type suppliers
+		registerPrecise("objectType", 		Text.translatable("lpctools.script.suppliers.types.objectType.name"), ScriptType.class, ObjectType.class, ObjectType::new);
+		registerPrecise("constantType", 	Text.translatable("lpctools.script.suppliers.types.constantType.name"), ScriptType.class, ConstantType.class, ConstantType::new);
+		//注册vec3d suppliers
+		registerPrecise("entityPos", 		Text.translatable("lpctools.script.suppliers.vec3d.entityPos.name"), Vec3d.class, EntityPos.class, EntityPos::new);
+		registerPrecise("entityEyePos", 	Text.translatable("lpctools.script.suppliers.vec3d.entityEyePos.name"), Vec3d.class, EntityEyePos.class, EntityEyePos::new);
 		//注册entity suppliers
 		registerPrecise("vehicleEntity", 	Text.translatable("lpctools.script.suppliers.entities.vehicleEntity.name"), Entity.class, VehicleEntity.class, VehicleEntity::new);
 		//注册player entity suppliers
 		registerPrecise("playerEntity", 	Text.translatable("lpctools.script.suppliers.playerEntities.mainPlayerEntity.name"), PlayerEntity.class, MainPlayerEntity.class, MainPlayerEntity::new);
-		//注册boolean suppliers
-		registerPrecise("notNull", 			Text.translatable("lpctools.script.suppliers.booleans.notNull.name"), Boolean.class, lpctools.script.suppliers.booleans.NotNull.class, lpctools.script.suppliers.booleans.NotNull::new);
-		registerPrecise("and", 				Text.translatable("lpctools.script.suppliers.booleans.and.name"), Boolean.class, And.class, And::new);
-		registerPrecise("or", 				Text.translatable("lpctools.script.suppliers.booleans.or.name"), Boolean.class, Or.class, Or::new);
-		registerPrecise("equals", 			Text.translatable("lpctools.script.suppliers.booleans.equals.name"), Boolean.class, Equals.class, Equals::new);
-		//注册type suppliers
-		registerPrecise("objectType", 		Text.translatable("lpctools.script.suppliers.types.objectType.name"), ScriptType.class, ObjectType.class, ObjectType::new);
-		registerPrecise("constantType", 	Text.translatable("lpctools.script.suppliers.types.constantType.name"), ScriptType.class, ConstantType.class, ConstantType::new);
 	}
 	
 	//固定temp数据到不可变映射

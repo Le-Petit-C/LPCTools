@@ -38,7 +38,7 @@ public class MultiBooleanConfig extends ThirdListConfig implements IConfigResett
                 );
             }
     }
-    public static final String booleansKey = "booleans";
+    public static final String booleansKey = "Boolean";
     @Override public @NotNull JsonObject getAsJsonElement() {
         JsonObject res = super.getAsJsonElement();
         JsonArray array = new JsonArray();
