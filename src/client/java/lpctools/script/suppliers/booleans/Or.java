@@ -2,7 +2,7 @@ package lpctools.script.suppliers.booleans;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
-import lpctools.script.CompileTimeVariableMap;
+import lpctools.script.CompileEnvironment;
 import lpctools.script.IScriptWithSubScript;
 import lpctools.script.RuntimeVariableMap;
 import lpctools.script.exceptions.ScriptRuntimeException;
@@ -23,7 +23,7 @@ public class Or extends AbstractSupplierWithSubScriptMutable<Boolean, Boolean> i
 	
 	@Override public Class<Boolean> getArgumentClass() {return Boolean.class;}
 	@Override public @NotNull ScriptFunction<RuntimeVariableMap, Boolean>
-	compile(CompileTimeVariableMap variableMap) {
+	compile(CompileEnvironment variableMap) {
 		ArrayList<ScriptFunction<RuntimeVariableMap, ? extends Boolean>> compiledSubRunners = new ArrayList<>();
 		for(var sub : getSubScripts()) compiledSubRunners.add(sub.compile(variableMap));
 		return map->{

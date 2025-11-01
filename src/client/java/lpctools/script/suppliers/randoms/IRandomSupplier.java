@@ -1,6 +1,6 @@
 package lpctools.script.suppliers.randoms;
 
-import lpctools.script.CompileTimeVariableMap;
+import lpctools.script.CompileEnvironment;
 import lpctools.script.RuntimeVariableMap;
 import lpctools.script.exceptions.ScriptRuntimeException;
 import lpctools.script.runtimeInterfaces.ScriptFunction;
@@ -9,7 +9,7 @@ import org.jetbrains.annotations.NotNull;
 
 public interface IRandomSupplier<T> extends IScriptSupplier<T> {
 	@Override default @NotNull ScriptFunction<RuntimeVariableMap, T>
-	compile(CompileTimeVariableMap variableMap){
+	compile(CompileEnvironment variableMap){
 		var func = compileRandom(variableMap);
 		var targetClass = getSuppliedClass();
 		return runtimeVariableMap->{
@@ -21,5 +21,5 @@ public interface IRandomSupplier<T> extends IScriptSupplier<T> {
 		};
 	}
 	@NotNull ScriptFunction<RuntimeVariableMap, Object>
-	compileRandom(CompileTimeVariableMap variableMap);
+	compileRandom(CompileEnvironment variableMap);
 }

@@ -2,7 +2,7 @@ package lpctools.script.suppliers.voids;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
-import lpctools.script.CompileTimeVariableMap;
+import lpctools.script.CompileEnvironment;
 import lpctools.script.IScriptWithSubScript;
 import lpctools.script.RuntimeVariableMap;
 import lpctools.script.runtimeInterfaces.ScriptFunction;
@@ -22,7 +22,7 @@ public class RunMultiple extends AbstractSupplierWithSubScriptMutable<Void, Void
 	
 	@Override public Class<Void> getArgumentClass() {return Void.class;}
 	@Override public @NotNull ScriptFunction<RuntimeVariableMap, Void>
-	compile(CompileTimeVariableMap variableMap) {
+	compile(CompileEnvironment variableMap) {
 		ArrayList<ScriptFunction<RuntimeVariableMap, ? extends Void>> compiledSubRunners = new ArrayList<>();
 		for(var sub : getSubScripts()) compiledSubRunners.add(sub.compile(variableMap));
 		return map-> {

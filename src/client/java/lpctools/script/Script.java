@@ -8,7 +8,7 @@ import lpctools.script.editScreen.ScriptFitTextField;
 import lpctools.script.exceptions.ScriptException;
 import lpctools.script.exceptions.ScriptRuntimeException;
 import lpctools.script.runtimeInterfaces.ScriptRunnable;
-import lpctools.script.suppliers.voids.RunMultiple;
+import lpctools.script.suppliers.voids.NamedRunMultiple;
 import lpctools.script.trigger.ScriptTrigger;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.text.Text;
@@ -26,7 +26,7 @@ public class Script extends AbstractScriptWithSubScript implements IScriptWithSu
 	public final ScriptConfig config;
 	private boolean enabled = false;
 	private final ScriptTrigger trigger = new ScriptTrigger(this);
-	private final RunMultiple operations = new RunMultiple(this);
+	private final NamedRunMultiple operations = new NamedRunMultiple(this, Text.translatable("lpctools.script.operations.name"));
 	private final List<IScript> subScripts = List.of(trigger, operations);
 	private @Nullable ScriptFitTextField idWidget;
 	private @Nullable List<Object> widgets;
@@ -109,7 +109,7 @@ public class Script extends AbstractScriptWithSubScript implements IScriptWithSu
 	@Override public @NotNull Script getScript(){return this;}
 	
 	//运行脚本
-	public void runScript(){//TODO
+	public void runScript(){
 		if(needRecompile) runnable = compile();
 		if(runnable != null) {
 			try{
@@ -133,7 +133,8 @@ public class Script extends AbstractScriptWithSubScript implements IScriptWithSu
 	}
 	
 	private ScriptRunnable compile(){
-		var func = operations.compile(new CompileTimeVariableMap());
-		return ()->func.scriptApply(new RuntimeVariableMap());
+		var environment = new CompileEnvironment();
+		var func = operations.compile(environment);
+		return ()->func.scriptApply(new RuntimeVariableMap(environment));
 	}
 }

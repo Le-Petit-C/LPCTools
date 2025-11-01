@@ -10,6 +10,7 @@ import lpctools.script.suppliers.booleans.Equals;
 import lpctools.script.suppliers.booleans.Or;
 import lpctools.script.suppliers.entities.VehicleEntity;
 import lpctools.script.suppliers.entities.playerEntities.MainPlayerEntity;
+import lpctools.script.suppliers.randoms.FromVariable;
 import lpctools.script.suppliers.randoms.IRandomSupplierAllocator;
 import lpctools.script.suppliers.randoms.Null;
 import lpctools.script.suppliers.voids.*;
@@ -49,12 +50,14 @@ public class ScriptSupplierLake {
 	static {
 		//注册random suppliers，也就是无类型限制的Object类suppliers
 		registerRandom("null", 				Text.translatable("lpctools.script.suppliers.randoms.null.name"), Null.class, Null::new);
+		registerRandom("fromVariable", 		Text.translatable("lpctools.script.suppliers.randoms.fromVariable.name"), FromVariable.class, FromVariable::new);
 		//注册void suppliers，也就是无返回值的基础操作
 		registerPrecise("doNothing", 		Text.translatable("lpctools.script.suppliers.voids.doNothing.name"), Void.class, DoNothing.class, DoNothing::new);
 		registerPrecise("runMultiple", 		Text.translatable("lpctools.script.suppliers.voids.runMultiple.name"), Void.class, RunMultiple.class, RunMultiple::new);
 		registerPrecise("runIfElse", 		Text.translatable("lpctools.script.suppliers.voids.runIfElse.name"), Void.class, RunIfElse.class, RunIfElse::new);
 		registerPrecise("doAttack", 		Text.translatable("lpctools.script.suppliers.voids.doAttack.name"), Void.class, DoAttack.class, DoAttack::new);
 		registerPrecise("doItemUse", 		Text.translatable("lpctools.script.suppliers.voids.doItemUse.name"), Void.class, DoItemUse.class, DoItemUse::new);
+		registerPrecise("setVariable", 		Text.translatable("lpctools.script.suppliers.voids.setVariable.name"), Void.class, SetVariable.class, SetVariable::new);
 		//注册entity suppliers
 		registerPrecise("vehicleEntity", 	Text.translatable("lpctools.script.suppliers.entities.vehicleEntity.name"), Entity.class, VehicleEntity.class, VehicleEntity::new);
 		//注册player entity suppliers

@@ -2,7 +2,7 @@ package lpctools.script.suppliers.randoms;
 
 import com.google.gson.JsonElement;
 import lpctools.script.AbstractScript;
-import lpctools.script.CompileTimeVariableMap;
+import lpctools.script.CompileEnvironment;
 import lpctools.script.IScriptWithSubScript;
 import lpctools.script.RuntimeVariableMap;
 import lpctools.script.runtimeInterfaces.ScriptFunction;
@@ -16,8 +16,8 @@ public class Null<T> extends AbstractScript implements IRandomSupplier<T> {
 		this.suppliedClass = suppliedClass;
 	}
 	@Override public @NotNull ScriptFunction<RuntimeVariableMap, T>
-	compile(CompileTimeVariableMap variableMap) {return map->null;}
-	@Override public @NotNull ScriptFunction<RuntimeVariableMap, Object> compileRandom(CompileTimeVariableMap variableMap) {return map->null;}
+	compile(CompileEnvironment variableMap) {return map->null;}
+	@Override public @NotNull ScriptFunction<RuntimeVariableMap, Object> compileRandom(CompileEnvironment variableMap) {return map->null;}
 	@Override public Class<? extends T> getSuppliedClass() {return suppliedClass;}
 	@Override public @Nullable JsonElement getAsJsonElement() {return null;}
 	@Override public void setValueFromJsonElement(@Nullable JsonElement element) {}

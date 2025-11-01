@@ -16,7 +16,7 @@ import java.util.function.Supplier;
 
 public abstract class AbstractSupplierWithTypeDeterminedSubSuppliers extends AbstractScriptWithSubScript {
 	
-	protected @Nullable Iterable<ButtonBase> widgets = null;
+	protected @Nullable ArrayList<Object> widgets = null;
 	private final HashMap<IScript, SupplierStorage<?>> storageMap = new HashMap<>();
 	
 	protected AbstractSupplierWithTypeDeterminedSubSuppliers(IScriptWithSubScript parent){super(parent);}
@@ -24,17 +24,7 @@ public abstract class AbstractSupplierWithTypeDeterminedSubSuppliers extends Abs
 	protected abstract List<SubSupplierEntry<?>> getSubSuppliers();
 	
 	@Override public @Nullable Iterable<?> getWidgets() {
-		if(widgets == null){
-			var w = new ArrayList<ButtonBase>();
-			for(var entry : getSubSuppliers()){
-				ButtonBase button = new WidthAutoAdjustButtonGeneric(getDisplayWidget(), 0, 0, 20, entry.storageSupplier.get().argumentName.getString(), null);
-				button.setActionListener((b, m)->entry.chooseSupplier(this));
-				w.add(button);
-				//但是这样的问题是用户更改语言后按钮名称不会更新
-				//TODO
-			}
-			widgets = w;
-		}
+		if(widgets == null) widgets = buildWidgets(new ArrayList<>());
 		return widgets;
 	}
 	
@@ -42,6 +32,17 @@ public abstract class AbstractSupplierWithTypeDeterminedSubSuppliers extends Abs
 		var entry = storageMap.get(subScript);
 		if(entry != null) return entry.argumentName;
 		else return null;
+	}
+	
+	protected ArrayList<Object> buildWidgets(ArrayList<Object> res){
+		for(var entry : getSubSuppliers()){
+			ButtonBase button = new WidthAutoAdjustButtonGeneric(getDisplayWidget(), 0, 0, 20, entry.storageSupplier.get().argumentName.getString(), null);
+			button.setActionListener((b, m)->entry.chooseSupplier(this));
+			res.add(button);
+			//但是这样的问题是用户更改语言后按钮名称不会更新
+			//TODO
+		}
+		return res;
 	}
 	
 	public record SubSupplierEntry<T>(Class<T> suppliedClass, Supplier<SupplierStorage<T>> storageSupplier) {

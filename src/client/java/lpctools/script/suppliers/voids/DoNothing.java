@@ -2,7 +2,7 @@ package lpctools.script.suppliers.voids;
 
 import com.google.gson.JsonElement;
 import lpctools.script.AbstractScript;
-import lpctools.script.CompileTimeVariableMap;
+import lpctools.script.CompileEnvironment;
 import lpctools.script.IScriptWithSubScript;
 import lpctools.script.RuntimeVariableMap;
 import lpctools.script.runtimeInterfaces.ScriptFunction;
@@ -12,7 +12,7 @@ import org.jetbrains.annotations.Nullable;
 public class DoNothing extends AbstractScript implements IVoidSupplier {
 	public DoNothing(IScriptWithSubScript parent) {super(parent);}
 	@Override public @NotNull ScriptFunction<RuntimeVariableMap, Void>
-	compile(CompileTimeVariableMap variableMap) {return map->null;}
+	compile(CompileEnvironment variableMap) {return map->null;}
 	
 	@Override public @Nullable JsonElement getAsJsonElement() {return null;}
 	@Override public void setValueFromJsonElement(@Nullable JsonElement element) {}

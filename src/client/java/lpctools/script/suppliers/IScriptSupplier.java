@@ -1,6 +1,6 @@
 package lpctools.script.suppliers;
 
-import lpctools.script.CompileTimeVariableMap;
+import lpctools.script.CompileEnvironment;
 import lpctools.script.IScript;
 import lpctools.script.RuntimeVariableMap;
 import lpctools.script.runtimeInterfaces.ScriptFunction;
@@ -14,5 +14,5 @@ public interface IScriptSupplier<T> extends IScript {
 	
 	Class<? extends T> getSuppliedClass();
 	@NotNull ScriptFunction<RuntimeVariableMap, T>
-	compile(CompileTimeVariableMap variableMap);
+	compile(CompileEnvironment variableMap);
 }

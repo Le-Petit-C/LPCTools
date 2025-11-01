@@ -12,7 +12,7 @@ public class MainPlayerEntity extends AbstractScript implements IPlayerEntitySup
 	public MainPlayerEntity(IScriptWithSubScript parent) {super(parent);}
 	
 	@Override public @NotNull ScriptFunction<RuntimeVariableMap, PlayerEntity>
-	compile(CompileTimeVariableMap variableMap) {
+	compile(CompileEnvironment variableMap) {
 		return map->MinecraftClient.getInstance().player;
 	}
 	

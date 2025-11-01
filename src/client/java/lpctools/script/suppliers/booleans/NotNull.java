@@ -1,7 +1,7 @@
 package lpctools.script.suppliers.booleans;
 
 import com.google.gson.JsonElement;
-import lpctools.script.CompileTimeVariableMap;
+import lpctools.script.CompileEnvironment;
 import lpctools.script.IScript;
 import lpctools.script.IScriptWithSubScript;
 import lpctools.script.RuntimeVariableMap;
@@ -32,7 +32,7 @@ public class NotNull extends AbstractSupplierWithTypeDeterminedSubSuppliers impl
 	}
 	
 	@Override public @org.jetbrains.annotations.NotNull ScriptFunction<RuntimeVariableMap, Boolean>
-	compile(CompileTimeVariableMap variableMap) {
+	compile(CompileEnvironment variableMap) {
 		var compiledSupplier = objectStorage.get().compile(variableMap);
 		return map->compiledSupplier.scriptApply(map) != null;
 	}

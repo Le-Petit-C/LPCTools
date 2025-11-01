@@ -30,8 +30,8 @@ public class ScriptConfig extends WrappedThirdListConfig{
 	public final ButtonConfig exceptionButton = new ButtonConfig(this, "exception"){
 		@Override public void getButtonOptions(ButtonOptionArrayList res) {
 			buttonName = script.hasExceptions() ?
-				"lpctools.configs.scripts.scripts.script.exception.title" :
-				"lpctools.configs.scripts.scripts.script.exception.titleWithExceptions";
+				"lpctools.configs.scripts.scripts.script.exception.titleWithExceptions" :
+				"lpctools.configs.scripts.scripts.script.exception.title";
 			super.getButtonOptions(res);
 		}
 	};

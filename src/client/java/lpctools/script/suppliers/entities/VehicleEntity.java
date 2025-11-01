@@ -32,7 +32,7 @@ public class VehicleEntity extends AbstractSupplierWithTypeDeterminedSubSupplier
 	}
 	
 	@Override public @NotNull ScriptFunction<RuntimeVariableMap, Entity>
-	compile(CompileTimeVariableMap variableMap) {
+	compile(CompileEnvironment variableMap) {
 		var compiledEntitySupplier = passenger.get().compile(variableMap);
 		return map->{
 			Entity entity = compiledEntitySupplier.scriptApply(map);

@@ -2,7 +2,7 @@ package lpctools.script.suppliers.booleans;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import lpctools.script.CompileTimeVariableMap;
+import lpctools.script.CompileEnvironment;
 import lpctools.script.IScript;
 import lpctools.script.IScriptWithSubScript;
 import lpctools.script.RuntimeVariableMap;
@@ -39,7 +39,7 @@ public class Equals extends AbstractSupplierWithTypeDeterminedSubSuppliers imple
 	}
 	
 	@Override public @org.jetbrains.annotations.NotNull ScriptFunction<RuntimeVariableMap, Boolean>
-	compile(CompileTimeVariableMap variableMap) {
+	compile(CompileEnvironment variableMap) {
 		var object1 = object1Storage.get().compile(variableMap);
 		var object2 = object2Storage.get().compile(variableMap);
 		return map->Objects.equals(object1.scriptApply(map), object2.scriptApply(map));
