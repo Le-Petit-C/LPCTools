@@ -27,7 +27,7 @@ public class SetVariable extends AbstractSupplierWithTypeDeterminedSubSuppliers 
 	
 	private @NotNull String variableName = "var";
 	SupplierStorage<Object> value = ofStorage(new Null<>(this, Entity.class),
-		Text.translatable("lpctools.script.suppliers.entities.vehicleEntity.subSuppliers.passenger.name"));
+		Text.translatable("lpctools.script.suppliers.voids.setVariable.subSuppliers.value.name"));
 	protected @Nullable List<SubSupplierEntry<?>> subSuppliers = null;
 	public static final String variableNameJsonKey = "variableName";
 	public static final String valueJsonKey = "value";
@@ -80,7 +80,7 @@ public class SetVariable extends AbstractSupplierWithTypeDeterminedSubSuppliers 
 				variableName = primitive.getAsString();
 			else warnFailedLoadingConfig("SetVariable.variableName", varNameElement);
 		}
-		ScriptSupplierLake.loadSupplierOrWarn(object.get(valueJsonKey), Entity.class, this, res -> value.set(res), "SetVariable.value");
+		ScriptSupplierLake.loadSupplierOrWarn(object.get(valueJsonKey), Object.class, this, res -> value.set(res), "SetVariable.value");
 	}
 	
 	@Override public @NotNull List<? extends IScript> getSubScripts() {
