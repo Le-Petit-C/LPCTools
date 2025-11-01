@@ -33,7 +33,7 @@
     "MASAMixins.litematicaMixin.DataManagerMixin",
     "MASAMixins.MuteMASAConfigMinMaxMixin.ConfigDoubleMixin",
     "MASAMixins.MuteMASAConfigMinMaxMixin.ConfigIntegerMixin",
-    "enchantmentLevelFix.TestMixin",
+    "enchantmentLevelFix.MixinTranslationStorage",
     "EntityHighlight.EntityMixin",
     "MASAMixins.ButtonGenericMixin",
     "MASAMixins.ConfigButtonKeybindMixin",
