@@ -24,7 +24,7 @@ abstract class TriggerOptionBase extends AbstractScript implements TriggerOption
 	public TriggerOptionFactory getFactory() {return factory;}
 	
 	@Override
-	public @Nullable String getName() {return Text.translatable("lpctools.script.trigger." + getFactory().getKey()).getString();}
+	public @Nullable Text getName() {return Text.translatable("lpctools.script.trigger." + getFactory().getKey());}
 	
 	@Override public @Nullable ScriptTrigger getParent() {
 		return (ScriptTrigger)super.getParent();

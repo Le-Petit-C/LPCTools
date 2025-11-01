@@ -8,7 +8,6 @@ import lpctools.script.IScriptWithSubScript;
 import lpctools.script.RuntimeVariableMap;
 import lpctools.script.runtimeInterfaces.ScriptFunction;
 import net.minecraft.client.MinecraftClient;
-import net.minecraft.text.Text;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -20,9 +19,6 @@ public class DoAttack extends AbstractScript implements IVoidSupplier {
 			((BlockReplaceAction) MinecraftClient.getInstance()).invokeDoAttack();
 			return null;
 		};
-	}
-	@Override public @Nullable String getName() {
-		return Text.translatable("lpctools.script.suppliers.voids.doAttack.name").getString();
 	}
 	
 	@Override public @Nullable JsonElement getAsJsonElement() {return null;}

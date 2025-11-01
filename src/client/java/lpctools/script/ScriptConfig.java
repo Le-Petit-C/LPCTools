@@ -9,6 +9,7 @@ import lpctools.lpcfymasaapi.configButtons.uniqueConfigs.UniqueBooleanConfig;
 import lpctools.lpcfymasaapi.configButtons.uniqueConfigs.UniqueStringConfig;
 import lpctools.lpcfymasaapi.configButtons.uniqueConfigs.WrappedThirdListConfig;
 import lpctools.lpcfymasaapi.interfaces.ILPCConfigReadable;
+import net.minecraft.text.Text;
 import org.jetbrains.annotations.NotNull;
 
 // 显示在malilib配置界面中的脚本配置项
@@ -26,16 +27,26 @@ public class ScriptConfig extends WrappedThirdListConfig{
 	};
 	public final UniqueStringConfig scriptId = new UniqueStringConfig(this, "id", "", null);
 	public final ButtonConfig editButton = new ButtonConfig(this, "edit");
+	public final ButtonConfig exceptionButton = new ButtonConfig(this, "exception"){
+		@Override public void getButtonOptions(ButtonOptionArrayList res) {
+			buttonName = script.hasExceptions() ?
+				"lpctools.configs.scripts.scripts.script.exception.title" :
+				"lpctools.configs.scripts.scripts.script.exception.titleWithExceptions";
+			super.getButtonOptions(res);
+		}
+	};
 	public ScriptConfig(@NotNull ILPCConfigReadable parent) {
 		super(parent, "script", null);
 		addConfig(isEnabled);
 		addConfig(scriptId);
 		addConfig(editButton);
+		addConfig(exceptionButton);
 		script = new Script(this);
 		scriptId.setValueFromString(script.getId());
 		scriptId.setValueChangeCallback(()->script.setId(scriptId.getStringValue()));
 		isEnabled.setValueChangeCallback(()->script.enable(isEnabled.getBooleanValue()));
 		editButton.setListener((button, mouseButton) -> script.openEditScreen());
+		exceptionButton.setListener((button, mouseButton) -> script.clearExceptions());
 	}
 	
 	@Override public void getButtonOptions(ButtonOptionArrayList res) {
@@ -47,6 +58,14 @@ public class ScriptConfig extends WrappedThirdListConfig{
 				()-> (isEnabled.getBooleanValue() ?"§2O": "§4X"),
 				buttonGenericAllocator)
 			);
+			if(script.hasExceptions()) {
+				res.add(new ButtonOption(
+					1, null,
+					()->Text.translatable("lpctools.configs.scripts.scripts.script.exception.smallName").getString(),
+					buttonGenericAllocator)
+				);
+				scriptId.getButtonOptions(res);
+			}
 			scriptId.getButtonOptions(res);
 		}
 	}

@@ -2,7 +2,6 @@ package lpctools.script.suppliers;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
-import com.google.gson.JsonPrimitive;
 import lpctools.script.AbstractScriptWithSubScriptMutable;
 import lpctools.script.IScriptWithSubScript;
 
@@ -21,9 +20,7 @@ public abstract class AbstractSupplierWithSubScriptMutable<T, U> extends Abstrac
 	protected JsonArray getSubSuppliersAsJsonArray(){
 		JsonArray res = null;
 		for(var sub : getSubScripts()){
-			JsonObject object = new JsonObject();
-			object.addProperty("id", ScriptSupplierLake.getSupplierId(sub));
-			object.add("data", sub.getAsJsonElement());
+			JsonObject object = ScriptSupplierLake.getJsonEntryFromSupplier(sub);
 			if(res == null) res = new JsonArray();
 			res.add(object);
 		}
@@ -32,20 +29,9 @@ public abstract class AbstractSupplierWithSubScriptMutable<T, U> extends Abstrac
 	protected void loadSubSuppliersFromJsonArray(JsonArray array){
 		subScripts.clear();
 		for(var element : array){
-			boolean succeeded = false;
-			if(element instanceof JsonObject object){
-				if(object.get("id") instanceof JsonPrimitive id){
-					var reg = ScriptSupplierLake.getSupplierRegistration(id.getAsString());
-					var allocator = reg.tryAllocate(getArgumentClass());
-					if(allocator != null){
-						var res = allocator.allocate(this);
-						subScripts.add(res);
-						res.setValueFromJsonElement(object.get("data"));
-						succeeded = true;
-					}
-				}
-			}
-			if(!succeeded) warnFailedLoadingConfig("script_option", element);
+			var res = ScriptSupplierLake.loadSupplierFromJsonEntry(element, getArgumentClass(), this);
+			if(res != null) subScripts.add(res);
+			else warnFailedLoadingConfig("script_option", element);
 		}
 	}
 }

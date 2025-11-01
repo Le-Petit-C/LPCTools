@@ -1,10 +1,11 @@
-package lpctools.script.suppliers.voids;
+package lpctools.script.suppliers.booleans;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import lpctools.script.CompileTimeVariableMap;
 import lpctools.script.IScriptWithSubScript;
 import lpctools.script.RuntimeVariableMap;
+import lpctools.script.exceptions.ScriptRuntimeException;
 import lpctools.script.runtimeInterfaces.ScriptFunction;
 import lpctools.script.suppliers.AbstractSupplierWithSubScriptMutable;
 import org.jetbrains.annotations.NotNull;
@@ -15,20 +16,23 @@ import java.util.List;
 
 import static lpctools.lpcfymasaapi.LPCConfigUtils.warnFailedLoadingConfig;
 
-public class RunMultiple extends AbstractSupplierWithSubScriptMutable<Void, Void> implements IVoidSupplier {
+public class Or extends AbstractSupplierWithSubScriptMutable<Boolean, Boolean> implements IBooleanSupplier {
 	private @Nullable Iterable<?> widgets;
 	
-	public RunMultiple(IScriptWithSubScript parent) {super(parent);}
+	public Or(IScriptWithSubScript parent) {super(parent);}
 	
-	@Override public Class<Void> getArgumentClass() {return Void.class;}
-	@Override public @NotNull ScriptFunction<RuntimeVariableMap, Void>
+	@Override public Class<Boolean> getArgumentClass() {return Boolean.class;}
+	@Override public @NotNull ScriptFunction<RuntimeVariableMap, Boolean>
 	compile(CompileTimeVariableMap variableMap) {
-		ArrayList<ScriptFunction<RuntimeVariableMap, ? extends Void>> compiledSubRunners = new ArrayList<>();
+		ArrayList<ScriptFunction<RuntimeVariableMap, ? extends Boolean>> compiledSubRunners = new ArrayList<>();
 		for(var sub : getSubScripts()) compiledSubRunners.add(sub.compile(variableMap));
-		return map-> {
-			for(var runnable : compiledSubRunners)
-				runnable.scriptApply(map);
-			return null;
+		return map->{
+			for(var runnable : compiledSubRunners){
+				Boolean val = runnable.scriptApply(map);
+				if(val == null) throw ScriptRuntimeException.nullPointer(this);
+				if(val) return true;
+			}
+			return false;
 		};
 	}
 	@Override public @Nullable JsonElement getAsJsonElement() {return getSubSuppliersAsJsonArray();}

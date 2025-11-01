@@ -40,9 +40,13 @@ public class ScriptDisplayWidget extends ClickableWidget{
 		this.editScreen = script.getScript().getEditScreen();
 		if(parent != null) depth = parent.depth + 1;
 		else depth = 0;
-		String name = script.getName();
-		if(name != null) nameButton = new ButtonGeneric(0, 0, calculateTextButtonWidth(name, editScreen.textRenderer, 20), 20, name)
-			.setRenderDefaultBackground(false);
+		Text name = script.getName();
+		Text prefix = parentScript != null ? parentScript.getSubScriptNamePrefix(script) : null;
+		String nameStr = (prefix == null ? "" : prefix.getString() + ": ") + (name == null ? "" : name.getString());
+		if(!nameStr.isEmpty()){
+			nameButton = new ButtonGeneric(0, 0, calculateTextButtonWidth(nameStr, editScreen.textRenderer, 20), 20, nameStr)
+				.setRenderDefaultBackground(false);
+		}
 		else nameButton = null;
 	}
 	

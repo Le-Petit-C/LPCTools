@@ -1,5 +1,6 @@
 package lpctools.script;
 
+import lpctools.script.editScreen.ScriptWithSubScriptDisplayWidget;
 import lpctools.script.editScreen.ScriptWithSubScriptMutableDisplayWidget;
 import org.jetbrains.annotations.NotNull;
 
@@ -11,4 +12,8 @@ public interface IScriptWithSubScriptMutable<T extends IScript> extends IScriptW
 	void notifyInsertion(Consumer<T> callback);
 	@Override @NotNull ArrayList<T> getSubScripts();
 	@Override @NotNull ScriptWithSubScriptMutableDisplayWidget<T> getDisplayWidget();
+	void applyToDisplayWidgetWithSubScriptMutableIfNotNull(Consumer<? super ScriptWithSubScriptMutableDisplayWidget<T>> consumer);
+	@Override default void applyToDisplayWidgetWithSubScriptIfNotNull(Consumer<? super ScriptWithSubScriptDisplayWidget> consumer){
+		applyToDisplayWidgetWithSubScriptMutableIfNotNull(consumer);
+	}
 }

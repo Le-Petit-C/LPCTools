@@ -34,7 +34,6 @@ public class ScriptEditScreen extends GuiConfigsBase {
 	private final ButtonGeneric removeButton = createGenericSquareButton("-", "lpctools.script.trigger.chooseScreen.remove");
 	private final ButtonGeneric infoButton = new ButtonGeneric(0, 0, 22, 22, "");
 	private long infoDisplayEndTime = 0;
-	private final HashMap<IScript, ArrayList<ScriptRuntimeException>> runtimeExceptions = new HashMap<>();
 	
 	private static final int reserve = 10, topReserve = 40;
 	
@@ -69,11 +68,6 @@ public class ScriptEditScreen extends GuiConfigsBase {
 	}
 	
 	public @Nullable Element getScriptFocused(){return scriptFocused;}
-	
-	public void clearRuntimeExceptions(){runtimeExceptions.clear();}
-	public void putRuntimeException(IScript script, ScriptRuntimeException runtimeException){
-		runtimeExceptions.computeIfAbsent(script, v->new ArrayList<>()).add(runtimeException);
-	}
 	
 	@Override public boolean mouseClicked(double mouseX, double mouseY, int mouseButton) {
 		if(super.mouseClicked(mouseX, mouseY, mouseButton)) {

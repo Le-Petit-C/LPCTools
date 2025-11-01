@@ -5,13 +5,18 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 import lpctools.script.editScreen.ScriptEditScreen;
 import lpctools.script.editScreen.ScriptFitTextField;
+import lpctools.script.exceptions.ScriptException;
+import lpctools.script.exceptions.ScriptRuntimeException;
 import lpctools.script.runtimeInterfaces.ScriptRunnable;
 import lpctools.script.suppliers.voids.RunMultiple;
 import lpctools.script.trigger.ScriptTrigger;
 import net.minecraft.client.MinecraftClient;
+import net.minecraft.text.Text;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 import static lpctools.lpcfymasaapi.LPCConfigUtils.warnFailedLoadingConfig;
@@ -32,6 +37,7 @@ public class Script extends AbstractScriptWithSubScript implements IScriptWithSu
 	private static final String idJsonKey = "id";
 	private boolean needRecompile = true;
 	private @Nullable ScriptRunnable runnable;
+	private final HashMap<IScript, ArrayList<ScriptException>> exceptions = new HashMap<>();
 	
 	public void markNeedRecompile(){needRecompile = true;}
 	public boolean isEnabled() {return enabled;}
@@ -66,7 +72,7 @@ public class Script extends AbstractScriptWithSubScript implements IScriptWithSu
 			trigger.registerAll(enable);
 		}
 	}
-	@Override public @Nullable String getName() {return null;}
+	@Override public @Nullable Text getName() {return null;}
 	public String getId(){return id;}
 	public void setId(String id){
 		if(id.equals(this.id)) return;
@@ -109,9 +115,21 @@ public class Script extends AbstractScriptWithSubScript implements IScriptWithSu
 			try{
 				runnable.scriptRun();
 			} catch (ScriptRuntimeException e){
-			
+				runnable = null;
+				//markNeedRecompile();
+				//不标记重新编译，避免无限异常
 			}
 		}
+	}
+	
+	public boolean hasExceptions(){return !exceptions.isEmpty();}
+	public void putException(IScript source, ScriptException exception){
+		exceptions.computeIfAbsent(source, v->new ArrayList<>()).add(exception);
+		config.getPage().markNeedUpdate();
+	}
+	public void clearExceptions(){
+		exceptions.clear();
+		config.getPage().markNeedUpdate();
 	}
 	
 	private ScriptRunnable compile(){

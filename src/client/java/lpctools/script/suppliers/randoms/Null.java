@@ -6,7 +6,6 @@ import lpctools.script.CompileTimeVariableMap;
 import lpctools.script.IScriptWithSubScript;
 import lpctools.script.RuntimeVariableMap;
 import lpctools.script.runtimeInterfaces.ScriptFunction;
-import net.minecraft.text.Text;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -19,7 +18,6 @@ public class Null<T> extends AbstractScript implements IRandomSupplier<T> {
 	@Override public @NotNull ScriptFunction<RuntimeVariableMap, T>
 	compile(CompileTimeVariableMap variableMap) {return map->null;}
 	@Override public @NotNull ScriptFunction<RuntimeVariableMap, Object> compileRandom(CompileTimeVariableMap variableMap) {return map->null;}
-	@Override public @Nullable String getName() {return Text.translatable("lpctools.script.suppliers.randoms.null.name").getString();}
 	@Override public Class<? extends T> getSuppliedClass() {return suppliedClass;}
 	@Override public @Nullable JsonElement getAsJsonElement() {return null;}
 	@Override public void setValueFromJsonElement(@Nullable JsonElement element) {}
