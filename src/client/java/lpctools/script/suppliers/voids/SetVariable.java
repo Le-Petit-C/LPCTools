@@ -6,7 +6,6 @@ import com.google.gson.JsonPrimitive;
 import lpctools.script.CompileEnvironment;
 import lpctools.script.IScript;
 import lpctools.script.IScriptWithSubScript;
-import lpctools.script.RuntimeVariableMap;
 import lpctools.script.editScreen.ScriptDisplayWidget;
 import lpctools.script.editScreen.ScriptFitTextField;
 import lpctools.script.runtimeInterfaces.ScriptFunction;
@@ -52,7 +51,7 @@ public class SetVariable extends AbstractSupplierWithTypeDeterminedSubSuppliers 
 		return super.buildWidgets(res);
 	}
 	
-	@Override public @NotNull ScriptFunction<RuntimeVariableMap, Void>
+	@Override public @NotNull ScriptFunction<CompileEnvironment.RuntimeVariableMap, Void>
 	compile(CompileEnvironment variableMap) {
 		var compiledEntitySupplier = value.get().compile(variableMap);
 		var variableRef = variableMap.getVariableReference(variableName);

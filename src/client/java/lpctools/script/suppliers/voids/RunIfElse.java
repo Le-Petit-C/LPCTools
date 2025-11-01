@@ -24,7 +24,7 @@ public class RunIfElse extends AbstractScriptWithSubScript implements IVoidSuppl
 	
 	public RunIfElse(IScriptWithSubScript parent) {super(parent);}
 	
-	@Override public @org.jetbrains.annotations.NotNull ScriptFunction<RuntimeVariableMap, Void>
+	@Override public @org.jetbrains.annotations.NotNull ScriptFunction<CompileEnvironment.RuntimeVariableMap, Void>
 	compile(CompileEnvironment variableMap) {
 		var compiledCondition = condition.compile(variableMap);
 		var compiledIfTrue = ifTrue.compile(variableMap);

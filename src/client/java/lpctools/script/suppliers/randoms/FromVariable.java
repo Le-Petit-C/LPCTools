@@ -35,7 +35,7 @@ public class FromVariable<T> extends AbstractScript implements IRandomSupplier<T
 		return widgets;
 	}
 	
-	@Override public @NotNull ScriptFunction<RuntimeVariableMap, Object>
+	@Override public @NotNull ScriptFunction<CompileEnvironment.RuntimeVariableMap, Object>
 	compileRandom(CompileEnvironment variableMap) {
 		var variableRef = variableMap.getVariableReference(variableName);
 		return variableRef::getValue;

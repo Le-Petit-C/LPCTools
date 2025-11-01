@@ -135,6 +135,8 @@ public class Script extends AbstractScriptWithSubScript implements IScriptWithSu
 	private ScriptRunnable compile(){
 		var environment = new CompileEnvironment();
 		var func = operations.compile(environment);
-		return ()->func.scriptApply(new RuntimeVariableMap(environment));
+		var runtimeVariableMapSupplier = environment.createRuntimeVariableMapSupplier();
+		needRecompile = false;
+		return ()->func.scriptApply(runtimeVariableMapSupplier.get());
 	}
 }

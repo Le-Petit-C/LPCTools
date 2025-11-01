@@ -5,7 +5,6 @@ import com.google.gson.JsonObject;
 import lpctools.script.CompileEnvironment;
 import lpctools.script.IScript;
 import lpctools.script.IScriptWithSubScript;
-import lpctools.script.RuntimeVariableMap;
 import lpctools.script.runtimeInterfaces.ScriptFunction;
 import lpctools.script.suppliers.AbstractSupplierWithTypeDeterminedSubSuppliers;
 import lpctools.script.suppliers.ScriptSupplierLake;
@@ -38,7 +37,7 @@ public class Equals extends AbstractSupplierWithTypeDeterminedSubSuppliers imple
 		return subSuppliers;
 	}
 	
-	@Override public @org.jetbrains.annotations.NotNull ScriptFunction<RuntimeVariableMap, Boolean>
+	@Override public @org.jetbrains.annotations.NotNull ScriptFunction<CompileEnvironment.RuntimeVariableMap, Boolean>
 	compile(CompileEnvironment variableMap) {
 		var object1 = object1Storage.get().compile(variableMap);
 		var object2 = object2Storage.get().compile(variableMap);

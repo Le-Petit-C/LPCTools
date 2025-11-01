@@ -1,13 +1,19 @@
 package lpctools.script;
 
-import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
+import java.util.*;
+import java.util.function.Function;
+import java.util.function.Supplier;
 
 public class CompileEnvironment {
-	private final Object2IntOpenHashMap<String> indexMap = new Object2IntOpenHashMap<>();
-	public int variableCount() {return indexMap.size();}
+	private final HashMap<String, VariableReference> indexMap = new HashMap<>();
+	private final Function<String, VariableReference> variableReferenceFactory =
+			name -> new VariableReference(name, indexMap.size());
 	public VariableReference getVariableReference(String name){
-		int index = indexMap.computeIfAbsent(name, k -> indexMap.size());
-		return new VariableReference(name, index);
+		return indexMap.computeIfAbsent(name, variableReferenceFactory);
+	}
+	public Supplier<RuntimeVariableMap> createRuntimeVariableMapSupplier(){
+		int size = indexMap.size();
+		return ()->new RuntimeVariableMap(size);
 	}
 	
 	public static class VariableReference {
@@ -18,10 +24,17 @@ public class CompileEnvironment {
 			this.index = index;
 		}
 		public void setValue(RuntimeVariableMap runtimeVariableMap, Object value){
-			runtimeVariableMap.values.set(index, value);
+			runtimeVariableMap.values[index] = value;
 		}
 		public Object getValue(RuntimeVariableMap runtimeVariableMap) {
-			return runtimeVariableMap.values.get(index);
+			return runtimeVariableMap.values[index];
+		}
+	}
+	
+	public static class RuntimeVariableMap {
+		private final Object[] values;
+		private RuntimeVariableMap(int size){
+			values = new Object[size];
 		}
 	}
 }

@@ -25,7 +25,7 @@ public class ConstantType extends AbstractScript implements ITypeSupplier {
 	
 	public ConstantType(IScriptWithSubScript parent) {super(parent);}
 	
-	@Override public @org.jetbrains.annotations.NotNull ScriptFunction<RuntimeVariableMap, ScriptType>
+	@Override public @org.jetbrains.annotations.NotNull ScriptFunction<CompileEnvironment.RuntimeVariableMap, ScriptType>
 	compile(CompileEnvironment variableMap) {return map->cachedType;}
 	
 	@Override public @Nullable Iterable<?> getWidgets() {

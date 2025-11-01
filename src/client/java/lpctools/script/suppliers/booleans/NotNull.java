@@ -4,7 +4,6 @@ import com.google.gson.JsonElement;
 import lpctools.script.CompileEnvironment;
 import lpctools.script.IScript;
 import lpctools.script.IScriptWithSubScript;
-import lpctools.script.RuntimeVariableMap;
 import lpctools.script.runtimeInterfaces.ScriptFunction;
 import lpctools.script.suppliers.AbstractSupplierWithTypeDeterminedSubSuppliers;
 import lpctools.script.suppliers.ScriptSupplierLake;
@@ -31,7 +30,7 @@ public class NotNull extends AbstractSupplierWithTypeDeterminedSubSuppliers impl
 		return subSuppliers;
 	}
 	
-	@Override public @org.jetbrains.annotations.NotNull ScriptFunction<RuntimeVariableMap, Boolean>
+	@Override public @org.jetbrains.annotations.NotNull ScriptFunction<CompileEnvironment.RuntimeVariableMap, Boolean>
 	compile(CompileEnvironment variableMap) {
 		var compiledSupplier = objectStorage.get().compile(variableMap);
 		return map->compiledSupplier.scriptApply(map) != null;

@@ -11,7 +11,7 @@ import org.jetbrains.annotations.Nullable;
 public class MainPlayerEntity extends AbstractScript implements IPlayerEntitySupplier {
 	public MainPlayerEntity(IScriptWithSubScript parent) {super(parent);}
 	
-	@Override public @NotNull ScriptFunction<RuntimeVariableMap, PlayerEntity>
+	@Override public @NotNull ScriptFunction<CompileEnvironment.RuntimeVariableMap, PlayerEntity>
 	compile(CompileEnvironment variableMap) {
 		return map->MinecraftClient.getInstance().player;
 	}

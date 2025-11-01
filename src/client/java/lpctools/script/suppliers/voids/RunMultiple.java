@@ -4,7 +4,6 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import lpctools.script.CompileEnvironment;
 import lpctools.script.IScriptWithSubScript;
-import lpctools.script.RuntimeVariableMap;
 import lpctools.script.runtimeInterfaces.ScriptFunction;
 import lpctools.script.suppliers.AbstractSupplierWithSubScriptMutable;
 import org.jetbrains.annotations.NotNull;
@@ -21,9 +20,9 @@ public class RunMultiple extends AbstractSupplierWithSubScriptMutable<Void, Void
 	public RunMultiple(IScriptWithSubScript parent) {super(parent);}
 	
 	@Override public Class<Void> getArgumentClass() {return Void.class;}
-	@Override public @NotNull ScriptFunction<RuntimeVariableMap, Void>
+	@Override public @NotNull ScriptFunction<CompileEnvironment.RuntimeVariableMap, Void>
 	compile(CompileEnvironment variableMap) {
-		ArrayList<ScriptFunction<RuntimeVariableMap, ? extends Void>> compiledSubRunners = new ArrayList<>();
+		ArrayList<ScriptFunction<CompileEnvironment.RuntimeVariableMap, ? extends Void>> compiledSubRunners = new ArrayList<>();
 		for(var sub : getSubScripts()) compiledSubRunners.add(sub.compile(variableMap));
 		return map-> {
 			for(var runnable : compiledSubRunners)

@@ -4,7 +4,6 @@ import com.google.gson.JsonElement;
 import lpctools.script.CompileEnvironment;
 import lpctools.script.IScript;
 import lpctools.script.IScriptWithSubScript;
-import lpctools.script.RuntimeVariableMap;
 import lpctools.script.runtimeInterfaces.ScriptFunction;
 import lpctools.script.suppliers.AbstractSupplierWithTypeDeterminedSubSuppliers;
 import lpctools.script.suppliers.ScriptSupplierLake;
@@ -32,7 +31,7 @@ public class ObjectType extends AbstractSupplierWithTypeDeterminedSubSuppliers i
 		return subSuppliers;
 	}
 	
-	@Override public @org.jetbrains.annotations.NotNull ScriptFunction<RuntimeVariableMap, ScriptType>
+	@Override public @org.jetbrains.annotations.NotNull ScriptFunction<CompileEnvironment.RuntimeVariableMap, ScriptType>
 	compile(CompileEnvironment variableMap) {
 		var compiledSupplier = objectStorage.get().compile(variableMap);
 		return map->ScriptType.getType(compiledSupplier.scriptApply(map));
