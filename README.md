@@ -13,5 +13,5 @@ Actually I don't know what to write in this section. I just don't like to remove
 
 项目主体使用LGPLv3许可证
 
-另外，本项目使用了来自 [Nayuki](https://www.nayuki.io) 的 [AvlTreeList](https://www.nayuki.io/res/avl-tree-list/AvlTreeList.java)，其许可证为 MIT 许可证。
+另外，本项目使用了来自 [Nayuki](https://www.nayuki.io) 的 [AvlTreeList](https://www.nayuki.io/res/avl-tree-list/AvlTreeList.java)(虽然好像最终并没有真的用上？)，其许可证为 MIT 许可证。
 在"java/lpctools/util/data/AvlTreeList.java"中，已保留许可证说明
