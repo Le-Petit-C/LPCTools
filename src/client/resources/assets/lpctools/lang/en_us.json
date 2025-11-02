@@ -338,6 +338,9 @@
   "lpctools.script.trigger.chooseScreen.insert": "Insert",
   "lpctools.script.trigger.hotkey": "Hotkey",
   "lpctools.script.operations.name": "Operations",
+  "lpctools.script.exception.id.scriptNameRepeat": "This script id already exist",
+  "lpctools.script.exception.id.invalidCharacter": "Id string cannot contain any of the following characters: \\/*?\"<>|",
+  "lpctools.script.exception.id.invalidEnd": "Id String can't end with '.' or ' '",
   "lpctools.script.exception.compile.undefinedVariable": "Undefined variable:",
   "lpctools.script.exception.runtime.notInstanceOf": "Script runtime exception: notInstanceOf (expected \"%s\" but given \"%s\")",
   "lpctools.script.exception.runtime.nullPointer": "Script runtime exception: nullPointer",
@@ -355,6 +358,7 @@
   "lpctools.script.suppliers.voids.runIfElse.ifFalse.name": "If False",
   "lpctools.script.suppliers.voids.setVariable.name": "Set Variable",
   "lpctools.script.suppliers.voids.setVariable.subSuppliers.value.name": "Value",
+  "lpctools.script.suppliers.voids.setArray.name": "Set Array",
   "lpctools.script.suppliers.voids.setArray.subSuppliers.array.name": "Array",
   "lpctools.script.suppliers.voids.setArray.subSuppliers.index.name": "Index",
   "lpctools.script.suppliers.voids.setArray.subSuppliers.value.name": "Value",
@@ -393,6 +397,5 @@
   "lpctools.script.typeName.PlayerEntity": "PlayerEntity",
   "lpctools.compact.missingLitematica" : "Can't use this method: missing Litematica",
   "lpctools.compact.litematica.cantGetSelectionBox" : "Can't get Litematica selection box!",
-  "lpctools.mew~": "mew~",
-  "lpctools.script.suppliers.voids.setArray.name": "Set Array"
+  "lpctools.mew~": "mew~"
 }

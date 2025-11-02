@@ -2,8 +2,11 @@ package lpctools.script.editScreen;
 
 import fi.dy.masa.malilib.gui.*;
 import fi.dy.masa.malilib.gui.button.ButtonGeneric;
+import fi.dy.masa.malilib.gui.widgets.WidgetBase;
 import fi.dy.masa.malilib.util.position.Vec2d;
+import it.unimi.dsi.fastutil.objects.Object2LongOpenHashMap;
 import lpctools.script.*;
+import lpctools.util.GuiUtils;
 import lpctools.util.data.Rect2d;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawContext;
@@ -14,7 +17,6 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
-import static lpctools.lpcfymasaapi.LPCConfigUtils.calculateTextButtonWidth;
 import static lpctools.script.ScriptConfigs.dragBoundaryConstraint;
 import static lpctools.script.ScriptConfigs.dragVisualMode;
 
@@ -32,33 +34,23 @@ public class ScriptEditScreen extends GuiConfigsBase {
 	private final ButtonGeneric dragButton = createGenericSquareButton("≡", "lpctools.script.trigger.chooseScreen.drag");
 	private final ButtonGeneric insertButton = createGenericSquareButton("+", "lpctools.script.trigger.chooseScreen.insert");
 	private final ButtonGeneric removeButton = createGenericSquareButton("-", "lpctools.script.trigger.chooseScreen.remove");
-	private final ButtonGeneric infoButton = new ButtonGeneric(0, 0, 22, 22, "");
-	private long infoDisplayEndTime = 0;
+	private final Object2LongOpenHashMap<WidgetBase> infoWidgets = new Object2LongOpenHashMap<>();
 	
 	private static final int reserve = 10, topReserve = 40;
 	
 	public ScriptEditScreen(Script script) {
 		super(0, 0, "lpctools", null, "lpctools.script.editScreen.title");
 		this.script = script;
-		infoButton.setRenderDefaultBackground(false);
-		//setTitle(Text.translatable("lpctools.script.editScreen.title").getString());
 	}
 	private @NotNull ScriptWithSubScriptDisplayWidget getRootDisplayWidget(){
 		return script.getDisplayWidget();
 	}
 	
-	public void displayInfo(String text){
-		var client = MinecraftClient.getInstance();
-		var mouse = client.mouse;
-		var window = client.getWindow();
-		int x = (int)mouse.getScaledX(window);
-		int y = (int)mouse.getScaledY(window) - infoButton.getHeight();
-		infoButton.setDisplayString(text);
-		infoButton.setWidth(calculateTextButtonWidth(text, textRenderer, infoButton.getHeight()));
-		if(x + infoButton.getWidth() > getScreenWidth()) x = getScreenWidth() - infoButton.getWidth();
-		if(y < 0) y = 0;
-		infoButton.setPosition(x, y - infoButton.getHeight());
-		infoDisplayEndTime = System.currentTimeMillis() + 2000;
+	public void cursorInfo(String text, int sustainMillis){
+		GuiUtils.cursorInfo(infoWidgets, text, sustainMillis, getScreenWidth());
+	}
+	public void cursorInfo(Text text, int sustainMillis){
+		cursorInfo(text.getString(), sustainMillis);
 	}
 	
 	public void setScriptFocused(@Nullable Element element){
@@ -87,7 +79,7 @@ public class ScriptEditScreen extends GuiConfigsBase {
 				int mx = (int)Math.floor(fixedMouseX), my = (int)Math.floor(fixedMouseY);
 				if(copyButton.onMouseClicked(mx, my, mouseButton)){
 					ScriptData.setClipboard(widget.script.getAsJsonElement(), widget.script.getClass());
-					displayInfo("Copied");
+					cursorInfo("Copied", 2000);
 					return true;
 				}
 				else if(pasteButton.onMouseClicked(mx, my, mouseButton)){
@@ -95,8 +87,8 @@ public class ScriptEditScreen extends GuiConfigsBase {
 						widget.script.setValueFromJsonElement(json);
 						widget.markUpdateChain();
 					}, widget.script.getClass()))
-						displayInfo("Pasted");
-					else displayInfo("Failed to paste");
+						cursorInfo("Pasted", 2000);
+					else cursorInfo("Failed to paste", 3000);
 					return true;
 				}
 				else if(widget.parent instanceof ScriptWithSubScriptMutableDisplayWidget<?> parent) {
@@ -117,7 +109,7 @@ public class ScriptEditScreen extends GuiConfigsBase {
 							parent.getIScript().getSubScripts().remove(i);
 							parent.markUpdateChain();
 						}
-						else displayInfo("???为什么会这样？。。出现了一个index为-1的问题，本来不该这样的");
+						else cursorInfo("???为什么会这样？。。出现了一个index为-1的问题，本来不该这样的", 3000);
 						return true;
 					}
 				}
@@ -320,8 +312,7 @@ public class ScriptEditScreen extends GuiConfigsBase {
 		}
 		matrices.popMatrix();
 		
-		if(infoDisplayEndTime > System.currentTimeMillis())
-			infoButton.render(drawContext, -1, -1, false);
+		GuiUtils.renderInfoWidgets(infoWidgets, drawContext, mouseX, mouseY);
 		
 		super.drawTitle(drawContext, mouseX, mouseY, partialTicks);
 	}
@@ -337,9 +328,9 @@ public class ScriptEditScreen extends GuiConfigsBase {
 	}
 	
 	@Override public void removed() {
-		script.config.getPage().get().markConfigsModified();
 		super.removed();
 		script.markNeedRecompile();
+		ScriptsConfig.saveScript(script.config);
 	}
 	@Override protected void buildConfigSwitcher() {}
 	
@@ -349,7 +340,7 @@ public class ScriptEditScreen extends GuiConfigsBase {
 			if (i >= 0) {
 				parent.getIScript().getSubScripts().add(i + 1, sub);
 				parent.markUpdateChain();
-			} else displayInfo("???为什么会这样？。。出现了一个index为-1的问题，本来不该这样的");
+			} else cursorInfo("???为什么会这样？。。出现了一个index为-1的问题，本来不该这样的", 3000);
 		});
 	}
 	

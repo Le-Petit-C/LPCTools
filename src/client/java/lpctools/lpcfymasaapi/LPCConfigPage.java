@@ -6,6 +6,7 @@ import fi.dy.masa.malilib.config.ConfigManager;
 import fi.dy.masa.malilib.config.IConfigHandler;
 import fi.dy.masa.malilib.event.InputEventHandler;
 import fi.dy.masa.malilib.gui.GuiBase;
+import fi.dy.masa.malilib.gui.widgets.WidgetBase;
 import fi.dy.masa.malilib.gui.widgets.WidgetListConfigOptions;
 import fi.dy.masa.malilib.registry.Registry;
 import fi.dy.masa.malilib.util.FileUtils;
@@ -15,13 +16,16 @@ import fi.dy.masa.malilib.gui.GuiConfigsBase;
 import fi.dy.masa.malilib.gui.button.IButtonActionListener;
 import fi.dy.masa.malilib.gui.button.ButtonBase;
 import fi.dy.masa.malilib.gui.button.ButtonGeneric;
+import it.unimi.dsi.fastutil.objects.Object2LongOpenHashMap;
 import lpctools.lpcfymasaapi.configButtons.UpdateTodo;
 import lpctools.lpcfymasaapi.interfaces.ILPCConfig;
 import lpctools.lpcfymasaapi.interfaces.ILPCConfigBase;
 import lpctools.lpcfymasaapi.interfaces.ILPCConfigReadable;
+import lpctools.util.GuiUtils;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.Screen;
+import net.minecraft.text.Text;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -160,6 +164,7 @@ public class LPCConfigPage implements IConfigHandler, Supplier<GuiBase>, ILPCCon
     @Override public int getAlignedIndent() {return indent;}
     
     public class ConfigPageInstance extends GuiConfigsBase{
+        private final Object2LongOpenHashMap<WidgetBase> infoWidgets = new Object2LongOpenHashMap<>();
         @Override public void initGui() {
             super.initGui();
             this.clearOptions();
@@ -183,6 +188,13 @@ public class LPCConfigPage implements IConfigHandler, Supplier<GuiBase>, ILPCCon
             super.removed();
             //malilib中并不总会更新热键，比如如果退出配置界面时有配置被ThirdListConfig收起了就不会更新，这样子能强制它更新一下
             InputEventHandler.getKeybindManager().updateUsedKeys();
+        }
+        
+        public void cursorInfo(String text, int sustainMillis){
+            GuiUtils.cursorInfo(infoWidgets, text, sustainMillis, getScreenWidth());
+        }
+        public void cursorInfo(Text text, int sustainMillis){
+            cursorInfo(text.getString(), sustainMillis);
         }
 
         @Override protected boolean useKeybindSearch() {return lists.get(selectedIndex).hasHotkeyConfig();}
@@ -216,6 +228,8 @@ public class LPCConfigPage implements IConfigHandler, Supplier<GuiBase>, ILPCCon
                 needUpdate = false;
             }
             super.render(drawContext, mouseX, mouseY, partialTicks);
+            
+            GuiUtils.renderInfoWidgets(infoWidgets, drawContext, mouseX, mouseY);
         }
         
         private record ButtonListener(int index, ConfigPageInstance parent) implements IButtonActionListener {

@@ -3,6 +3,7 @@ package lpctools.script;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
+import fi.dy.masa.malilib.util.FileUtils;
 import lpctools.script.editScreen.ScriptEditScreen;
 import lpctools.script.editScreen.WidthAutoAdjustTextField;
 import lpctools.script.exceptions.ScriptException;
@@ -15,11 +16,13 @@ import net.minecraft.text.Text;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
 import static lpctools.lpcfymasaapi.LPCConfigUtils.warnFailedLoadingConfig;
+import static lpctools.script.ScriptsConfig.scriptDirectoryName;
 
 public class Script extends AbstractScriptWithSubScript implements IScriptWithSubScript {
 	private @Nullable ScriptEditScreen editScreen;
@@ -30,11 +33,10 @@ public class Script extends AbstractScriptWithSubScript implements IScriptWithSu
 	private final List<IScript> subScripts = List.of(trigger, operations);
 	private @Nullable WidthAutoAdjustTextField idWidget;
 	private @Nullable List<Object> widgets;
-	private String id = "script";
+	private @NotNull String id = "";
 	private static final String triggerJsonKey = "trigger";
 	private static final String operationsJsonKey = "operations";
 	private static final String enableJsonKey = "enabled";
-	private static final String idJsonKey = "id";
 	private boolean needRecompile = true;
 	private @Nullable ScriptRunnable runnable;
 	private final HashMap<IScript, ArrayList<ScriptException>> exceptions = new HashMap<>();
@@ -73,19 +75,54 @@ public class Script extends AbstractScriptWithSubScript implements IScriptWithSu
 		}
 	}
 	@Override public @Nullable Text getName() {return null;}
-	public String getId(){return id;}
+	public @NotNull String getId(){return id;}
 	public void setId(String id){
 		if(id.equals(this.id)) return;
+		Text warnText = checkId(id);
+		if(warnText != null){
+			var pageInstance = config.getPage().getPageInstance();
+			if(pageInstance != null) pageInstance.cursorInfo(warnText, 3000);
+			if(editScreen != null) editScreen.cursorInfo(warnText, 3000);
+			config.scriptId.setValueFromString(this.id);
+			return;
+		}
+		if(!this.id.isEmpty()) {
+			Path scriptDirectoryPath = FileUtils.getConfigDirectoryAsPath().resolve(scriptDirectoryName);
+			Path oldPath = scriptDirectoryPath.resolve(this.id + ".json");
+			Path newPath = scriptDirectoryPath.resolve(id + ".json");
+			FileUtils.renameFile(oldPath, newPath, s->{});
+			ScriptsConfig.instance.existScript.remove(this.id);
+		}
 		this.id = id;
+		ScriptsConfig.instance.existScript.add(this.id);
 		if(idWidget != null) idWidget.setText(id);
 		config.scriptId.setValueFromString(id);
 	}
+	
+	private static @Nullable Text checkId(String id) {
+		final String invalidCharacters = "\\/*?\"<>|";
+		if(ScriptsConfig.instance.existScript.contains(id))
+			return Text.translatable("lpctools.script.exception.id.scriptNameRepeat");
+		else {
+			boolean hasInvalidCharacter = false;
+			for(int i = 0; i < invalidCharacters.length(); ++i){
+				if (id.contains(invalidCharacters.substring(i, i + 1))) {
+					hasInvalidCharacter = true;
+					break;
+				}
+			}
+			if(hasInvalidCharacter) return Text.translatable("lpctools.script.exception.id.invalidCharacter");
+			else if(id.endsWith(" ") || id.endsWith("."))
+				return Text.translatable("lpctools.script.exception.id.invalidEnd");
+			else return null;
+		}
+	}
+	
 	@Override public @NotNull JsonObject getAsJsonElement() {
 		JsonObject object = new JsonObject();
 		object.add(triggerJsonKey, trigger.getAsJsonElement());
 		object.add(operationsJsonKey, operations.getAsJsonElement());
 		object.addProperty(enableJsonKey, enabled);
-		object.addProperty(idJsonKey, id);
 		return object;
 	}
 	@Override public void setValueFromJsonElement(@Nullable JsonElement element) {
@@ -95,8 +132,6 @@ public class Script extends AbstractScriptWithSubScript implements IScriptWithSu
 			operations.setValueFromJsonElement(object.get(operationsJsonKey));
 			if(object.get(enableJsonKey) instanceof JsonPrimitive enableJson)
 				if(enableJson.getAsBoolean()) enable(true);
-			if(object.get(idJsonKey) instanceof JsonPrimitive nameJson)
-				setId(nameJson.getAsString());
 		}
 		else if(element != null) warnFailedLoadingConfig(getName(), element);
 	}

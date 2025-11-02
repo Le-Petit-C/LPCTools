@@ -1,6 +1,5 @@
 package lpctools.script;
 
-import com.google.common.collect.ImmutableSortedMap;
 import fi.dy.masa.malilib.util.data.Color4f;
 import lpctools.LPCTools;
 import lpctools.lpcfymasaapi.LPCConfigList;
@@ -8,7 +7,6 @@ import lpctools.lpcfymasaapi.configButtons.derivedConfigs.ArrayOptionListConfig;
 import lpctools.lpcfymasaapi.configButtons.transferredConfigs.BooleanConfig;
 import lpctools.lpcfymasaapi.configButtons.transferredConfigs.ColorConfig;
 import lpctools.lpcfymasaapi.configButtons.transferredConfigs.IntegerConfig;
-import lpctools.lpcfymasaapi.configButtons.uniqueConfigs.MutableConfig;
 import lpctools.lpcfymasaapi.configButtons.uniqueConfigs.UniqueIntegerConfig;
 import lpctools.lpcfymasaapi.interfaces.ButtonConsumer;
 import lpctools.lpcfymasaapi.interfaces.ILPCConfigReadable;
@@ -30,9 +28,7 @@ public class ScriptConfigs {
             dragVisualMode.addOption(prefix + method.key, method.key, method);
     }
     public static final BooleanConfig dragBoundaryConstraint = addBooleanConfig("dragBoundaryConstraint", true);
-    public static final MutableConfig<ScriptConfig> scripts = addMutableConfig("scripts", script.getFullTranslationKey(), ImmutableSortedMap.of(
-        "script", (config, key)->new ScriptConfig(config)
-    ), null);
+    static {addConfig(ScriptsConfig.instance);}
     //static {addConfig(StaticVariables.instance);}
     static {listStack.pop();}
     

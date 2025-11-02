@@ -99,6 +99,7 @@ public class MutableConfig<T extends ILPCUniqueConfigBase> extends LPCUniqueConf
                          @Nullable ILPCValueChangeCallback callback){
         this(parent, nameKey, buttonKeyPrefix, configSuppliers, null, callback);
     }
+    @SuppressWarnings("unused")
     public <U> MutableConfig(@NotNull ILPCConfigReadable parent, @NotNull String nameKey, @NotNull String buttonKeyPrefix,
                              @NotNull ImmutableMap<String, ? extends TriFunction<? super MutableConfig<T>, String, U, T>> configSuppliers,
                              @Nullable Map<?, ?> optionTree, @Nullable ILPCValueChangeCallback callback, U userData) {
@@ -141,7 +142,7 @@ public class MutableConfig<T extends ILPCUniqueConfigBase> extends LPCUniqueConf
         return array;
     }
     
-    @Override public @NotNull JsonObject getAsJsonElement() {
+    @Override public @Nullable JsonElement getAsJsonElement() {
         JsonObject object = new JsonObject();
         object.add("mutableValues", getSubConfigsAsJsonElement());
         object.addProperty("expanded", expanded);
