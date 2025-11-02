@@ -93,11 +93,13 @@ public class ScriptSupplierLake {
 		if(!(element instanceof JsonObject object)) return null;
 		if(object.get("id") instanceof JsonPrimitive id){
 			var reg = ScriptSupplierLake.getSupplierRegistration(id.getAsString());
-			var allocator = reg.tryAllocate(targetClass);
-			if(allocator != null){
-				var res = allocator.allocate(parent);
-				res.setValueFromJsonElement(object.get("data"));
-				return res;
+			if(reg != null){
+				var allocator = reg.tryAllocate(targetClass);
+				if(allocator != null){
+					var res = allocator.allocate(parent);
+					res.setValueFromJsonElement(object.get("data"));
+					return res;
+				}
 			}
 		}
 		return null;
@@ -192,7 +194,7 @@ public class ScriptSupplierLake {
 		//注册entity suppliers
 		registerPrecise("vehicleEntity", 	Text.translatable("lpctools.script.suppliers.entities.vehicleEntity.name"), Entity.class, VehicleEntity.class, VehicleEntity::new);
 		//注册player entity suppliers
-		registerPrecise("playerEntity", 	Text.translatable("lpctools.script.suppliers.playerEntities.mainPlayerEntity.name"), PlayerEntity.class, MainPlayerEntity.class, MainPlayerEntity::new);
+		registerPrecise("mainPlayerEntity", 	Text.translatable("lpctools.script.suppliers.playerEntities.mainPlayerEntity.name"), PlayerEntity.class, MainPlayerEntity.class, MainPlayerEntity::new);
 	}
 	
 	//固定temp数据到不可变映射
