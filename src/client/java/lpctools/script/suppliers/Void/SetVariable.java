@@ -25,7 +25,7 @@ import static lpctools.lpcfymasaapi.LPCConfigUtils.warnFailedLoadingConfig;
 public class SetVariable extends AbstractSupplierWithTypeDeterminedSubSuppliers implements IVoidSupplier {
 	private @NotNull String variableName = "var";
 	protected final SupplierStorage<Object> value = ofStorage(new Null<>(this, Entity.class),
-		Text.translatable("lpctools.script.suppliers.voids.setVariable.subSuppliers.value.name"));
+		Text.translatable("lpctools.script.suppliers.Void.setVariable.subSuppliers.value.name"));
 	protected final SubSupplierEntry<?>[] subSuppliers = subSupplierBuilder()
 		.addEntry(Object.class, value)
 		.build();

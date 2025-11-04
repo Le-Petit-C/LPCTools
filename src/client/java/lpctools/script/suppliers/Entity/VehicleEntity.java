@@ -17,7 +17,7 @@ import java.util.List;
 public class VehicleEntity extends AbstractSupplierWithTypeDeterminedSubSuppliers implements IEntitySupplier {
 	
 	protected final SupplierStorage<Entity> passenger = ofStorage(new Null<>(this, Entity.class),
-		Text.translatable("lpctools.script.suppliers.entities.vehicleEntity.subSuppliers.passenger.name"));
+		Text.translatable("lpctools.script.suppliers.Entity.vehicleEntity.subSuppliers.passenger.name"));
 	protected final SubSupplierEntry<?>[] subSuppliers = subSupplierBuilder()
 		.addEntry(Entity.class, passenger)
 		.build();

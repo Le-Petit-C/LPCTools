@@ -1,4 +1,4 @@
-package lpctools.script.suppliers.Vec3d;
+package lpctools.script.suppliers.BlockPos;
 
 import com.google.gson.JsonElement;
 import lpctools.script.CompileEnvironment;
@@ -11,30 +11,30 @@ import lpctools.script.suppliers.Random.Null;
 import lpctools.script.suppliers.ScriptSupplierLake;
 import net.minecraft.entity.Entity;
 import net.minecraft.text.Text;
-import net.minecraft.util.math.Vec3d;
+import net.minecraft.util.math.BlockPos;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
-public class EntityPos extends AbstractSupplierWithTypeDeterminedSubSuppliers implements IVec3dSupplier {
+public class EntityBlockPos extends AbstractSupplierWithTypeDeterminedSubSuppliers implements IBlockPosSupplier {
 	protected final SupplierStorage<Entity> entity = ofStorage(new Null<>(this, Entity.class),
-		Text.translatable("lpctools.script.suppliers.Vec3d.entityPos.subSuppliers.entity.name"));
+		Text.translatable("lpctools.script.suppliers.BlockPos.entityBlockPos.subSuppliers.entity.name"));
 	protected final SubSupplierEntry<?>[] subSuppliers = subSupplierBuilder()
 		.addEntry(Entity.class, entity)
 		.build();
 	
-	public EntityPos(IScriptWithSubScript parent) {super(parent);}
+	public EntityBlockPos(IScriptWithSubScript parent) {super(parent);}
 	
-	@Override protected SubSupplierEntry<?>[] getSubSuppliers(){ return subSuppliers; }
+	@Override protected SubSupplierEntry<?>[] getSubSuppliers() {return subSuppliers;}
 	
-	@Override public @NotNull ScriptFunction<CompileEnvironment.RuntimeVariableMap, Vec3d>
+	@Override public @NotNull ScriptFunction<CompileEnvironment.RuntimeVariableMap, BlockPos>
 	compile(CompileEnvironment variableMap) {
 		var compiledEntitySupplier = entity.get().compile(variableMap);
 		return map->{
 			Entity entity = compiledEntitySupplier.scriptApply(map);
 			if(entity == null) throw ScriptRuntimeException.nullPointer(this);
-			return entity.getPos();
+			return entity.getBlockPos();
 		};
 	}
 	
@@ -42,7 +42,7 @@ public class EntityPos extends AbstractSupplierWithTypeDeterminedSubSuppliers im
 		return ScriptSupplierLake.getJsonEntryFromSupplier(entity.get());
 	}
 	@Override public void setValueFromJsonElement(@Nullable JsonElement element) {
-		ScriptSupplierLake.loadSupplierOrWarn(element, Entity.class, this, res -> entity.set(res), "EntityPos.entity");
+		ScriptSupplierLake.loadSupplierOrWarn(element, Entity.class, this, res -> entity.set(res), "EntityBlockPos.entity");
 	}
 	
 	@Override public @NotNull List<? extends IScript> getSubScripts() {return List.of(entity.get());}

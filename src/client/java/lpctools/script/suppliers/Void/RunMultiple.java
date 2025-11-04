@@ -6,6 +6,7 @@ import lpctools.script.CompileEnvironment;
 import lpctools.script.IScriptWithSubScript;
 import lpctools.script.runtimeInterfaces.ScriptFunction;
 import lpctools.script.suppliers.AbstractSupplierWithSubScriptMutable;
+import net.minecraft.text.Text;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -16,8 +17,13 @@ import static lpctools.lpcfymasaapi.LPCConfigUtils.warnFailedLoadingConfig;
 
 public class RunMultiple extends AbstractSupplierWithSubScriptMutable<Void, Void> implements IVoidSupplier {
 	private @Nullable Iterable<?> widgets;
+	protected @Nullable Text name;
 	
-	public RunMultiple(IScriptWithSubScript parent) {super(parent);}
+	public RunMultiple(IScriptWithSubScript parent, @Nullable Text name) {
+		super(parent);
+		this.name = name;
+	}
+	public RunMultiple(IScriptWithSubScript parent) {this(parent, null);}
 	
 	@Override public Class<Void> getArgumentClass() {return Void.class;}
 	@Override public @NotNull ScriptFunction<CompileEnvironment.RuntimeVariableMap, Void>
@@ -40,5 +46,9 @@ public class RunMultiple extends AbstractSupplierWithSubScriptMutable<Void, Void
 	@Override public @Nullable Iterable<?> getWidgets() {
 		if(widgets == null) widgets = List.of(createAddButton());
 		return widgets;
+	}
+	@Override @Nullable public Text getName() {
+		if(name != null) return name;
+		else return super.getName();
 	}
 }

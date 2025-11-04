@@ -20,7 +20,10 @@ public class ConstantInteger extends AbstractScript implements IIntegerSupplier 
 	private @Nullable WidthAutoAdjustTextField textField = null;
 	public ConstantInteger(IScriptWithSubScript parent) {super(parent);}
 	@Override public @NotNull ScriptFunction<CompileEnvironment.RuntimeVariableMap, Integer>
-	compile(CompileEnvironment variableMap) {return map->value;}
+	compile(CompileEnvironment variableMap) {
+		final var cachedValue = value;
+		return map->cachedValue;
+	}
 	
 	@Override public @Nullable JsonElement getAsJsonElement() {return new JsonPrimitive(value);}
 	@Override public void setValueFromJsonElement(@Nullable JsonElement element) {
@@ -37,13 +40,12 @@ public class ConstantInteger extends AbstractScript implements IIntegerSupplier 
 		if(textField == null){
 			textField = new WidthAutoAdjustTextField(
 				getDisplayWidget(), 100, text->{
-				try {
-					value = Integer.valueOf(text);
-				} catch (NumberFormatException e) {
-					textField.setText(value.toString());
-				}
+				try {value = Integer.valueOf(text);
+				} catch (NumberFormatException ignored) {}
+				textField.setText(value.toString());
 				applyToDisplayWidgetIfNotNull(ScriptDisplayWidget::markUpdateChain);
 			});
+			textField.setText(value.toString());
 		}
 		return textField;
 	}

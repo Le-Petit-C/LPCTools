@@ -9,7 +9,7 @@ import lpctools.script.editScreen.WidthAutoAdjustTextField;
 import lpctools.script.exceptions.ScriptException;
 import lpctools.script.exceptions.ScriptRuntimeException;
 import lpctools.script.runtimeInterfaces.ScriptRunnable;
-import lpctools.script.suppliers.Void.NamedRunMultiple;
+import lpctools.script.suppliers.Void.RunMultiple;
 import lpctools.script.trigger.ScriptTrigger;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.text.Text;
@@ -29,7 +29,7 @@ public class Script extends AbstractScriptWithSubScript implements IScriptWithSu
 	public final ScriptConfig config;
 	private boolean enabled = false;
 	private final ScriptTrigger trigger = new ScriptTrigger(this);
-	private final NamedRunMultiple operations = new NamedRunMultiple(this, Text.translatable("lpctools.script.operations.name"));
+	private final RunMultiple operations = new RunMultiple(this, Text.translatable("lpctools.script.operations.name"));
 	private final List<IScript> subScripts = List.of(trigger, operations);
 	private @Nullable WidthAutoAdjustTextField idWidget;
 	private @Nullable List<Object> widgets;

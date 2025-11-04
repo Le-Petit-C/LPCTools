@@ -9,9 +9,11 @@ import java.util.List;
 
 public class ItemButton extends ButtonBase {
 	public final ItemStack stack;
+	public Item item;
 	public ItemButton(Item item, int x, int y, List<String> hoverStrings) {
 		super(x - 8, y - 8, 16, 16);
-		stack = new ItemStack(()->item);
+		this.item = item;
+		stack = new ItemStack(()->this.item);
 		setHoverStrings(hoverStrings);
 	}
 	
@@ -21,4 +23,6 @@ public class ItemButton extends ButtonBase {
 		if(hovered) drawContext.fill(x, y, x + 16, y + 16, 0x3fffffff);
 		drawContext.drawItem(stack, getX(), getY());
 	}
+	
+	public void setItem(Item item){this.item = item;}
 }

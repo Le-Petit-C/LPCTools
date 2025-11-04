@@ -19,7 +19,7 @@ import java.util.List;
 
 public class EntityEyePos extends AbstractSupplierWithTypeDeterminedSubSuppliers implements IVec3dSupplier {
 	protected final SupplierStorage<Entity> entity = ofStorage(new Null<>(this, Entity.class),
-		Text.translatable("lpctools.script.suppliers.vec3d.entityEyePos.subSuppliers.entity.name"));
+		Text.translatable("lpctools.script.suppliers.Vec3d.entityEyePos.subSuppliers.entity.name"));
 	protected final SubSupplierEntry<?>[] subSuppliers = subSupplierBuilder()
 		.addEntry(Entity.class, entity)
 		.build();

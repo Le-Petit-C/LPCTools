@@ -18,7 +18,7 @@ import java.util.List;
 public class NewArray extends AbstractSupplierWithTypeDeterminedSubSuppliers implements IArraySupplier {
 	
 	protected final SupplierStorage<Integer> size = ofStorage(new Null<>(this, Integer.class),
-		Text.translatable("lpctools.script.suppliers.array.newArray.subSuppliers.size.name"));
+		Text.translatable("lpctools.script.suppliers.Array.newArray.subSuppliers.size.name"));
 	protected final SubSupplierEntry<?>[] subSuppliers = subSupplierBuilder()
 		.addEntry(Integer.class, size)
 		.build();

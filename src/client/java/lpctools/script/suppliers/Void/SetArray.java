@@ -21,11 +21,11 @@ import static lpctools.lpcfymasaapi.LPCConfigUtils.warnFailedLoadingConfig;
 
 public class SetArray extends AbstractSupplierWithTypeDeterminedSubSuppliers implements IVoidSupplier {
 	protected final SupplierStorage<Object[]> array = ofStorage(new Null<>(this, Object[].class),
-		Text.translatable("lpctools.script.suppliers.voids.setArray.subSuppliers.array.name"));
+		Text.translatable("lpctools.script.suppliers.Void.setArray.subSuppliers.array.name"));
 	protected final SupplierStorage<Integer> index = ofStorage(new ConstantInteger(this),
-		Text.translatable("lpctools.script.suppliers.voids.setArray.subSuppliers.index.name"));
+		Text.translatable("lpctools.script.suppliers.Void.setArray.subSuppliers.index.name"));
 	protected final SupplierStorage<Object> value = ofStorage(new Null<>(this, Object.class),
-		Text.translatable("lpctools.script.suppliers.voids.setArray.subSuppliers.value.name"));
+		Text.translatable("lpctools.script.suppliers.Void.setArray.subSuppliers.value.name"));
 	protected final SubSupplierEntry<?>[] subSuppliers = subSupplierBuilder()
 		.addEntry(Object[].class, array)
 		.addEntry(Integer.class, index)

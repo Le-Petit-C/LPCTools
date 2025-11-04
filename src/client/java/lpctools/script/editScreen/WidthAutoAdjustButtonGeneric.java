@@ -19,6 +19,12 @@ public class WidthAutoAdjustButtonGeneric extends ButtonGeneric {
 		super.updateDisplayString();
 		needUpdateWidth = true;
 	}
+	
+	@Override public void setDisplayString(String text) {
+		super.setDisplayString(text);
+		needUpdateWidth = true;
+	}
+	
 	@Override public void render(DrawContext drawContext, int mouseX, int mouseY, boolean selected) {
 		if(needUpdateWidth){
 			needUpdateWidth = false;

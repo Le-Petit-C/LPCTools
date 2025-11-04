@@ -8,7 +8,12 @@ import com.google.gson.JsonPrimitive;
 import lpctools.lpcfymasaapi.screen.ChooseScreen;
 import lpctools.script.IScriptWithSubScript;
 import lpctools.script.suppliers.Array.NewArray;
+import lpctools.script.suppliers.Block.ConstantBlock;
+import lpctools.script.suppliers.BlockPos.ConstantBlockPos;
+import lpctools.script.suppliers.BlockPos.EntityBlockPos;
+import lpctools.script.suppliers.BlockPos.FlooredVec3d;
 import lpctools.script.suppliers.Boolean.And;
+import lpctools.script.suppliers.Boolean.ConstantBoolean;
 import lpctools.script.suppliers.Boolean.Equals;
 import lpctools.script.suppliers.Boolean.Or;
 import lpctools.script.suppliers.Double.ConstantDouble;
@@ -21,12 +26,16 @@ import lpctools.script.suppliers.Random.IRandomSupplierAllocator;
 import lpctools.script.suppliers.Random.Null;
 import lpctools.script.suppliers.Type.ConstantType;
 import lpctools.script.suppliers.Type.ObjectType;
+import lpctools.script.suppliers.Vec3d.ConstantVec3d;
 import lpctools.script.suppliers.Vec3d.EntityEyePos;
 import lpctools.script.suppliers.Vec3d.EntityPos;
+import lpctools.script.suppliers.Vec3d.FromBlockPos;
 import lpctools.script.suppliers.Void.*;
+import net.minecraft.block.Block;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.text.Text;
+import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -155,7 +164,9 @@ public class ScriptSupplierLake {
 		registerType(Double.class, 			Text.translatable("lpctools.script.typeName.Double"), "double");
 		registerType(Object[].class, 		Text.translatable("lpctools.script.typeName.Array"), "array");
 		registerType(ScriptType.class, 		Text.translatable("lpctools.script.typeName.ScriptType"), "type");
+		registerType(BlockPos.class, 		Text.translatable("lpctools.script.typeName.BlockPos"), "blockPos");
 		registerType(Vec3d.class, 			Text.translatable("lpctools.script.typeName.Vec3d"), "vec3d");
+		registerType(Block.class, 			Text.translatable("lpctools.script.typeName.Block"), "block");
 		registerType(Entity.class, 			Text.translatable("lpctools.script.typeName.Entity"), "entity");
 		registerType(PlayerEntity.class, 	Text.translatable("lpctools.script.typeName.PlayerEntity"), "playerEntity");
 	}
@@ -163,38 +174,47 @@ public class ScriptSupplierLake {
 	//注册suppliers
 	static {
 		//注册random suppliers，也就是无类型限制的Object类suppliers
-		registerRandom("null", 				Text.translatable("lpctools.script.suppliers.randoms.null.name"), Null.class, Null::new);
-		registerRandom("fromVariable", 		Text.translatable("lpctools.script.suppliers.randoms.fromVariable.name"), FromVariable.class, FromVariable::new);
-		registerRandom("fromArray", 		Text.translatable("lpctools.script.suppliers.randoms.fromArray.name"), FromArray.class, FromArray::new);
+		registerRandom("null", 				Text.translatable("lpctools.script.suppliers.Random.null.name"), Null.class, Null::new);
+		registerRandom("fromVariable", 		Text.translatable("lpctools.script.suppliers.Random.fromVariable.name"), FromVariable.class, FromVariable::new);
+		registerRandom("fromArray", 		Text.translatable("lpctools.script.suppliers.Random.fromArray.name"), FromArray.class, FromArray::new);
 		//注册void suppliers，也就是无返回值的基础操作
-		registerPrecise("doNothing", 		Text.translatable("lpctools.script.suppliers.voids.doNothing.name"), Void.class, DoNothing.class, DoNothing::new);
-		registerPrecise("runMultiple", 		Text.translatable("lpctools.script.suppliers.voids.runMultiple.name"), Void.class, RunMultiple.class, RunMultiple::new);
-		registerPrecise("runIfElse", 		Text.translatable("lpctools.script.suppliers.voids.runIfElse.name"), Void.class, RunIfElse.class, RunIfElse::new);
-		registerPrecise("setVariable", 		Text.translatable("lpctools.script.suppliers.voids.setVariable.name"), Void.class, SetVariable.class, SetVariable::new);
-		registerPrecise("setArray", 		Text.translatable("lpctools.script.suppliers.voids.setArray.name"), Void.class, SetArray.class, SetArray::new);
-		registerPrecise("doAttack", 		Text.translatable("lpctools.script.suppliers.voids.doAttack.name"), Void.class, DoAttack.class, DoAttack::new);
-		registerPrecise("doItemUse", 		Text.translatable("lpctools.script.suppliers.voids.doItemUse.name"), Void.class, DoItemUse.class, DoItemUse::new);
+		registerPrecise("doNothing", 		Text.translatable("lpctools.script.suppliers.Void.doNothing.name"), Void.class, DoNothing.class, DoNothing::new);
+		registerPrecise("runMultiple", 		Text.translatable("lpctools.script.suppliers.Void.runMultiple.name"), Void.class, RunMultiple.class, RunMultiple::new);
+		registerPrecise("runIfElse", 		Text.translatable("lpctools.script.suppliers.Void.runIfElse.name"), Void.class, RunIfElse.class, RunIfElse::new);
+		registerPrecise("setVariable", 		Text.translatable("lpctools.script.suppliers.Void.setVariable.name"), Void.class, SetVariable.class, SetVariable::new);
+		registerPrecise("setArray", 		Text.translatable("lpctools.script.suppliers.Void.setArray.name"), Void.class, SetArray.class, SetArray::new);
+		registerPrecise("doAttack", 		Text.translatable("lpctools.script.suppliers.Void.doAttack.name"), Void.class, DoAttack.class, DoAttack::new);
+		registerPrecise("doItemUse", 		Text.translatable("lpctools.script.suppliers.Void.doItemUse.name"), Void.class, DoItemUse.class, DoItemUse::new);
 		//注册boolean suppliers
-		registerPrecise("notNull", 			Text.translatable("lpctools.script.suppliers.booleans.notNull.name"), Boolean.class, lpctools.script.suppliers.Boolean.NotNull.class, lpctools.script.suppliers.Boolean.NotNull::new);
-		registerPrecise("and", 				Text.translatable("lpctools.script.suppliers.booleans.and.name"), Boolean.class, And.class, And::new);
-		registerPrecise("or", 				Text.translatable("lpctools.script.suppliers.booleans.or.name"), Boolean.class, Or.class, Or::new);
-		registerPrecise("equals", 			Text.translatable("lpctools.script.suppliers.booleans.equals.name"), Boolean.class, Equals.class, Equals::new);
+		registerPrecise("constantBoolean", 	Text.translatable("lpctools.script.suppliers.Boolean.constantBoolean.name"), Boolean.class, ConstantBoolean.class, ConstantBoolean::new);
+		registerPrecise("notNull", 			Text.translatable("lpctools.script.suppliers.Boolean.notNull.name"), Boolean.class, lpctools.script.suppliers.Boolean.NotNull.class, lpctools.script.suppliers.Boolean.NotNull::new);
+		registerPrecise("and", 				Text.translatable("lpctools.script.suppliers.Boolean.and.name"), Boolean.class, And.class, And::new);
+		registerPrecise("or", 				Text.translatable("lpctools.script.suppliers.Boolean.or.name"), Boolean.class, Or.class, Or::new);
+		registerPrecise("equals", 			Text.translatable("lpctools.script.suppliers.Boolean.equals.name"), Boolean.class, Equals.class, Equals::new);
 		//注册integer suppliers
-		registerPrecise("constantInteger", 	Text.translatable("lpctools.script.suppliers.integers.constantInteger.name"), Integer.class, ConstantInteger.class, ConstantInteger::new);
+		registerPrecise("constantInteger", 	Text.translatable("lpctools.script.suppliers.Integer.constantInteger.name"), Integer.class, ConstantInteger.class, ConstantInteger::new);
 		//注册double suppliers
-		registerPrecise("constantDouble", 	Text.translatable("lpctools.script.suppliers.doubles.constantDouble.name"), Double.class, ConstantDouble.class, ConstantDouble::new);
+		registerPrecise("constantDouble", 	Text.translatable("lpctools.script.suppliers.Double.constantDouble.name"), Double.class, ConstantDouble.class, ConstantDouble::new);
 		//注册array suppliers
-		registerPrecise("newArray", 		Text.translatable("lpctools.script.suppliers.arrays.newArray.name"), Object[].class, NewArray.class, NewArray::new);
+		registerPrecise("newArray", 		Text.translatable("lpctools.script.suppliers.Array.newArray.name"), Object[].class, NewArray.class, NewArray::new);
 		//注册type suppliers
-		registerPrecise("objectType", 		Text.translatable("lpctools.script.suppliers.types.objectType.name"), ScriptType.class, ObjectType.class, ObjectType::new);
-		registerPrecise("constantType", 	Text.translatable("lpctools.script.suppliers.types.constantType.name"), ScriptType.class, ConstantType.class, ConstantType::new);
+		registerPrecise("objectType", 		Text.translatable("lpctools.script.suppliers.ScriptType.objectType.name"), ScriptType.class, ObjectType.class, ObjectType::new);
+		registerPrecise("constantType", 	Text.translatable("lpctools.script.suppliers.ScriptType.constantType.name"), ScriptType.class, ConstantType.class, ConstantType::new);
+		//注册blockPos suppliers
+		registerPrecise("constantBlockPos", Text.translatable("lpctools.script.suppliers.BlockPos.constantBlockPos.name"), BlockPos.class, ConstantBlockPos.class, ConstantBlockPos::new);
+		registerPrecise("entityBlockPos", 	Text.translatable("lpctools.script.suppliers.BlockPos.entityBlockPos.name"), BlockPos.class, EntityBlockPos.class, EntityBlockPos::new);
+		registerPrecise("flooredVec3d", 	Text.translatable("lpctools.script.suppliers.BlockPos.flooredVec3d.name"), BlockPos.class, FlooredVec3d.class, FlooredVec3d::new);
 		//注册vec3d suppliers
-		registerPrecise("entityPos", 		Text.translatable("lpctools.script.suppliers.vec3d.entityPos.name"), Vec3d.class, EntityPos.class, EntityPos::new);
-		registerPrecise("entityEyePos", 	Text.translatable("lpctools.script.suppliers.vec3d.entityEyePos.name"), Vec3d.class, EntityEyePos.class, EntityEyePos::new);
+		registerPrecise("constantVec3d", 	Text.translatable("lpctools.script.suppliers.Vec3d.constantVec3d.name"), Vec3d.class, ConstantVec3d.class, ConstantVec3d::new);
+		registerPrecise("fromBlockPos", 	Text.translatable("lpctools.script.suppliers.Vec3d.fromBlockPos.name"), Vec3d.class, FromBlockPos.class, FromBlockPos::new);
+		registerPrecise("entityPos", 		Text.translatable("lpctools.script.suppliers.Vec3d.entityPos.name"), Vec3d.class, EntityPos.class, EntityPos::new);
+		registerPrecise("entityEyePos", 	Text.translatable("lpctools.script.suppliers.Vec3d.entityEyePos.name"), Vec3d.class, EntityEyePos.class, EntityEyePos::new);
+		//注册block suppliers
+		registerPrecise("constantBlock", 	Text.translatable("lpctools.script.suppliers.Block.constantBlock.name"), Block.class, ConstantBlock.class, ConstantBlock::new);
 		//注册entity suppliers
-		registerPrecise("vehicleEntity", 	Text.translatable("lpctools.script.suppliers.entities.vehicleEntity.name"), Entity.class, VehicleEntity.class, VehicleEntity::new);
+		registerPrecise("vehicleEntity", 	Text.translatable("lpctools.script.suppliers.Entity.vehicleEntity.name"), Entity.class, VehicleEntity.class, VehicleEntity::new);
 		//注册player entity suppliers
-		registerPrecise("mainPlayerEntity", 	Text.translatable("lpctools.script.suppliers.playerEntities.mainPlayerEntity.name"), PlayerEntity.class, MainPlayerEntity.class, MainPlayerEntity::new);
+		registerPrecise("mainPlayerEntity", 	Text.translatable("lpctools.script.suppliers.PlayerEntity.mainPlayerEntity.name"), PlayerEntity.class, MainPlayerEntity.class, MainPlayerEntity::new);
 	}
 	
 	//固定temp数据到不可变映射

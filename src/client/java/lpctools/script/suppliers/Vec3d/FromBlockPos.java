@@ -7,43 +7,43 @@ import lpctools.script.IScriptWithSubScript;
 import lpctools.script.exceptions.ScriptRuntimeException;
 import lpctools.script.runtimeInterfaces.ScriptFunction;
 import lpctools.script.suppliers.AbstractSupplierWithTypeDeterminedSubSuppliers;
-import lpctools.script.suppliers.Random.Null;
+import lpctools.script.suppliers.BlockPos.ConstantBlockPos;
 import lpctools.script.suppliers.ScriptSupplierLake;
-import net.minecraft.entity.Entity;
 import net.minecraft.text.Text;
+import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
-public class EntityPos extends AbstractSupplierWithTypeDeterminedSubSuppliers implements IVec3dSupplier {
-	protected final SupplierStorage<Entity> entity = ofStorage(new Null<>(this, Entity.class),
-		Text.translatable("lpctools.script.suppliers.Vec3d.entityPos.subSuppliers.entity.name"));
+public class FromBlockPos extends AbstractSupplierWithTypeDeterminedSubSuppliers implements IVec3dSupplier {
+	protected final SupplierStorage<BlockPos> blockPos = ofStorage(new ConstantBlockPos(this),
+		Text.translatable("lpctools.script.suppliers.Vec3d.fromBlockPos.subSuppliers.blockPos.name"));
 	protected final SubSupplierEntry<?>[] subSuppliers = subSupplierBuilder()
-		.addEntry(Entity.class, entity)
+		.addEntry(BlockPos.class, blockPos)
 		.build();
 	
-	public EntityPos(IScriptWithSubScript parent) {super(parent);}
+	public FromBlockPos(IScriptWithSubScript parent) {super(parent);}
 	
 	@Override protected SubSupplierEntry<?>[] getSubSuppliers(){ return subSuppliers; }
 	
 	@Override public @NotNull ScriptFunction<CompileEnvironment.RuntimeVariableMap, Vec3d>
 	compile(CompileEnvironment variableMap) {
-		var compiledEntitySupplier = entity.get().compile(variableMap);
+		var compiledEntitySupplier = blockPos.get().compile(variableMap);
 		return map->{
-			Entity entity = compiledEntitySupplier.scriptApply(map);
-			if(entity == null) throw ScriptRuntimeException.nullPointer(this);
-			return entity.getPos();
+			BlockPos pos = compiledEntitySupplier.scriptApply(map);
+			if(pos == null) throw ScriptRuntimeException.nullPointer(this);
+			return Vec3d.of(pos);
 		};
 	}
 	
 	@Override public @Nullable JsonElement getAsJsonElement() {
-		return ScriptSupplierLake.getJsonEntryFromSupplier(entity.get());
+		return ScriptSupplierLake.getJsonEntryFromSupplier(blockPos.get());
 	}
 	@Override public void setValueFromJsonElement(@Nullable JsonElement element) {
-		ScriptSupplierLake.loadSupplierOrWarn(element, Entity.class, this, res -> entity.set(res), "EntityPos.entity");
+		ScriptSupplierLake.loadSupplierOrWarn(element, BlockPos.class, this, res -> blockPos.set(res), "FlooredVec3d.vec3d");
 	}
 	
-	@Override public @NotNull List<? extends IScript> getSubScripts() {return List.of(entity.get());}
+	@Override public @NotNull List<? extends IScript> getSubScripts() {return List.of(blockPos.get());}
 }

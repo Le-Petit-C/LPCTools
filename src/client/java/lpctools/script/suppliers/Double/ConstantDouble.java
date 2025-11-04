@@ -20,7 +20,10 @@ public class ConstantDouble extends AbstractScript implements IDoubleSupplier {
 	private @Nullable WidthAutoAdjustTextField textField = null;
 	public ConstantDouble(IScriptWithSubScript parent) {super(parent);}
 	@Override public @NotNull ScriptFunction<CompileEnvironment.RuntimeVariableMap, Double>
-	compile(CompileEnvironment variableMap) {return map->value;}
+	compile(CompileEnvironment variableMap) {
+		final var cachedValue = value;
+		return map->cachedValue;
+	}
 	
 	@Override public @Nullable JsonElement getAsJsonElement() {return new JsonPrimitive(value);}
 	@Override public void setValueFromJsonElement(@Nullable JsonElement element) {
@@ -37,13 +40,12 @@ public class ConstantDouble extends AbstractScript implements IDoubleSupplier {
 		if(textField == null){
 			textField = new WidthAutoAdjustTextField(
 				getDisplayWidget(), 100, text->{
-				try {
-					value = Double.valueOf(text);
-				} catch (NumberFormatException e) {
-					textField.setText(value.toString());
-				}
+				try {value = Double.valueOf(text);
+				} catch (NumberFormatException ignored) {}
+				textField.setText(value.toString());
 				applyToDisplayWidgetIfNotNull(ScriptDisplayWidget::markUpdateChain);
 			});
+			textField.setText(value.toString());
 		}
 		return textField;
 	}

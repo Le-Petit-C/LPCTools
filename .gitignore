@@ -40,3 +40,4 @@ replay_*.log
 *.jfr
 /local/
 /scripts/
+/简介.txt

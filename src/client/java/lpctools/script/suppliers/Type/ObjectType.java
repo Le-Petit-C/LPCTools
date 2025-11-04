@@ -16,7 +16,7 @@ import java.util.List;
 
 public class ObjectType extends AbstractSupplierWithTypeDeterminedSubSuppliers implements ITypeSupplier {
 	protected final SupplierStorage<Object> objectStorage = ofStorage(new Null<>(this, Object.class),
-		Text.translatable("lpctools.script.suppliers.booleans.notNull.subSuppliers.object.name"));
+		Text.translatable("lpctools.script.suppliers.Boolean.notNull.subSuppliers.object.name"));
 	protected final SubSupplierEntry<?>[] subSuppliers = subSupplierBuilder()
 		.addEntry(Object.class, objectStorage)
 		.build();

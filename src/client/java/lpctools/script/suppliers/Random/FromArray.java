@@ -20,9 +20,9 @@ import static lpctools.lpcfymasaapi.LPCConfigUtils.warnFailedLoadingConfig;
 
 public class FromArray<T> extends AbstractSupplierWithTypeDeterminedSubSuppliers implements IRandomSupplier<T> {
 	protected final SupplierStorage<Object[]> array = ofStorage(new Null<>(this, Object[].class),
-		Text.translatable("lpctools.script.suppliers.randoms.fromArray.subSuppliers.array.name"));
+		Text.translatable("lpctools.script.suppliers.Random.fromArray.subSuppliers.array.name"));
 	protected final SupplierStorage<Integer> index = ofStorage(new ConstantInteger(this),
-		Text.translatable("lpctools.script.suppliers.randoms.fromArray.subSuppliers.index.name"));
+		Text.translatable("lpctools.script.suppliers.Random.fromArray.subSuppliers.index.name"));
 	protected final SubSupplierEntry<?>[] subSuppliers = subSupplierBuilder()
 		.addEntry(Object[].class, array)
 		.addEntry(Integer.class, index)

@@ -11,8 +11,6 @@ import lpctools.lpcfymasaapi.screen.ItemButton;
 import lpctools.util.DataUtils;
 import net.minecraft.block.Block;
 import net.minecraft.client.MinecraftClient;
-import net.minecraft.registry.Registries;
-import net.minecraft.util.Identifier;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -36,17 +34,19 @@ public class BlockConfig extends LPCUniqueConfigBase {
 		MinecraftClient.getInstance().setScreen(screen);
 	}
 	@Override public @Nullable JsonElement getAsJsonElement() {
-		return new JsonPrimitive(Registries.BLOCK.getId(block).toString());
+		return new JsonPrimitive(DataUtils.getBlockId(block));
 	}
 	
 	@Override
 	public UpdateTodo setValueFromJsonElementEx(@NotNull JsonElement element) {
-		try {
-			Block lastBlock = block;
-			block = Registries.BLOCK.get(Identifier.of(element.getAsString()));
-			return new UpdateTodo().valueChanged(lastBlock != block);
-		} catch (Exception e){
-			return setValueFailed(element);
+		if(element instanceof JsonPrimitive primitive){
+			var block = DataUtils.getBlockFromId(primitive.getAsString(), false);
+			if(block != null){
+				var res = new UpdateTodo().valueChanged(this.block != block);
+				this.block = block;
+				return res;
+			}
 		}
+		return setValueFailed(element);
 	}
 }

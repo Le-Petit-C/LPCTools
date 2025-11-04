@@ -19,9 +19,9 @@ import static lpctools.lpcfymasaapi.LPCConfigUtils.warnFailedLoadingConfig;
 
 public class Equals extends AbstractSupplierWithTypeDeterminedSubSuppliers implements IBooleanSupplier {
 	protected final SupplierStorage<Object> object1Storage = ofStorage(new Null<>(this, Object.class),
-		Text.translatable("lpctools.script.suppliers.booleans.equals.subSuppliers.object1.name"));
+		Text.translatable("lpctools.script.suppliers.Boolean.equals.subSuppliers.object1.name"));
 	protected final SupplierStorage<Object> object2Storage = ofStorage(new Null<>(this, Object.class),
-		Text.translatable("lpctools.script.suppliers.booleans.equals.subSuppliers.object2.name"));
+		Text.translatable("lpctools.script.suppliers.Boolean.equals.subSuppliers.object2.name"));
 	protected final SubSupplierEntry<?>[] subSuppliers = subSupplierBuilder()
 		.addEntry(Object.class, object1Storage)
 		.addEntry(Object.class, object2Storage)

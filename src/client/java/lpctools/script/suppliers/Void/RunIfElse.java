@@ -5,7 +5,7 @@ import com.google.gson.JsonObject;
 import lpctools.script.*;
 import lpctools.script.exceptions.ScriptRuntimeException;
 import lpctools.script.runtimeInterfaces.ScriptFunction;
-import lpctools.script.suppliers.Boolean.NamedAnd;
+import lpctools.script.suppliers.Boolean.And;
 import net.minecraft.text.Text;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -15,9 +15,9 @@ import java.util.List;
 import static lpctools.lpcfymasaapi.LPCConfigUtils.warnFailedLoadingConfig;
 
 public class RunIfElse extends AbstractScriptWithSubScript implements IVoidSupplier {
-	NamedAnd condition = new NamedAnd(this, Text.translatable("lpctools.script.suppliers.voids.runIfElse.condition.name"));
-	NamedRunMultiple ifTrue = new NamedRunMultiple(this, Text.translatable("lpctools.script.suppliers.voids.runIfElse.ifTrue.name"));
-	NamedRunMultiple ifFalse = new NamedRunMultiple(this, Text.translatable("lpctools.script.suppliers.voids.runIfElse.ifFalse.name"));
+	And condition = new And(this, Text.translatable("lpctools.script.suppliers.Void.runIfElse.condition.name"));
+	RunMultiple ifTrue = new RunMultiple(this, Text.translatable("lpctools.script.suppliers.Void.runIfElse.ifTrue.name"));
+	RunMultiple ifFalse = new RunMultiple(this, Text.translatable("lpctools.script.suppliers.Void.runIfElse.ifFalse.name"));
 	public static final String conditionJsonKey = "condition";
 	public static final String ifTrueJsonKey = "ifTrue";
 	public static final String ifFalseJsonKey = "ifFalse";

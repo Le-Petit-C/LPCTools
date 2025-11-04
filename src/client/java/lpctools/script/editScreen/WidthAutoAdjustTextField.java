@@ -26,12 +26,20 @@ public class WidthAutoAdjustTextField extends GuiTextFieldGeneric{
 			callback.accept(getText());
 		lastText = getText();
 	}
-	@Override public boolean charTyped(char chr, int modifiers) {
-		boolean b = super.charTyped(chr, modifiers);
-		var editScreen = parent.editScreen;
-		setWidth(Math.max(minWidth, calculateTextButtonWidth(getText(), editScreen.textRenderer, getHeight())));
-		parent.update();
-		return b;
+	@Override public void write(String text) {
+		super.write(text);
+		recalculateWidth(getText());
+	}
+	
+	@Override public void eraseCharactersTo(int position) {
+		super.eraseCharactersTo(position);
+		recalculateWidth(getText());
+	}
+	
+	@Override public void setText(String text) {
+		recalculateWidth(text);
+		super.setText(text);
+		recalculateWidth(getText());
 	}
 	
 	@Override public boolean mouseClicked(double mouseX, double mouseY, int mouseButton) {
@@ -55,5 +63,15 @@ public class WidthAutoAdjustTextField extends GuiTextFieldGeneric{
 	@Override public void setDimensions(int width, int height) {
 		super.setDimensions(width, height);
 		((TextFieldWidgetAccessor)this).invokeUpdateTextPosition();
+	}
+	public void setCallback(@Nullable Consumer<String> callback){this.callback = callback;}
+	
+	private void recalculateWidth(String text){
+		var textRenderer = parent.editScreen.textRenderer;
+		int newWidth = Math.max(minWidth, calculateTextButtonWidth(text, textRenderer, getHeight()) + textRenderer.fontHeight);
+		if(newWidth != getWidth()){
+			setWidth(newWidth);
+			parent.markUpdateChain();
+		}
 	}
 }
