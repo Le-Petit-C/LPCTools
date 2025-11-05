@@ -28,6 +28,7 @@ public class ItemListConfig extends ConfigListConfig<ItemConfig> {
 		return items.contains(item);
 	}
 	
+	@SuppressWarnings("unused")
 	public ImmutableSet<Item> getItems(){
 		return items;
 	}

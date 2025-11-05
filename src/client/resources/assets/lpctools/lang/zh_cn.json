@@ -272,8 +272,6 @@
   "lpctools.configs.scripts.scripts.script.comment": "脚本",
   "lpctools.configs.scripts.scripts.script.enabled.name": "开关",
   "lpctools.configs.scripts.scripts.script.enabled.comment": "决定是否启用一个脚本",
-  "lpctools.configs.scripts.scripts.script.id.name": "脚本名",
-  "lpctools.configs.scripts.scripts.script.id.comment": "脚本的标识符字符串",
   "lpctools.configs.scripts.scripts.script.edit.name": "编辑",
   "lpctools.configs.scripts.scripts.script.edit.comment": "点击以编辑脚本",
   "lpctools.configs.scripts.scripts.script.edit.title": "编辑脚本",

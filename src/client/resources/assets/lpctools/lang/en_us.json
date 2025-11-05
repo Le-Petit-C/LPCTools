@@ -272,8 +272,6 @@
   "lpctools.configs.scripts.scripts.script.comment": "script",
   "lpctools.configs.scripts.scripts.script.enabled.name": "Switch",
   "lpctools.configs.scripts.scripts.script.enabled.comment": "Decide whether to enable a script",
-  "lpctools.configs.scripts.scripts.script.id.name": "Id",
-  "lpctools.configs.scripts.scripts.script.id.comment": "Script String Id",
   "lpctools.configs.scripts.scripts.script.edit.name": "Edit",
   "lpctools.configs.scripts.scripts.script.edit.comment": "Click to edit script",
   "lpctools.configs.scripts.scripts.script.edit.title": "Edit script",

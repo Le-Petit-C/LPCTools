@@ -38,7 +38,6 @@ public class ScriptConfig extends WrappedThirdListConfig{
 	public ScriptConfig(@NotNull ILPCConfigReadable parent) {
 		super(parent, "script", null);
 		addConfig(isEnabled);
-		addConfig(scriptId);
 		addConfig(editButton);
 		addConfig(exceptionButton);
 		script = new Script(this);
@@ -52,22 +51,23 @@ public class ScriptConfig extends WrappedThirdListConfig{
 	@Override public void getButtonOptions(ButtonOptionArrayList res) {
 		super.getButtonOptions(res);
 		if(!isExpanded()) {
-			res.add(new ButtonOption(
-				-1,
-				((button, mouseButton) -> isEnabled.toggleBooleanValue()),
-				()-> (isEnabled.getBooleanValue() ?"§2O": "§4X"),
-				buttonGenericAllocator)
-			);
 			if(script.hasExceptions()) {
 				res.add(new ButtonOption(
 					1, null,
 					()->Text.translatable("lpctools.configs.scripts.scripts.script.exception.smallName").getString(),
 					buttonGenericAllocator)
 				);
-				scriptId.getButtonOptions(res);
 			}
-			scriptId.getButtonOptions(res);
+			else {
+				res.add(new ButtonOption(
+					-1,
+					((button, mouseButton) -> isEnabled.toggleBooleanValue()),
+					()-> (isEnabled.getBooleanValue() ?"§2O": "§4X"),
+					buttonGenericAllocator)
+				);
+			}
 		}
+		scriptId.getButtonOptions(res);
 	}
 	@Override public @NotNull JsonObject getAsJsonElement() {
 		var res = script.getAsJsonElement();
