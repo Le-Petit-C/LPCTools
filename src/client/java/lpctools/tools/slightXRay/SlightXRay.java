@@ -27,20 +27,34 @@ import static lpctools.util.DataUtils.*;
 
 public class SlightXRay{
     public static final BooleanHotkeyThirdListConfig SXConfig = new BooleanHotkeyThirdListConfig(ToolConfigs.toolConfigs, "SX", SlightXRay::switchChanged);
+    public static final ColoredBlockListConfig XRayBlocksConfig = new ColoredBlockListConfig(SXConfig, "XRayBlocks");
     static {setLPCToolsToggleText(SXConfig);}
     static {listStack.push(SXConfig);}
-    public static final ConfigListOptionListConfigEx<ToIntFunction<Block>> defaultColorMethod = addConfigListOptionListConfigEx("defaultColorMethod", SlightXRay::refreshXRayBlocks);
+    public static final ConfigListOptionListConfigEx<ToIntFunction<Block>> defaultColorMethod = addConfigListOptionListConfigEx("defaultColorMethod", XRayBlocksConfig::updateDefaultColor);
     public static final ILPCConfigList byTextureColor = defaultColorMethod.addList("byTextureColor", SlightXRay::getColorByTextureColor);
-    public static final IntegerConfig defaultAlpha = addIntegerConfig(byTextureColor, "defaultAlpha", 127, 0, 255, SlightXRay::refreshXRayBlocks);
-    public static final DoubleConfig saturationDelta = addDoubleConfig(byTextureColor, "saturationDelta", 1, -5, 5, SlightXRay::refreshXRayBlocks);
-    public static final DoubleConfig brightnessDelta = addDoubleConfig(byTextureColor, "brightnessDelta", 1, -5, 5, SlightXRay::refreshXRayBlocks);
+    public static final IntegerConfig defaultAlpha = addIntegerConfig(byTextureColor, "defaultAlpha", 127, 0, 255, XRayBlocksConfig::updateDefaultColor);
+    public static final DoubleConfig saturationDelta = addDoubleConfig(byTextureColor, "saturationDelta", 1, -5, 5, XRayBlocksConfig::updateDefaultColor);
+    public static final DoubleConfig brightnessDelta = addDoubleConfig(byTextureColor, "brightnessDelta", 1, -5, 5, XRayBlocksConfig::updateDefaultColor);
     public static final ILPCConfigList byDefaultColor = defaultColorMethod.addList("byDefaultColor", SlightXRay::getColorByDefaultColor);
-    public static final ColorConfig defaultColor = addColorConfig(byDefaultColor, "defaultColor", new Color4f(0.5f, 0.5f, 1.0f, 0.5f), SlightXRay::refreshXRayBlocks);
-    public static final StringListConfig XRayBlocksConfig = addStringListConfig("XRayBlocks", defaultXRayBlockIds, SlightXRay::refreshXRayBlocks);
+    public static final ColorConfig defaultColor = addColorConfig(byDefaultColor, "defaultColor", new Color4f(0.5f, 0.5f, 1.0f, 0.5f), XRayBlocksConfig::updateDefaultColor);
+    static {addConfig(XRayBlocksConfig);}
     public static final BooleanConfig useCullFace = addBooleanConfig("useCullFace", true);
     public static final RangeLimitConfig displayRange = addRangeLimitConfig();
     static {displayRange.setValueChangeCallback(()->{if(renderInstance != null) renderInstance.onRenderRangeChanged(displayRange);});}
     static {listStack.pop();}
+    static {
+        defaultXRayBlocks.forEach(block->XRayBlocksConfig.allocateAndAddConfig().setBlock(block));
+        XRayBlocksConfig.setCurrentAsDefault(false);
+    }
+    
+    private static boolean needRefreshXRayBlocks = true;
+    
+    public static void markNeedRefreshXRayBlocks(){needRefreshXRayBlocks = true;}
+    
+    public static double atanh(double x) {
+        if (Math.abs(x) > 1) throw new IllegalArgumentException("atanh: input value out of bound [-1, 1]");
+        return 0.5 * Math.log((1 + x) / (1 - x));
+    }
     
     private static int getColorByTextureColor(Block block) {
         int alphaMask = defaultAlpha.getAsInt() << 24;
@@ -71,48 +85,27 @@ public class SlightXRay{
         catch (Exception e){return alphaMask;}
     }
     private static int getColorByDefaultColor(Block block){return DataUtils.argb2agbr(defaultColor.getIntegerValue());}
-    
-    public static double atanh(double x) {
-        if (Math.abs(x) > 1) throw new IllegalArgumentException("atanh: input value out of bound [-1, 1]");
-        return 0.5 * Math.log((1 + x) / (1 - x));
-    }
 
-    private static void refreshXRayBlocks(){
-        if(XRayBlocksConfig == null) return;
+    public static void tryRefreshXRayBlocks(){
+        if(!needRefreshXRayBlocks) return;
+        needRefreshXRayBlocks = false;
         HashMap<Block, MutableInt> newBlocks = new HashMap<>();
-        for(String str : XRayBlocksConfig){
-            String[] splits = str.split(";");
-            if(splits.length > 0 && splits.length < 3){
-                Block block = getBlockFromId(splits[0], true);
-                if(block == null) continue;
-                Integer color = null;
-                if(splits.length > 1) {
-                    try {
-                        color = Integer.parseUnsignedInt(splits[1], 16);
-                    }catch (NumberFormatException e){
-                        warnInvalidString(str);
-                        continue;
-                    }
-                }
-                if(color == null) color = defaultColorMethod.getCurrentUserdata().right.applyAsInt(block);
-                newBlocks.put(block, new MutableInt(color));
-            }
-            else warnInvalidString(str);
-        }
+        XRayBlocksConfig.iterateConfigs().forEach(c->{
+            var block = c.getBlock();
+            if(newBlocks.containsKey(block)) notifyPlayer(String.format("§eWarning: Repeat block \"%s\"", block.getName()), false);
+            else newBlocks.put(block, new MutableInt(DataUtils.argb2agbr(c.getColor().getIntValue())));
+        });
         synchronized (XRayBlocks){
             if(XRayBlocks.keySet().equals(newBlocks.keySet())) {
                 for(Map.Entry<Block, MutableInt> block : newBlocks.entrySet())
                     XRayBlocks.get(block.getKey()).setValue(block.getValue());
-                if(renderInstance != null) renderInstance.resetRender();
-                return;
             }
-            XRayBlocks.clear();
-            XRayBlocks.putAll(newBlocks);
+            else {
+                XRayBlocks.clear();
+                XRayBlocks.putAll(newBlocks);
+            }
             if(renderInstance != null) renderInstance.resetData();
         }
-    }
-    private static void warnInvalidString(String str){
-        notifyPlayer(String.format("§eWarning: Invalid string \"%s\"", str), false);
     }
     private static void switchChanged() {
         if(SXConfig.getBooleanValue()){

@@ -4,6 +4,7 @@ import fi.dy.masa.malilib.hotkeys.KeyCallbackToggleBoolean;
 import lpctools.lpcfymasaapi.Registries;
 import lpctools.lpcfymasaapi.configButtons.derivedConfigs.*;
 import lpctools.lpcfymasaapi.configButtons.transferredConfigs.*;
+import lpctools.lpcfymasaapi.configButtons.uniqueConfigs.BlockListConfig;
 import lpctools.lpcfymasaapi.configButtons.uniqueConfigs.BooleanHotkeyThirdListConfig;
 import lpctools.tools.ToolConfigs;
 import net.minecraft.block.Block;
@@ -31,11 +32,11 @@ public class FillingAssistant {
     public static final IntegerConfig testDistanceConfig = addIntegerConfig("testDistance", 6, 6, 64, FillingAssistant::testDistanceChangeCallback);
     public static final BooleanConfig disableOnLeftDownConfig = addBooleanConfig("disableOnLeftDown", true);
     public static final BooleanConfig disableOnGUIOpened = addBooleanConfig("disableOnGUIOpened", false);
-    public static final ObjectListConfig.BlockItemListConfig placeableItemsConfig = addBlockItemListConfig("placeableItems", defaultPlaceableItemList);
-    public static final ObjectListConfig.BlockListConfig passableBlocksConfig = addBlockListConfig("passableBlocks", defaultPassableBlockList);
+    public static final String2ObjectListConfig.BlockItemListConfig placeableItemsConfig = addBlockItemListConfig("placeableItems", defaultPlaceableItemList);
+    public static final BlockListConfig passableBlocksConfig = addBlockListConfig("passableBlocks", defaultPassableBlockList);
     public static final BooleanConfig transparentAsPassableConfig = addBooleanConfig("transparentAsPassable", true);
     public static final BooleanConfig notOpaqueAsPassableConfig = addBooleanConfig("notOpaqueAsPassable", true);
-    public static final ObjectListConfig.BlockListConfig requiredBlocksConfig = addBlockListConfig("requiredBlocks", defaultRequiredBlockWhiteList);
+    public static final BlockListConfig requiredBlocksConfig = addBlockListConfig("requiredBlocks", defaultRequiredBlockWhiteList);
     public static final BooleanConfig offhandFillingConfig = addBooleanConfig("offhandFilling", false);
     public static final RangeLimitConfig limitFillingRange = addRangeLimitConfig();
     public static final ArrayOptionListConfig<OuterRangeBlockMethod> outerRangeBlockMethod = addArrayOptionListConfig(limitFillingRange, "outerRangeBlockMethod", outerRangeBlockMethods);
@@ -65,11 +66,10 @@ public class FillingAssistant {
         displayDisableReason(FAConfig, reasonKey);
     }
     public static @NotNull HashSet<BlockItem> getPlaceableItems(){return placeableItemsConfig.set;}
-    public static @NotNull HashSet<Block> getPassableBlocks(){return passableBlocksConfig.set;}
     public static boolean isBlockUnpassable(Block block){
         if(transparentAsPassableConfig.getAsBoolean() && block.getDefaultState().isTransparent()) return false;
         if(notOpaqueAsPassableConfig.getAsBoolean() && !block.getDefaultState().isOpaque()) return false;
-        return !getPassableBlocks().contains(block);
+        return !passableBlocksConfig.contains(block);
     }
     public static boolean isUnpassable(BlockPos pos){
         ClientWorld world = MinecraftClient.getInstance().world;
@@ -79,8 +79,7 @@ public class FillingAssistant {
         }
         else return true;
     }
-    public static @NotNull HashSet<Block> getRequiredBlocks(){return requiredBlocksConfig.set;}
-    public static boolean required(Block block){return getRequiredBlocks().contains(block);}
+    public static boolean required(Block block){return requiredBlocksConfig.contains(block);}
     public static boolean required(BlockPos pos){
         ClientWorld world = MinecraftClient.getInstance().world;
         if (world != null) return required(world.getBlockState(pos).getBlock());

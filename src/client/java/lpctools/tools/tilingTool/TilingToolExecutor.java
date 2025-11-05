@@ -1,5 +1,6 @@
 package lpctools.tools.tilingTool;
 
+import com.google.common.collect.ImmutableSet;
 import lpctools.lpcfymasaapi.Registries;
 import lpctools.util.HandRestock;
 import lpctools.util.MathUtils;
@@ -19,7 +20,6 @@ import net.minecraft.util.math.Vec3i;
 import org.apache.commons.lang3.mutable.MutableObject;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 
 import static lpctools.lpcfymasaapi.configButtons.derivedConfigs.LimitOperationSpeedConfig.OperationResult.*;
 import static lpctools.tools.tilingTool.TilingTool.*;
@@ -57,9 +57,9 @@ public class TilingToolExecutor implements AutoCloseable, ClientTickEvents.EndTi
         Object2BooleanFunction<Block> condition = b ->{
             Block storedBlock = block.getValue();
             if(b == storedBlock) return true;
-            ArrayList<HashSet<Block>> list = vagueBlocks.get(storedBlock);
+            ArrayList<ImmutableSet<Block>> list = vagueBlocks.get(storedBlock);
             if(list == null) return false;
-            for(HashSet<Block> set : list)
+            for(var set : list)
                 if(set.contains(b)) return true;
             return false;
         };

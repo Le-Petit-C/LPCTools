@@ -6,6 +6,7 @@ import fi.dy.masa.malilib.gui.GuiTextFieldGeneric;
 import fi.dy.masa.malilib.gui.LeftRight;
 import fi.dy.masa.malilib.gui.MaLiLibIcons;
 import fi.dy.masa.malilib.gui.button.*;
+import fi.dy.masa.malilib.gui.widgets.WidgetColorIndicator;
 import fi.dy.masa.malilib.gui.widgets.WidgetKeybindSettings;
 import fi.dy.masa.malilib.hotkeys.IHotkey;
 import it.unimi.dsi.fastutil.floats.FloatArrayList;
@@ -125,6 +126,9 @@ public interface ILPCUniqueConfigBase extends ILPCUniqueConfig{
     }
     static ButtonOption iconButtonPreset(MaLiLibIcons icon, @Nullable IButtonActionListener actionListener, @Nullable Supplier<@Nullable String> buttonId){
         return new ButtonOption(ButtonWeightType.WIDTH, 16, actionListener, buttonId, iconButtonAllocator(icon, 16, LeftRight.CENTER));
+    }
+    static IButtonAllocator colorEditorAllocator(IConfigColor config){
+        return (x, y, w, h, key, listener, consumer, reset)->consumer.addWidget(new WidgetColorIndicator(x, y + 1, 19, 19, config));
     }
     static ButtonOption buttonBooleanPreset(float widthWeight, IConfigBoolean configBoolean){
         return new ButtonOption(widthWeight, null, null,

@@ -60,8 +60,8 @@ public class TilingTool {
         litematicaButtonModeDefaults.put("lpctools.configs.tools.TT.litematicaButtonMode.bufferDirectly", TilingTool::litematicaRefreshDirectly);
     }
     public static final ArrayOptionListConfig<Runnable> litematicaButtonMode = addArrayOptionListConfig("litematicaButtonMode", litematicaButtonModeDefaults);
-    public static final MutableConfig<ObjectListConfig.BlockListConfig> vagueBlocksConfig = addMutableConfig("vagueBlocks", TTConfig.getFullTranslationKey(), ImmutableMap.of(
-        "blocks", (parent, key)->new ObjectListConfig.BlockListConfig(parent, key, null, parent::onValueChanged)
+    public static final MutableConfig<BlockListConfig> vagueBlocksConfig = addMutableConfig("vagueBlocks", TTConfig.getFullTranslationKey(), ImmutableMap.of(
+        "blocks", (parent, key)->new BlockListConfig(parent, key, null, parent::onValueChanged)
     ), TilingTool::refreshVagueBlocks);
     static {
         vagueBlocksConfig.allocateAndAddConfig("blocks").setBlocks(List.of(Blocks.DIRT, Blocks.GRASS_BLOCK));
@@ -120,9 +120,9 @@ public class TilingTool {
     private static void setByLitematica(){litematicaButtonMode.get().run();}
     private static void refreshVagueBlocks(){
         vagueBlocks.clear();
-        for(ObjectListConfig.BlockListConfig config : vagueBlocksConfig.iterateConfigs())
-            for(Block block : config.set)
-                vagueBlocks.computeIfAbsent(block, v->new ArrayList<>()).add(config.set);
+        for(BlockListConfig config : vagueBlocksConfig.iterateConfigs())
+            for(Block block : config.getBlocks())
+                vagueBlocks.computeIfAbsent(block, v->new ArrayList<>()).add(config.getBlocks());
     }
     static void setConfigBox(Box3i box){
         cornerPos1.setPos(box.pos1);

@@ -57,9 +57,11 @@ public class ChooseItemScreen extends GuiBase {
 	public static ChooseItemScreen ofBlocks(@Nullable Screen parent, List<Block> items, int width, int height, Consumer<Block> callback){
 		return new ChooseItemScreen(parent, items, Block::asItem, Registries.BLOCK::getId, block->block.getName().getString(), width, height, callback);
 	}
-	@SuppressWarnings("unused")
 	public static ChooseItemScreen ofAllItems(@Nullable Screen parent, int width, int height, Consumer<Item> callback){
 		return ofItems(parent, Registries.ITEM.stream().toList(), width, height, callback);
+	}
+	public static ChooseItemScreen ofAllItems(int width, int height, Consumer<Item> callback){
+		return ofAllItems(MinecraftClient.getInstance().currentScreen, width, height, callback);
 	}
 	public static ChooseItemScreen ofAllBlocks(@Nullable Screen parent, int width, int height, Consumer<Block> callback){
 		return ofBlocks(parent, Registries.BLOCK.stream().toList(), width, height, callback);

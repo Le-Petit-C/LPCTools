@@ -1,8 +1,8 @@
 package lpctools.tools.breakRestriction;
 
 import lpctools.lpcfymasaapi.configButtons.derivedConfigs.ConfigListOptionListConfigEx;
-import lpctools.lpcfymasaapi.configButtons.derivedConfigs.ObjectListConfig;
 import lpctools.lpcfymasaapi.configButtons.derivedConfigs.RangeLimitConfig;
+import lpctools.lpcfymasaapi.configButtons.uniqueConfigs.BlockListConfig;
 import lpctools.lpcfymasaapi.configButtons.uniqueConfigs.BooleanHotkeyThirdListConfig;
 import lpctools.lpcfymasaapi.interfaces.ILPCConfigList;
 import lpctools.tools.ToolConfigs;
@@ -31,9 +31,9 @@ public class BreakRestriction {
     @SuppressWarnings("unused")
     public static final ILPCConfigList blockTestMethod_none = blockTestMethod.addList("none", block->true);
     public static final ILPCConfigList blockTestMethod_whitelist = blockTestMethod.addList("whitelist", BreakRestriction::blockTestByWhitelist);
-    public static final ObjectListConfig.BlockListConfig blockTestWhiteList = addBlockListConfig(blockTestMethod_whitelist, "whitelist", defaultBlockWhitelist);
+    public static final BlockListConfig blockTestWhiteList = addBlockListConfig(blockTestMethod_whitelist, "whitelist", defaultBlockWhitelist);
     public static final ILPCConfigList blockTestMethod_blacklist = blockTestMethod.addList("blacklist", BreakRestriction::blockTestByBlacklist);
-    public static final ObjectListConfig.BlockListConfig blockTestBlackList = addBlockListConfig(blockTestMethod_blacklist, "blacklist", defaultBlockBlacklist);
+    public static final BlockListConfig blockTestBlackList = addBlockListConfig(blockTestMethod_blacklist, "blacklist", defaultBlockBlacklist);
     static {listStack.pop();}
     
     private static boolean blockTestByWhitelist(Block block){

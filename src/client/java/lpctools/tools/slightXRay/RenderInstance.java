@@ -143,6 +143,7 @@ public class RenderInstance extends DataInstance implements WorldRenderEvents.En
         clearRender();
     }
     @Override public void onStartTick(MinecraftClient mc){
+        tryRefreshXRayBlocks();
         super.onStartTick(mc);
         AlgorithmUtils.consumeCompletedTasks(asyncQuadBufferBuilders, (pos, buffer)->AlgorithmUtils.closeNoExcept(vertexBuffers.put(pos, buffer)));
     }
@@ -190,6 +191,7 @@ public class RenderInstance extends DataInstance implements WorldRenderEvents.En
     //返回值是最大形状数量
     CompletableFuture<RenderPrepareResult> renderTask;
     @Override public void onStart(WorldRenderContext context){
+        tryRefreshXRayBlocks();
         Vec3d camPos = context.camera().getPos();
         Matrix4f matrix = new Matrix4f(context.positionMatrix());
         context.projectionMatrix().mul(matrix, matrix);
@@ -197,6 +199,7 @@ public class RenderInstance extends DataInstance implements WorldRenderEvents.En
         renderTask = CompletableFuture.supplyAsync(()->asyncPrepareRenderMain(world, camPos, matrix));
     }
     @Override public void onEnd(WorldRenderContext context) {
+        tryRefreshXRayBlocks();
         RenderPrepareResult result = renderTask.join();
         ensureIndexBufferSize(result.maxShapeCount);
         try(MaskLayer layer = new MaskLayer()){

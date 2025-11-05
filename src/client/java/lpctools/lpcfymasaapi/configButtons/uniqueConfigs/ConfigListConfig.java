@@ -1,38 +1,33 @@
 package lpctools.lpcfymasaapi.configButtons.uniqueConfigs;
 
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSortedMap;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 import fi.dy.masa.malilib.config.IConfigResettable;
-import fi.dy.masa.malilib.gui.*;
+import fi.dy.masa.malilib.gui.GuiConfigsBase;
+import fi.dy.masa.malilib.gui.LeftRight;
+import fi.dy.masa.malilib.gui.MaLiLibIcons;
 import fi.dy.masa.malilib.gui.button.ButtonBase;
 import lpctools.lpcfymasaapi.configButtons.UpdateTodo;
 import lpctools.lpcfymasaapi.interfaces.*;
-import lpctools.lpcfymasaapi.screen.ChooseScreen;
-import net.minecraft.text.Text;
-import org.apache.commons.lang3.function.TriFunction;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.*;
-import java.util.function.BiFunction;
-import java.util.function.Supplier;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.function.Function;
 import java.util.function.ToIntFunction;
 
-import static lpctools.lpcfymasaapi.LPCConfigUtils.*;
-import static lpctools.lpcfymasaapi.interfaces.ILPCUniqueConfigBase.*;
-import static lpctools.util.AlgorithmUtils.*;
+import static lpctools.lpcfymasaapi.LPCConfigUtils.warnFailedLoadingConfig;
+import static lpctools.lpcfymasaapi.interfaces.ILPCUniqueConfigBase.iconButtonAllocator;
+import static lpctools.util.AlgorithmUtils.convertIterable;
 
-public class MutableConfig<T extends ILPCUniqueConfigBase> extends LPCUniqueConfigBase implements ILPCConfigReadable, IMutableConfig, IConfigResettable{
-    public final @NotNull ImmutableMap<String, ? extends BiFunction<? super MutableConfig<T>, String, ? extends T>> configSuppliers;
-    public final @NotNull String buttonKeyPrefix;
-    public @NotNull Map<?, ?> optionTree;
+public class ConfigListConfig<T extends ILPCUniqueConfigBase> extends LPCUniqueConfigBase implements ILPCConfigReadable, IMutableConfig, IConfigResettable{
+    public final @NotNull Function<? super ConfigListConfig<T>, ? extends T> configSupplier;
     private boolean condenseOperationButton;
     private boolean hideOperationButton;
-    private JsonArray defaultJson;
+    private @NotNull JsonArray defaultJson;
     protected final ArrayList<MutableConfigOption<? extends T>> subConfigs = new ArrayList<>();
     @Nullable public String buttonName;
     public boolean expanded;
@@ -72,44 +67,13 @@ public class MutableConfig<T extends ILPCUniqueConfigBase> extends LPCUniqueConf
     int indent;
     @Override public void setAlignedIndent(int indent) {this.indent = indent;}
     @Override public int getAlignedIndent() {return indent;}
-    public MutableConfig(@NotNull ILPCConfigReadable parent, @NotNull String nameKey, @NotNull String buttonKeyPrefix,
-                         @NotNull ImmutableMap<String, ? extends BiFunction<? super MutableConfig<T>, String, ? extends T>> configSuppliers,
-                         @Nullable Map<?, ?> optionTree, @Nullable ILPCValueChangeCallback callback){
+    public ConfigListConfig(@NotNull ILPCConfigReadable parent, @NotNull String nameKey,
+                         @NotNull Function<? super ConfigListConfig<T>, ? extends T> configSupplier, @Nullable ILPCValueChangeCallback callback){
         super(parent, nameKey, null);
-        this.configSuppliers = configSuppliers;
-        this.buttonKeyPrefix = buttonKeyPrefix;
+        this.configSupplier = configSupplier;
         buttonName = titleKey;
         setValueChangeCallback(callback);
         defaultJson = getSubConfigsAsJsonElement();
-        if(optionTree == null){
-            ImmutableMap.Builder<String, String> builder = ImmutableMap.builder();
-            configSuppliers.forEach((key, func)->builder.put(key, key));
-            this.optionTree = builder.build();
-        }
-        else this.optionTree = optionTree;
-    }
-    @SuppressWarnings("unused")
-    public <U> MutableConfig(@NotNull ILPCConfigReadable parent, @NotNull String nameKey, @NotNull String buttonKeyPrefix,
-                         @NotNull ImmutableMap<String, ? extends TriFunction<? super MutableConfig<T>, String, U, T>> configSuppliers,
-                         @Nullable ILPCValueChangeCallback callback, U userData) {
-        this(parent, nameKey, buttonKeyPrefix, convertSuppliers(configSuppliers, userData), callback);
-    }
-    public MutableConfig(@NotNull ILPCConfigReadable parent, @NotNull String nameKey, @NotNull String buttonKeyPrefix,
-                         @NotNull ImmutableMap<String, ? extends BiFunction<? super MutableConfig<T>, String, T>> configSuppliers,
-                         @Nullable ILPCValueChangeCallback callback){
-        this(parent, nameKey, buttonKeyPrefix, configSuppliers, null, callback);
-    }
-    @SuppressWarnings("unused")
-    public <U> MutableConfig(@NotNull ILPCConfigReadable parent, @NotNull String nameKey, @NotNull String buttonKeyPrefix,
-                             @NotNull ImmutableMap<String, ? extends TriFunction<? super MutableConfig<T>, String, U, T>> configSuppliers,
-                             @Nullable Map<?, ?> optionTree, @Nullable ILPCValueChangeCallback callback, U userData) {
-        this(parent, nameKey, buttonKeyPrefix, convertSuppliers(configSuppliers, userData), optionTree, callback);
-    }
-    private static <T extends ILPCUniqueConfigBase, U> ImmutableMap<String, ? extends BiFunction<? super MutableConfig<T>, String, T>>
-    convertSuppliers(Map<String, ? extends TriFunction<? super MutableConfig<T>, String, U, T>> configSuppliers, U userData){
-        ImmutableMap.Builder<String, BiFunction<? super MutableConfig<T>, String, T>> convertedSuppliers = ImmutableMap.builder();
-        configSuppliers.forEach((k, v)->convertedSuppliers.put(k, (c, s)->v.apply(c, s, userData)));
-        return ImmutableSortedMap.copyOf(convertedSuppliers.build());
     }
     public void setCurrentAsDefault(boolean expanded){
         defaultJson = getSubConfigsAsJsonElement();
@@ -159,7 +123,7 @@ public class MutableConfig<T extends ILPCUniqueConfigBase> extends LPCUniqueConf
         if(data instanceof JsonArray mutableValues){
             for(JsonElement element : mutableValues){
                 MutableConfigOption<? extends T> config = loadFromJsonElement(element);
-                if(config != null) subConfigs.add(config);
+				subConfigs.add(config);
             }
         }
     }
@@ -168,7 +132,8 @@ public class MutableConfig<T extends ILPCUniqueConfigBase> extends LPCUniqueConf
             warnFailedLoadingConfig(this, data);
             return new UpdateTodo();
         }
-        setSubConfigsValueFromJsonElement(object.get("mutableValues"));
+        if(object.get("mutableValues") instanceof JsonElement element)
+            setSubConfigsValueFromJsonElement(element);
         if(object.get("expanded") instanceof JsonPrimitive primitive)
             expanded = primitive.getAsBoolean();
         if(!(getParent() instanceof MutableConfig)){
@@ -180,32 +145,20 @@ public class MutableConfig<T extends ILPCUniqueConfigBase> extends LPCUniqueConf
         return new UpdateTodo().valueChanged();
     }
     
-    private @Nullable MutableConfigOption<? extends T> loadFromJsonElement(@NotNull JsonElement data){
-        Supplier<MutableConfigOption<? extends T>> fail = ()->{
-            warnFailedLoadingConfig(this, data);
-            return null;
-        };
-        if(data instanceof JsonObject object){
-            if(!(object.get("suppliers") instanceof JsonPrimitive primitive)) return fail.get();
-            MutableConfigOption<? extends T> config = allocateConfig(primitive.getAsString());
-            if(config == null) return fail.get();
-            if(object.get("value") instanceof JsonElement element)
-                config.wrappedConfig.setValueFromJsonElement(element);
-            return config;
-        }
-        else return fail.get();
+    private @NotNull MutableConfigOption<? extends T> loadFromJsonElement(@NotNull JsonElement data){
+        MutableConfigOption<? extends T> config = allocateConfig();
+        config.wrappedConfig.setValueFromJsonElement(data);
+        return config;
     }
     
     public static class MutableConfigOption<T extends ILPCUniqueConfigBase> extends LPCUniqueConfigBase implements AutoCloseable{
         public final T wrappedConfig;
         public boolean flipPosButton, flipMinusButton;
-        public final MutableConfig<? super T> parent;
-        public final String saveKey;
-        private MutableConfigOption(MutableConfig<? super T> parent, @NotNull T wrappedConfig, String saveKey) {
+        public final ConfigListConfig<? super T> parent;
+        private MutableConfigOption(ConfigListConfig<? super T> parent, @NotNull T wrappedConfig) {
             super(parent, "", parent::onValueChanged);
             this.wrappedConfig = wrappedConfig;
             this.parent = parent;
-            this.saveKey = saveKey;
         }
         @Override public void getButtonOptions(ButtonOptionArrayList res) {
             wrappedConfig.getButtonOptions(res);
@@ -258,13 +211,10 @@ public class MutableConfig<T extends ILPCUniqueConfigBase> extends LPCUniqueConf
             }
         }
         @Override public @Nullable JsonElement getAsJsonElement() {
-            JsonObject object = new JsonObject();
-            object.addProperty("suppliers", saveKey);
-            object.add("value", wrappedConfig.getAsJsonElement());
-            return object;
+            return wrappedConfig.getAsJsonElement();
         }
         @Deprecated @Override public UpdateTodo setValueFromJsonElementEx(@NotNull JsonElement data) {
-            throw new UnsupportedOperationException();
+            return wrappedConfig.setValueFromJsonElementEx(data);
         }
         @Override public @NotNull String getFullTranslationKey() {
             if(wrappedConfig == null) return super.getFullTranslationKey();
@@ -282,8 +232,8 @@ public class MutableConfig<T extends ILPCUniqueConfigBase> extends LPCUniqueConf
     }
     public static class ThirdListMutableConfigOption<T extends ILPCUniqueConfigBase, U extends ILPCConfigReadable> extends MutableConfigOption<T> implements ILPCConfigReadable {
         private final U wrappedConfig2;
-        private ThirdListMutableConfigOption(MutableConfig<? super T> parent, @NotNull T wrappedConfig1, @NotNull U wrappedConfig2, String saveKey) {
-            super(parent, wrappedConfig1, saveKey);
+        private ThirdListMutableConfigOption(ConfigListConfig<? super T> parent, @NotNull T wrappedConfig1, @NotNull U wrappedConfig2) {
+            super(parent, wrappedConfig1);
             this.wrappedConfig2 = wrappedConfig2;
         }
         @Override public @NotNull Iterable<? extends ILPCConfig> getConfigs(){return wrappedConfig2.getConfigs();}
@@ -293,34 +243,24 @@ public class MutableConfig<T extends ILPCUniqueConfigBase> extends LPCUniqueConf
         @Override public void setAlignedIndent(int indent) {wrappedConfig2.setAlignedIndent(indent);}
         @Override public int getAlignedIndent() {return wrappedConfig2.getAlignedIndent();}
     }
-    private @NotNull <V extends T> MutableConfig.MutableConfigOption<V> wrapConfig(@NotNull V config, String saveKey){
+    private @NotNull <V extends T> MutableConfigOption<V> wrapConfig(@NotNull V config){
         if(config instanceof ILPCConfigReadable displayable)
-            return new ThirdListMutableConfigOption<>(this, config, displayable, saveKey);
-        else return new MutableConfigOption<>(this, config, saveKey);
+            return new ThirdListMutableConfigOption<>(this, config, displayable);
+        else return new MutableConfigOption<>(this, config);
     }
-    private @Nullable MutableConfig.MutableConfigOption<? extends T> allocateConfig(String supplierId){
-        BiFunction<? super MutableConfig<T>, String, ? extends T> allocator = configSuppliers.get(supplierId);
-        if(allocator == null) return null;
-        return wrapConfig(allocator.apply(this, supplierId), supplierId);
+    private @NotNull MutableConfigOption<? extends T> allocateConfig(){
+        return wrapConfig(configSupplier.apply(this));
     }
-    private T allocateAndAddConfig(String id, int position){
-        MutableConfigOption<? extends T> config = allocateConfig(id);
-        if(config == null) return null;
-        expanded = true;
+    private T allocateAndAddConfig(int position){
+        MutableConfigOption<? extends T> config = allocateConfig();
+		expanded = true;
         subConfigs.add(position, config);
         getPage().markNeedUpdate();
         onValueChanged();
         return config.wrappedConfig;
     }
-    public T allocateAndAddConfig(String id){return allocateAndAddConfig(id, subConfigs.size());}
-    public void onAddConfigClicked(int position){
-        if(configSuppliers.size() == 1) configSuppliers.forEach((key, value)->allocateAndAddConfig(key, position));
-        else {
-            ImmutableMap.Builder<String, ChooseScreen.OptionCallback<Object>> options = ImmutableMap.builder();
-            configSuppliers.forEach((key, func)->options.put(key, (button, mouseButton, user)->allocateAndAddConfig(key, position)));
-            ChooseScreen.openChooseScreen(Text.translatable(titleKey).getString(), true, options.build(), optionTree, null);
-        }
-    }
+    public T allocateAndAddConfig(){return allocateAndAddConfig(subConfigs.size());}
+    public void onAddConfigClicked(int position){allocateAndAddConfig(position);}
     private static final String titleKey = "lpcfymasaapi.configs.mutableConfig.title";
     @Override public void onValueChanged() {
         needUpdateModified = true;

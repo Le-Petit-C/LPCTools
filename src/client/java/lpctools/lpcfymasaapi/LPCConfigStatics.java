@@ -21,7 +21,7 @@ import java.util.Map;
 import java.util.Stack;
 import java.util.function.*;
 
-import static lpctools.lpcfymasaapi.configButtons.derivedConfigs.ObjectListConfig.*;
+import static lpctools.lpcfymasaapi.configButtons.derivedConfigs.String2ObjectListConfig.*;
 
 @SuppressWarnings({"unused", "UnusedReturnValue", "resource"})
 public interface LPCConfigStatics {
@@ -151,17 +151,17 @@ public interface LPCConfigStatics {
     static <T> ConfigListOptionListConfigEx<T> addConfigListOptionListConfigEx(ILPCConfigList list, @NotNull String nameKey, @Nullable ILPCValueChangeCallback callback){
         return list.addConfig(new ConfigListOptionListConfigEx<>(list, nameKey, callback));
     }
-    static <T> ObjectListConfig<T> addObjectListConfig(ILPCConfigList list, @NotNull String nameKey, @Nullable ImmutableList<String> defaultValue, Function<String, T> converter, @Nullable ILPCValueChangeCallback callback){
-        return list.addConfig(new ObjectListConfig<>(list, nameKey, defaultValue, converter, callback));
+    static <T> String2ObjectListConfig<T> addObjectListConfig(ILPCConfigList list, @NotNull String nameKey, @Nullable ImmutableList<String> defaultValue, Function<String, T> converter, @Nullable ILPCValueChangeCallback callback){
+        return list.addConfig(new String2ObjectListConfig<>(list, nameKey, defaultValue, converter, callback));
     }
-    static <T> ObjectListConfig<T> addObjectListConfig(ILPCConfigList list, @NotNull String nameKey, @Nullable Iterable<T> defaultValue, Function<String, T> converter, Function<T, String> backConverter, @Nullable ILPCValueChangeCallback callback){
-        return list.addConfig(new ObjectListConfig<>(list, nameKey, defaultValue, converter, backConverter, callback));
+    static <T> String2ObjectListConfig<T> addObjectListConfig(ILPCConfigList list, @NotNull String nameKey, @Nullable Iterable<T> defaultValue, Function<String, T> converter, Function<T, String> backConverter, @Nullable ILPCValueChangeCallback callback){
+        return list.addConfig(new String2ObjectListConfig<>(list, nameKey, defaultValue, converter, backConverter, callback));
     }
-    static <T> ObjectListConfig<T> addObjectListConfig(ILPCConfigList list, @NotNull String nameKey, @Nullable ImmutableList<String> defaultValue, Function<String, T> converter){
-        return list.addConfig(new ObjectListConfig<>(list, nameKey, defaultValue, converter));
+    static <T> String2ObjectListConfig<T> addObjectListConfig(ILPCConfigList list, @NotNull String nameKey, @Nullable ImmutableList<String> defaultValue, Function<String, T> converter){
+        return list.addConfig(new String2ObjectListConfig<>(list, nameKey, defaultValue, converter));
     }
-    static <T> ObjectListConfig<T> addObjectListConfig(ILPCConfigList list, @NotNull String nameKey, @Nullable Iterable<T> defaultValue, Function<String, T> converter, Function<T, String> backConverter){
-        return list.addConfig(new ObjectListConfig<>(list, nameKey, defaultValue, converter, backConverter));
+    static <T> String2ObjectListConfig<T> addObjectListConfig(ILPCConfigList list, @NotNull String nameKey, @Nullable Iterable<T> defaultValue, Function<String, T> converter, Function<T, String> backConverter){
+        return list.addConfig(new String2ObjectListConfig<>(list, nameKey, defaultValue, converter, backConverter));
     }
     static ItemListConfig addItemListConfig(ILPCConfigList list, @NotNull String nameKey, @Nullable Iterable<Item> defaultValue, ILPCValueChangeCallback callback){
         return list.addConfig(new ItemListConfig(list, nameKey, defaultValue, callback));
@@ -355,16 +355,16 @@ public interface LPCConfigStatics {
     static <T> ConfigListOptionListConfigEx<T> addConfigListOptionListConfigEx(@NotNull String nameKey, @Nullable ILPCValueChangeCallback callback){
         return addConfigListOptionListConfigEx(peekConfigList(), nameKey, callback);
     }
-    static <T> ObjectListConfig<T> addObjectListConfig(String nameKey, @Nullable ImmutableList<String> defaultValue, Function<String, T> converter, @Nullable ILPCValueChangeCallback callback){
+    static <T> String2ObjectListConfig<T> addObjectListConfig(String nameKey, @Nullable ImmutableList<String> defaultValue, Function<String, T> converter, @Nullable ILPCValueChangeCallback callback){
         return addObjectListConfig(peekConfigList(), nameKey, defaultValue, converter, callback);
     }
-    static <T> ObjectListConfig<T> addObjectListConfig(String nameKey, @Nullable Iterable<T> defaultValue, Function<String, T> converter, Function<T, String> backConverter, @Nullable ILPCValueChangeCallback callback){
+    static <T> String2ObjectListConfig<T> addObjectListConfig(String nameKey, @Nullable Iterable<T> defaultValue, Function<String, T> converter, Function<T, String> backConverter, @Nullable ILPCValueChangeCallback callback){
         return addObjectListConfig(peekConfigList(), nameKey, defaultValue, converter, backConverter, callback);
     }
-    static <T> ObjectListConfig<T> addObjectListConfig(String nameKey, @Nullable ImmutableList<String> defaultValue, Function<String, T> converter){
+    static <T> String2ObjectListConfig<T> addObjectListConfig(String nameKey, @Nullable ImmutableList<String> defaultValue, Function<String, T> converter){
         return addObjectListConfig(peekConfigList(), nameKey, defaultValue, converter);
     }
-    static <T> ObjectListConfig<T> addObjectListConfig(String nameKey, @Nullable Iterable<T> defaultValue, Function<String, T> converter, Function<T, String> backConverter){
+    static <T> String2ObjectListConfig<T> addObjectListConfig(String nameKey, @Nullable Iterable<T> defaultValue, Function<String, T> converter, Function<T, String> backConverter){
         return addObjectListConfig(peekConfigList(), nameKey, defaultValue, converter, backConverter);
     }
     static ItemListConfig addItemListConfig(String nameKey, @Nullable Iterable<Item> defaultValue, ILPCValueChangeCallback callback){

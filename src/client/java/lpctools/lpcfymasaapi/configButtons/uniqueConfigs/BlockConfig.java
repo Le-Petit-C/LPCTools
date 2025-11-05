@@ -29,16 +29,29 @@ public class BlockConfig extends LPCUniqueConfigBase {
 		res.add(1, (b, m)->chooseBlock(), block.getName()::getString, buttonGenericAllocator);
 	}
 	public Block getBlock(){return block;}
-	private void chooseBlock(){
-		ChooseItemScreen screen = ChooseItemScreen.ofAllBlocks(9, 6, block->this.block = block);
-		MinecraftClient.getInstance().setScreen(screen);
-	}
-	@Override public @Nullable JsonElement getAsJsonElement() {
-		return new JsonPrimitive(DataUtils.getBlockId(block));
+	
+	public void setBlock(Block block){
+		this.block = block;
+		onValueChanged();
 	}
 	
-	@Override
-	public UpdateTodo setValueFromJsonElementEx(@NotNull JsonElement element) {
+	private void chooseBlock(){
+		ChooseItemScreen screen = ChooseItemScreen.ofAllBlocks(9, 6, block->{
+			this.block = block;
+			onValueChanged();
+		});
+		MinecraftClient.getInstance().setScreen(screen);
+	}
+	
+	public static JsonPrimitive getBlockConfigAsJsonElement(BlockConfig blockConfig){
+		return new JsonPrimitive(DataUtils.getBlockId(blockConfig.block));
+	}
+	
+	@Override public @Nullable JsonElement getAsJsonElement() {
+		return getBlockConfigAsJsonElement(this);
+	}
+	
+	@Override public UpdateTodo setValueFromJsonElementEx(@NotNull JsonElement element) {
 		if(element instanceof JsonPrimitive primitive){
 			var block = DataUtils.getBlockFromId(primitive.getAsString(), false);
 			if(block != null){

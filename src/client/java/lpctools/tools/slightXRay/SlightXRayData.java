@@ -9,8 +9,6 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.HashMap;
 
-import static lpctools.util.DataUtils.idListFromBlockList;
-
 public class SlightXRayData {
     static @Nullable RenderInstance renderInstance;
     public static final @NotNull ImmutableList<Block> defaultXRayBlocks = ImmutableList.of(
@@ -20,7 +18,6 @@ public class SlightXRayData {
         Blocks.BUDDING_AMETHYST, Blocks.CALCITE,
         Blocks.ANCIENT_DEBRIS
     );
-    public static final @NotNull ImmutableList<String> defaultXRayBlockIds = idListFromBlockList(defaultXRayBlocks);
     public static final @NotNull HashMap<Block, MutableInt> XRayBlocks;
     static {
         XRayBlocks = new HashMap<>();
