@@ -1,9 +1,11 @@
 package lpctools.tools.fillingAssistant;
 
+import com.google.common.collect.ImmutableSet;
 import fi.dy.masa.malilib.hotkeys.KeyCallbackToggleBoolean;
 import lpctools.lpcfymasaapi.Registries;
 import lpctools.lpcfymasaapi.configButtons.derivedConfigs.*;
 import lpctools.lpcfymasaapi.configButtons.transferredConfigs.*;
+import lpctools.lpcfymasaapi.configButtons.uniqueConfigs.BlockItemListConfig;
 import lpctools.lpcfymasaapi.configButtons.uniqueConfigs.BlockListConfig;
 import lpctools.lpcfymasaapi.configButtons.uniqueConfigs.BooleanHotkeyThirdListConfig;
 import lpctools.tools.ToolConfigs;
@@ -16,8 +18,6 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.BlockView;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.HashSet;
 
 import static lpctools.lpcfymasaapi.LPCConfigStatics.*;
 import static lpctools.tools.ToolUtils.*;
@@ -32,7 +32,7 @@ public class FillingAssistant {
     public static final IntegerConfig testDistanceConfig = addIntegerConfig("testDistance", 6, 6, 64, FillingAssistant::testDistanceChangeCallback);
     public static final BooleanConfig disableOnLeftDownConfig = addBooleanConfig("disableOnLeftDown", true);
     public static final BooleanConfig disableOnGUIOpened = addBooleanConfig("disableOnGUIOpened", false);
-    public static final String2ObjectListConfig.BlockItemListConfig placeableItemsConfig = addBlockItemListConfig("placeableItems", defaultPlaceableItemList);
+    public static final BlockItemListConfig placeableItemsConfig = addBlockItemListConfig("placeableItems", defaultPlaceableItemList);
     public static final BlockListConfig passableBlocksConfig = addBlockListConfig("passableBlocks", defaultPassableBlockList);
     public static final BooleanConfig transparentAsPassableConfig = addBooleanConfig("transparentAsPassable", true);
     public static final BooleanConfig notOpaqueAsPassableConfig = addBooleanConfig("notOpaqueAsPassable", true);
@@ -65,7 +65,7 @@ public class FillingAssistant {
         FAConfig.setBooleanValue(false);
         displayDisableReason(FAConfig, reasonKey);
     }
-    public static @NotNull HashSet<BlockItem> getPlaceableItems(){return placeableItemsConfig.set;}
+    public static @NotNull ImmutableSet<BlockItem> getPlaceableItems(){return placeableItemsConfig.getBlockItems();}
     public static boolean isBlockUnpassable(Block block){
         if(transparentAsPassableConfig.getAsBoolean() && block.getDefaultState().isTransparent()) return false;
         if(notOpaqueAsPassableConfig.getAsBoolean() && !block.getDefaultState().isOpaque()) return false;

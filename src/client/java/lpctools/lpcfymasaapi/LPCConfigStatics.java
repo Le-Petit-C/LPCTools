@@ -21,8 +21,6 @@ import java.util.Map;
 import java.util.Stack;
 import java.util.function.*;
 
-import static lpctools.lpcfymasaapi.configButtons.derivedConfigs.String2ObjectListConfig.*;
-
 @SuppressWarnings({"unused", "UnusedReturnValue", "resource"})
 public interface LPCConfigStatics {
     //加入的配置无法删除

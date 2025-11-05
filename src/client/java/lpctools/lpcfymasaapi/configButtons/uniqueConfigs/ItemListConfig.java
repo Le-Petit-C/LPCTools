@@ -13,7 +13,7 @@ public class ItemListConfig extends ConfigListConfig<ItemConfig> {
 	private boolean suppressValueChanged = false;
 	
 	public ItemListConfig(@NotNull ILPCConfigReadable parent, String nameKey, @Nullable Iterable<? extends Item> defaultValue, @Nullable ILPCValueChangeCallback callback) {
-		super(parent, nameKey, config->new ItemConfig(config, "block", Items.AIR, config::onValueChanged), callback);
+		super(parent, nameKey, config->new ItemConfig(config, "item", Items.AIR, config::onValueChanged), callback);
 		if (defaultValue != null) {
 			setItems(defaultValue);
 			setCurrentAsDefault(false);

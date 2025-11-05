@@ -13,7 +13,7 @@ import static lpctools.tools.antiSpawner.AntiSpawner.*;
 import static lpctools.util.DataUtils.getBlockId;
 
 public class AntiSpawnerData {
-    public static final HandRestock.IRestockTest restockTest = item -> item.getItem() instanceof BlockItem blockItem && placeableItems.set.contains(blockItem);
+    public static final HandRestock.IRestockTest restockTest = item -> item.getItem() instanceof BlockItem blockItem && placeableItems.contains(blockItem);
     public static final ImmutableList<BlockItem> defaultPlaceableItems;
     public static final AntiSpawnerRunner runner = new AntiSpawnerRunner();
     static {

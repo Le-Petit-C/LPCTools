@@ -5,8 +5,6 @@ import lpctools.lpcfymasaapi.LPCAPIInit;
 import lpctools.lpcfymasaapi.configButtons.uniqueConfigs.UniqueStringListConfig;
 import lpctools.lpcfymasaapi.interfaces.ILPCConfigReadable;
 import lpctools.lpcfymasaapi.interfaces.ILPCValueChangeCallback;
-import lpctools.util.DataUtils;
-import net.minecraft.item.BlockItem;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -53,14 +51,4 @@ public class String2ObjectListConfig<T> extends UniqueStringListConfig {
     }
     public boolean contains(T o){return set.contains(o);}
     
-    public static class BlockItemListConfig extends String2ObjectListConfig<BlockItem> {
-        public static final Function<String, BlockItem> converter = id->getBlockItemFromId(id, true);
-        public static final Function<BlockItem, String> backConverter = DataUtils::getItemId;
-        public BlockItemListConfig(@NotNull ILPCConfigReadable parent, String nameKey, @Nullable Iterable<BlockItem> defaultValue, @Nullable ILPCValueChangeCallback callback) {
-            super(parent, nameKey, defaultValue, converter, backConverter, callback);
-        }
-        public BlockItemListConfig(@NotNull ILPCConfigReadable parent, String nameKey, @Nullable Iterable<BlockItem> defaultValue) {
-            this(parent, nameKey, defaultValue, null);
-        }
-    }
 }

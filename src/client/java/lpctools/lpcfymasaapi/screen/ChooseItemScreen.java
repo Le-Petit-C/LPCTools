@@ -7,6 +7,7 @@ import net.minecraft.block.Block;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.Screen;
+import net.minecraft.item.BlockItem;
 import net.minecraft.item.Item;
 import net.minecraft.registry.Registries;
 import net.minecraft.util.Identifier;
@@ -18,6 +19,7 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 
 public class ChooseItemScreen extends GuiBase {
+	//width和height分别指代选择窗口中可选物品的行数和列数
 	public final int width;
 	public final int height;
 	public static final int w = 22, h = 22;
@@ -51,10 +53,10 @@ public class ChooseItemScreen extends GuiBase {
 		setParent(parent);
 		data.refreshSearchedItems("", searchedItems);
 	}
-	public static ChooseItemScreen ofItems(@Nullable Screen parent, List<Item> items, int width, int height, Consumer<Item> callback){
+	public static <T extends Item> ChooseItemScreen ofItems(@Nullable Screen parent, List<T> items, int width, int height, Consumer<T> callback){
 		return new ChooseItemScreen(parent, items, item->item, Registries.ITEM::getId, item->item.getName().getString(), width, height, callback);
 	}
-	public static ChooseItemScreen ofBlocks(@Nullable Screen parent, List<Block> items, int width, int height, Consumer<Block> callback){
+	public static <T extends Block> ChooseItemScreen ofBlocks(@Nullable Screen parent, List<T> items, int width, int height, Consumer<T> callback){
 		return new ChooseItemScreen(parent, items, Block::asItem, Registries.BLOCK::getId, block->block.getName().getString(), width, height, callback);
 	}
 	public static ChooseItemScreen ofAllItems(@Nullable Screen parent, int width, int height, Consumer<Item> callback){
@@ -68,6 +70,14 @@ public class ChooseItemScreen extends GuiBase {
 	}
 	public static ChooseItemScreen ofAllBlocks(int width, int height, Consumer<Block> callback){
 		return ofAllBlocks(MinecraftClient.getInstance().currentScreen, width, height, callback);
+	}
+	public static ChooseItemScreen ofAllBlockItems(@Nullable Screen parent, int width, int height, Consumer<BlockItem> callback){
+		ArrayList<BlockItem> list = new ArrayList<>();
+		Registries.ITEM.forEach(item->{if(item instanceof BlockItem blockItem) list.add(blockItem);});
+		return ofItems(parent, list, width, height, callback);
+	}
+	public static ChooseItemScreen ofAllBlockItems(int width, int height, Consumer<BlockItem> callback){
+		return ofAllBlockItems(MinecraftClient.getInstance().currentScreen, width, height, callback);
 	}
 	@Override public void initGui() {
 		super.initGui();

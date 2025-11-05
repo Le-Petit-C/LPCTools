@@ -6,6 +6,7 @@ import net.minecraft.block.BlockState;
 import net.minecraft.block.PlantBlock;
 import net.minecraft.block.Waterloggable;
 import net.minecraft.fluid.FluidState;
+import net.minecraft.item.BlockItem;
 import net.minecraft.registry.Registries;
 import org.jetbrains.annotations.Nullable;
 
@@ -14,11 +15,14 @@ import java.util.ArrayList;
 import static lpctools.util.BlockUtils.canAnyBucketPlaceAt;
 
 public class LiquidCleanerData {
-    public static final ImmutableList<Block> defaultCleaningBlocks;
+    public static final ImmutableList<BlockItem> defaultCleaningBlocks;
     @Nullable static LiquidCleanerRunner runner;
     static {
-        ArrayList<Block> _defaultCleaningBlocks = new ArrayList<>();
-        Registries.BLOCK.forEach(block->{if(isDefaultCleaningBlock(block)) _defaultCleaningBlocks.add(block);});
+        ArrayList<BlockItem> _defaultCleaningBlocks = new ArrayList<>();
+        Registries.BLOCK.forEach(block->{
+            if(isDefaultCleaningBlock(block) && block.asItem() instanceof BlockItem blockItem)
+                _defaultCleaningBlocks.add(blockItem);
+        });
         defaultCleaningBlocks = ImmutableList.copyOf(_defaultCleaningBlocks);
     }
     private static boolean isDefaultCleaningBlock(Block block){

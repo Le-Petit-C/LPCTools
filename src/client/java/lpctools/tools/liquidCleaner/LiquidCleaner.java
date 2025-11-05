@@ -3,7 +3,7 @@ package lpctools.tools.liquidCleaner;
 import fi.dy.masa.malilib.hotkeys.KeyCallbackToggleBoolean;
 import lpctools.lpcfymasaapi.configButtons.derivedConfigs.*;
 import lpctools.lpcfymasaapi.configButtons.transferredConfigs.BooleanConfig;
-import lpctools.lpcfymasaapi.configButtons.uniqueConfigs.BlockListConfig;
+import lpctools.lpcfymasaapi.configButtons.uniqueConfigs.BlockItemListConfig;
 import lpctools.lpcfymasaapi.configButtons.uniqueConfigs.BooleanHotkeyThirdListConfig;
 import lpctools.tools.ToolConfigs;
 import org.jetbrains.annotations.Nullable;
@@ -20,7 +20,7 @@ public class LiquidCleaner {
     public static final ReachDistanceConfig reachDistanceConfig = addReachDistanceConfig();
     public static final BooleanConfig disableOnGUIOpened = addBooleanConfig("disableOnGUIOpened", false);
     public static final BooleanConfig offhandFillingConfig = addBooleanConfig("offhandFilling", false);
-    public static final BlockListConfig cleaningBlocks = addBlockListConfig("cleaningBlocks", defaultCleaningBlocks);
+    public static final BlockItemListConfig cleaningBlocks = addBlockItemListConfig("cleaningBlocks", defaultCleaningBlocks);
     public static final BooleanConfig ignoreDownwardTest = addBooleanConfig("ignoreDownwardTest", false);
     public static final RangeLimitConfig limitCleaningRange = addRangeLimitConfig();
     public static final BooleanConfig expandRange = addBooleanConfig(limitCleaningRange, "expandRange", false);
