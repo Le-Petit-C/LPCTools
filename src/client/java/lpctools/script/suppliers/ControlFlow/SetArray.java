@@ -1,4 +1,4 @@
-package lpctools.script.suppliers.Void;
+package lpctools.script.suppliers.ControlFlow;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -19,13 +19,13 @@ import java.util.List;
 
 import static lpctools.lpcfymasaapi.LPCConfigUtils.warnFailedLoadingConfig;
 
-public class SetArray extends AbstractSupplierWithTypeDeterminedSubSuppliers implements IVoidSupplier {
+public class SetArray extends AbstractSupplierWithTypeDeterminedSubSuppliers implements IControlFlowSupplier {
 	protected final SupplierStorage<Object[]> array = ofStorage(new Null<>(this, Object[].class),
-		Text.translatable("lpctools.script.suppliers.Void.setArray.subSuppliers.array.name"));
+		Text.translatable("lpctools.script.suppliers.ControlFlowIssue.setArray.subSuppliers.array.name"));
 	protected final SupplierStorage<Integer> index = ofStorage(new ConstantInteger(this),
-		Text.translatable("lpctools.script.suppliers.Void.setArray.subSuppliers.index.name"));
+		Text.translatable("lpctools.script.suppliers.ControlFlowIssue.setArray.subSuppliers.index.name"));
 	protected final SupplierStorage<Object> value = ofStorage(new Null<>(this, Object.class),
-		Text.translatable("lpctools.script.suppliers.Void.setArray.subSuppliers.value.name"));
+		Text.translatable("lpctools.script.suppliers.ControlFlowIssue.setArray.subSuppliers.value.name"));
 	protected final SubSupplierEntry<?>[] subSuppliers = subSupplierBuilder()
 		.addEntry(Object[].class, array)
 		.addEntry(Integer.class, index)
@@ -38,7 +38,7 @@ public class SetArray extends AbstractSupplierWithTypeDeterminedSubSuppliers imp
 	
 	@Override protected SubSupplierEntry<?>[] getSubSuppliers() {return subSuppliers;}
 	
-	@Override public @NotNull ScriptFunction<CompileEnvironment.RuntimeVariableMap, Void>
+	@Override public @NotNull ScriptFunction<CompileEnvironment.RuntimeVariableMap, ControlFlowIssue>
 	compile(CompileEnvironment variableMap) {
 		var compiledArraySupplier = array.get().compile(variableMap);
 		var compiledIndexSupplier = index.get().compile(variableMap);
@@ -52,7 +52,7 @@ public class SetArray extends AbstractSupplierWithTypeDeterminedSubSuppliers imp
 			if(index < 0 || index >= array.length)
 				throw ScriptRuntimeException.indexOutOfBounds(this, index, array.length);
 			array[index] = value;
-			return null;
+			return ControlFlowIssue.NO_ISSUE;
 		};
 	}
 	

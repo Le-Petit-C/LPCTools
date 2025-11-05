@@ -1,4 +1,4 @@
-package lpctools.script.suppliers.Void;
+package lpctools.script.suppliers.ControlFlow;
 
 import com.google.gson.JsonElement;
 import lpctools.script.AbstractScript;
@@ -8,10 +8,10 @@ import lpctools.script.runtimeInterfaces.ScriptFunction;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class DoNothing extends AbstractScript implements IVoidSupplier {
-	public DoNothing(IScriptWithSubScript parent) {super(parent);}
-	@Override public @NotNull ScriptFunction<CompileEnvironment.RuntimeVariableMap, Void>
-	compile(CompileEnvironment variableMap) {return map->null;}
+public class Return extends AbstractScript implements IControlFlowSupplier {
+	public Return(IScriptWithSubScript parent) {super(parent);}
+	@Override public @NotNull ScriptFunction<CompileEnvironment.RuntimeVariableMap, ControlFlowIssue>
+	compile(CompileEnvironment variableMap) {return map-> ControlFlowIssue.RETURN;}
 	
 	@Override public @Nullable JsonElement getAsJsonElement() {return null;}
 	@Override public void setValueFromJsonElement(@Nullable JsonElement element) {}

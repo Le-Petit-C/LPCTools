@@ -1,4 +1,4 @@
-package lpctools.script.suppliers.Void;
+package lpctools.script.suppliers.ControlFlow;
 
 import com.google.gson.JsonElement;
 import lpctools.mixin.client.BlockReplaceAction;
@@ -10,13 +10,13 @@ import net.minecraft.client.MinecraftClient;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class DoItemUse extends AbstractScript implements IVoidSupplier {
+public class DoItemUse extends AbstractScript implements IControlFlowSupplier {
 	public DoItemUse(IScriptWithSubScript parent) {super(parent);}
-	@Override public @NotNull ScriptFunction<CompileEnvironment.RuntimeVariableMap, Void>
+	@Override public @NotNull ScriptFunction<CompileEnvironment.RuntimeVariableMap, ControlFlowIssue>
 	compile(CompileEnvironment variableMap) {
 		return map->{
 			((BlockReplaceAction) MinecraftClient.getInstance()).invokeDoItemUse();
-			return null;
+			return ControlFlowIssue.NO_ISSUE;
 		};
 	}
 	

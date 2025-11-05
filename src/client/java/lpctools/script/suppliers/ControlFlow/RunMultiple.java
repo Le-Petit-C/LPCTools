@@ -1,4 +1,4 @@
-package lpctools.script.suppliers.Void;
+package lpctools.script.suppliers.ControlFlow;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
@@ -15,7 +15,7 @@ import java.util.List;
 
 import static lpctools.lpcfymasaapi.LPCConfigUtils.warnFailedLoadingConfig;
 
-public class RunMultiple extends AbstractSupplierWithSubScriptMutable<Void, Void> implements IVoidSupplier {
+public class RunMultiple extends AbstractSupplierWithSubScriptMutable<ControlFlowIssue, ControlFlowIssue> implements IControlFlowSupplier {
 	private @Nullable Iterable<?> widgets;
 	protected @Nullable Text name;
 	
@@ -25,15 +25,17 @@ public class RunMultiple extends AbstractSupplierWithSubScriptMutable<Void, Void
 	}
 	public RunMultiple(IScriptWithSubScript parent) {this(parent, null);}
 	
-	@Override public Class<Void> getArgumentClass() {return Void.class;}
-	@Override public @NotNull ScriptFunction<CompileEnvironment.RuntimeVariableMap, Void>
+	@Override public Class<ControlFlowIssue> getArgumentClass() {return ControlFlowIssue.class;}
+	@Override public @NotNull ScriptFunction<CompileEnvironment.RuntimeVariableMap, ControlFlowIssue>
 	compile(CompileEnvironment variableMap) {
-		ArrayList<ScriptFunction<CompileEnvironment.RuntimeVariableMap, ? extends Void>> compiledSubRunners = new ArrayList<>();
+		ArrayList<ScriptFunction<CompileEnvironment.RuntimeVariableMap, ? extends ControlFlowIssue>> compiledSubRunners = new ArrayList<>();
 		for(var sub : getSubScripts()) compiledSubRunners.add(sub.compile(variableMap));
 		return map-> {
-			for(var runnable : compiledSubRunners)
-				runnable.scriptApply(map);
-			return null;
+			for(var runnable : compiledSubRunners){
+				var issue = runnable.scriptApply(map);
+				if(issue.shouldEndRunMultiple) return issue;
+			}
+			return ControlFlowIssue.NO_ISSUE;
 		};
 	}
 	@Override public @Nullable JsonElement getAsJsonElement() {return getSubSuppliersAsJsonArray();}

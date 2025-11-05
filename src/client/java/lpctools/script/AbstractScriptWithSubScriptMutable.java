@@ -35,7 +35,7 @@ public abstract class AbstractScriptWithSubScriptMutable<T extends IScript> impl
 	public ButtonBase createAddButton(){
 		return new ButtonGeneric(0, 0, 20, 20, "+").setActionListener(
 			(button, mouseButton) -> notifyInsertion(option->{
-				getSubScripts().add(option);
+				getSubScripts().addFirst(option);
 				applyToDisplayWidgetWithSubScriptIfNotNull(ScriptDisplayWidget::markUpdateChain);
 			})
 		);

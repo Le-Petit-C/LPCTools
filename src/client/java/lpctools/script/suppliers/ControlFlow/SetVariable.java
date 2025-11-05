@@ -1,4 +1,4 @@
-package lpctools.script.suppliers.Void;
+package lpctools.script.suppliers.ControlFlow;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -22,10 +22,10 @@ import java.util.List;
 
 import static lpctools.lpcfymasaapi.LPCConfigUtils.warnFailedLoadingConfig;
 
-public class SetVariable extends AbstractSupplierWithTypeDeterminedSubSuppliers implements IVoidSupplier {
+public class SetVariable extends AbstractSupplierWithTypeDeterminedSubSuppliers implements IControlFlowSupplier {
 	private @NotNull String variableName = "var";
 	protected final SupplierStorage<Object> value = ofStorage(new Null<>(this, Entity.class),
-		Text.translatable("lpctools.script.suppliers.Void.setVariable.subSuppliers.value.name"));
+		Text.translatable("lpctools.script.suppliers.ControlFlowIssue.setVariable.subSuppliers.value.name"));
 	protected final SubSupplierEntry<?>[] subSuppliers = subSupplierBuilder()
 		.addEntry(Object.class, value)
 		.build();
@@ -45,14 +45,14 @@ public class SetVariable extends AbstractSupplierWithTypeDeterminedSubSuppliers 
 		return super.buildWidgets(res);
 	}
 	
-	@Override public @NotNull ScriptFunction<CompileEnvironment.RuntimeVariableMap, Void>
+	@Override public @NotNull ScriptFunction<CompileEnvironment.RuntimeVariableMap, ControlFlowIssue>
 	compile(CompileEnvironment variableMap) {
 		var compiledEntitySupplier = value.get().compile(variableMap);
 		var variableRef = variableMap.getVariableReference(variableName);
 		return map->{
 			Object object = compiledEntitySupplier.scriptApply(map);
 			variableRef.setValue(map, object);
-			return null;
+			return ControlFlowIssue.NO_ISSUE;
 		};
 	}
 	

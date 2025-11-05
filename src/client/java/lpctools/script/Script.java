@@ -9,7 +9,7 @@ import lpctools.script.editScreen.WidthAutoAdjustTextField;
 import lpctools.script.exceptions.ScriptException;
 import lpctools.script.exceptions.ScriptRuntimeException;
 import lpctools.script.runtimeInterfaces.ScriptRunnable;
-import lpctools.script.suppliers.Void.RunMultiple;
+import lpctools.script.suppliers.ControlFlow.RunMultiple;
 import lpctools.script.trigger.ScriptTrigger;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.text.Text;

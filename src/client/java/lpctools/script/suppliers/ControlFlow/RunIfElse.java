@@ -1,4 +1,4 @@
-package lpctools.script.suppliers.Void;
+package lpctools.script.suppliers.ControlFlow;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -14,17 +14,17 @@ import java.util.List;
 
 import static lpctools.lpcfymasaapi.LPCConfigUtils.warnFailedLoadingConfig;
 
-public class RunIfElse extends AbstractScriptWithSubScript implements IVoidSupplier {
-	And condition = new And(this, Text.translatable("lpctools.script.suppliers.Void.runIfElse.condition.name"));
-	RunMultiple ifTrue = new RunMultiple(this, Text.translatable("lpctools.script.suppliers.Void.runIfElse.ifTrue.name"));
-	RunMultiple ifFalse = new RunMultiple(this, Text.translatable("lpctools.script.suppliers.Void.runIfElse.ifFalse.name"));
+public class RunIfElse extends AbstractScriptWithSubScript implements IControlFlowSupplier {
+	And condition = new And(this, Text.translatable("lpctools.script.suppliers.ControlFlowIssue.runIfElse.condition.name"));
+	RunMultiple ifTrue = new RunMultiple(this, Text.translatable("lpctools.script.suppliers.ControlFlowIssue.runIfElse.ifTrue.name"));
+	RunMultiple ifFalse = new RunMultiple(this, Text.translatable("lpctools.script.suppliers.ControlFlowIssue.runIfElse.ifFalse.name"));
 	public static final String conditionJsonKey = "condition";
 	public static final String ifTrueJsonKey = "ifTrue";
 	public static final String ifFalseJsonKey = "ifFalse";
 	
 	public RunIfElse(IScriptWithSubScript parent) {super(parent);}
 	
-	@Override public @org.jetbrains.annotations.NotNull ScriptFunction<CompileEnvironment.RuntimeVariableMap, Void>
+	@Override public @org.jetbrains.annotations.NotNull ScriptFunction<CompileEnvironment.RuntimeVariableMap, ControlFlowIssue>
 	compile(CompileEnvironment variableMap) {
 		var compiledCondition = condition.compile(variableMap);
 		var compiledIfTrue = ifTrue.compile(variableMap);

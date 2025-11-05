@@ -30,7 +30,7 @@ import lpctools.script.suppliers.Vec3d.ConstantVec3d;
 import lpctools.script.suppliers.Vec3d.EntityEyePos;
 import lpctools.script.suppliers.Vec3d.EntityPos;
 import lpctools.script.suppliers.Vec3d.FromBlockPos;
-import lpctools.script.suppliers.Void.*;
+import lpctools.script.suppliers.ControlFlow.*;
 import net.minecraft.block.Block;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.PlayerEntity;
@@ -131,7 +131,7 @@ public class ScriptSupplierLake {
 			res = buildChooseMap(Object.class, false);
 		else{
 			res = new LinkedHashMap<>();
-			if(withRandomExtra && clazz != Void.class && clazz != Object.class)
+			if(withRandomExtra && clazz != ControlFlowIssue.class && clazz != Object.class)
 				res.put(getTypeName(Object.class).getString(), (Supplier<?>)()->buildChooseMap(Object.class, false));
 			if(targetSet != null)
 				for(var target : targetSet)
@@ -143,7 +143,7 @@ public class ScriptSupplierLake {
 			}
 			if(supTypeSet != null){
 				for(var target : supTypeSet){
-					if(target == Void.class) continue;
+					if(target == ControlFlowIssue.class) continue;
 					res.put(getTypeName(target).getString(), (Supplier<?>)()->buildChooseMap(target, false));
 				}
 			}
@@ -158,7 +158,7 @@ public class ScriptSupplierLake {
 	//注册类型
 	static{
 		registerType(Object.class, 			Text.translatable("lpctools.script.typeName.Object"), "object");
-		registerType(Void.class, 			Text.translatable("lpctools.script.typeName.Void"), "void");
+		registerType(ControlFlowIssue.class, 			Text.translatable("lpctools.script.typeName.ControlFlowIssue"), "void");
 		registerType(Boolean.class, 		Text.translatable("lpctools.script.typeName.Boolean"), "boolean");
 		registerType(Integer.class, 		Text.translatable("lpctools.script.typeName.Integer"), "integer");
 		registerType(Double.class, 			Text.translatable("lpctools.script.typeName.Double"), "double");
@@ -178,13 +178,19 @@ public class ScriptSupplierLake {
 		registerRandom("fromVariable", 		Text.translatable("lpctools.script.suppliers.Random.fromVariable.name"), FromVariable.class, FromVariable::new);
 		registerRandom("fromArray", 		Text.translatable("lpctools.script.suppliers.Random.fromArray.name"), FromArray.class, FromArray::new);
 		//注册void suppliers，也就是无返回值的基础操作
-		registerPrecise("doNothing", 		Text.translatable("lpctools.script.suppliers.Void.doNothing.name"), Void.class, DoNothing.class, DoNothing::new);
-		registerPrecise("runMultiple", 		Text.translatable("lpctools.script.suppliers.Void.runMultiple.name"), Void.class, RunMultiple.class, RunMultiple::new);
-		registerPrecise("runIfElse", 		Text.translatable("lpctools.script.suppliers.Void.runIfElse.name"), Void.class, RunIfElse.class, RunIfElse::new);
-		registerPrecise("setVariable", 		Text.translatable("lpctools.script.suppliers.Void.setVariable.name"), Void.class, SetVariable.class, SetVariable::new);
-		registerPrecise("setArray", 		Text.translatable("lpctools.script.suppliers.Void.setArray.name"), Void.class, SetArray.class, SetArray::new);
-		registerPrecise("doAttack", 		Text.translatable("lpctools.script.suppliers.Void.doAttack.name"), Void.class, DoAttack.class, DoAttack::new);
-		registerPrecise("doItemUse", 		Text.translatable("lpctools.script.suppliers.Void.doItemUse.name"), Void.class, DoItemUse.class, DoItemUse::new);
+		registerPrecise("doNothing", 		Text.translatable("lpctools.script.suppliers.ControlFlowIssue.doNothing.name"), ControlFlowIssue.class, DoNothing.class, DoNothing::new);
+		registerPrecise("runMultiple", 		Text.translatable("lpctools.script.suppliers.ControlFlowIssue.runMultiple.name"), ControlFlowIssue.class, RunMultiple.class, RunMultiple::new);
+		registerPrecise("runIfElse", 		Text.translatable("lpctools.script.suppliers.ControlFlowIssue.runIfElse.name"), ControlFlowIssue.class, RunIfElse.class, RunIfElse::new);
+		registerPrecise("whileLoop", 		Text.translatable("lpctools.script.suppliers.ControlFlowIssue.whileLoop.name"), ControlFlowIssue.class, WhileLoop.class, WhileLoop::new);
+		registerPrecise("doWhileLoop", 		Text.translatable("lpctools.script.suppliers.ControlFlowIssue.doWhileLoop.name"), ControlFlowIssue.class, DoWhileLoop.class, DoWhileLoop::new);
+		registerPrecise("forLoop", 			Text.translatable("lpctools.script.suppliers.ControlFlowIssue.forLoop.name"), ControlFlowIssue.class, ForLoop.class, ForLoop::new);
+		registerPrecise("break", 			Text.translatable("lpctools.script.suppliers.ControlFlowIssue.break.name"), ControlFlowIssue.class, Break.class, Break::new);
+		registerPrecise("continue", 		Text.translatable("lpctools.script.suppliers.ControlFlowIssue.continue.name"), ControlFlowIssue.class, Continue.class, Continue::new);
+		registerPrecise("return", 			Text.translatable("lpctools.script.suppliers.ControlFlowIssue.return.name"), ControlFlowIssue.class, Return.class, Return::new);
+		registerPrecise("setVariable", 		Text.translatable("lpctools.script.suppliers.ControlFlowIssue.setVariable.name"), ControlFlowIssue.class, SetVariable.class, SetVariable::new);
+		registerPrecise("setArray", 		Text.translatable("lpctools.script.suppliers.ControlFlowIssue.setArray.name"), ControlFlowIssue.class, SetArray.class, SetArray::new);
+		registerPrecise("doAttack", 		Text.translatable("lpctools.script.suppliers.ControlFlowIssue.doAttack.name"), ControlFlowIssue.class, DoAttack.class, DoAttack::new);
+		registerPrecise("doItemUse", 		Text.translatable("lpctools.script.suppliers.ControlFlowIssue.doItemUse.name"), ControlFlowIssue.class, DoItemUse.class, DoItemUse::new);
 		//注册boolean suppliers
 		registerPrecise("constantBoolean", 	Text.translatable("lpctools.script.suppliers.Boolean.constantBoolean.name"), Boolean.class, ConstantBoolean.class, ConstantBoolean::new);
 		registerPrecise("notNull", 			Text.translatable("lpctools.script.suppliers.Boolean.notNull.name"), Boolean.class, lpctools.script.suppliers.Boolean.NotNull.class, lpctools.script.suppliers.Boolean.NotNull::new);

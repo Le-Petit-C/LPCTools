@@ -18,4 +18,7 @@ public class ScriptRuntimeException extends ScriptException {
 	public static ScriptRuntimeException indexOutOfBounds(IScript source, int index, int size) {
 		return ofTranslate(source, "lpctools.script.exception.runtime.indexOutOfBounds", index, size);
 	}
+	public static ScriptRuntimeException illegalControlFlow(IScript source) {
+		return ofTranslate(source, "lpctools.script.exception.runtime.illegalForControlFlow");
+	}
 }
