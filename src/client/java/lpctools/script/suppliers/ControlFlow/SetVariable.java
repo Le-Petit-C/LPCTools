@@ -4,7 +4,6 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 import lpctools.script.CompileEnvironment;
-import lpctools.script.IScript;
 import lpctools.script.IScriptWithSubScript;
 import lpctools.script.editScreen.ScriptDisplayWidget;
 import lpctools.script.editScreen.WidthAutoAdjustTextField;
@@ -18,16 +17,15 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
-import java.util.List;
 
 import static lpctools.lpcfymasaapi.LPCConfigUtils.warnFailedLoadingConfig;
 
 public class SetVariable extends AbstractSupplierWithTypeDeterminedSubSuppliers implements IControlFlowSupplier {
 	private @NotNull String variableName = "var";
-	protected final SupplierStorage<Object> value = ofStorage(new Null<>(this, Entity.class),
+	protected final SupplierStorage<Object> value = ofStorage(Object.class, new Null<>(this, Entity.class),
 		Text.translatable("lpctools.script.suppliers.ControlFlowIssue.setVariable.subSuppliers.value.name"));
 	protected final SubSupplierEntry<?>[] subSuppliers = subSupplierBuilder()
-		.addEntry(Object.class, value)
+		.addEntry(value, valueJsonKey)
 		.build();
 	public static final String variableNameJsonKey = "variableName";
 	public static final String valueJsonKey = "value";
@@ -74,9 +72,5 @@ public class SetVariable extends AbstractSupplierWithTypeDeterminedSubSuppliers 
 			else warnFailedLoadingConfig("SetVariable.variableName", varNameElement);
 		}
 		ScriptSupplierLake.loadSupplierOrWarn(object.get(valueJsonKey), Object.class, this, value::set, "SetVariable.value");
-	}
-	
-	@Override public @NotNull List<? extends IScript> getSubScripts() {
-		return List.of(value.get());
 	}
 }

@@ -10,12 +10,14 @@ import lpctools.script.IScriptWithSubScript;
 import lpctools.script.suppliers.Array.NewArray;
 import lpctools.script.suppliers.Block.ConstantBlock;
 import lpctools.script.suppliers.BlockPos.ConstantBlockPos;
+import lpctools.script.suppliers.BlockPos.DirectionVector;
 import lpctools.script.suppliers.BlockPos.EntityBlockPos;
 import lpctools.script.suppliers.BlockPos.FlooredVec3d;
 import lpctools.script.suppliers.Boolean.And;
 import lpctools.script.suppliers.Boolean.ConstantBoolean;
 import lpctools.script.suppliers.Boolean.Equals;
 import lpctools.script.suppliers.Boolean.Or;
+import lpctools.script.suppliers.Direction.ConstantDirection;
 import lpctools.script.suppliers.Double.ConstantDouble;
 import lpctools.script.suppliers.Entity.VehicleEntity;
 import lpctools.script.suppliers.Entity.PlayerEntity.MainPlayerEntity;
@@ -29,13 +31,14 @@ import lpctools.script.suppliers.Type.ObjectType;
 import lpctools.script.suppliers.Vec3d.ConstantVec3d;
 import lpctools.script.suppliers.Vec3d.EntityEyePos;
 import lpctools.script.suppliers.Vec3d.EntityPos;
-import lpctools.script.suppliers.Vec3d.FromBlockPos;
+import lpctools.script.suppliers.Vec3d.Vec3dFromBlockPos;
 import lpctools.script.suppliers.ControlFlow.*;
 import net.minecraft.block.Block;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.text.Text;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.Vec3d;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -166,6 +169,7 @@ public class ScriptSupplierLake {
 		registerType(ScriptType.class, 		Text.translatable("lpctools.script.typeName.ScriptType"), "type");
 		registerType(BlockPos.class, 		Text.translatable("lpctools.script.typeName.BlockPos"), "blockPos");
 		registerType(Vec3d.class, 			Text.translatable("lpctools.script.typeName.Vec3d"), "vec3d");
+		registerType(Direction.class, 		Text.translatable("lpctools.script.typeName.Direction"), "vec3d");
 		registerType(Block.class, 			Text.translatable("lpctools.script.typeName.Block"), "block");
 		registerType(Entity.class, 			Text.translatable("lpctools.script.typeName.Entity"), "entity");
 		registerType(PlayerEntity.class, 	Text.translatable("lpctools.script.typeName.PlayerEntity"), "playerEntity");
@@ -191,6 +195,10 @@ public class ScriptSupplierLake {
 		registerPrecise("setArray", 		Text.translatable("lpctools.script.suppliers.ControlFlowIssue.setArray.name"), ControlFlowIssue.class, SetArray.class, SetArray::new);
 		registerPrecise("doAttack", 		Text.translatable("lpctools.script.suppliers.ControlFlowIssue.doAttack.name"), ControlFlowIssue.class, DoAttack.class, DoAttack::new);
 		registerPrecise("doItemUse", 		Text.translatable("lpctools.script.suppliers.ControlFlowIssue.doItemUse.name"), ControlFlowIssue.class, DoItemUse.class, DoItemUse::new);
+		registerPrecise("attackBlock", 		Text.translatable("lpctools.script.suppliers.ControlFlowIssue.attackBlock.name"), ControlFlowIssue.class, AttackBlock.class, AttackBlock::new);
+		registerPrecise("interactBlock", 	Text.translatable("lpctools.script.suppliers.ControlFlowIssue.interactBlock.name"), ControlFlowIssue.class, InteractBlock.class, InteractBlock::new);
+		registerPrecise("attackEntity", 	Text.translatable("lpctools.script.suppliers.ControlFlowIssue.attackEntity.name"), ControlFlowIssue.class, AttackEntity.class, AttackEntity::new);
+		registerPrecise("interactEntity", 	Text.translatable("lpctools.script.suppliers.ControlFlowIssue.interactEntity.name"), ControlFlowIssue.class, InteractEntity.class, InteractEntity::new);
 		//注册boolean suppliers
 		registerPrecise("constantBoolean", 	Text.translatable("lpctools.script.suppliers.Boolean.constantBoolean.name"), Boolean.class, ConstantBoolean.class, ConstantBoolean::new);
 		registerPrecise("notNull", 			Text.translatable("lpctools.script.suppliers.Boolean.notNull.name"), Boolean.class, lpctools.script.suppliers.Boolean.NotNull.class, lpctools.script.suppliers.Boolean.NotNull::new);
@@ -206,17 +214,20 @@ public class ScriptSupplierLake {
 		//注册type suppliers
 		registerPrecise("objectType", 		Text.translatable("lpctools.script.suppliers.ScriptType.objectType.name"), ScriptType.class, ObjectType.class, ObjectType::new);
 		registerPrecise("constantType", 	Text.translatable("lpctools.script.suppliers.ScriptType.constantType.name"), ScriptType.class, ConstantType.class, ConstantType::new);
+		//注册direction suppliers
+		registerPrecise("constantDirection",Text.translatable("lpctools.script.suppliers.Direction.constantDirection.name"), Direction.class, ConstantDirection.class, ConstantDirection::new);
 		//注册blockPos suppliers
 		registerPrecise("constantBlockPos", Text.translatable("lpctools.script.suppliers.BlockPos.constantBlockPos.name"), BlockPos.class, ConstantBlockPos.class, ConstantBlockPos::new);
 		registerPrecise("entityBlockPos", 	Text.translatable("lpctools.script.suppliers.BlockPos.entityBlockPos.name"), BlockPos.class, EntityBlockPos.class, EntityBlockPos::new);
 		registerPrecise("flooredVec3d", 	Text.translatable("lpctools.script.suppliers.BlockPos.flooredVec3d.name"), BlockPos.class, FlooredVec3d.class, FlooredVec3d::new);
 		//注册vec3d suppliers
 		registerPrecise("constantVec3d", 	Text.translatable("lpctools.script.suppliers.Vec3d.constantVec3d.name"), Vec3d.class, ConstantVec3d.class, ConstantVec3d::new);
-		registerPrecise("fromBlockPos", 	Text.translatable("lpctools.script.suppliers.Vec3d.fromBlockPos.name"), Vec3d.class, FromBlockPos.class, FromBlockPos::new);
+		registerPrecise("fromBlockPos", 	Text.translatable("lpctools.script.suppliers.Vec3d.vec3dFromBlockPos.name"), Vec3d.class, Vec3dFromBlockPos.class, Vec3dFromBlockPos::new);
 		registerPrecise("entityPos", 		Text.translatable("lpctools.script.suppliers.Vec3d.entityPos.name"), Vec3d.class, EntityPos.class, EntityPos::new);
 		registerPrecise("entityEyePos", 	Text.translatable("lpctools.script.suppliers.Vec3d.entityEyePos.name"), Vec3d.class, EntityEyePos.class, EntityEyePos::new);
 		//注册block suppliers
 		registerPrecise("constantBlock", 	Text.translatable("lpctools.script.suppliers.Block.constantBlock.name"), Block.class, ConstantBlock.class, ConstantBlock::new);
+		registerPrecise("directionVector", 	Text.translatable("lpctools.script.suppliers.BlockPos.directionVector.name"), BlockPos.class, DirectionVector.class, DirectionVector::new);
 		//注册entity suppliers
 		registerPrecise("vehicleEntity", 	Text.translatable("lpctools.script.suppliers.Entity.vehicleEntity.name"), Entity.class, VehicleEntity.class, VehicleEntity::new);
 		//注册player entity suppliers

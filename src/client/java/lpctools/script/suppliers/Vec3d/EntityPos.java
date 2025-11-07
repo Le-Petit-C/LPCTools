@@ -1,27 +1,21 @@
 package lpctools.script.suppliers.Vec3d;
 
-import com.google.gson.JsonElement;
 import lpctools.script.CompileEnvironment;
-import lpctools.script.IScript;
 import lpctools.script.IScriptWithSubScript;
 import lpctools.script.exceptions.ScriptRuntimeException;
 import lpctools.script.runtimeInterfaces.ScriptFunction;
 import lpctools.script.suppliers.AbstractSupplierWithTypeDeterminedSubSuppliers;
 import lpctools.script.suppliers.Random.Null;
-import lpctools.script.suppliers.ScriptSupplierLake;
 import net.minecraft.entity.Entity;
 import net.minecraft.text.Text;
 import net.minecraft.util.math.Vec3d;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import java.util.List;
 
 public class EntityPos extends AbstractSupplierWithTypeDeterminedSubSuppliers implements IVec3dSupplier {
-	protected final SupplierStorage<Entity> entity = ofStorage(new Null<>(this, Entity.class),
+	protected final SupplierStorage<Entity> entity = ofStorage(Entity.class, new Null<>(this, Entity.class),
 		Text.translatable("lpctools.script.suppliers.Vec3d.entityPos.subSuppliers.entity.name"));
 	protected final SubSupplierEntry<?>[] subSuppliers = subSupplierBuilder()
-		.addEntry(Entity.class, entity)
+		.addEntry(entity, "entity")
 		.build();
 	
 	public EntityPos(IScriptWithSubScript parent) {super(parent);}
@@ -37,13 +31,4 @@ public class EntityPos extends AbstractSupplierWithTypeDeterminedSubSuppliers im
 			return entity.getPos();
 		};
 	}
-	
-	@Override public @Nullable JsonElement getAsJsonElement() {
-		return ScriptSupplierLake.getJsonEntryFromSupplier(entity.get());
-	}
-	@Override public void setValueFromJsonElement(@Nullable JsonElement element) {
-		ScriptSupplierLake.loadSupplierOrWarn(element, Entity.class, this, res -> entity.set(res), "EntityPos.entity");
-	}
-	
-	@Override public @NotNull List<? extends IScript> getSubScripts() {return List.of(entity.get());}
 }
