@@ -24,25 +24,25 @@ import static lpctools.util.MathUtils.*;
 
 @SuppressWarnings("unused")
 public class AlgorithmUtils {
-    //遍历长方体形状内的方块
+    //遍历长方体形状内的方块坐标
     public static Iterable<BlockPos> iterateInBox(int minX, int minY, int minZ, int maxX, int maxY, int maxZ){
         return new InBoxIterable(minX, minY, minZ, maxX, maxY, maxZ);
     }
     public static Iterable<BlockPos> iterateInBox(BlockPos minPos, BlockPos maxPos){
         return new InBoxIterable(minPos.getX(), minPos.getY(), minPos.getZ(), maxPos.getX(), maxPos.getY(), maxPos.getZ());
     }
-    //遍历曼哈顿距离内的方块
+    //遍历曼哈顿距离内的方块坐标
     public static Iterable<BlockPos> iterateInManhattanDistance(BlockPos center, int distance){
         return new ManhattanIterable(center, distance);
     }
-    //从近到远遍历方块
+    //从近到远遍历方块坐标
     public static Iterable<BlockPos> iterateFromClosest(Vec3d center){
         return () -> new ClosestIterator3D(center);
     }
     public static Iterable<BlockPos> iterateFromClosestInDistance(Vec3d center, double distance){
         return () -> new InClosestIterator3D(center, distance);
     }
-    //从远到近遍历方块
+    //从远到近遍历方块坐标
     public static Iterable<BlockPos> iterateFromFurthestInDistance(Vec3d center, double distance){
         ArrayList<BlockPos> list = new ArrayList<>();
         for(BlockPos pos : iterateFromClosestInDistance(center, distance))

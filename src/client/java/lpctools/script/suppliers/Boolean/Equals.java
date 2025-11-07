@@ -11,17 +11,14 @@ import java.util.Objects;
 
 public class Equals extends AbstractSupplierWithTypeDeterminedSubSuppliers implements IBooleanSupplier {
 	protected final SupplierStorage<Object> object1 = ofStorage(Object.class, new Null<>(this, Object.class),
-		Text.translatable("lpctools.script.suppliers.Boolean.equals.subSuppliers.object1.name"));
+		Text.translatable("lpctools.script.suppliers.Boolean.equals.subSuppliers.object1.name"), "object1");
 	protected final SupplierStorage<Object> object2 = ofStorage(Object.class, new Null<>(this, Object.class),
-		Text.translatable("lpctools.script.suppliers.Boolean.equals.subSuppliers.object2.name"));
-	protected final SubSupplierEntry<?>[] subSuppliers = subSupplierBuilder()
-		.addEntry(object1, "object1")
-		.addEntry(object2, "object1")
-		.build();
+		Text.translatable("lpctools.script.suppliers.Boolean.equals.subSuppliers.object2.name"), "object1");
+	protected final SupplierStorage<?>[] subSuppliers = ofStorages(object1, object2);
 	
 	public Equals(IScriptWithSubScript parent) {super(parent);}
 	
-	@Override protected SubSupplierEntry<?>[] getSubSuppliers() {return subSuppliers;}
+	@Override protected SupplierStorage<?>[] getSubSuppliers() {return subSuppliers;}
 	
 	@Override public @org.jetbrains.annotations.NotNull ScriptFunction<CompileEnvironment.RuntimeVariableMap, Boolean>
 	compile(CompileEnvironment variableMap) {

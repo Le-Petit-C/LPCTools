@@ -1,4 +1,4 @@
-package lpctools.script.suppliers.ControlFlow;
+package lpctools.script.suppliers.ControlFlowIssue;
 
 import lpctools.script.CompileEnvironment;
 import lpctools.script.IScriptWithSubScript;
@@ -15,17 +15,14 @@ import org.jetbrains.annotations.NotNull;
 
 public class InteractEntity extends AbstractSupplierWithTypeDeterminedSubSuppliers implements IControlFlowSupplier {
 	protected final SupplierStorage<Boolean> useOffhand = ofStorage(Boolean.class, new ConstantBoolean(this),
-		Text.translatable("lpctools.script.suppliers.ControlFlowIssue.interactEntity.subSuppliers.useOffhand.name"));
+		Text.translatable("lpctools.script.suppliers.ControlFlowIssue.interactEntity.subSuppliers.useOffhand.name"), "useOffhand");
 	protected final SupplierStorage<Entity> entity = ofStorage(Entity.class, new Null<>(this, Entity.class),
-		Text.translatable("lpctools.script.suppliers.ControlFlowIssue.interactEntity.subSuppliers.entity.name"));
-	protected final SubSupplierEntry<?>[] subSuppliers = subSupplierBuilder()
-		.addEntry(useOffhand, "useOffhand")
-		.addEntry(entity, "entity")
-		.build();
+		Text.translatable("lpctools.script.suppliers.ControlFlowIssue.interactEntity.subSuppliers.entity.name"), "entity");
+	protected final SupplierStorage<?>[] subSuppliers = ofStorages(useOffhand, entity);
 	
 	public InteractEntity(IScriptWithSubScript parent) {super(parent);}
 	
-	@Override protected SubSupplierEntry<?>[] getSubSuppliers() {return subSuppliers;}
+	@Override protected SupplierStorage<?>[] getSubSuppliers() {return subSuppliers;}
 	
 	@Override public @NotNull ScriptFunction<CompileEnvironment.RuntimeVariableMap, ControlFlowIssue>
 	compile(CompileEnvironment variableMap) {

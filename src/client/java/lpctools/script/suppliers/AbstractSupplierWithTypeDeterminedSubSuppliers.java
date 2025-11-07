@@ -32,12 +32,11 @@ public abstract class AbstractSupplierWithTypeDeterminedSubSuppliers extends Abs
 		this.className = getClass().getSimpleName();
 	}
 	
-	protected abstract SubSupplierEntry<?>[] getSubSuppliers();
+	protected abstract SupplierStorage<?>[] getSubSuppliers();
 	@Override public @NotNull List<? extends IScript> getSubScripts(){
 		var subSuppliers = getSubSuppliers();
 		ArrayList<IScript> res = new ArrayList<>(subSuppliers.length);
-		for(int i = 0; i < subSuppliers.length; ++i)
-			res.set(i, subSuppliers[i].storage.get());
+		for (SupplierStorage<?> subSupplier : subSuppliers) res.add(subSupplier.get());
 		return res;
 	}
 	
@@ -57,7 +56,7 @@ public abstract class AbstractSupplierWithTypeDeterminedSubSuppliers extends Abs
 	@Override public @Nullable JsonElement getAsJsonElement() {
 		JsonObject res = new JsonObject();
 		for(var entry : getSubSuppliers())
-			res.add(entry.jsonKey, ScriptSupplierLake.getJsonEntryFromSupplier(entry.storage.get()));
+			res.add(entry.jsonKey, entry.getAsJsonElement());
 		return res;
 	}
 	@Override public void setValueFromJsonElement(@Nullable JsonElement element) {
@@ -67,13 +66,13 @@ public abstract class AbstractSupplierWithTypeDeterminedSubSuppliers extends Abs
 			return;
 		}
 		for(var entry : getSubSuppliers())
-			entry.storage.loadOrWarn(object.get(entry.jsonKey), className + '.' + entry.jsonKey);
+			entry.setValueFromJsonElement(object.get(entry.jsonKey));
 	}
 	
 	protected ArrayList<Object> buildWidgets(ArrayList<Object> res){
-		for(var entry : getSubSuppliers()){
-			ButtonBase button = new WidthAutoAdjustButtonGeneric(getDisplayWidget(), 0, 0, 20, entry.storage.argumentName.getString(), null);
-			button.setActionListener((b, m)->entry.chooseSupplier(this));
+		for(var storage : getSubSuppliers()){
+			ButtonBase button = new WidthAutoAdjustButtonGeneric(getDisplayWidget(), 0, 0, 20, storage.argumentName.getString(), null);
+			button.setActionListener((b, m)->storage.chooseSupplier(this));
 			res.add(button);
 			//但是这样的问题是用户更改语言后按钮名称不会更新
 			//TODO
@@ -81,54 +80,43 @@ public abstract class AbstractSupplierWithTypeDeterminedSubSuppliers extends Abs
 		return res;
 	}
 	
-	public record SubSupplierEntry<T>(SupplierStorage<T> storage, String jsonKey) {
-		public void chooseSupplier(IScriptWithSubScript parent){
-			ScriptSupplierLake.chooseSupplier(storage.clazz, parent, s -> {
-				storage.set(s);
-				parent.applyToDisplayWidgetIfNotNull(ScriptDisplayWidget::markUpdateChain);
-			});
-		}
-	}
-	
-	protected final <T> SupplierStorage<T> ofStorage(Class<T> clazz, IScriptSupplier<? extends T> supplier, Text argumentName){
-		return new SupplierStorage<>(clazz, supplier, argumentName);
-	}
-	
-	protected final SubSupplierBuilder subSupplierBuilder(){
-		return new SubSupplierBuilder();
+	protected final <T> SupplierStorage<T> ofStorage(Class<T> clazz, IScriptSupplier<? extends T> supplier, Text argumentName, String jsonKey){
+		return new SupplierStorage<>(clazz, supplier, argumentName, jsonKey);
 	}
 	
 	protected class SupplierStorage<T> {
 		private IScriptSupplier<? extends T> supplier;
 		public final Class<T> clazz;
 		public final Text argumentName;
+		public final String jsonKey;
 		public void set(IScriptSupplier<? extends T> supplier){
 			storageMap.remove(this.supplier);
 			this.supplier = supplier;
 			storageMap.put(supplier, this);
 		}
 		public IScriptSupplier<? extends T> get(){return supplier;}
-		public SupplierStorage(Class<T> clazz, IScriptSupplier<? extends T> supplier, Text argumentName) {
+		public SupplierStorage(Class<T> clazz, IScriptSupplier<? extends T> supplier, Text argumentName, String jsonKey) {
 			this.clazz = clazz;
 			this.supplier = supplier;
 			this.argumentName = argumentName;
+			this.jsonKey = jsonKey;
 			storageMap.put(supplier, this);
 		}
-		public void loadOrWarn(JsonElement jsonElement, String warnString){
+		public JsonElement getAsJsonElement(){
+			return ScriptSupplierLake.getJsonEntryFromSupplier(supplier);
+		}
+		public void setValueFromJsonElement(JsonElement element){
 			ScriptSupplierLake.loadSupplierOrWarn(
-				jsonElement, clazz, AbstractSupplierWithTypeDeterminedSubSuppliers.this,
-				res -> supplier = res, warnString);
+				element, clazz, AbstractSupplierWithTypeDeterminedSubSuppliers.this,
+				res -> supplier = res, className + '.' + jsonKey);
+		}
+		public void chooseSupplier(IScriptWithSubScript parent){
+			ScriptSupplierLake.chooseSupplier(clazz, parent, s -> {
+				set(s);
+				parent.applyToDisplayWidgetIfNotNull(ScriptDisplayWidget::markUpdateChain);
+			});
 		}
 	}
 	
-	protected static class SubSupplierBuilder{
-		ArrayList<SubSupplierEntry<?>> entries = new ArrayList<>();
-		public <T> SubSupplierBuilder addEntry(SupplierStorage<T> storage, String jsonKey) {
-			entries.add(new SubSupplierEntry<>(storage, jsonKey));
-			return this;
-		}
-		public SubSupplierEntry<?>[] build(){
-			return entries.toArray(new SubSupplierEntry<?>[0]);
-		}
-	}
+	protected static SupplierStorage<?>[] ofStorages(SupplierStorage<?>... storages){return storages;}
 }

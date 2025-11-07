@@ -9,14 +9,12 @@ import net.minecraft.text.Text;
 
 public class NotNull extends AbstractSupplierWithTypeDeterminedSubSuppliers implements IBooleanSupplier {
 	protected final SupplierStorage<Object> objectStorage = ofStorage(Object.class, new Null<>(this, Object.class),
-		Text.translatable("lpctools.script.suppliers.Boolean.notNull.subSuppliers.object.name"));
-	protected final SubSupplierEntry<?>[] subSuppliers = subSupplierBuilder()
-		.addEntry(objectStorage, "objectStorage")
-		.build();
+		Text.translatable("lpctools.script.suppliers.Boolean.notNull.subSuppliers.object.name"), "objectStorage");
+	protected final SupplierStorage<?>[] subSuppliers = ofStorages(objectStorage);
 	
 	public NotNull(IScriptWithSubScript parent) {super(parent);}
 	
-	@Override protected SubSupplierEntry<?>[] getSubSuppliers() {return subSuppliers;}
+	@Override protected SupplierStorage<?>[] getSubSuppliers() {return subSuppliers;}
 	
 	@Override public @org.jetbrains.annotations.NotNull ScriptFunction<CompileEnvironment.RuntimeVariableMap, Boolean>
 	compile(CompileEnvironment variableMap) {

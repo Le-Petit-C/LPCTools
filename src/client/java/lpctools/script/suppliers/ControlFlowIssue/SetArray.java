@@ -1,4 +1,4 @@
-package lpctools.script.suppliers.ControlFlow;
+package lpctools.script.suppliers.ControlFlowIssue;
 
 import lpctools.script.CompileEnvironment;
 import lpctools.script.IScriptWithSubScript;
@@ -12,20 +12,16 @@ import org.jetbrains.annotations.NotNull;
 
 public class SetArray extends AbstractSupplierWithTypeDeterminedSubSuppliers implements IControlFlowSupplier {
 	protected final SupplierStorage<Object[]> array = ofStorage(Object[].class, new Null<>(this, Object[].class),
-		Text.translatable("lpctools.script.suppliers.ControlFlowIssue.setArray.subSuppliers.array.name"));
+		Text.translatable("lpctools.script.suppliers.ControlFlowIssue.setArray.subSuppliers.array.name"), "array");
 	protected final SupplierStorage<Integer> index = ofStorage(Integer.class, new ConstantInteger(this),
-		Text.translatable("lpctools.script.suppliers.ControlFlowIssue.setArray.subSuppliers.index.name"));
+		Text.translatable("lpctools.script.suppliers.ControlFlowIssue.setArray.subSuppliers.index.name"), "index");
 	protected final SupplierStorage<Object> value = ofStorage(Object.class, new Null<>(this, Object.class),
-		Text.translatable("lpctools.script.suppliers.ControlFlowIssue.setArray.subSuppliers.value.name"));
-	protected final SubSupplierEntry<?>[] subSuppliers = subSupplierBuilder()
-		.addEntry(array, "array")
-		.addEntry(index, "index")
-		.addEntry(value, "value")
-		.build();
+		Text.translatable("lpctools.script.suppliers.ControlFlowIssue.setArray.subSuppliers.value.name"), "value");
+	protected final SupplierStorage<?>[] subSuppliers = ofStorages(array, index, value);
 	
 	public SetArray(IScriptWithSubScript parent) {super(parent);}
 	
-	@Override protected SubSupplierEntry<?>[] getSubSuppliers() {return subSuppliers;}
+	@Override protected SupplierStorage<?>[] getSubSuppliers() {return subSuppliers;}
 	
 	@Override public @NotNull ScriptFunction<CompileEnvironment.RuntimeVariableMap, ControlFlowIssue>
 	compile(CompileEnvironment variableMap) {

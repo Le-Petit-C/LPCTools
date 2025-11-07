@@ -13,14 +13,12 @@ import org.jetbrains.annotations.NotNull;
 
 public class Vec3dFromBlockPos extends AbstractSupplierWithTypeDeterminedSubSuppliers implements IVec3dSupplier {
 	protected final SupplierStorage<BlockPos> blockPos = ofStorage(BlockPos.class, new ConstantBlockPos(this),
-		Text.translatable("lpctools.script.suppliers.Vec3d.vec3dFromBlockPos.subSuppliers.blockPos.name"));
-	protected final SubSupplierEntry<?>[] subSuppliers = subSupplierBuilder()
-		.addEntry(blockPos, "blockPos")
-		.build();
+		Text.translatable("lpctools.script.suppliers.Vec3d.vec3dFromBlockPos.subSuppliers.blockPos.name"), "blockPos");
+	protected final SupplierStorage<?>[] subSuppliers = ofStorages(blockPos);
 	
 	public Vec3dFromBlockPos(IScriptWithSubScript parent) {super(parent);}
 	
-	@Override protected SubSupplierEntry<?>[] getSubSuppliers(){ return subSuppliers; }
+	@Override protected SupplierStorage<?>[] getSubSuppliers(){ return subSuppliers; }
 	
 	@Override public @NotNull ScriptFunction<CompileEnvironment.RuntimeVariableMap, Vec3d>
 	compile(CompileEnvironment variableMap) {

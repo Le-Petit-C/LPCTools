@@ -1,4 +1,4 @@
-package lpctools.script.suppliers.ControlFlow;
+package lpctools.script.suppliers.ControlFlowIssue;
 
 public enum ControlFlowIssue {
 	NO_ISSUE(false, false){

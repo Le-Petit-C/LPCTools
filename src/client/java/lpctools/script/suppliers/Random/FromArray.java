@@ -11,13 +11,10 @@ import org.jetbrains.annotations.NotNull;
 
 public class FromArray<T> extends AbstractSupplierWithTypeDeterminedSubSuppliers implements IRandomSupplier<T> {
 	protected final SupplierStorage<Object[]> array = ofStorage(Object[].class, new Null<>(this, Object[].class),
-		Text.translatable("lpctools.script.suppliers.Random.fromArray.subSuppliers.array.name"));
+		Text.translatable("lpctools.script.suppliers.Random.fromArray.subSuppliers.array.name"), "array");
 	protected final SupplierStorage<Integer> index = ofStorage(Integer.class, new ConstantInteger(this),
-		Text.translatable("lpctools.script.suppliers.Random.fromArray.subSuppliers.index.name"));
-	protected final SubSupplierEntry<?>[] subSuppliers = subSupplierBuilder()
-		.addEntry(array, "array")
-		.addEntry(index, "index")
-		.build();
+		Text.translatable("lpctools.script.suppliers.Random.fromArray.subSuppliers.index.name"), "index");
+	protected final SupplierStorage<?>[] subSuppliers = ofStorages(array, index);
 	
 	Class<T> targetClass;
 	
@@ -26,7 +23,7 @@ public class FromArray<T> extends AbstractSupplierWithTypeDeterminedSubSuppliers
 		this.targetClass = targetClass;
 	}
 	
-	@Override protected SubSupplierEntry<?>[] getSubSuppliers() {return subSuppliers;}
+	@Override protected SupplierStorage<?>[] getSubSuppliers() {return subSuppliers;}
 	
 	@Override public @NotNull ScriptFunction<CompileEnvironment.RuntimeVariableMap, Object>
 	compileRandom(CompileEnvironment variableMap) {

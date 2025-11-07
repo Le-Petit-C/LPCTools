@@ -11,14 +11,12 @@ import net.minecraft.text.Text;
 
 public class ObjectType extends AbstractSupplierWithTypeDeterminedSubSuppliers implements ITypeSupplier {
 	protected final SupplierStorage<Object> object = ofStorage(Object.class, new Null<>(this, Object.class),
-		Text.translatable("lpctools.script.suppliers.Boolean.notNull.subSuppliers.object.name"));
-	protected final SubSupplierEntry<?>[] subSuppliers = subSupplierBuilder()
-		.addEntry(object, "object")
-		.build();
+		Text.translatable("lpctools.script.suppliers.Boolean.notNull.subSuppliers.object.name"), "object");
+	protected final SupplierStorage<?>[] subSuppliers = ofStorages(object);
 	
 	public ObjectType(IScriptWithSubScript parent) {super(parent);}
 	
-	@Override protected SubSupplierEntry<?>[] getSubSuppliers() {return subSuppliers;}
+	@Override protected SupplierStorage<?>[] getSubSuppliers() {return subSuppliers;}
 	
 	@Override public @org.jetbrains.annotations.NotNull ScriptFunction<CompileEnvironment.RuntimeVariableMap, ScriptType>
 	compile(CompileEnvironment variableMap) {

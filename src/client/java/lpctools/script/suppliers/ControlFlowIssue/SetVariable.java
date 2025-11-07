@@ -1,4 +1,4 @@
-package lpctools.script.suppliers.ControlFlow;
+package lpctools.script.suppliers.ControlFlowIssue;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -9,7 +9,6 @@ import lpctools.script.editScreen.ScriptDisplayWidget;
 import lpctools.script.editScreen.WidthAutoAdjustTextField;
 import lpctools.script.runtimeInterfaces.ScriptFunction;
 import lpctools.script.suppliers.AbstractSupplierWithTypeDeterminedSubSuppliers;
-import lpctools.script.suppliers.ScriptSupplierLake;
 import lpctools.script.suppliers.Random.Null;
 import net.minecraft.entity.Entity;
 import net.minecraft.text.Text;
@@ -23,16 +22,14 @@ import static lpctools.lpcfymasaapi.LPCConfigUtils.warnFailedLoadingConfig;
 public class SetVariable extends AbstractSupplierWithTypeDeterminedSubSuppliers implements IControlFlowSupplier {
 	private @NotNull String variableName = "var";
 	protected final SupplierStorage<Object> value = ofStorage(Object.class, new Null<>(this, Entity.class),
-		Text.translatable("lpctools.script.suppliers.ControlFlowIssue.setVariable.subSuppliers.value.name"));
-	protected final SubSupplierEntry<?>[] subSuppliers = subSupplierBuilder()
-		.addEntry(value, valueJsonKey)
-		.build();
+		Text.translatable("lpctools.script.suppliers.ControlFlowIssue.setVariable.subSuppliers.value.name"), valueJsonKey);
+	protected final SupplierStorage<?>[] subSuppliers = ofStorages(value);
 	public static final String variableNameJsonKey = "variableName";
 	public static final String valueJsonKey = "value";
 	
 	public SetVariable(IScriptWithSubScript parent) {super(parent);}
 	
-	@Override protected SubSupplierEntry<?>[] getSubSuppliers() {return subSuppliers;}
+	@Override protected SupplierStorage<?>[] getSubSuppliers() {return subSuppliers;}
 	
 	@Override protected ArrayList<Object> buildWidgets(ArrayList<Object> res) {
 		res.add(new WidthAutoAdjustTextField(
@@ -57,7 +54,7 @@ public class SetVariable extends AbstractSupplierWithTypeDeterminedSubSuppliers 
 	@Override public @Nullable JsonElement getAsJsonElement() {
 		JsonObject res = new JsonObject();
 		res.addProperty(variableNameJsonKey, variableName);
-		res.add(valueJsonKey, ScriptSupplierLake.getJsonEntryFromSupplier(value.get()));
+		res.add(valueJsonKey, value.getAsJsonElement());
 		return res;
 	}
 	@Override public void setValueFromJsonElement(@Nullable JsonElement element) {
@@ -71,6 +68,6 @@ public class SetVariable extends AbstractSupplierWithTypeDeterminedSubSuppliers 
 				variableName = primitive.getAsString();
 			else warnFailedLoadingConfig("SetVariable.variableName", varNameElement);
 		}
-		ScriptSupplierLake.loadSupplierOrWarn(object.get(valueJsonKey), Object.class, this, value::set, "SetVariable.value");
+		value.setValueFromJsonElement(object.get(valueJsonKey));
 	}
 }

@@ -11,14 +11,12 @@ import org.jetbrains.annotations.NotNull;
 
 public class NewArray extends AbstractSupplierWithTypeDeterminedSubSuppliers implements IArraySupplier {
 	protected final SupplierStorage<Integer> size = ofStorage(Integer.class, new Null<>(this, Integer.class),
-		Text.translatable("lpctools.script.suppliers.Array.newArray.subSuppliers.size.name"));
-	protected final SubSupplierEntry<?>[] subSuppliers = subSupplierBuilder()
-		.addEntry(size, "size")
-		.build();
+		Text.translatable("lpctools.script.suppliers.Array.newArray.subSuppliers.size.name"), "size");
+	protected final SupplierStorage<?>[] subSuppliers = ofStorages(size);
 	
 	public NewArray(IScriptWithSubScript parent) {super(parent);}
 	
-	@Override protected SubSupplierEntry<?>[] getSubSuppliers() {return subSuppliers;}
+	@Override protected SupplierStorage<?>[] getSubSuppliers() {return subSuppliers;}
 	
 	@Override public @NotNull ScriptFunction<CompileEnvironment.RuntimeVariableMap, Object[]>
 	compile(CompileEnvironment variableMap) {

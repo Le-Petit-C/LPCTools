@@ -1,4 +1,4 @@
-package lpctools.script.suppliers.ControlFlow;
+package lpctools.script.suppliers.ControlFlowIssue;
 
 import lpctools.script.CompileEnvironment;
 import lpctools.script.IScriptWithSubScript;
@@ -15,17 +15,14 @@ import org.jetbrains.annotations.NotNull;
 
 public class AttackBlock extends AbstractSupplierWithTypeDeterminedSubSuppliers implements IControlFlowSupplier {
 	protected final SupplierStorage<BlockPos> blockPos = ofStorage(BlockPos.class, new ConstantBlockPos(this),
-		Text.translatable("lpctools.script.suppliers.ControlFlowIssue.attackBlock.subSuppliers.blockPos.name"));
+		Text.translatable("lpctools.script.suppliers.ControlFlowIssue.attackBlock.subSuppliers.blockPos.name"), "blockPos");
 	protected final SupplierStorage<Direction> direction = ofStorage(Direction.class, new ConstantDirection(this),
-		Text.translatable("lpctools.script.suppliers.ControlFlowIssue.attackBlock.subSuppliers.direction.name"));
-	protected final SubSupplierEntry<?>[] subSuppliers = subSupplierBuilder()
-		.addEntry(blockPos, "blockPos")
-		.addEntry(direction, "direction")
-		.build();
+		Text.translatable("lpctools.script.suppliers.ControlFlowIssue.attackBlock.subSuppliers.direction.name"), "direction");
+	protected final SupplierStorage<?>[] subSuppliers = ofStorages(blockPos, direction);
 	
 	public AttackBlock(IScriptWithSubScript parent) {super(parent);}
 	
-	@Override protected SubSupplierEntry<?>[] getSubSuppliers() {return subSuppliers;}
+	@Override protected SupplierStorage<?>[] getSubSuppliers() {return subSuppliers;}
 	
 	@Override public @NotNull ScriptFunction<CompileEnvironment.RuntimeVariableMap, ControlFlowIssue>
 	compile(CompileEnvironment variableMap) {

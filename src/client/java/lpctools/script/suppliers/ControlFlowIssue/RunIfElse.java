@@ -1,4 +1,4 @@
-package lpctools.script.suppliers.ControlFlow;
+package lpctools.script.suppliers.ControlFlowIssue;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -15,9 +15,9 @@ import java.util.List;
 import static lpctools.lpcfymasaapi.LPCConfigUtils.warnFailedLoadingConfig;
 
 public class RunIfElse extends AbstractScriptWithSubScript implements IControlFlowSupplier {
-	And condition = new And(this, Text.translatable("lpctools.script.suppliers.ControlFlowIssue.runIfElse.condition.name"));
-	RunMultiple ifTrue = new RunMultiple(this, Text.translatable("lpctools.script.suppliers.ControlFlowIssue.runIfElse.ifTrue.name"));
-	RunMultiple ifFalse = new RunMultiple(this, Text.translatable("lpctools.script.suppliers.ControlFlowIssue.runIfElse.ifFalse.name"));
+	protected final And condition = new And(this, Text.translatable("lpctools.script.suppliers.ControlFlowIssue.runIfElse.condition.name"));
+	protected final RunMultiple ifTrue = new RunMultiple(this, Text.translatable("lpctools.script.suppliers.ControlFlowIssue.runIfElse.ifTrue.name"));
+	protected final RunMultiple ifFalse = new RunMultiple(this, Text.translatable("lpctools.script.suppliers.ControlFlowIssue.runIfElse.ifFalse.name"));
 	public static final String conditionJsonKey = "condition";
 	public static final String ifTrueJsonKey = "ifTrue";
 	public static final String ifFalseJsonKey = "ifFalse";

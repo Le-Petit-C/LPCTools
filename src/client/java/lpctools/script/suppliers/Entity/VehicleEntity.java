@@ -12,14 +12,12 @@ import org.jetbrains.annotations.NotNull;
 public class VehicleEntity extends AbstractSupplierWithTypeDeterminedSubSuppliers implements IEntitySupplier {
 	
 	protected final SupplierStorage<Entity> passenger = ofStorage(Entity.class, new Null<>(this, Entity.class),
-		Text.translatable("lpctools.script.suppliers.Entity.vehicleEntity.subSuppliers.passenger.name"));
-	protected final SubSupplierEntry<?>[] subSuppliers = subSupplierBuilder()
-		.addEntry(passenger, "passenger")
-		.build();
+		Text.translatable("lpctools.script.suppliers.Entity.vehicleEntity.subSuppliers.passenger.name"), "passenger");
+	protected final SupplierStorage<?>[] subSuppliers = ofStorages(passenger);
 	
 	public VehicleEntity(IScriptWithSubScript parent) {super(parent);}
 	
-	@Override protected SubSupplierEntry<?>[] getSubSuppliers() {return subSuppliers;}
+	@Override protected SupplierStorage<?>[] getSubSuppliers() {return subSuppliers;}
 	
 	@Override public @NotNull ScriptFunction<CompileEnvironment.RuntimeVariableMap, Entity>
 	compile(CompileEnvironment variableMap) {

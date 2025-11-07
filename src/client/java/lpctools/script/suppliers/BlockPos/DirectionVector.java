@@ -13,14 +13,12 @@ import org.jetbrains.annotations.NotNull;
 
 public class DirectionVector extends AbstractSupplierWithTypeDeterminedSubSuppliers implements IBlockPosSupplier {
 	protected final SupplierStorage<Direction> direction = ofStorage(Direction.class, new ConstantDirection(this),
-		Text.translatable("lpctools.script.suppliers.BlockPos.directionVector.subSuppliers.direction.name"));
-	protected final SubSupplierEntry<?>[] subSuppliers = subSupplierBuilder()
-		.addEntry(direction, "direction")
-		.build();
+		Text.translatable("lpctools.script.suppliers.BlockPos.directionVector.subSuppliers.direction.name"), "direction");
+	protected final SupplierStorage<?>[] subSuppliers = ofStorages(direction);
 	
 	public DirectionVector(IScriptWithSubScript parent) {super(parent);}
 	
-	@Override protected SubSupplierEntry<?>[] getSubSuppliers() {return subSuppliers;}
+	@Override protected SupplierStorage<?>[] getSubSuppliers() {return subSuppliers;}
 	
 	@Override public @NotNull ScriptFunction<CompileEnvironment.RuntimeVariableMap, BlockPos>
 	compile(CompileEnvironment variableMap) {

@@ -11,13 +11,15 @@ public interface IRandomSupplier<T> extends IScriptSupplier<T> {
 	compile(CompileEnvironment variableMap){
 		var func = compileRandom(variableMap);
 		var targetClass = getSuppliedClass();
-		return runtimeVariableMap->{
+		if(targetClass != Object.class) return runtimeVariableMap->{
 			var res = func.scriptApply(runtimeVariableMap);
 			if(res == null || targetClass.isInstance(res))
 				//noinspection unchecked
 				return (T)res;
 			else throw ScriptRuntimeException.notInstanceOf(this, res, targetClass);
 		};
+		else //noinspection unchecked
+			return (ScriptFunction<CompileEnvironment.RuntimeVariableMap, T>) func;
 	}
 	@NotNull ScriptFunction<CompileEnvironment.RuntimeVariableMap, Object>
 	compileRandom(CompileEnvironment variableMap);

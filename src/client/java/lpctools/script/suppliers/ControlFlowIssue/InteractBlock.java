@@ -1,4 +1,4 @@
-package lpctools.script.suppliers.ControlFlow;
+package lpctools.script.suppliers.ControlFlowIssue;
 
 import lpctools.script.CompileEnvironment;
 import lpctools.script.IScriptWithSubScript;
@@ -20,26 +20,20 @@ import org.jetbrains.annotations.NotNull;
 
 public class InteractBlock extends AbstractSupplierWithTypeDeterminedSubSuppliers implements IControlFlowSupplier {
 	protected final SupplierStorage<Boolean> useOffhand = ofStorage(Boolean.class, new ConstantBoolean(this),
-		Text.translatable("lpctools.script.suppliers.ControlFlowIssue.interactBlock.subSuppliers.useOffhand.name"));
+		Text.translatable("lpctools.script.suppliers.ControlFlowIssue.interactBlock.subSuppliers.useOffhand.name"), "useOffhand");
 	protected final SupplierStorage<Vec3d> pos = ofStorage(Vec3d.class, new ConstantVec3d(this),
-		Text.translatable("lpctools.script.suppliers.ControlFlowIssue.interactBlock.subSuppliers.pos.name"));
+		Text.translatable("lpctools.script.suppliers.ControlFlowIssue.interactBlock.subSuppliers.pos.name"), "pos");
 	protected final SupplierStorage<Direction> direction = ofStorage(Direction.class, new ConstantDirection(this),
-		Text.translatable("lpctools.script.suppliers.ControlFlowIssue.interactBlock.subSuppliers.direction.name"));
+		Text.translatable("lpctools.script.suppliers.ControlFlowIssue.interactBlock.subSuppliers.direction.name"), "direction");
 	protected final SupplierStorage<BlockPos> blockPos = ofStorage(BlockPos.class, new ConstantBlockPos(this),
-		Text.translatable("lpctools.script.suppliers.ControlFlowIssue.interactBlock.subSuppliers.blockPos.name"));
+		Text.translatable("lpctools.script.suppliers.ControlFlowIssue.interactBlock.subSuppliers.blockPos.name"), "blockPos");
 	protected final SupplierStorage<Boolean> insideBlock = ofStorage(Boolean.class, new ConstantBoolean(this),
-		Text.translatable("lpctools.script.suppliers.ControlFlowIssue.interactBlock.subSuppliers.insideBlock.name"));
-	protected final SubSupplierEntry<?>[] subSuppliers = subSupplierBuilder()
-		.addEntry(useOffhand, "useOffhand")
-		.addEntry(pos, "pos")
-		.addEntry(direction, "direction")
-		.addEntry(blockPos, "blockPos")
-		.addEntry(insideBlock, "insideBlock")
-		.build();
+		Text.translatable("lpctools.script.suppliers.ControlFlowIssue.interactBlock.subSuppliers.insideBlock.name"), "insideBlock");
+	protected final SupplierStorage<?>[] subSuppliers = ofStorages(useOffhand, pos, direction, blockPos, insideBlock);
 	
 	public InteractBlock(IScriptWithSubScript parent) {super(parent);}
 	
-	@Override protected SubSupplierEntry<?>[] getSubSuppliers() {return subSuppliers;}
+	@Override protected SupplierStorage<?>[] getSubSuppliers() {return subSuppliers;}
 	
 	@Override public @NotNull ScriptFunction<CompileEnvironment.RuntimeVariableMap, ControlFlowIssue>
 	compile(CompileEnvironment variableMap) {

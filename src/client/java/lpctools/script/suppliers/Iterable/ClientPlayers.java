@@ -1,7 +1,6 @@
-package lpctools.script.suppliers.ControlFlow;
+package lpctools.script.suppliers.Iterable;
 
 import com.google.gson.JsonElement;
-import lpctools.mixin.client.BlockReplaceAction;
 import lpctools.script.AbstractScript;
 import lpctools.script.CompileEnvironment;
 import lpctools.script.IScriptWithSubScript;
@@ -10,13 +9,14 @@ import net.minecraft.client.MinecraftClient;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class DoItemUse extends AbstractScript implements IControlFlowSupplier {
-	public DoItemUse(IScriptWithSubScript parent) {super(parent);}
-	@Override public @NotNull ScriptFunction<CompileEnvironment.RuntimeVariableMap, ControlFlowIssue>
+public class ClientPlayers extends AbstractScript implements IIterableSupplier {
+	public ClientPlayers(IScriptWithSubScript parent) {super(parent);}
+	@Override public @NotNull ScriptFunction<CompileEnvironment.RuntimeVariableMap, ObjectIterable>
 	compile(CompileEnvironment variableMap) {
 		return map->{
-			((BlockReplaceAction) MinecraftClient.getInstance()).invokeDoItemUse();
-			return ControlFlowIssue.NO_ISSUE;
+			var world = MinecraftClient.getInstance().world;
+			if (world != null) return ObjectIterable.of(world.getPlayers());
+			else return ObjectIterable.empty;
 		};
 	}
 	

@@ -14,8 +14,7 @@ public class Null<T> extends AbstractScript implements IRandomSupplier<T> {
 		super(parent);
 		this.suppliedClass = suppliedClass;
 	}
-	@Override public @NotNull ScriptFunction<CompileEnvironment.RuntimeVariableMap, T>
-	compile(CompileEnvironment variableMap) {return map->null;}
+	@Override public @NotNull ScriptFunction<CompileEnvironment.RuntimeVariableMap, T> compile(CompileEnvironment variableMap) {return map->null;}
 	@Override public @NotNull ScriptFunction<CompileEnvironment.RuntimeVariableMap, Object> compileRandom(CompileEnvironment variableMap) {return map->null;}
 	@Override public Class<? extends T> getSuppliedClass() {return suppliedClass;}
 	@Override public @Nullable JsonElement getAsJsonElement() {return null;}
