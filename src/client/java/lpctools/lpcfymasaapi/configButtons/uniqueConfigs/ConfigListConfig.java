@@ -16,6 +16,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.ToIntFunction;
 
@@ -25,6 +26,7 @@ import static lpctools.util.AlgorithmUtils.convertIterable;
 
 public class ConfigListConfig<T extends ILPCUniqueConfigBase> extends LPCUniqueConfigBase implements ILPCConfigReadable, IMutableConfig, IConfigResettable{
     public final @NotNull Function<? super ConfigListConfig<T>, ? extends T> configSupplier;
+    protected @Nullable Consumer<T> removeCallback;
     private boolean condenseOperationButton;
     private boolean hideOperationButton;
     private @NotNull JsonArray defaultJson;
@@ -64,6 +66,10 @@ public class ConfigListConfig<T extends ILPCUniqueConfigBase> extends LPCUniqueC
         if(expanded) return ILPCConfigReadable.super.buildConfigWrappers(getStringWidth, wrapperList);
         else return wrapperList;
     }
+    
+    public void setRemoveCallback(@Nullable Consumer<T> removeCallback) {this.removeCallback = removeCallback;}
+    //public @Nullable Consumer<T> getRemoveCallback() {return removeCallback;}
+    
     int indent;
     @Override public void setAlignedIndent(int indent) {this.indent = indent;}
     @Override public int getAlignedIndent() {return indent;}
@@ -200,7 +206,9 @@ public class ConfigListConfig<T extends ILPCUniqueConfigBase> extends LPCUniqueC
             if(parent.doCondenseOperationButton() && flipPosButton && (mouseButton == 0 || mouseButton == 1))
                 mouseButton = 1 - mouseButton;
             if(mouseButton == 0) {
-                parent.subConfigs.remove(position).close();//删除
+                if (parent.removeCallback != null)
+                    parent.removeCallback.accept(wrappedConfig);
+                parent.subConfigs.remove(position).close();
                 parent.onValueChanged();
                 getPage().markNeedUpdate();
             }
@@ -251,7 +259,7 @@ public class ConfigListConfig<T extends ILPCUniqueConfigBase> extends LPCUniqueC
     private @NotNull MutableConfigOption<? extends T> allocateConfig(){
         return wrapConfig(configSupplier.apply(this));
     }
-    private T allocateAndAddConfig(int position){
+    protected T allocateAndAddConfig(int position){
         MutableConfigOption<? extends T> config = allocateConfig();
 		expanded = true;
         subConfigs.add(position, config);

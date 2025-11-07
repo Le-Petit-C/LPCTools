@@ -34,6 +34,7 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 import static lpctools.lpcfymasaapi.LPCConfigUtils.*;
@@ -86,6 +87,9 @@ public class LPCConfigPage implements IConfigHandler, Supplier<GuiBase>, ILPCCon
         return pageInstance;
     }
     public @Nullable ConfigPageInstance getPageInstance(){return pageInstance;}
+    public void applyToPageInstanceIfNotNull(Consumer<ConfigPageInstance> consumer){
+        if(pageInstance != null) consumer.accept(pageInstance);
+    }
     //保存和加载已有的全部配置文件内容
     //如果文件中有目前未注册的配置项，不理它但是保留
     @Override public void load() {

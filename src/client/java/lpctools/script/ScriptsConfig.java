@@ -1,6 +1,5 @@
 package lpctools.script;
 
-import com.google.common.collect.ImmutableSortedMap;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonPrimitive;
@@ -8,37 +7,46 @@ import fi.dy.masa.malilib.util.FileUtils;
 import fi.dy.masa.malilib.util.JsonUtils;
 import lpctools.LPCTools;
 import lpctools.lpcfymasaapi.configButtons.UpdateTodo;
-import lpctools.lpcfymasaapi.configButtons.uniqueConfigs.MutableConfig;
+import lpctools.lpcfymasaapi.configButtons.uniqueConfigs.ConfigListConfig;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.HashSet;
 
 import static lpctools.lpcfymasaapi.LPCConfigUtils.warnFailedLoadingConfig;
 import static lpctools.script.ScriptConfigs.*;
 
-public class ScriptsConfig extends MutableConfig<ScriptConfig> {
+public class ScriptsConfig extends ConfigListConfig<ScriptConfig> {
+	public static final ScriptsConfig instance = new ScriptsConfig();
+	
 	public final HashSet<String> existScript = new HashSet<>();
 	
 	private boolean initialized = false;
 	
 	public static final String scriptDirectoryName = "LPCScripts";
-	public static final ScriptsConfig instance = new ScriptsConfig();
 	
 	private ScriptsConfig(){
-		super(script, "scripts", script.getFullTranslationKey(), ImmutableSortedMap.of(
-			"script", (config, key)->{
+		super(script, "scripts", config->{
 				var res = new ScriptConfig(config);
 				int i = 0;
 				String id;
-				do{ id = "script#" + i++;
-				} while(instance.existScript.contains(id));
+				do { id = "script#" + i++;
+				} while (instance.existScript.contains(id));
 				res.script.setId(id);
 				return res;
-			}
-		), null);
+			}, null);
+		setRemoveCallback(config->{
+			existScript.remove(config.script.getId());
+			try { Files.delete(FileUtils.getConfigDirectoryAsPath().resolve(scriptDirectoryName).resolve(config.script.getId() + ".json"));
+			} catch (IOException ignored) {}
+		});
+	}
+	
+	@Override public void onAddConfigClicked(int position){
+		saveScript(allocateAndAddConfig(position));
 	}
 	
 	public static void saveScript(ScriptConfig script){
@@ -61,7 +69,7 @@ public class ScriptsConfig extends MutableConfig<ScriptConfig> {
 		return new UpdateTodo().valueChanged();
 	}
 	
-	@Override public @Nullable JsonElement getAsJsonElement() {
+	@Override public @NotNull JsonElement getAsJsonElement() {
 		JsonArray res = new JsonArray();
 		for(var sub : iterateConfigs())
 			res.add(sub.script.getId());
@@ -83,7 +91,7 @@ public class ScriptsConfig extends MutableConfig<ScriptConfig> {
 		JsonElement scriptJson = JsonUtils.parseJsonFileAsPath(scriptPath);
 		if(scriptJson != null){
 			@SuppressWarnings("resource")
-			ScriptConfig config = allocateAndAddConfig("script");
+			ScriptConfig config = allocateAndAddConfig();
 			config.setValueFromJsonElement(scriptJson);
 			config.script.setId(scriptId);
 		}
