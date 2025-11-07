@@ -67,7 +67,7 @@ public class IterateIterable extends AbstractSupplierWithTypeDeterminedSubSuppli
 	@Override public @Nullable JsonElement getAsJsonElement() {
 		JsonObject res = new JsonObject();
 		res.addProperty(variableNameJsonKey, variableName);
-		res.add(iterableJsonKey, iterable.getAsJsonElement());
+		iterable.getAsSubJsonElement(res);
 		res.add(loopBodyJsonKey, loopBody.getAsJsonElement());
 		return res;
 	}

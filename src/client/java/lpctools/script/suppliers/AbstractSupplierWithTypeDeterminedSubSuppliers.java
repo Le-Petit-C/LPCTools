@@ -56,13 +56,13 @@ public abstract class AbstractSupplierWithTypeDeterminedSubSuppliers extends Abs
 	@Override public @Nullable JsonElement getAsJsonElement() {
 		JsonObject res = new JsonObject();
 		for(var entry : getSubSuppliers())
-			res.add(entry.jsonKey, entry.getAsJsonElement());
+			entry.getAsSubJsonElement(res);
 		return res;
 	}
 	@Override public void setValueFromJsonElement(@Nullable JsonElement element) {
 		if(element == null) return;
 		if (!(element instanceof JsonObject object)) {
-			warnFailedLoadingConfig("AttackEntity", element);
+			warnFailedLoadingConfig(className, element);
 			return;
 		}
 		for(var entry : getSubSuppliers())
@@ -105,10 +105,16 @@ public abstract class AbstractSupplierWithTypeDeterminedSubSuppliers extends Abs
 		public JsonElement getAsJsonElement(){
 			return ScriptSupplierLake.getJsonEntryFromSupplier(supplier);
 		}
+		public void getAsSubJsonElement(JsonObject object){
+			object.add(jsonKey, getAsJsonElement());
+		}
 		public void setValueFromJsonElement(JsonElement element){
 			ScriptSupplierLake.loadSupplierOrWarn(
 				element, clazz, AbstractSupplierWithTypeDeterminedSubSuppliers.this,
 				res -> supplier = res, className + '.' + jsonKey);
+		}
+		public void setValueFromSubJsonElement(JsonObject object){
+			setValueFromJsonElement(object.get(jsonKey));
 		}
 		public void chooseSupplier(IScriptWithSubScript parent){
 			ScriptSupplierLake.chooseSupplier(clazz, parent, s -> {

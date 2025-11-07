@@ -24,12 +24,11 @@ import static lpctools.lpcfymasaapi.LPCConfigUtils.warnFailedLoadingConfig;
 public class IterateArray extends AbstractSupplierWithTypeDeterminedSubSuppliers implements IControlFlowSupplier {
 	private @NotNull String variableName = "var";
 	protected final SupplierStorage<Object[]> array = ofStorage(Object[].class, new Null<>(this, Object[].class),
-		Text.translatable("lpctools.script.suppliers.ControlFlowIssue.iterateArray.subSuppliers.array.name"), arrayJsonKey);
+		Text.translatable("lpctools.script.suppliers.ControlFlowIssue.iterateArray.subSuppliers.array.name"), "array");
 	protected final RunMultiple loopBody = new RunMultiple(this, Text.translatable("lpctools.script.suppliers.ControlFlowIssue.iterateArray.loopBody.name"));
 	protected final SupplierStorage<?>[] subSuppliers = ofStorages(array);
 	
 	public static final String variableNameJsonKey = "variableName";
-	public static final String arrayJsonKey = "array";
 	public static final String loopBodyJsonKey = "loopBody";
 	
 	public IterateArray(IScriptWithSubScript parent) {super(parent);}
@@ -65,7 +64,7 @@ public class IterateArray extends AbstractSupplierWithTypeDeterminedSubSuppliers
 	@Override public @Nullable JsonElement getAsJsonElement() {
 		JsonObject res = new JsonObject();
 		res.addProperty(variableNameJsonKey, variableName);
-		res.add(arrayJsonKey, array.getAsJsonElement());
+		array.getAsSubJsonElement(res);
 		res.add(loopBodyJsonKey, loopBody.getAsJsonElement());
 		return res;
 	}
@@ -80,7 +79,7 @@ public class IterateArray extends AbstractSupplierWithTypeDeterminedSubSuppliers
 				variableName = primitive.getAsString();
 			else warnFailedLoadingConfig("IterateArray.variableName", varNameElement);
 		}
-		array.setValueFromJsonElement(object.get(arrayJsonKey));
+		array.setValueFromSubJsonElement(object);
 		loopBody.setValueFromJsonElement(object.get(loopBodyJsonKey));
 	}
 	

@@ -8,15 +8,13 @@ import com.google.gson.JsonPrimitive;
 import lpctools.lpcfymasaapi.screen.ChooseScreen;
 import lpctools.script.IScriptWithSubScript;
 import lpctools.script.suppliers.Array.NewArray;
+import lpctools.script.suppliers.Block.BlockInWorld;
 import lpctools.script.suppliers.Block.ConstantBlock;
 import lpctools.script.suppliers.BlockPos.ConstantBlockPos;
 import lpctools.script.suppliers.BlockPos.DirectionVector;
 import lpctools.script.suppliers.BlockPos.EntityBlockPos;
 import lpctools.script.suppliers.BlockPos.FlooredVec3d;
-import lpctools.script.suppliers.Boolean.And;
-import lpctools.script.suppliers.Boolean.ConstantBoolean;
-import lpctools.script.suppliers.Boolean.Equals;
-import lpctools.script.suppliers.Boolean.Or;
+import lpctools.script.suppliers.Boolean.*;
 import lpctools.script.suppliers.Direction.ConstantDirection;
 import lpctools.script.suppliers.Double.ConstantDouble;
 import lpctools.script.suppliers.Entity.VehicleEntity;
@@ -205,10 +203,14 @@ public class ScriptSupplierLake {
 		registerPrecise("interactEntity", 		Text.translatable("lpctools.script.suppliers.ControlFlowIssue.interactEntity.name"), ControlFlowIssue.class, InteractEntity.class, InteractEntity::new);
 		//注册boolean suppliers
 		registerPrecise("constantBoolean", 		Text.translatable("lpctools.script.suppliers.Boolean.constantBoolean.name"), Boolean.class, ConstantBoolean.class, ConstantBoolean::new);
-		registerPrecise("notNull", 				Text.translatable("lpctools.script.suppliers.Boolean.notNull.name"), Boolean.class, lpctools.script.suppliers.Boolean.NotNull.class, lpctools.script.suppliers.Boolean.NotNull::new);
 		registerPrecise("and", 					Text.translatable("lpctools.script.suppliers.Boolean.and.name"), Boolean.class, And.class, And::new);
 		registerPrecise("or", 					Text.translatable("lpctools.script.suppliers.Boolean.or.name"), Boolean.class, Or.class, Or::new);
-		registerPrecise("equals", 				Text.translatable("lpctools.script.suppliers.Boolean.equals.name"), Boolean.class, Equals.class, Equals::new);
+		registerPrecise("not", 					Text.translatable("lpctools.script.suppliers.Boolean.not.name"), Boolean.class, Not.class, Not::new);
+		registerPrecise("compareIntegers", 		Text.translatable("lpctools.script.suppliers.Boolean.compareIntegers.name"), Boolean.class, CompareIntegers.class, CompareIntegers::new);
+		registerPrecise("compareDoubles", 		Text.translatable("lpctools.script.suppliers.Boolean.compareDoubles.name"), Boolean.class, CompareDoubles.class, CompareDoubles::new);
+		registerPrecise("compareObjects", 		Text.translatable("lpctools.script.suppliers.Boolean.compareObjects.name"), Boolean.class, CompareObjects.class, CompareObjects::new);
+		registerPrecise("notNull", 				Text.translatable("lpctools.script.suppliers.Boolean.notNull.name"), Boolean.class, lpctools.script.suppliers.Boolean.NotNull.class, lpctools.script.suppliers.Boolean.NotNull::new);
+		registerPrecise("canBreakInstantly", 	Text.translatable("lpctools.script.suppliers.Boolean.canBreakInstantly.name"), Boolean.class, CanBreakInstantly.class, CanBreakInstantly::new);
 		//注册integer suppliers
 		registerPrecise("constantInteger", 		Text.translatable("lpctools.script.suppliers.Integer.constantInteger.name"), Integer.class, ConstantInteger.class, ConstantInteger::new);
 		//注册double suppliers
@@ -229,6 +231,7 @@ public class ScriptSupplierLake {
 		registerPrecise("constantBlockPos", 	Text.translatable("lpctools.script.suppliers.BlockPos.constantBlockPos.name"), BlockPos.class, ConstantBlockPos.class, ConstantBlockPos::new);
 		registerPrecise("entityBlockPos", 		Text.translatable("lpctools.script.suppliers.BlockPos.entityBlockPos.name"), BlockPos.class, EntityBlockPos.class, EntityBlockPos::new);
 		registerPrecise("flooredVec3d", 		Text.translatable("lpctools.script.suppliers.BlockPos.flooredVec3d.name"), BlockPos.class, FlooredVec3d.class, FlooredVec3d::new);
+		registerPrecise("directionVector", 		Text.translatable("lpctools.script.suppliers.BlockPos.directionVector.name"), BlockPos.class, DirectionVector.class, DirectionVector::new);
 		//注册vec3d suppliers
 		registerPrecise("constantVec3d", 		Text.translatable("lpctools.script.suppliers.Vec3d.constantVec3d.name"), Vec3d.class, ConstantVec3d.class, ConstantVec3d::new);
 		registerPrecise("fromBlockPos", 		Text.translatable("lpctools.script.suppliers.Vec3d.vec3dFromBlockPos.name"), Vec3d.class, Vec3dFromBlockPos.class, Vec3dFromBlockPos::new);
@@ -236,7 +239,7 @@ public class ScriptSupplierLake {
 		registerPrecise("entityEyePos", 		Text.translatable("lpctools.script.suppliers.Vec3d.entityEyePos.name"), Vec3d.class, EntityEyePos.class, EntityEyePos::new);
 		//注册block suppliers
 		registerPrecise("constantBlock", 		Text.translatable("lpctools.script.suppliers.Block.constantBlock.name"), Block.class, ConstantBlock.class, ConstantBlock::new);
-		registerPrecise("directionVector", 		Text.translatable("lpctools.script.suppliers.BlockPos.directionVector.name"), BlockPos.class, DirectionVector.class, DirectionVector::new);
+		registerPrecise("blockInWorld", 		Text.translatable("lpctools.script.suppliers.Block.blockInWorld.name"), Block.class, BlockInWorld.class, BlockInWorld::new);
 		//注册entity suppliers
 		registerPrecise("vehicleEntity", 		Text.translatable("lpctools.script.suppliers.Entity.vehicleEntity.name"), Entity.class, VehicleEntity.class, VehicleEntity::new);
 		//注册player entity suppliers

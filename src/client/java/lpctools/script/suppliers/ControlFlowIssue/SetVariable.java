@@ -54,7 +54,7 @@ public class SetVariable extends AbstractSupplierWithTypeDeterminedSubSuppliers 
 	@Override public @Nullable JsonElement getAsJsonElement() {
 		JsonObject res = new JsonObject();
 		res.addProperty(variableNameJsonKey, variableName);
-		res.add(valueJsonKey, value.getAsJsonElement());
+		value.getAsSubJsonElement(res);
 		return res;
 	}
 	@Override public void setValueFromJsonElement(@Nullable JsonElement element) {
