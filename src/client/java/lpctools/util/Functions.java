@@ -5,10 +5,13 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Arrays;
+import java.lang.reflect.Array;
+import java.lang.reflect.Modifier;
+import java.util.ArrayList;
 import java.util.Objects;
 
-public class Signs {
+@SuppressWarnings("unused")
+public class Functions {
 	public static final EqualsSign EQUALS = new EqualsSign();
 	public static final NEqualSign NEQUAL = new NEqualSign();
 	public static final LessSign LESS = new LessSign();
@@ -40,6 +43,10 @@ public class Signs {
 	public static final SignFunction SIGN = new SignFunction();
 	public static final SquareFunction SQUARE = new SquareFunction();
 	public static final FactorialFunction FACTORIAL = new FactorialFunction();
+	public static final Floor FLOOR = new Floor();
+	public static final Ceil CEIL = new Ceil();
+	public static final Round ROUND = new Round();
+	public static final Trunc TRUNC = new Trunc();
 	public static final SqrtFunction SQRT = new SqrtFunction();
 	public static final ExpFunction EXP = new ExpFunction();
 	public static final LnFunction LN = new LnFunction();
@@ -58,57 +65,74 @@ public class Signs {
 	public static final PowFunction POW = new PowFunction();
 	public static final ModPowFunction MOD_POW = new ModPowFunction();
 	public static final ModInverseFunction MOD_INVERSE = new ModInverseFunction();
+	public static final CoordinateX COORDINATE_X = new CoordinateX();
+	public static final CoordinateY COORDINATE_Y = new CoordinateY();
+	public static final CoordinateZ COORDINATE_Z = new CoordinateZ();
+	public static final SquaredLength SQUARED_LENGTH = new SquaredLength();
+	public static final Length LENGTH = new Length();
 	
 	public interface SignBase{String signString();}
 	
 	//比较符号
-	public static final SignInfo<IntegerCompareSign> integerCompareSignInfo = new SignInfo<>(EQUALS, NEQUAL, LESS, GREATER, LEQUAL, GEQUAL);
+	public static final SignInfo<IntegerCompareSign> integerCompareSignInfo = new SignInfo<>(IntegerCompareSign.class);
 	public interface IntegerCompareSign extends SignBase { boolean compareIntegers(int i1, int i2);}
 	
-	public static final SignInfo<DoubleCompareSign> doubleCompareSignInfo = new SignInfo<>(EQUALS, NEQUAL, LESS, GREATER, LEQUAL, GEQUAL);
+	public static final SignInfo<DoubleCompareSign> doubleCompareSignInfo = new SignInfo<>(DoubleCompareSign.class);
 	public interface DoubleCompareSign extends SignBase { boolean compareDoubles(double f1, double f2);}
 	
-	public static final SignInfo<ObjectCompareSign> objectCompareSignInfo = new SignInfo<>(EQUALS, NEQUAL);
+	public static final SignInfo<ObjectCompareSign> objectCompareSignInfo = new SignInfo<>(ObjectCompareSign.class);
 	public interface ObjectCompareSign extends SignBase{ boolean compareObjects(Object o1, Object o2);}
 	
 	//计算符号
-	public static final SignInfo<IntegerCalculateSign> integerCalculateSignInfo = new SignInfo<>(ADD, SUBTRACT, MULTIPLY, DIVIDE, MOD, AND, OR, XOR, SHIFT_LEFT, SHIFT_RIGHT);
+	public static final SignInfo<IntegerCalculateSign> integerCalculateSignInfo = new SignInfo<>(IntegerCalculateSign.class);
 	public interface IntegerCalculateSign extends SignBase{ int calculateIntegers(int i1, int i2);}
 	
-	public static final SignInfo<DoubleCalculateSign> doubleCalculateSignInfo = new SignInfo<>(ADD, SUBTRACT, MULTIPLY, DIVIDE, MOD);
+	public static final SignInfo<DoubleCalculateSign> doubleCalculateSignInfo = new SignInfo<>(DoubleCalculateSign.class);
 	public interface DoubleCalculateSign extends SignBase{ double calculateDoubles(double f1, double f2);}
 	
-	public static final SignInfo<BlockPosCalculateSign> blockPosCalculateSignInfo = new SignInfo<>(ADD, SUBTRACT, CROSS);
+	public static final SignInfo<BlockPosCalculateSign> blockPosCalculateSignInfo = new SignInfo<>(BlockPosCalculateSign.class);
 	public interface BlockPosCalculateSign extends SignBase{ BlockPos calculateBlockPoses(BlockPos p1, BlockPos p2);}
 	
-	public static final SignInfo<Vec3dCalculateSign> vec3dCalculateSignInfo = new SignInfo<>(ADD, SUBTRACT, MOD, CROSS);
+	public static final SignInfo<Vec3dCalculateSign> vec3dCalculateSignInfo = new SignInfo<>(Vec3dCalculateSign.class);
 	public interface Vec3dCalculateSign extends SignBase{ Vec3d calculateVec3ds(Vec3d v1, Vec3d v2);}
 	
 	//混合计算符号
-	public static final SignInfo<IntegerFromBlockPosesSign> intFromBlockPosesSignInfo = new SignInfo<>(DOT, DISTANCE_SQUARED);
+	public static final SignInfo<IntegerFromBlockPosesSign> intFromBlockPosesSignInfo = new SignInfo<>(IntegerFromBlockPosesSign.class);
 	public interface IntegerFromBlockPosesSign extends SignBase{ int intFromBlockPoses(BlockPos p1, BlockPos p2);}
 	
-	public static final SignInfo<DoubleFromVec3dsSign> doubleFromVec3dsSignInfo = new SignInfo<>(DOT, DIVIDE, DISTANCE_SQUARED, DISTANCE);
+	public static final SignInfo<DoubleFromVec3dsSign> doubleFromVec3dsSignInfo = new SignInfo<>(DoubleFromVec3dsSign.class);
 	public interface DoubleFromVec3dsSign extends SignBase{ double doubleFromVec3ds(Vec3d v1, Vec3d v2);}
 	
 	//拓展函数
-	public static final SignInfo<DoubleConstant> doubleConstantInfo = new SignInfo<>(PI, E, PI_OVER_2, SQRT_2, PHI, EULER);
+	public static final SignInfo<DoubleConstant> doubleConstantInfo = new SignInfo<>(DoubleConstant.class);
 	public interface DoubleConstant extends SignBase{ double getDouble();}
 	
-	public static final SignInfo<IntegerFunction> integerFunctionInfo = new SignInfo<>(NEGATIVE, ABS, SIGN, SQUARE, FACTORIAL);
+	public static final SignInfo<IntegerFunction> integerFunctionInfo = new SignInfo<>(IntegerFunction.class);
 	public interface IntegerFunction extends SignBase{ int applyInteger(int i);}
 	
-	public static final SignInfo<DoubleFunction> doubleFunctionInfo = new SignInfo<>(NEGATIVE, ABS, SIGN, SQUARE, SQRT, EXP, LN, SIN, COS, TAN, ARCSIN, ARCCOS, ARCTAN, SINH, COSH);
+	public static final SignInfo<DoubleFunction> doubleFunctionInfo = new SignInfo<>(DoubleFunction.class);
 	public interface DoubleFunction extends SignBase{ double applyDouble(double f);}
 	
-	public static final SignInfo<IntegerBiFunction> integerBiFunctionInfo = new SignInfo<>(GCD, LCD, COMBINE, ARRANGE, POW, MOD_INVERSE);
+	public static final SignInfo<IntegerBiFunction> integerBiFunctionInfo = new SignInfo<>(IntegerBiFunction.class);
 	public interface IntegerBiFunction extends SignBase{ int apply2Integers(int i1, int i2);}
 	
-	public static final SignInfo<DoubleBiFunction> doubleBiFunctionInfo = new SignInfo<>(POW);
+	public static final SignInfo<DoubleBiFunction> doubleBiFunctionInfo = new SignInfo<>(DoubleBiFunction.class);
 	public interface DoubleBiFunction extends SignBase{ double apply2Doubles(double f1, double f2);}
 	
-	public static final SignInfo<IntegerTriFunction> integerTriFunctionInfo = new SignInfo<>(MOD_POW);
+	public static final SignInfo<IntegerTriFunction> integerTriFunctionInfo = new SignInfo<>(IntegerTriFunction.class);
 	public interface IntegerTriFunction extends SignBase{ int apply3Integers(int i1, int i2, int i3);}
+	
+	public static final SignInfo<Double2IntFunction> double2IntFunctionInfo = new SignInfo<>(Double2IntFunction.class);
+	public interface Double2IntFunction extends SignBase{ int intFromDouble(double f);}
+	
+	public static final SignInfo<Vec3d2BlockPosFunction> vec3d2BlockPosFunctionInfo = new SignInfo<>(Vec3d2BlockPosFunction.class);
+	public interface Vec3d2BlockPosFunction extends SignBase{ BlockPos blockPosFromVec3d(Vec3d v);}
+	
+	public static final SignInfo<IntegerFromBlockPosFunction> integerFromBlockPosFunctionInfo = new SignInfo<>(IntegerFromBlockPosFunction.class);
+	public interface IntegerFromBlockPosFunction extends SignBase{ int integerFromBlockPos(BlockPos p);}
+	
+	public static final SignInfo<DoubleFromVec3dFunc> doubleFromVec3dFuncInfo = new SignInfo<>(DoubleFromVec3dFunc.class);
+	public interface DoubleFromVec3dFunc extends SignBase{ double doubleFromVec3d(Vec3d v);}
 	
 	public static class EqualsSign implements IntegerCompareSign, DoubleCompareSign, ObjectCompareSign{
 		private EqualsSign(){}
@@ -310,6 +334,34 @@ public class Signs {
 			return res;
 		}
 	}
+	public static class Floor implements Double2IntFunction, DoubleFunction, Vec3d2BlockPosFunction{
+		private Floor(){}
+		@Override public String signString() {return "floor";}
+		@Override public int intFromDouble(double f) {return (int)Math.floor(f);}
+		@Override public double applyDouble(double f) {return Math.floor(f);}
+		@Override public BlockPos blockPosFromVec3d(Vec3d v) {return BlockPos.ofFloored(v);}
+	}
+	public static class Ceil implements Double2IntFunction, DoubleFunction, Vec3d2BlockPosFunction{
+		private Ceil(){}
+		@Override public String signString() {return "ceil";}
+		@Override public int intFromDouble(double f) {return (int)Math.ceil(f);}
+		@Override public double applyDouble(double f) {return Math.ceil(f);}
+		@Override public BlockPos blockPosFromVec3d(Vec3d v) {return new BlockPos((int)Math.ceil(v.x), (int)Math.ceil(v.y), (int)Math.ceil(v.z));}
+	}
+	public static class Round implements Double2IntFunction, DoubleFunction, Vec3d2BlockPosFunction{
+		private Round(){}
+		@Override public String signString() {return "round";}
+		@Override public int intFromDouble(double f) {return (int)Math.round(f);}
+		@Override public double applyDouble(double f) {return Math.round(f);}
+		@Override public BlockPos blockPosFromVec3d(Vec3d v) {return new BlockPos((int)Math.round(v.x), (int)Math.round(v.y), (int)Math.round(v.z));}
+	}
+	public static class Trunc implements Double2IntFunction, DoubleFunction, Vec3d2BlockPosFunction{
+		private Trunc(){}
+		@Override public String signString() {return "trunc";}
+		@Override public int intFromDouble(double f) {return (int)f;}
+		@Override public double applyDouble(double f) {return (double)(long)f;}
+		@Override public BlockPos blockPosFromVec3d(Vec3d v) {return new BlockPos((int)v.x, (int)v.y, (int)v.z);}
+	}
 	public static class SqrtFunction implements DoubleFunction{
 		private SqrtFunction(){}
 		@Override public String signString() {return "sqrt";}
@@ -461,13 +513,56 @@ public class Signs {
 			return res;
 		}
 	}
+	public static class CoordinateX implements DoubleFromVec3dFunc, IntegerFromBlockPosFunction {
+		private CoordinateX(){}
+		@Override public String signString() {return "coordinate X";}
+		@Override public double doubleFromVec3d(Vec3d v) {return v.x;}
+		@Override public int integerFromBlockPos(BlockPos p) {return p.getX();}
+	}
+	public static class CoordinateY implements DoubleFromVec3dFunc, IntegerFromBlockPosFunction {
+		private CoordinateY(){}
+		@Override public String signString() {return "coordinate Y";}
+		@Override public double doubleFromVec3d(Vec3d v) {return v.y;}
+		@Override public int integerFromBlockPos(BlockPos p) {return p.getY();}
+	}
+	public static class CoordinateZ implements DoubleFromVec3dFunc, IntegerFromBlockPosFunction {
+		private CoordinateZ(){}
+		@Override public String signString() {return "coordinate Z";}
+		@Override public double doubleFromVec3d(Vec3d v) {return v.z;}
+		@Override public int integerFromBlockPos(BlockPos p) {return p.getZ();}
+	}
+	public static class SquaredLength implements DoubleFromVec3dFunc, IntegerFromBlockPosFunction {
+		private SquaredLength(){}
+		@Override public String signString() {return "squaredLength";}
+		@Override public double doubleFromVec3d(Vec3d v) {return v.lengthSquared();}
+		@Override public int integerFromBlockPos(BlockPos p) {
+			int x = p.getX(), y = p.getY(), z = p.getZ();
+			return x * x + y * y + z * z;
+		}
+	}
+	public static class Length implements DoubleFromVec3dFunc{
+		private Length(){}
+		@Override public String signString() {return "length";}
+		@Override public double doubleFromVec3d(Vec3d v) {return v.length();}
+	}
 	
 	public static class SignInfo<T extends SignBase>{
 		private final T[] signs;
 		private final ImmutableMap<String, Integer> indexMap;
-		@SafeVarargs
-		private SignInfo(T... signs){
-			this.signs = Arrays.copyOf(signs, signs.length);
+		private SignInfo(Class<T> targetType){
+			ArrayList<T> list = new ArrayList<>();
+			for(var v : Functions.class.getFields()){
+				if(Modifier.isStatic(v.getModifiers()) && targetType.isAssignableFrom(v.getType())) {
+					try {
+						//noinspection unchecked
+						list.add((T) v.get(null));
+					} catch (IllegalAccessException e) {
+						throw new RuntimeException(e);
+					}
+				}
+			}
+			//noinspection unchecked
+			this.signs = list.toArray((T[])Array.newInstance(targetType, list.size()));
 			ImmutableMap.Builder<String, Integer> indexMapBuilder = new ImmutableMap.Builder<>();
 			for(int i = 0; i < signs.length; ++i) indexMapBuilder.put(signs[i].signString(), i);
 			indexMap = indexMapBuilder.build();

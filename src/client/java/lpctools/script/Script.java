@@ -49,11 +49,10 @@ public class Script extends AbstractScriptWithSubScript implements IScriptWithSu
 	}
 	public @NotNull WidthAutoAdjustTextField getIdWidget(){
 		if(idWidget == null){
-			idWidget = new WidthAutoAdjustTextField(getDisplayWidget(), 100, text->{
+			idWidget = new WidthAutoAdjustTextField(getDisplayWidget(), 100, id, text->{
 				config.scriptId.setValueFromString(text);
 				config.getPage().markNeedUpdate();
 			});
-			idWidget.setText(id);
 		}
 		return idWidget;
 	}

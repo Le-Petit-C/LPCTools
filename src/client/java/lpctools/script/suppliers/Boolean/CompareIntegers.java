@@ -6,17 +6,17 @@ import lpctools.script.exceptions.ScriptRuntimeException;
 import lpctools.script.runtimeInterfaces.ScriptFunction;
 import lpctools.script.suppliers.AbstractSignResultSupplier;
 import lpctools.script.suppliers.Integer.ConstantInteger;
-import lpctools.util.Signs;
+import lpctools.util.Functions;
 import net.minecraft.text.Text;
 
-public class CompareIntegers extends AbstractSignResultSupplier<Signs.IntegerCompareSign> implements IBooleanSupplier {
+public class CompareIntegers extends AbstractSignResultSupplier<Functions.IntegerCompareSign> implements IBooleanSupplier {
 	protected final SupplierStorage<Integer> integer1 = ofStorage(Integer.class, new ConstantInteger(this),
 		Text.translatable("lpctools.script.suppliers.Boolean.compareIntegers.subSuppliers.integer1.name"), "integer1");
 	protected final SupplierStorage<Integer> integer2 = ofStorage(Integer.class, new ConstantInteger(this),
 		Text.translatable("lpctools.script.suppliers.Boolean.compareIntegers.subSuppliers.integer2.name"), "integer2");
 	protected final SupplierStorage<?>[] subSuppliers = ofStorages(integer1, integer2);
 	
-	public CompareIntegers(IScriptWithSubScript parent) {super(parent, Signs.EQUALS, Signs.integerCompareSignInfo, 1);}
+	public CompareIntegers(IScriptWithSubScript parent) {super(parent, Functions.EQUALS, Functions.integerCompareSignInfo, 1);}
 	
 	@Override protected SupplierStorage<?>[] getSubSuppliers() {return subSuppliers;}
 	

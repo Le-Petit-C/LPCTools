@@ -19,6 +19,10 @@ public class WidthAutoAdjustTextField extends GuiTextFieldGeneric{
 		this.minWidth = minWidth;
 		this.callback = callback;
 	}
+	public WidthAutoAdjustTextField(ScriptDisplayWidget parent, int minWidth, String text, @Nullable Consumer<String> callback) {
+		this(parent, minWidth, callback);
+		setText(text);
+	}
 	private @Nullable String lastText;
 	@Override public void setFocused(boolean focused) {
 		super.setFocused(focused);

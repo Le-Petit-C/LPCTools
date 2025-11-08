@@ -21,6 +21,7 @@ import static lpctools.lpcfymasaapi.LPCConfigUtils.warnFailedLoadingConfig;
 
 public class SetVariable extends AbstractSupplierWithTypeDeterminedSubSuppliers implements IControlFlowSupplier {
 	private @NotNull String variableName = "var";
+	protected @Nullable WidthAutoAdjustTextField textField;
 	protected final SupplierStorage<Object> value = ofStorage(Object.class, new Null<>(this, Entity.class),
 		Text.translatable("lpctools.script.suppliers.ControlFlowIssue.setVariable.subSuppliers.value.name"), valueJsonKey);
 	protected final SupplierStorage<?>[] subSuppliers = ofStorages(value);
@@ -29,14 +30,24 @@ public class SetVariable extends AbstractSupplierWithTypeDeterminedSubSuppliers 
 	
 	public SetVariable(IScriptWithSubScript parent) {super(parent);}
 	
+	public void setVariableName(@NotNull String variableName) {
+		if(!this.variableName.equals(variableName)){
+			this.variableName = variableName;
+			if(textField != null) textField.setText(variableName);
+		}
+	}
+	
 	@Override protected SupplierStorage<?>[] getSubSuppliers() {return subSuppliers;}
 	
 	@Override protected ArrayList<Object> buildWidgets(ArrayList<Object> res) {
-		res.add(new WidthAutoAdjustTextField(
-			getDisplayWidget(), 100, text->{
-			variableName = text;
-			applyToDisplayWidgetIfNotNull(ScriptDisplayWidget::markUpdateChain);
-		}));
+		if(textField == null){
+			textField = new WidthAutoAdjustTextField(
+				getDisplayWidget(), 100, variableName, text->{
+					setVariableName(text);
+				applyToDisplayWidgetIfNotNull(ScriptDisplayWidget::markUpdateChain);
+			});
+		}
+		res.add(textField);
 		return super.buildWidgets(res);
 	}
 	

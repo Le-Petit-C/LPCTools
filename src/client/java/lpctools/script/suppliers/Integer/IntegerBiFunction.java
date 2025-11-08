@@ -5,18 +5,18 @@ import lpctools.script.IScriptWithSubScript;
 import lpctools.script.exceptions.ScriptRuntimeException;
 import lpctools.script.runtimeInterfaces.ScriptFunction;
 import lpctools.script.suppliers.AbstractSignResultSupplier;
-import lpctools.util.Signs;
+import lpctools.util.Functions;
 import net.minecraft.text.Text;
 import org.jetbrains.annotations.NotNull;
 
-public class IntegerBiFunction extends AbstractSignResultSupplier<Signs.IntegerBiFunction> implements IIntegerSupplier {
+public class IntegerBiFunction extends AbstractSignResultSupplier<Functions.IntegerBiFunction> implements IIntegerSupplier {
 	protected final SupplierStorage<Integer> integer1 = ofStorage(Integer.class, new ConstantInteger(this),
 		Text.translatable("lpctools.script.suppliers.Integer.integerBiFunction.subSuppliers.integer1.name"), "integer1");
 	protected final SupplierStorage<Integer> integer2 = ofStorage(Integer.class, new ConstantInteger(this),
 		Text.translatable("lpctools.script.suppliers.Integer.integerBiFunction.subSuppliers.integer2.name"), "integer2");
 	protected final SupplierStorage<?>[] subSuppliers = ofStorages(integer1, integer2);
 	
-	public IntegerBiFunction(IScriptWithSubScript parent) {super(parent, Signs.GCD, Signs.integerBiFunctionInfo, 0);}
+	public IntegerBiFunction(IScriptWithSubScript parent) {super(parent, Functions.GCD, Functions.integerBiFunctionInfo, 0);}
 	
 	@Override protected SupplierStorage<?>[] getSubSuppliers() {return subSuppliers;}
 	

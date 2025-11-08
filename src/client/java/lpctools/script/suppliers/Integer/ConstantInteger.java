@@ -16,13 +16,20 @@ import java.util.List;
 import static lpctools.lpcfymasaapi.LPCConfigUtils.warnFailedLoadingConfig;
 
 public class ConstantInteger extends AbstractScript implements IIntegerSupplier {
-	Integer value = 0;
-	private @Nullable WidthAutoAdjustTextField textField = null;
+	private @NotNull Integer value = 0;
+	protected @Nullable WidthAutoAdjustTextField textField;
 	public ConstantInteger(IScriptWithSubScript parent) {super(parent);}
 	@Override public @NotNull ScriptFunction<CompileEnvironment.RuntimeVariableMap, Integer>
 	compile(CompileEnvironment variableMap) {
 		final var cachedValue = value;
 		return map->cachedValue;
+	}
+	
+	public void setIntegerValue(@NotNull Integer value){
+		if(!this.value.equals(value)){
+			this.value = value;
+			if(textField != null) textField.setText(value.toString());
+		}
 	}
 	
 	@Override public @Nullable JsonElement getAsJsonElement() {return new JsonPrimitive(value);}
@@ -32,20 +39,19 @@ public class ConstantInteger extends AbstractScript implements IIntegerSupplier 
 			warnFailedLoadingConfig("ConstantInteger", element);
 			return;
 		}
-		value = primitive.getAsInt();
+		setIntegerValue(primitive.getAsInt());
 	}
 	@Override public @Nullable Iterable<?> getWidgets() {return List.of(getTextField());}
 	
 	private @NotNull WidthAutoAdjustTextField getTextField(){
 		if(textField == null){
 			textField = new WidthAutoAdjustTextField(
-				getDisplayWidget(), 100, text->{
+				getDisplayWidget(), 100, value.toString(), text->{
 				try {value = Integer.valueOf(text);
 				} catch (NumberFormatException ignored) {}
 				textField.setText(value.toString());
 				applyToDisplayWidgetIfNotNull(ScriptDisplayWidget::markUpdateChain);
 			});
-			textField.setText(value.toString());
 		}
 		return textField;
 	}

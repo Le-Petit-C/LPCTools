@@ -5,21 +5,21 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 import fi.dy.masa.malilib.gui.button.ButtonGeneric;
 import lpctools.script.IScriptWithSubScript;
-import lpctools.util.Signs;
+import lpctools.util.Functions;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 
 import static lpctools.lpcfymasaapi.LPCConfigUtils.warnFailedLoadingConfig;
 
-public abstract class AbstractSignResultSupplier<T extends Signs.SignBase> extends AbstractSupplierWithTypeDeterminedSubSuppliers {
+public abstract class AbstractSignResultSupplier<T extends Functions.SignBase> extends AbstractSupplierWithTypeDeterminedSubSuppliers {
 	protected T compareSign;
-	protected final Signs.SignInfo<T> signInfo;
+	protected final Functions.SignInfo<T> signInfo;
 	protected final int signPosition;
 	
 	public static final String compareSignJsonKey = "compareSign";
 	
-	public AbstractSignResultSupplier(IScriptWithSubScript parent, T defaultSign, Signs.SignInfo<T> signInfo, int signPosition) {
+	public AbstractSignResultSupplier(IScriptWithSubScript parent, T defaultSign, Functions.SignInfo<T> signInfo, int signPosition) {
 		super(parent);
 		compareSign = defaultSign;
 		this.signInfo = signInfo;

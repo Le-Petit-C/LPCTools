@@ -23,6 +23,7 @@ import static lpctools.lpcfymasaapi.LPCConfigUtils.warnFailedLoadingConfig;
 
 public class IterateArray extends AbstractSupplierWithTypeDeterminedSubSuppliers implements IControlFlowSupplier {
 	private @NotNull String variableName = "var";
+	protected @Nullable WidthAutoAdjustTextField textField;
 	protected final SupplierStorage<Object[]> array = ofStorage(Object[].class, new Null<>(this, Object[].class),
 		Text.translatable("lpctools.script.suppliers.ControlFlowIssue.iterateArray.subSuppliers.array.name"), "array");
 	protected final RunMultiple loopBody = new RunMultiple(this, Text.translatable("lpctools.script.suppliers.ControlFlowIssue.iterateArray.loopBody.name"));
@@ -33,14 +34,24 @@ public class IterateArray extends AbstractSupplierWithTypeDeterminedSubSuppliers
 	
 	public IterateArray(IScriptWithSubScript parent) {super(parent);}
 	
+	public void setVariableName(@NotNull String variableName) {
+		if(!this.variableName.equals(variableName)){
+			this.variableName = variableName;
+			if(textField != null) textField.setText(variableName);
+		}
+	}
+	
 	@Override protected SupplierStorage<?>[] getSubSuppliers() {return subSuppliers;}
 	
 	@Override protected ArrayList<Object> buildWidgets(ArrayList<Object> res) {
-		res.add(new WidthAutoAdjustTextField(
-			getDisplayWidget(), 100, text->{
-			variableName = text;
-			applyToDisplayWidgetIfNotNull(ScriptDisplayWidget::markUpdateChain);
-		}));
+		if(textField == null){
+			textField = new WidthAutoAdjustTextField(
+				getDisplayWidget(), 100, variableName, text->{
+				setVariableName(text);
+				applyToDisplayWidgetIfNotNull(ScriptDisplayWidget::markUpdateChain);
+			});
+		}
+		res.add(textField);
 		return super.buildWidgets(res);
 	}
 	
@@ -76,7 +87,7 @@ public class IterateArray extends AbstractSupplierWithTypeDeterminedSubSuppliers
 		}
 		if(object.get(variableNameJsonKey) instanceof JsonElement varNameElement){
 			if(varNameElement instanceof JsonPrimitive primitive)
-				variableName = primitive.getAsString();
+				setVariableName(primitive.getAsString());
 			else warnFailedLoadingConfig("IterateArray.variableName", varNameElement);
 		}
 		array.setValueFromSubJsonElement(object);

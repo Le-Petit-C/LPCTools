@@ -5,12 +5,12 @@ import lpctools.script.IScriptWithSubScript;
 import lpctools.script.exceptions.ScriptRuntimeException;
 import lpctools.script.runtimeInterfaces.ScriptFunction;
 import lpctools.script.suppliers.AbstractSupplierWithTypeDeterminedSubSuppliers;
-import lpctools.script.suppliers.Random.Null;
+import lpctools.script.suppliers.Integer.ConstantInteger;
 import net.minecraft.text.Text;
 import org.jetbrains.annotations.NotNull;
 
 public class NewArray extends AbstractSupplierWithTypeDeterminedSubSuppliers implements IArraySupplier {
-	protected final SupplierStorage<Integer> size = ofStorage(Integer.class, new Null<>(this, Integer.class),
+	protected final SupplierStorage<Integer> size = ofStorage(Integer.class, new ConstantInteger(this),
 		Text.translatable("lpctools.script.suppliers.Array.newArray.subSuppliers.size.name"), "size");
 	protected final SupplierStorage<?>[] subSuppliers = ofStorages(size);
 	

@@ -5,11 +5,11 @@ import lpctools.script.IScriptWithSubScript;
 import lpctools.script.exceptions.ScriptRuntimeException;
 import lpctools.script.runtimeInterfaces.ScriptFunction;
 import lpctools.script.suppliers.AbstractSignResultSupplier;
-import lpctools.util.Signs;
+import lpctools.util.Functions;
 import net.minecraft.text.Text;
 import org.jetbrains.annotations.NotNull;
 
-public class IntegerTriFunction extends AbstractSignResultSupplier<Signs.IntegerTriFunction> implements IIntegerSupplier {
+public class IntegerTriFunction extends AbstractSignResultSupplier<Functions.IntegerTriFunction> implements IIntegerSupplier {
 	protected final SupplierStorage<Integer> integer1 = ofStorage(Integer.class, new ConstantInteger(this),
 		Text.translatable("lpctools.script.suppliers.Integer.integerTriFunction.subSuppliers.integer1.name"), "integer1");
 	protected final SupplierStorage<Integer> integer2 = ofStorage(Integer.class, new ConstantInteger(this),
@@ -18,7 +18,7 @@ public class IntegerTriFunction extends AbstractSignResultSupplier<Signs.Integer
 		Text.translatable("lpctools.script.suppliers.Integer.integerTriFunction.subSuppliers.integer3.name"), "integer3");
 	protected final SupplierStorage<?>[] subSuppliers = ofStorages(integer1, integer2);
 	
-	public IntegerTriFunction(IScriptWithSubScript parent) {super(parent, Signs.MOD_POW, Signs.integerTriFunctionInfo, 0);}
+	public IntegerTriFunction(IScriptWithSubScript parent) {super(parent, Functions.MOD_POW, Functions.integerTriFunctionInfo, 0);}
 	
 	@Override protected SupplierStorage<?>[] getSubSuppliers() {return subSuppliers;}
 	

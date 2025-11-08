@@ -6,17 +6,17 @@ import lpctools.script.exceptions.ScriptRuntimeException;
 import lpctools.script.runtimeInterfaces.ScriptFunction;
 import lpctools.script.suppliers.AbstractSignResultSupplier;
 import lpctools.script.suppliers.Double.ConstantDouble;
-import lpctools.util.Signs;
+import lpctools.util.Functions;
 import net.minecraft.text.Text;
 
-public class CompareDoubles extends AbstractSignResultSupplier<Signs.DoubleCompareSign> implements IBooleanSupplier {
+public class CompareDoubles extends AbstractSignResultSupplier<Functions.DoubleCompareSign> implements IBooleanSupplier {
 	protected final SupplierStorage<Double> double1 = ofStorage(Double.class, new ConstantDouble(this),
 		Text.translatable("lpctools.script.suppliers.Boolean.compareDoubles.subSuppliers.double1.name"), "double1");
 	protected final SupplierStorage<Double> double2 = ofStorage(Double.class, new ConstantDouble(this),
 		Text.translatable("lpctools.script.suppliers.Boolean.compareDoubles.subSuppliers.double2.name"), "double2");
 	protected final SupplierStorage<?>[] subSuppliers = ofStorages(double1, double2);
 	
-	public CompareDoubles(IScriptWithSubScript parent) {super(parent, Signs.EQUALS, Signs.doubleCompareSignInfo, 1);}
+	public CompareDoubles(IScriptWithSubScript parent) {super(parent, Functions.EQUALS, Functions.doubleCompareSignInfo, 1);}
 	
 	@Override protected SupplierStorage<?>[] getSubSuppliers() {return subSuppliers;}
 	

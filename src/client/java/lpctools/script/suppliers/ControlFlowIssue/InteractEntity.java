@@ -6,7 +6,7 @@ import lpctools.script.exceptions.ScriptRuntimeException;
 import lpctools.script.runtimeInterfaces.ScriptFunction;
 import lpctools.script.suppliers.AbstractSupplierWithTypeDeterminedSubSuppliers;
 import lpctools.script.suppliers.Boolean.ConstantBoolean;
-import lpctools.script.suppliers.Random.Null;
+import lpctools.script.suppliers.Entity.PlayerEntity.MainPlayerEntity;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.entity.Entity;
 import net.minecraft.text.Text;
@@ -16,7 +16,7 @@ import org.jetbrains.annotations.NotNull;
 public class InteractEntity extends AbstractSupplierWithTypeDeterminedSubSuppliers implements IControlFlowSupplier {
 	protected final SupplierStorage<Boolean> useOffhand = ofStorage(Boolean.class, new ConstantBoolean(this),
 		Text.translatable("lpctools.script.suppliers.ControlFlowIssue.interactEntity.subSuppliers.useOffhand.name"), "useOffhand");
-	protected final SupplierStorage<Entity> entity = ofStorage(Entity.class, new Null<>(this, Entity.class),
+	protected final SupplierStorage<Entity> entity = ofStorage(Entity.class, new MainPlayerEntity(this),
 		Text.translatable("lpctools.script.suppliers.ControlFlowIssue.interactEntity.subSuppliers.entity.name"), "entity");
 	protected final SupplierStorage<?>[] subSuppliers = ofStorages(useOffhand, entity);
 	

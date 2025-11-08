@@ -25,6 +25,7 @@ import static lpctools.lpcfymasaapi.LPCConfigUtils.warnFailedLoadingConfig;
 
 public class IterateIterable extends AbstractSupplierWithTypeDeterminedSubSuppliers implements IControlFlowSupplier {
 	private @NotNull String variableName = "var";
+	protected @Nullable WidthAutoAdjustTextField textField;
 	protected final SupplierStorage<ObjectIterable> iterable = ofStorage(ObjectIterable.class, new Null<>(this, ObjectIterable.class),
 		Text.translatable("lpctools.script.suppliers.ControlFlowIssue.iterateIterable.subSuppliers.iterable.name"), iterableJsonKey);
 	protected final RunMultiple loopBody = new RunMultiple(this, Text.translatable("lpctools.script.suppliers.ControlFlowIssue.iterateIterable.loopBody.name"));
@@ -36,14 +37,24 @@ public class IterateIterable extends AbstractSupplierWithTypeDeterminedSubSuppli
 	
 	public IterateIterable(IScriptWithSubScript parent) {super(parent);}
 	
+	public void setVariableName(@NotNull String variableName) {
+		if(!this.variableName.equals(variableName)){
+			this.variableName = variableName;
+			if(textField != null) textField.setText(variableName);
+		}
+	}
+	
 	@Override protected SupplierStorage<?>[] getSubSuppliers() {return subSuppliers;}
 	
 	@Override protected ArrayList<Object> buildWidgets(ArrayList<Object> res) {
-		res.add(new WidthAutoAdjustTextField(
-			getDisplayWidget(), 100, text->{
-			variableName = text;
-			applyToDisplayWidgetIfNotNull(ScriptDisplayWidget::markUpdateChain);
-		}));
+		if(textField == null){
+			textField = new WidthAutoAdjustTextField(
+				getDisplayWidget(), 100, variableName, text->{
+				setVariableName(text);
+				applyToDisplayWidgetIfNotNull(ScriptDisplayWidget::markUpdateChain);
+			});
+		}
+		res.add(textField);
 		return super.buildWidgets(res);
 	}
 	

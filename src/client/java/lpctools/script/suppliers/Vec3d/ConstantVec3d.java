@@ -20,7 +20,7 @@ import static lpctools.lpcfymasaapi.LPCConfigUtils.warnFailedLoadingConfig;
 public class ConstantVec3d extends AbstractScript implements IVec3dSupplier {
 	private final double[] val = new double[3];
 	private static final char[] valDesc = {'x', 'y', 'z'};
-	private @Nullable WidthAutoAdjustTextField[] textFields = null;
+	private WidthAutoAdjustTextField@Nullable [] textFields = null;
 	public ConstantVec3d(IScriptWithSubScript parent) {super(parent);}
 	@Override public @NotNull ScriptFunction<CompileEnvironment.RuntimeVariableMap, Vec3d>
 	compile(CompileEnvironment variableMap) {
@@ -41,8 +41,10 @@ public class ConstantVec3d extends AbstractScript implements IVec3dSupplier {
 		}
 		int arrSize = array.size();
 		for(int i = 0; i < 3; ++i){
-			if(arrSize > i && array.get(i) instanceof JsonPrimitive primitive && primitive.isNumber())
+			if(arrSize > i && array.get(i) instanceof JsonPrimitive primitive && primitive.isNumber()){
 				val[i] = primitive.getAsDouble();
+				if(textFields != null) textFields[i].setText(String.valueOf(val[i]));
+			}
 			else warnFailedLoadingConfig("ConstantVec3d." + valDesc[i], element);
 		}
 	}
@@ -54,18 +56,14 @@ public class ConstantVec3d extends AbstractScript implements IVec3dSupplier {
 			for(int i = 0; i < 3; ++i){
 				final int idx = i;
 				textFields[idx] = new WidthAutoAdjustTextField(
-					getDisplayWidget(), 50, text->{
+					getDisplayWidget(), 50, String.valueOf(val[idx]), text->{
 					try {val[idx] = Double.parseDouble(text);
 					} catch (NumberFormatException ignored) {}
-					//noinspection DataFlowIssue
 					textFields[idx].setText(String.valueOf(val[idx]));
 					applyToDisplayWidgetIfNotNull(ScriptDisplayWidget::markUpdateChain);
 				});
-				//noinspection DataFlowIssue
-				textFields[idx].setText(String.valueOf(val[idx]));
 			}
 		}
-		//noinspection NullableProblems
 		return textFields;
 	}
 }

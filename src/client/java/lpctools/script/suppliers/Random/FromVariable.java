@@ -14,9 +14,8 @@ import java.util.List;
 import static lpctools.lpcfymasaapi.LPCConfigUtils.warnFailedLoadingConfig;
 
 public class FromVariable<T> extends AbstractScript implements IRandomSupplier<T> {
-	
 	private @NotNull String variableName = "var";
-	private @Nullable Iterable<?> widgets = null;
+	protected @Nullable WidthAutoAdjustTextField textField;
 	public final Class<T> targetClass;
 	
 	public FromVariable(IScriptWithSubScript parent, Class<T> targetClass) {
@@ -24,15 +23,22 @@ public class FromVariable<T> extends AbstractScript implements IRandomSupplier<T
 		this.targetClass = targetClass;
 	}
 	
-	@Override public @Nullable Iterable<?> getWidgets() {
-		if(widgets == null){
-			widgets = List.of(new WidthAutoAdjustTextField(
-				getDisplayWidget(), 100, text->{
-				variableName = text;
-				applyToDisplayWidgetIfNotNull(ScriptDisplayWidget::markUpdateChain);
-			}));
+	public void setVariableName(@NotNull String variableName) {
+		if(!this.variableName.equals(variableName)){
+			this.variableName = variableName;
+			if(textField != null) textField.setText(variableName);
 		}
-		return widgets;
+	}
+	
+	@Override public @Nullable Iterable<?> getWidgets() {
+		if(textField == null){
+			textField = new WidthAutoAdjustTextField(
+				getDisplayWidget(), 100, variableName, text->{
+				setVariableName(text);
+				applyToDisplayWidgetIfNotNull(ScriptDisplayWidget::markUpdateChain);
+			});
+		}
+		return List.of(textField);
 	}
 	
 	@Override public @NotNull ScriptFunction<CompileEnvironment.RuntimeVariableMap, Object>

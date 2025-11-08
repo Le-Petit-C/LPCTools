@@ -7,7 +7,7 @@ import lpctools.script.AbstractScript;
 import lpctools.script.CompileEnvironment;
 import lpctools.script.IScriptWithSubScript;
 import lpctools.script.runtimeInterfaces.ScriptFunction;
-import lpctools.util.Signs;
+import lpctools.util.Functions;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -18,7 +18,7 @@ import static lpctools.lpcfymasaapi.LPCConfigUtils.warnFailedLoadingConfig;
 public class DoubleConstant extends AbstractScript implements IDoubleSupplier {
 	public DoubleConstant(IScriptWithSubScript parent) {super(parent);}
 	
-	protected Signs.DoubleConstant sign;
+	protected Functions.DoubleConstant sign;
 	protected @Nullable ButtonGeneric button;
 	
 	@Override public @Nullable Iterable<?> getWidgets() {
@@ -26,7 +26,7 @@ public class DoubleConstant extends AbstractScript implements IDoubleSupplier {
 			button = new ButtonGeneric(0, 0, 50, 20, sign.signString());
 			button.setActionListener(
 				(bt, mouseButton)->{
-					sign = Signs.doubleConstantInfo.cycleSign(sign, mouseButton == 0);
+					sign = Functions.doubleConstantInfo.cycleSign(sign, mouseButton == 0);
 					button.setDisplayString(sign.signString());
 				}
 			);
@@ -41,7 +41,7 @@ public class DoubleConstant extends AbstractScript implements IDoubleSupplier {
 	@Override public void setValueFromJsonElement(@Nullable JsonElement element) {
 		if(element == null) return;
 		if(element instanceof JsonPrimitive primitive &&
-			Signs.doubleConstantInfo.get(primitive.getAsString()) instanceof Signs.DoubleConstant _sign){
+			Functions.doubleConstantInfo.get(primitive.getAsString()) instanceof Functions.DoubleConstant _sign){
 			this.sign = _sign;
 		}
 		else warnFailedLoadingConfig("DoubleConstant", element);

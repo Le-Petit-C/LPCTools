@@ -211,6 +211,8 @@ public class ScriptSupplierLake {
 		registerPrecise("integerFunction", 			Text.translatable("lpctools.script.suppliers.Integer.integerFunction.name"), Integer.class, IntegerFunction.class, IntegerFunction::new);
 		registerPrecise("integerBiFunction", 		Text.translatable("lpctools.script.suppliers.Integer.integerBiFunction.name"), Integer.class, IntegerBiFunction.class, IntegerBiFunction::new);
 		registerPrecise("integerTriFunction", 		Text.translatable("lpctools.script.suppliers.Integer.integerTriFunction.name"), Integer.class, IntegerTriFunction.class, IntegerTriFunction::new);
+		registerPrecise("integerFromDouble", 		Text.translatable("lpctools.script.suppliers.Integer.integerFromDouble.name"), Integer.class, IntegerFromDouble.class, IntegerFromDouble::new);
+		registerPrecise("integerFromBlockPos", 		Text.translatable("lpctools.script.suppliers.Integer.integerFromBlockPos.name"), Integer.class, IntegerFromBlockPos.class, IntegerFromBlockPos::new);
 		registerPrecise("integerFromBlockPoses", 	Text.translatable("lpctools.script.suppliers.Integer.integerFromBlockPoses.name"), Integer.class, IntegerFromBlockPoses.class, IntegerFromBlockPoses::new);
 		//注册double suppliers
 		registerPrecise("constantDouble", 			Text.translatable("lpctools.script.suppliers.Double.constantDouble.name"), Double.class, ConstantDouble.class, ConstantDouble::new);
@@ -218,6 +220,8 @@ public class ScriptSupplierLake {
 		registerPrecise("doubleConstant", 			Text.translatable("lpctools.script.suppliers.Double.doubleConstant.name"), Double.class, DoubleConstant.class, DoubleConstant::new);
 		registerPrecise("doubleFunction", 			Text.translatable("lpctools.script.suppliers.Double.doubleFunction.name"), Double.class, DoubleFunction.class, DoubleFunction::new);
 		registerPrecise("doubleBiFunction", 		Text.translatable("lpctools.script.suppliers.Double.doubleBiFunction.name"), Double.class, DoubleBiFunction.class, DoubleBiFunction::new);
+		registerPrecise("doubleFromInteger", 		Text.translatable("lpctools.script.suppliers.Double.doubleFromInteger.name"), Double.class, DoubleFromInteger.class, DoubleFromInteger::new);
+		registerPrecise("doubleFromVec3d", 			Text.translatable("lpctools.script.suppliers.Double.doubleFromVec3d.name"), Double.class, DoubleFromVec3d.class, DoubleFromVec3d::new);
 		registerPrecise("doubleFromVec3ds", 		Text.translatable("lpctools.script.suppliers.Double.doubleFromVec3ds.name"), Double.class, DoubleFromVec3ds.class, DoubleFromVec3ds::new);
 		registerPrecise("blockInteractionRange", 	Text.translatable("lpctools.script.suppliers.Double.blockInteractionRange.name"), Double.class, BlockInteractionRange.class, BlockInteractionRange::new);
 		registerPrecise("entityInteractionRange", 	Text.translatable("lpctools.script.suppliers.Double.entityInteractionRange.name"), Double.class, EntityInteractionRange.class, EntityInteractionRange::new);
@@ -236,13 +240,15 @@ public class ScriptSupplierLake {
 		//注册blockPos suppliers
 		registerPrecise("constantBlockPos", 		Text.translatable("lpctools.script.suppliers.BlockPos.constantBlockPos.name"), BlockPos.class, ConstantBlockPos.class, ConstantBlockPos::new);
 		registerPrecise("calculateBlockPoses", 		Text.translatable("lpctools.script.suppliers.BlockPos.calculateBlockPoses.name"), BlockPos.class, CalculateBlockPoses.class, CalculateBlockPoses::new);
+		registerPrecise("blockPosFromCoordinates", 	Text.translatable("lpctools.script.suppliers.BlockPos.blockPosFromCoordinates.name"), BlockPos.class, BlockPosFromCoordinates.class, BlockPosFromCoordinates::new);
+		registerPrecise("blockPosFromVec3d", 		Text.translatable("lpctools.script.suppliers.BlockPos.blockPosFromVec3d.name"), BlockPos.class, BlockPosFromVec3d.class, BlockPosFromVec3d::new);
 		registerPrecise("directionVector", 			Text.translatable("lpctools.script.suppliers.BlockPos.directionVector.name"), BlockPos.class, DirectionVector.class, DirectionVector::new);
-		registerPrecise("flooredVec3d", 			Text.translatable("lpctools.script.suppliers.BlockPos.flooredVec3d.name"), BlockPos.class, FlooredVec3d.class, FlooredVec3d::new);
 		registerPrecise("entityBlockPos", 			Text.translatable("lpctools.script.suppliers.BlockPos.entityBlockPos.name"), BlockPos.class, EntityBlockPos.class, EntityBlockPos::new);
 		//注册vec3d suppliers
 		registerPrecise("constantVec3d", 			Text.translatable("lpctools.script.suppliers.Vec3d.constantVec3d.name"), Vec3d.class, ConstantVec3d.class, ConstantVec3d::new);
 		registerPrecise("calculateVec3ds", 			Text.translatable("lpctools.script.suppliers.Vec3d.calculateVec3ds.name"), Vec3d.class, CalculateVec3ds.class, CalculateVec3ds::new);
-		registerPrecise("fromBlockPos", 			Text.translatable("lpctools.script.suppliers.Vec3d.vec3dFromBlockPos.name"), Vec3d.class, Vec3dFromBlockPos.class, Vec3dFromBlockPos::new);
+		registerPrecise("vec3dFromCoordinates", 	Text.translatable("lpctools.script.suppliers.Vec3d.vec3dFromCoordinates.name"), Vec3d.class, Vec3dFromCoordinates.class, Vec3dFromCoordinates::new);
+		registerPrecise("vec3dFromBlockPos", 		Text.translatable("lpctools.script.suppliers.Vec3d.vec3dFromBlockPos.name"), Vec3d.class, Vec3dFromBlockPos.class, Vec3dFromBlockPos::new);
 		registerPrecise("entityPos", 				Text.translatable("lpctools.script.suppliers.Vec3d.entityPos.name"), Vec3d.class, EntityPos.class, EntityPos::new);
 		registerPrecise("entityEyePos", 			Text.translatable("lpctools.script.suppliers.Vec3d.entityEyePos.name"), Vec3d.class, EntityEyePos.class, EntityEyePos::new);
 		//注册block suppliers

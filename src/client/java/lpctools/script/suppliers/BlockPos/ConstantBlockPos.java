@@ -20,7 +20,7 @@ import static lpctools.lpcfymasaapi.LPCConfigUtils.warnFailedLoadingConfig;
 public class ConstantBlockPos extends AbstractScript implements IBlockPosSupplier {
 	private final int[] val = new int[3];
 	private static final char[] valDesc = {'x', 'y', 'z'};
-	private @Nullable WidthAutoAdjustTextField[] textFields = null;
+	private WidthAutoAdjustTextField @Nullable [] textFields = null;
 	public ConstantBlockPos(IScriptWithSubScript parent) {super(parent);}
 	@Override public @NotNull ScriptFunction<CompileEnvironment.RuntimeVariableMap, BlockPos>
 	compile(CompileEnvironment variableMap) {
@@ -41,8 +41,10 @@ public class ConstantBlockPos extends AbstractScript implements IBlockPosSupplie
 		}
 		int arrSize = array.size();
 		for(int i = 0; i < 3; ++i){
-			if(arrSize > i && array.get(i) instanceof JsonPrimitive primitive && primitive.isNumber())
+			if(arrSize > i && array.get(i) instanceof JsonPrimitive primitive && primitive.isNumber()){
 				val[i] = primitive.getAsInt();
+				if(textFields != null) textFields[i].setText(String.valueOf(val[i]));
+			}
 			else warnFailedLoadingConfig("ConstantVec3d." + valDesc[i], element);
 		}
 	}
@@ -54,18 +56,14 @@ public class ConstantBlockPos extends AbstractScript implements IBlockPosSupplie
 			for(int i = 0; i < 3; ++i){
 				final int idx = i;
 				textFields[idx] = new WidthAutoAdjustTextField(
-					getDisplayWidget(), 50, text->{
+					getDisplayWidget(), 50, String.valueOf(val[idx]), text->{
 					try {val[idx] = Integer.parseInt(text);
 					} catch (NumberFormatException ignored) {}
-					//noinspection DataFlowIssue
-					textFields[idx].setText(String.valueOf(val[idx]));
 					applyToDisplayWidgetIfNotNull(ScriptDisplayWidget::markUpdateChain);
+					textFields[idx].setText(String.valueOf(val[idx]));
 				});
-				//noinspection DataFlowIssue
-				textFields[idx].setText(String.valueOf(val[idx]));
 			}
 		}
-		//noinspection NullableProblems
 		return textFields;
 	}
 }

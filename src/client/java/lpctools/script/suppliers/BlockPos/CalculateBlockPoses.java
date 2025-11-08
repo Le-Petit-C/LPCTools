@@ -5,19 +5,19 @@ import lpctools.script.IScriptWithSubScript;
 import lpctools.script.exceptions.ScriptRuntimeException;
 import lpctools.script.runtimeInterfaces.ScriptFunction;
 import lpctools.script.suppliers.AbstractSignResultSupplier;
-import lpctools.util.Signs;
+import lpctools.util.Functions;
 import net.minecraft.text.Text;
 import net.minecraft.util.math.BlockPos;
 import org.jetbrains.annotations.NotNull;
 
-public class CalculateBlockPoses extends AbstractSignResultSupplier<Signs.BlockPosCalculateSign> implements IBlockPosSupplier {
+public class CalculateBlockPoses extends AbstractSignResultSupplier<Functions.BlockPosCalculateSign> implements IBlockPosSupplier {
 	protected final SupplierStorage<BlockPos> pos1 = ofStorage(BlockPos.class, new ConstantBlockPos(this),
 		Text.translatable("lpctools.script.suppliers.BlockPos.calculateBlockPoses.subSuppliers.pos1.name"), "pos1");
 	protected final SupplierStorage<BlockPos> pos2 = ofStorage(BlockPos.class, new ConstantBlockPos(this),
 		Text.translatable("lpctools.script.suppliers.BlockPos.calculateBlockPoses.subSuppliers.pos2.name"), "pos2");
 	protected final SupplierStorage<?>[] subSuppliers = ofStorages(pos1, pos2);
 	
-	public CalculateBlockPoses(IScriptWithSubScript parent) {super(parent, Signs.ADD, Signs.blockPosCalculateSignInfo, 1);}
+	public CalculateBlockPoses(IScriptWithSubScript parent) {super(parent, Functions.ADD, Functions.blockPosCalculateSignInfo, 1);}
 	
 	@Override protected SupplierStorage<?>[] getSubSuppliers() {return subSuppliers;}
 	
