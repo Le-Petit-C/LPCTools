@@ -21,10 +21,14 @@
     "BarTweakMixin.ClientPlayerInteractionManagerMixin",
     "BarTweakMixin.InGameHudMixin",
     "blockBreakRestriction.ClientPlayerInteractionManagerMixin",
+    "enchantmentLevelFix.MixinTranslationStorage",
+    "EntityHighlight.EntityMixin",
     "events.OnScreenChanged",
     "HappyGhastRidingTweak.ClientPlayerEntityMixin",
     "HappyGhastRidingTweak.HappyGhastEntityMixin",
     "HappyGhastRidingTweak.PlayerInputC2SPacketMixin",
+    "MASAMixins.ButtonGenericMixin",
+    "MASAMixins.ConfigButtonKeybindMixin",
     "MASAMixins.GuiBaseAccessor",
     "MASAMixins.LayerRangeMixin",
     "MASAMixins.WidgetConfigOptionBaseMixin",
@@ -33,11 +37,7 @@
     "MASAMixins.litematicaMixin.DataManagerMixin",
     "MASAMixins.MuteMASAConfigMinMaxMixin.ConfigDoubleMixin",
     "MASAMixins.MuteMASAConfigMinMaxMixin.ConfigIntegerMixin",
-    "enchantmentLevelFix.MixinTranslationStorage",
-    "EntityHighlight.EntityMixin",
-    "MASAMixins.ButtonGenericMixin",
-    "MASAMixins.ConfigButtonKeybindMixin",
-    "MASAMixins.centerDrawFix.ButtonGenericMixin"
+    "ModMenuMixin.ModsScreenMixin"
   ],
   "injectors": {
     "defaultRequire": 1

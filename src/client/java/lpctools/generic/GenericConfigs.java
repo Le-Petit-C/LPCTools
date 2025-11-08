@@ -43,6 +43,7 @@ public class GenericConfigs {
     public static final BlockListConfig extraSpawnBlocks = addBlockListConfig("extraSpawnBlocks", defaultExtraSpawnBlocks);
     public static final BlockListConfig extraNoSpawnBlocks = addBlockListConfig("extraNoSpawnBlocks", defaultExtraNoSpawnBlocks);
     public static final BooleanConfig reachDistanceAlwaysUnlimited = addBooleanConfig("reachDistanceAlwaysUnlimited", false);
+    public static final BooleanConfig playClickSoundFromModMenu = addBooleanConfig("playClickSoundFromModMenu", false);
     static {threadCountConfig.onValueChanged();}
     static {listStack.pop();}
     
