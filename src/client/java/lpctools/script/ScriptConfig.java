@@ -13,7 +13,7 @@ import net.minecraft.text.Text;
 import org.jetbrains.annotations.NotNull;
 
 // 显示在malilib配置界面中的脚本配置项
-public class ScriptConfig extends WrappedThirdListConfig{
+public class ScriptConfig extends WrappedThirdListConfig implements AutoCloseable{
 	public final Script script;
 	public final UniqueBooleanConfig isEnabled = new UniqueBooleanConfig(this, "enabled", false, null){
 		@Override public void getButtonOptions(ButtonOptionArrayList res) {
@@ -80,4 +80,6 @@ public class ScriptConfig extends WrappedThirdListConfig{
 			setExpanded(primitive.getAsBoolean());
 		return new UpdateTodo().valueChanged();
 	}
+	
+	@Override public void close() {script.close();}
 }

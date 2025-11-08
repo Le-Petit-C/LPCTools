@@ -12,13 +12,13 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.function.Consumer;
 
 import static lpctools.lpcfymasaapi.LPCConfigUtils.warnFailedLoadingConfig;
 import static lpctools.script.trigger.TriggerOption.triggerOptionFactories;
 
-//TODO:选择添加触发选项
 //TODO:AutoCloseable清理
 //脚本触发器
 public class ScriptTrigger extends AbstractScriptWithSubScriptMutable<TriggerOption> implements AutoCloseable {
@@ -35,7 +35,7 @@ public class ScriptTrigger extends AbstractScriptWithSubScriptMutable<TriggerOpt
 		JsonArray array = new JsonArray();
 		for(var trigger : getSubScripts()){
 			JsonObject object = new JsonObject();
-			object.addProperty(triggerKeyJsonKey, trigger.getFactory().getKey());
+			object.addProperty(triggerKeyJsonKey, trigger.getFactory().key());
 			object.add(triggerValueJsonKey, trigger.getAsJsonElement());
 			array.add(object);
 		}
@@ -55,7 +55,7 @@ public class ScriptTrigger extends AbstractScriptWithSubScriptMutable<TriggerOpt
 				TriggerOption.TriggerOptionFactory factory = triggerOptionFactories.get(key);
 				var optionJson = object.get(triggerValueJsonKey);
 				if(factory != null) {
-					TriggerOption option = factory.allocateOption(this);
+					TriggerOption option = factory.allocate(this);
 					option.setValueFromJsonElement(optionJson);
 					getSubScripts().add(option);
 				}
@@ -82,11 +82,11 @@ public class ScriptTrigger extends AbstractScriptWithSubScriptMutable<TriggerOpt
 			containedFactories.add(factory);
 		});
 		HashMap<String, ChooseScreen.OptionCallback<ScriptTrigger>> options = new HashMap<>();
-		HashMap<String, String> chooseTree = new HashMap<>();
+		LinkedHashMap<String, String> chooseTree = new LinkedHashMap<>();
 		triggerOptionFactories.forEach((key, factory)->{
 			if(containedFactories.contains(factory)) return;
-			options.put(key, (b, m, u)->callback.accept(factory.allocateOption(u)));
-			chooseTree.put("lpctools.script.trigger." + key, key);
+			options.put(key, (b, m, u)->callback.accept(factory.allocate(u)));
+			chooseTree.put(factory.name().getString(), key);
 		});
 		ChooseScreen.openChooseScreen(
 			Text.translatable("lpctools.script.trigger.chooseScreen.title").getString(),

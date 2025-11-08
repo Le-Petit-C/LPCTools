@@ -106,7 +106,14 @@ public class ScriptEditScreen extends GuiConfigsBase {
 					else if(removeButton.onMouseClicked(mx, my, mouseButton)){
 						int i = parent.indexOf(widget);
 						if(i >= 0) {
-							parent.getIScript().getSubScripts().remove(i);
+							var v = parent.getIScript().getSubScripts().remove(i);
+							if(v instanceof AutoCloseable closeable) {
+								try {
+									closeable.close();
+								} catch (Exception e) {
+									throw new RuntimeException(e);
+								}
+							}
 							parent.markUpdateChain();
 						}
 						else cursorInfo("???为什么会这样？。。出现了一个index为-1的问题，本来不该这样的", 3000);
@@ -331,6 +338,10 @@ public class ScriptEditScreen extends GuiConfigsBase {
 		super.removed();
 		script.markNeedRecompile();
 		ScriptsConfig.saveScript(script.config);
+		if(script.isEnabled()) {
+			script.enable(false);
+			script.enable(true);
+		}
 	}
 	@Override protected void buildConfigSwitcher() {}
 	

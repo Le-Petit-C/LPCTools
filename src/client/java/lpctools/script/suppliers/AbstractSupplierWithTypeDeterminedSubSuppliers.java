@@ -20,15 +20,11 @@ import static lpctools.lpcfymasaapi.LPCConfigUtils.warnFailedLoadingConfig;
 
 public abstract class AbstractSupplierWithTypeDeterminedSubSuppliers extends AbstractScriptWithSubScript {
 	protected @Nullable ArrayList<Object> widgets = null;
-	protected String className;
+	protected final String className;
 	private final HashMap<IScript, SupplierStorage<?>> storageMap = new HashMap<>();
 	
-	protected AbstractSupplierWithTypeDeterminedSubSuppliers(IScriptWithSubScript parent, String className){
-		super(parent);
-		this.className = className;
-	}
 	protected AbstractSupplierWithTypeDeterminedSubSuppliers(IScriptWithSubScript parent){
-		this(parent, "");
+		super(parent);
 		this.className = getClass().getSimpleName();
 	}
 	
@@ -51,13 +47,22 @@ public abstract class AbstractSupplierWithTypeDeterminedSubSuppliers extends Abs
 		else return null;
 	}
 	
+	public static JsonObject getASWTDSSAsJsonElement(AbstractSupplierWithTypeDeterminedSubSuppliers supplier){
+		JsonObject res = new JsonObject();
+		for(var entry : supplier.getSubSuppliers())
+			entry.getAsSubJsonElement(res);
+		return res;
+	}
+	
+	public static void setASWTDSSValueFromJsonObject(AbstractSupplierWithTypeDeterminedSubSuppliers supplier, JsonObject object){
+		for(var entry : supplier.getSubSuppliers())
+			entry.setValueFromJsonElement(object.get(entry.jsonKey));
+	}
+	
 	//不作只有一个元素时的优化（指不使用JsonObject再包装一层）
 	//万一未来的某一天一些方法的参数数量会变呢
 	@Override public @Nullable JsonElement getAsJsonElement() {
-		JsonObject res = new JsonObject();
-		for(var entry : getSubSuppliers())
-			entry.getAsSubJsonElement(res);
-		return res;
+		return getASWTDSSAsJsonElement(this);
 	}
 	@Override public void setValueFromJsonElement(@Nullable JsonElement element) {
 		if(element == null) return;
@@ -65,8 +70,7 @@ public abstract class AbstractSupplierWithTypeDeterminedSubSuppliers extends Abs
 			warnFailedLoadingConfig(className, element);
 			return;
 		}
-		for(var entry : getSubSuppliers())
-			entry.setValueFromJsonElement(object.get(entry.jsonKey));
+		setASWTDSSValueFromJsonObject(this, object);
 	}
 	
 	protected ArrayList<Object> buildWidgets(ArrayList<Object> res){

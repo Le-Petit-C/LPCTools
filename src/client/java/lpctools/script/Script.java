@@ -24,7 +24,7 @@ import java.util.List;
 import static lpctools.lpcfymasaapi.LPCConfigUtils.warnFailedLoadingConfig;
 import static lpctools.script.ScriptsConfig.scriptDirectoryName;
 
-public class Script extends AbstractScriptWithSubScript implements IScriptWithSubScript {
+public class Script extends AbstractScriptWithSubScript implements IScriptWithSubScript, AutoCloseable {
 	private @Nullable ScriptEditScreen editScreen;
 	public final ScriptConfig config;
 	private boolean enabled = false;
@@ -151,10 +151,12 @@ public class Script extends AbstractScriptWithSubScript implements IScriptWithSu
 				runnable.scriptRun();
 			} catch (ScriptRuntimeException e){
 				runnable = null;
+				enable(false);
 				//markNeedRecompile();
 				//不标记重新编译，避免无限异常
 			}
 		}
+		else enable(false);
 	}
 	
 	public boolean hasExceptions(){return !exceptions.isEmpty();}
@@ -164,6 +166,7 @@ public class Script extends AbstractScriptWithSubScript implements IScriptWithSu
 	}
 	public void clearExceptions(){
 		exceptions.clear();
+		markNeedRecompile();
 		config.getPage().markNeedUpdate();
 	}
 	
@@ -174,4 +177,6 @@ public class Script extends AbstractScriptWithSubScript implements IScriptWithSu
 		needRecompile = false;
 		return ()->func.scriptApply(runtimeVariableMapSupplier.get());
 	}
+	
+	@Override public void close() {trigger.close();}
 }

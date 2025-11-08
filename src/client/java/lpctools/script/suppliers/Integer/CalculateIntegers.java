@@ -1,26 +1,26 @@
-package lpctools.script.suppliers.Boolean;
+package lpctools.script.suppliers.Integer;
 
 import lpctools.script.CompileEnvironment;
 import lpctools.script.IScriptWithSubScript;
 import lpctools.script.exceptions.ScriptRuntimeException;
 import lpctools.script.runtimeInterfaces.ScriptFunction;
 import lpctools.script.suppliers.AbstractSignResultSupplier;
-import lpctools.script.suppliers.Integer.ConstantInteger;
 import lpctools.util.Signs;
 import net.minecraft.text.Text;
+import org.jetbrains.annotations.NotNull;
 
-public class CompareIntegers extends AbstractSignResultSupplier<Signs.IntegerCompareSign> implements IBooleanSupplier {
+public class CalculateIntegers extends AbstractSignResultSupplier<Signs.IntegerCalculateSign> implements IIntegerSupplier {
 	protected final SupplierStorage<Integer> integer1 = ofStorage(Integer.class, new ConstantInteger(this),
-		Text.translatable("lpctools.script.suppliers.Boolean.compareIntegers.subSuppliers.integer1.name"), "integer1");
+		Text.translatable("lpctools.script.suppliers.Integer.calculateIntegers.subSuppliers.integer1.name"), "integer1");
 	protected final SupplierStorage<Integer> integer2 = ofStorage(Integer.class, new ConstantInteger(this),
-		Text.translatable("lpctools.script.suppliers.Boolean.compareIntegers.subSuppliers.integer2.name"), "integer2");
+		Text.translatable("lpctools.script.suppliers.Integer.calculateIntegers.subSuppliers.integer2.name"), "integer2");
 	protected final SupplierStorage<?>[] subSuppliers = ofStorages(integer1, integer2);
 	
-	public CompareIntegers(IScriptWithSubScript parent) {super(parent, Signs.EQUALS, Signs.integerCompareSignInfo, 1);}
+	public CalculateIntegers(IScriptWithSubScript parent) {super(parent, Signs.ADD, Signs.integerCalculateSignInfo, 1);}
 	
 	@Override protected SupplierStorage<?>[] getSubSuppliers() {return subSuppliers;}
 	
-	@Override public @org.jetbrains.annotations.NotNull ScriptFunction<CompileEnvironment.RuntimeVariableMap, Boolean>
+	@Override public @NotNull ScriptFunction<CompileEnvironment.RuntimeVariableMap, Integer>
 	compile(CompileEnvironment variableMap) {
 		var integer1Supplier = integer1.get().compile(variableMap);
 		var sign = compareSign;
@@ -30,7 +30,11 @@ public class CompareIntegers extends AbstractSignResultSupplier<Signs.IntegerCom
 			if(integer1 == null) throw ScriptRuntimeException.nullPointer(this);
 			var integer2 = integer2Supplier.scriptApply(map);
 			if(integer2 == null) throw ScriptRuntimeException.nullPointer(this);
-			return sign.compareIntegers(integer1, integer2);
+			try{
+				return sign.calculateIntegers(integer1, integer2);
+			} catch (ArithmeticException e){
+				throw ScriptRuntimeException.mathProblem(this);
+			}
 		};
 	}
 }

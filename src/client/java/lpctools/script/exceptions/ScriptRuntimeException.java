@@ -21,4 +21,7 @@ public class ScriptRuntimeException extends ScriptException {
 	public static ScriptRuntimeException illegalControlFlow(IScript source) {
 		return ofTranslate(source, "lpctools.script.exception.runtime.illegalForControlFlow");
 	}
+	public static ScriptRuntimeException mathProblem(IScript source) {
+		return ofTranslate(source, "lpctools.script.exception.runtime.mathProblem");
+	}
 }

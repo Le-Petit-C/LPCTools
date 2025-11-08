@@ -14,18 +14,10 @@ abstract class TriggerOptionBase extends AbstractScript implements TriggerOption
 		this.factory = factory;
 	}
 	
-	@Override
-	public @Nullable JsonElement getAsJsonElement() {return JsonNull.INSTANCE;}
-	
-	@Override
-	public void setValueFromJsonElement(@Nullable JsonElement element) {}
-	
-	@Override
-	public TriggerOptionFactory getFactory() {return factory;}
-	
-	@Override
-	public @Nullable Text getName() {return Text.translatable("lpctools.script.trigger." + getFactory().getKey());}
-	
+	@Override public @Nullable JsonElement getAsJsonElement() {return JsonNull.INSTANCE;}
+	@Override public void setValueFromJsonElement(@Nullable JsonElement element) {}
+	@Override public TriggerOptionFactory getFactory() {return factory;}
+	@Override public @Nullable Text getName() {return factory.name();}
 	@Override public @Nullable ScriptTrigger getParent() {
 		return (ScriptTrigger)super.getParent();
 	}

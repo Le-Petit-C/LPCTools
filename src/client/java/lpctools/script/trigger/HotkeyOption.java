@@ -15,24 +15,15 @@ import java.util.List;
 
 class HotkeyOption extends TriggerOptionBase {
 	private @Nullable WidthAutoAdjustButtonKeybind keybindButton;
-	static class HotkeyOptionFactory implements TriggerOptionFactory {
-		@Override
-		public TriggerOption allocateOption(ScriptTrigger trigger) {return new HotkeyOption(trigger, this);}
-		
-		@Override
-		public String getKey() {return "hotkey";}
-		
-		@Override
-		public boolean allowMulti() {return true;}
-	}
 	
 	private final IKeybind hotkey = KeybindMulti.fromStorageString("", KeybindSettings.DEFAULT);
 	private @Nullable List<ConfigButtonKeybind> buttons;
 	
-	private HotkeyOption(ScriptTrigger trigger, HotkeyOptionFactory factory) {
+	HotkeyOption(ScriptTrigger trigger, TriggerOptionFactory factory) {
 		super(trigger, factory);
+		var script = trigger.getScript();
 		hotkey.setCallback((action, key)->{
-			trigger.getScript().runScript();
+			script.runScript();
 			return true;
 		});
 	}
