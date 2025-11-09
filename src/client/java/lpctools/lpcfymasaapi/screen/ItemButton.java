@@ -8,12 +8,12 @@ import net.minecraft.item.ItemStack;
 import java.util.List;
 
 public class ItemButton extends ButtonBase {
-	public final ItemStack stack;
+	private ItemStack stack;
 	public Item item;
 	public ItemButton(Item item, int x, int y, List<String> hoverStrings) {
 		super(x - 8, y - 8, 16, 16);
 		this.item = item;
-		stack = new ItemStack(()->this.item);
+		stack = new ItemStack(item);
 		setHoverStrings(hoverStrings);
 	}
 	
@@ -24,5 +24,8 @@ public class ItemButton extends ButtonBase {
 		drawContext.drawItem(stack, getX(), getY());
 	}
 	
-	public void setItem(Item item){this.item = item;}
+	public void setItem(Item item){
+		this.item = item;
+		stack = new ItemStack(item);
+	}
 }

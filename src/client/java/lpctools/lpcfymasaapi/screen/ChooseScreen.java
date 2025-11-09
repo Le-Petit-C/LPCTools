@@ -25,8 +25,8 @@ public class ChooseScreen extends GuiBase {
 	public static <T> ChooseScreen openChooseScreen(Screen parent, String title, boolean hasCancelButton, boolean hasSearchBar, Map<String, ? extends OptionCallback<? super T>> options, Map<?, ?> chooseTree, T userData){
 		ChooseScreen screen = new ChooseScreen(parent, null, title, hasCancelButton, hasSearchBar, options, chooseTree, userData);
 		MinecraftClient client = MinecraftClient.getInstance();
-		if(client.currentScreen == parent) client.currentScreen = screen;
-		else client.setScreen(screen);
+		if(client.currentScreen == parent) client.currentScreen = null;
+		client.setScreen(screen);
 		screen.resetY();
 		screen.initGui();
 		return screen;
