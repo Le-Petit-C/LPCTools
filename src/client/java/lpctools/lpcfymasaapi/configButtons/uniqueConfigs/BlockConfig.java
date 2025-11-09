@@ -36,10 +36,9 @@ public class BlockConfig extends LPCUniqueConfigBase {
 	}
 	
 	private void chooseBlock(){
-		ChooseItemScreen screen = ChooseItemScreen.ofAllBlocks(9, 6, block->{
-			this.block = block;
-			onValueChanged();
-		});
+		ChooseItemScreen screen = ChooseItemScreen.ofAllBlocks(9, 6, this::setBlock);
+		MinecraftClient client = MinecraftClient.getInstance();
+		client.currentScreen = null;
 		MinecraftClient.getInstance().setScreen(screen);
 	}
 	

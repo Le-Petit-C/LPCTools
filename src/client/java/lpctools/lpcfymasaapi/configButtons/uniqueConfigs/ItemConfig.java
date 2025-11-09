@@ -39,6 +39,8 @@ public class ItemConfig extends LPCUniqueConfigBase {
 			this.item = item;
 			onValueChanged();
 		});
+		MinecraftClient client = MinecraftClient.getInstance();
+		client.currentScreen = null;
 		MinecraftClient.getInstance().setScreen(screen);
 	}
 	

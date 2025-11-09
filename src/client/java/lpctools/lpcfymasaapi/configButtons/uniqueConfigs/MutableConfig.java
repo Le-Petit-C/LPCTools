@@ -30,7 +30,7 @@ public class MutableConfig<T extends ILPCUniqueConfigBase> extends LPCUniqueConf
     public final @NotNull ImmutableMap<String, ? extends BiFunction<? super MutableConfig<T>, String, ? extends T>> configSuppliers;
     public final @NotNull String buttonKeyPrefix;
     public @NotNull Map<?, ?> optionTree;
-    private boolean condenseOperationButton;
+    private boolean condenseOperationButton = true;
     private boolean hideOperationButton;
     private JsonArray defaultJson;
     protected final ArrayList<MutableConfigOption<? extends T>> subConfigs = new ArrayList<>();
@@ -234,10 +234,12 @@ public class MutableConfig<T extends ILPCUniqueConfigBase> extends LPCUniqueConf
             if(mouseButton == 0) {//往上移动
                 if(position - 1 < 0) return;
                 Collections.swap(parent.subConfigs, position, position - 1);
+                parent.onValueChanged();
             }
             else if(mouseButton == 1) {//往下移动
                 if(position + 1 >= parent.subConfigs.size()) return;
                 Collections.swap(parent.subConfigs, position, position + 1);
+                parent.onValueChanged();
             }
             else if(mouseButton == 2) flipPosButton = !flipPosButton;
             getPage().markNeedUpdate();

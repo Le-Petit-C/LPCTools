@@ -30,6 +30,7 @@
     "MASAMixins.ButtonGenericMixin",
     "MASAMixins.ConfigButtonKeybindMixin",
     "MASAMixins.GuiBaseAccessor",
+    "MASAMixins.GuiListBaseMixin",
     "MASAMixins.LayerRangeMixin",
     "MASAMixins.WidgetConfigOptionBaseMixin",
     "MASAMixins.WidgetConfigOptionMixin",
@@ -37,11 +38,14 @@
     "MASAMixins.litematicaMixin.DataManagerMixin",
     "MASAMixins.MuteMASAConfigMinMaxMixin.ConfigDoubleMixin",
     "MASAMixins.MuteMASAConfigMinMaxMixin.ConfigIntegerMixin",
-    "ModMenuMixin.ModsScreenMixin"
+    "ModMenuMixin.ModsScreenMixin",
+    "TweakerooMixin.GuiConfigsMixin"
   ],
   "injectors": {
     "defaultRequire": 1
   },
   "mixins": [
+    "TweakerooMixin.ConfigsListsMixin",
+    "TweakerooMixin.ConfigsMixin"
   ]
 }

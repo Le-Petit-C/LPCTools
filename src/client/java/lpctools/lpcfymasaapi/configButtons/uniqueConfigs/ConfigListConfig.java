@@ -27,14 +27,33 @@ import static lpctools.util.AlgorithmUtils.convertIterable;
 public class ConfigListConfig<T extends ILPCUniqueConfigBase> extends LPCUniqueConfigBase implements ILPCConfigReadable, IMutableConfig, IConfigResettable{
     public final @NotNull Function<? super ConfigListConfig<T>, ? extends T> configSupplier;
     protected @Nullable Consumer<T> removeCallback;
-    private boolean condenseOperationButton;
-    private boolean hideOperationButton;
+    protected boolean condenseOperationButton = true;
+    protected boolean hideOperationButton;
     private @NotNull JsonArray defaultJson;
     protected final ArrayList<MutableConfigOption<? extends T>> subConfigs = new ArrayList<>();
     @Nullable public String buttonName;
     public boolean expanded;
     private boolean isModified = false;
     private boolean needUpdateModified = true;
+    
+    public void setExpanded(boolean b){
+        if(b != expanded){
+            expanded = b;
+            getPage().markNeedUpdate();
+        }
+    }
+    public void setHideOperationButton(boolean b){
+        if(b != hideOperationButton){
+            hideOperationButton = b;
+            getPage().markNeedUpdate();
+        }
+    }
+    public void setCondenseOperationButton(boolean b){
+        if(b != condenseOperationButton){
+            condenseOperationButton = b;
+            getPage().markNeedUpdate();
+        }
+    }
     
     //getConfigs()获取到的是包装后的配置，如果要遍历被包装的配置，应该调用这个
     public Iterable<T> iterateConfigs(){return convertIterable(subConfigs, config->config.wrappedConfig);}
@@ -88,21 +107,15 @@ public class ConfigListConfig<T extends ILPCUniqueConfigBase> extends LPCUniqueC
     }
     
     @Override public void getButtonOptions(ButtonOptionArrayList res) {
-        res.add(new ButtonOption(-1, (button, mouseButton)->{expanded = !expanded; getPage().markNeedUpdate();}, null,
+        res.add(new ButtonOption(-1, (button, mouseButton)->setExpanded(!expanded), null,
             ILPCUniqueConfigBase.iconButtonAllocator(expanded ? MaLiLibIcons.ARROW_UP : MaLiLibIcons.ARROW_DOWN, LeftRight.CENTER)));
         res.add(new ButtonOption(1, (button, mouseButton)->onAddConfigClicked(subConfigs.size()), ()->buttonName, buttonGenericAllocator));
         if(getParent() instanceof IMutableConfig) return;
-        res.add(new ButtonOption(-1, (button, mouseButton)->{
-            hideOperationButton = !hideOperationButton;
-            getPage().markNeedUpdate();},
-            ()->hideOperationButton ? "<" : ">",
-            buttonGenericAllocator));
+        res.add(new ButtonOption(-1, (button, mouseButton)->setHideOperationButton(!hideOperationButton),
+            ()->hideOperationButton ? "<" : ">", buttonGenericAllocator));
         if(!hideOperationButton)
-            res.add(new ButtonOption(-1, (button, mouseButton)->{
-                condenseOperationButton = !condenseOperationButton;
-                getPage().markNeedUpdate();},
-                ()->condenseOperationButton ? "<>" : "><",
-                buttonGenericAllocator));
+            res.add(new ButtonOption(-1, (button, mouseButton)->setCondenseOperationButton(!condenseOperationButton),
+                ()->condenseOperationButton ? "<>" : "><", buttonGenericAllocator));
     }
     
     JsonArray getSubConfigsAsJsonElement(){
@@ -193,10 +206,12 @@ public class ConfigListConfig<T extends ILPCUniqueConfigBase> extends LPCUniqueC
             if(mouseButton == 0) {//往上移动
                 if(position - 1 < 0) return;
                 Collections.swap(parent.subConfigs, position, position - 1);
+                parent.onValueChanged();
             }
             else if(mouseButton == 1) {//往下移动
                 if(position + 1 >= parent.subConfigs.size()) return;
                 Collections.swap(parent.subConfigs, position, position + 1);
+                parent.onValueChanged();
             }
             else if(mouseButton == 2) flipPosButton = !flipPosButton;
             getPage().markNeedUpdate();

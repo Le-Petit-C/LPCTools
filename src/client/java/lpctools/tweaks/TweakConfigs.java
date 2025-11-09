@@ -13,7 +13,8 @@ public class TweakConfigs {
             HappyGhastRidingTweak.happyGhastRidingTweak,
             BarTweaks.barTweaks,
             EnchantmentLevelFix.enchantmentLevelFix,
-            modMenuPlayClickSound
+            modMenuPlayClickSound,
+            LPCfyTweakerooList.lpcfyTweakerooList
         );
     }
 }

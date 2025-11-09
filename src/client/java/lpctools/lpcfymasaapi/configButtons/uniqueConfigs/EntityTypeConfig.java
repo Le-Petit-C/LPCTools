@@ -5,6 +5,7 @@ import lpctools.lpcfymasaapi.configButtons.UpdateTodo;
 import lpctools.lpcfymasaapi.interfaces.ILPCConfigReadable;
 import lpctools.lpcfymasaapi.interfaces.ILPCValueChangeCallback;
 import lpctools.lpcfymasaapi.screen.ChooseScreen;
+import lpctools.util.DataUtils;
 import net.minecraft.entity.EntityType;
 import net.minecraft.registry.Registries;
 import net.minecraft.text.Text;
@@ -20,7 +21,7 @@ public class EntityTypeConfig extends UniqueStringConfig{
 	@NotNull public EntityType<?> entity;
 	@NotNull public final EntityType<?> defaultEntity;
 	public EntityTypeConfig(@NotNull ILPCConfigReadable parent, @NotNull String nameKey, @NotNull EntityType<?> defaultEntity, @Nullable ILPCValueChangeCallback callback) {
-		super(parent, nameKey, Registries.ENTITY_TYPE.getId(defaultEntity).toString(), callback);
+		super(parent, nameKey, DataUtils.getEntityTypeId(defaultEntity), callback);
 		entity = this.defaultEntity = defaultEntity;
 	}
 	@Override public void getButtonOptions(ButtonOptionArrayList res) {

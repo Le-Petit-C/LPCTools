@@ -45,6 +45,8 @@ dependencies {
 	modRuntimeOnly "maven.modrinth:minihud:${project.minihud_version}"
 	modCompileOnly "com.github.sakura-ryoko:litematica:${project.litematica_version}"
 	modRuntimeOnly "com.github.sakura-ryoko:litematica:${project.litematica_version}"
+	modCompileOnly "com.github.sakura-ryoko:tweakeroo:${project.tweakeroo_version}"
+	modRuntimeOnly "com.github.sakura-ryoko:tweakeroo:${project.tweakeroo_version}"
 	modCompileOnly "com.terraformersmc:modmenu:${project.mod_menu_version}"
 	modRuntimeOnly "com.terraformersmc:modmenu:${project.mod_menu_version}"
 

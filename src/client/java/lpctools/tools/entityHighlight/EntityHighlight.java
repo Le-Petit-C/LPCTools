@@ -12,6 +12,6 @@ public class EntityHighlight {
 	public static final BooleanHotkeyThirdListConfig EHConfig = new BooleanHotkeyThirdListConfig(ToolConfigs.toolConfigs, "EH", null);
 	static {ToolUtils.setLPCToolsToggleText(EHConfig);}
 	static {listStack.push(EHConfig);}
-	public static final EntityTypeListConfig entityList = addConfig(new EntityTypeListConfig(EHConfig, "entityList", "", null));
+	public static final EntityTypeListConfig entityList = addConfig(new EntityTypeListConfig(EHConfig, "entityList", null));
 	static {listStack.pop();}
 }

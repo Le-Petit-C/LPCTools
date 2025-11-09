@@ -24,13 +24,8 @@ public class BlockListConfig extends ConfigListConfig<BlockConfig> {
 		this(parent, nameKey, defaultValue, null);
 	}
 	
-	public boolean contains(Block block){
-		return blocks.contains(block);
-	}
-	
-	public ImmutableSet<Block> getBlocks(){
-		return blocks;
-	}
+	public boolean contains(Block block){return blocks.contains(block);}
+	public ImmutableSet<Block> getBlocks(){return blocks;}
 	
 	public void setBlocks(Iterable<? extends Block> blocks) {
 		suppressValueChanged = true;

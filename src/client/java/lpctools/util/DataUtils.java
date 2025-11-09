@@ -8,6 +8,7 @@ import lpctools.util.javaex.Object2BooleanFunction;
 import net.minecraft.block.Block;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ClientPlayerEntity;
+import net.minecraft.entity.EntityType;
 import net.minecraft.item.BlockItem;
 import net.minecraft.item.Item;
 import net.minecraft.registry.Registries;
@@ -50,12 +51,13 @@ public class DataUtils {
     public static <T> void notifyPlayerIf(T value, Function<T, String> converter, Object2BooleanFunction<T> condition, boolean overlay){
         if(condition.getBoolean(value)) notifyPlayer(converter.apply(value), overlay);
     }
-    public static String getItemId(Item item){return Registries.ITEM.getEntry(item).getIdAsString();}
-    public static String getBlockId(Block block){return Registries.BLOCK.getEntry(block).getIdAsString();}
+    public static String getItemId(Item item){return Registries.ITEM.getId(item).toString();}
+    public static String getBlockId(Block block){return Registries.BLOCK.getId(block).toString();}
+    public static String getEntityTypeId(EntityType<?> entityType){return Registries.ENTITY_TYPE.getId(entityType).toString();}
     public static @NotNull ImmutableList<String> idListFromBlockList(@Nullable Iterable<Block> list){
-        ArrayList<String> ret = new ArrayList<>();
-        if(list != null) list.forEach(block->ret.add(getBlockId(block)));
-        return ImmutableList.copyOf(ret);
+        ImmutableList.Builder<String> builder = new ImmutableList.Builder<>();
+        if(list != null) list.forEach(block->builder.add(getBlockId(block)));
+        return builder.build();
     }
     public static @NotNull ImmutableList<BlockItem> blockItemListFromItemList(@Nullable Iterable<? extends Item> list, Consumer<? super Item> warn){
         ArrayList<BlockItem> ret = new ArrayList<>();
@@ -72,6 +74,11 @@ public class DataUtils {
         ArrayList<String> ret = new ArrayList<>();
         if(list != null) list.forEach(item->ret.add(getItemId(item)));
         return ImmutableList.copyOf(ret);
+    }
+    public static @NotNull ImmutableList<String> idListFromEntityTypeList(@Nullable Iterable<EntityType<?>> list){
+        ImmutableList.Builder<String> builder = new ImmutableList.Builder<>();
+        if(list != null) list.forEach(entityType->builder.add(getEntityTypeId(entityType)));
+        return builder.build();
     }
     public interface ClassCaster<T, U>{U cast(T v) throws ClassCastException;}
     public static @Nullable <T, U> U getObjectFromId(@NotNull String loggerInfo, @NotNull String id, Registry<T> registry, @NotNull ClassCaster<T, U> caster, boolean notifies){
@@ -107,13 +114,32 @@ public class DataUtils {
     public static @Nullable BlockItem getBlockItemFromId(@NotNull String id, boolean notifies){
         return getObjectFromId("getItemFromId", id, Registries.ITEM, v->(BlockItem)v, notifies);
     }
-    public static @NotNull HashSet<@NotNull Block> blockSetFromIds(Iterable<String> ids){
-        HashSet<Block> ret = new HashSet<>();
+    public static @Nullable EntityType<?> getEntityTypeFromId(@NotNull String id, boolean notifies){
+        return getObjectFromId("getEntityTypeFromId", id, Registries.ENTITY_TYPE, v->(EntityType<?>)v, notifies);
+    }
+    public static @NotNull ArrayList<@NotNull Block> blockListFromIds(Iterable<String> ids){
+        ArrayList<Block> res = new ArrayList<>();
         for(String id : ids){
             Block block = getBlockFromId(id, true);
-            if(block != null) ret.add(block);
+            if(block != null) res.add(block);
         }
-        return ret;
+        return res;
+    }
+    public static @NotNull HashSet<@NotNull Block> blockSetFromIds(Iterable<String> ids){
+        HashSet<Block> res = new HashSet<>();
+        for(String id : ids){
+            Block block = getBlockFromId(id, true);
+            if(block != null) res.add(block);
+        }
+        return res;
+    }
+    public static @NotNull ArrayList<@NotNull Item> itemListFromIds(Iterable<String> ids){
+        ArrayList<@NotNull Item> res = new ArrayList<>();
+        for(String id : ids){
+            Item block = getItemFromId(id, true);
+            if(block != null) res.add(block);
+        }
+        return res;
     }
     public static @NotNull HashSet<@NotNull Item> itemSetFromIds(Iterable<String> ids){
         return itemSetFromIds(ids, new HashSet<>(), false);
@@ -125,6 +151,14 @@ public class DataUtils {
             if(block != null) result.add(block);
         }
         return result;
+    }
+    public static @NotNull ArrayList<@NotNull EntityType<?>> entityTypeListFromIds(Iterable<String> ids){
+        ArrayList<EntityType<?>> ret = new ArrayList<>();
+        for(String id : ids){
+            var entityType = getEntityTypeFromId(id, true);
+            if(entityType != null) ret.add(entityType);
+        }
+        return ret;
     }
     private static final Object2DoubleOpenHashMap<String> lastTime = new Object2DoubleOpenHashMap<>();
     public static int putGlError(String pos){
