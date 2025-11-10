@@ -28,6 +28,8 @@ public class ScriptEditScreen extends GuiConfigsBase {
 	private Vec2d holdingScreenBackground = null;
 	//移动后左上角坐标
 	private double x = reserve, y = topReserve;
+	//缩放
+	private double stretch = 1.0;
 	private @Nullable Element scriptFocused;
 	private final ButtonGeneric copyButton = createGenericSquareButton("C", "lpctools.script.trigger.chooseScreen.copy");
 	private final ButtonGeneric pasteButton = createGenericSquareButton("P", "lpctools.script.trigger.chooseScreen.paste");
@@ -37,6 +39,9 @@ public class ScriptEditScreen extends GuiConfigsBase {
 	private final Object2LongOpenHashMap<WidgetBase> infoWidgets = new Object2LongOpenHashMap<>();
 	
 	private static final int reserve = 10, topReserve = 40;
+	
+	private double calcFixedX(double mouseX){return (mouseX - x) / stretch;}
+	private double calcFixedY(double mouseY){return (mouseY - y) / stretch;}
 	
 	public ScriptEditScreen(Script script) {
 		super(0, 0, "lpctools", null, "lpctools.script.editScreen.title");
@@ -66,8 +71,8 @@ public class ScriptEditScreen extends GuiConfigsBase {
 			setScriptFocused(null);
 			return true;
 		}
-		double fixedMouseX = mouseX - x;
-		double fixedMouseY = mouseY - y;
+		double fixedMouseX = calcFixedX(mouseX);
+		double fixedMouseY = calcFixedY(mouseY);
 		var widget = getRootDisplayWidget().getByLine((int)Math.floor(fixedMouseY / 22));
 		if(widget != null){
 			if(widget.mouseClicked(fixedMouseX, fixedMouseY, mouseButton))
@@ -138,7 +143,8 @@ public class ScriptEditScreen extends GuiConfigsBase {
 			y = mouseY - holdingScreenBackground.y;
 			int width = root.getRight();
 			int height = root.getSize() * 22;
-			Rect2d bound = new Rect2d(x - reserve, y - topReserve, x + width + reserve, y + height + reserve);
+			Rect2d bound = new Rect2d(x - reserve * stretch, y - topReserve * stretch,
+				x + (width + reserve) * stretch, y + (height + reserve) * stretch);
 			int SCRW = getScreenWidth(), SCRH = getScreenHeight();
 			boolean b1 = bound.right - bound.left > SCRW;
 			boolean b2 = bound.bottom - bound.top > SCRH;
@@ -177,8 +183,8 @@ public class ScriptEditScreen extends GuiConfigsBase {
 	}
 	
 	@Override public boolean mouseReleased(double mouseX, double mouseY, int mouseButton) {
-		double fixedMouseX = mouseX - x;
-		double fixedMouseY = mouseY - y;
+		double fixedMouseX = calcFixedX(mouseX);
+		double fixedMouseY = calcFixedY(mouseY);
 		if (holdingScreenBackground != null && mouseButton == 0) {
 			holdingScreenBackground = null;
 			return true;
@@ -194,8 +200,8 @@ public class ScriptEditScreen extends GuiConfigsBase {
 	}
 	
 	@Override public boolean mouseDragged(double mouseX, double mouseY, int button, double deltaX, double deltaY) {
-		double fixedMouseX = mouseX - x;
-		double fixedMouseY = mouseY - y;
+		double fixedMouseX = calcFixedX(mouseX);
+		double fixedMouseY = calcFixedY(mouseY);
 		if(scriptFocused != null && scriptFocused.mouseDragged(fixedMouseX, fixedMouseY, button, deltaX, deltaY)) return true;
 		var widget = getRootDisplayWidget().getByLine((int)Math.floor(fixedMouseY / 22));
 		if(widget != null && widget.mouseDragged(fixedMouseX, fixedMouseY, button, deltaX, deltaY)) return true;
@@ -203,9 +209,12 @@ public class ScriptEditScreen extends GuiConfigsBase {
 	}
 	
 	@Override public boolean mouseScrolled(double mouseX, double mouseY, double horizontalAmount, double verticalAmount) {
-		double fixedMouseX = mouseX - x;
-		double fixedMouseY = mouseY - y;
+		double fixedMouseX = calcFixedX(mouseX);
+		double fixedMouseY = calcFixedY(mouseY);
 		if(scriptFocused != null && scriptFocused.mouseScrolled(fixedMouseX, fixedMouseY, horizontalAmount, verticalAmount)) return true;
+		stretch *= Math.exp(verticalAmount * 0.25);
+		x = mouseX - fixedMouseX * stretch;
+		y = mouseY - fixedMouseY * stretch;
 		return super.mouseScrolled(mouseX, mouseY, horizontalAmount, verticalAmount);
 	}
 	
@@ -237,12 +246,12 @@ public class ScriptEditScreen extends GuiConfigsBase {
 		var matrices = drawContext.getMatrices();
 		root.tryUpdate();
 		//位置修正
-		matrices.pushMatrix().translate((float)x, (float)y);
-		int fixedMouseX = (int)Math.round(mouseX - x), fixedMouseY = (int)Math.round(mouseY - y);
+		matrices.pushMatrix().translate((float)x, (float)y).scale((float)stretch);
+		int fixedMouseX = (int)Math.round(calcFixedX(mouseX)), fixedMouseY = (int)Math.round(calcFixedY(mouseY));
 		if(holdingScreenBackground != null)
 			drawContext.fill(-reserve, -topReserve, root.getRight() + reserve, root.getSize() * 22 + reserve, 0x7fffffff);
-		int minLineIndex = Math.max((int)Math.floor(-y / 22), 0);
-		int maxLineIndex = Math.min((int)Math.floor((getScreenHeight() - y - 1) / 22), root.getSize() - 1);
+		int minLineIndex = Math.max((int)Math.floor(-y / stretch / 22), 0);
+		int maxLineIndex = Math.min((int)Math.floor((getScreenHeight() - y - 1) / stretch / 22), root.getSize() - 1);
 		int line = minLineIndex;
 		//移动中的配置仅在目标位置绘制高亮框
 		int hideMinLineIndex, hideMaxLineIndex;
