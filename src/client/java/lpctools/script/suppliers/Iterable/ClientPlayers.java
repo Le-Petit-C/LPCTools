@@ -4,14 +4,14 @@ import com.google.gson.JsonElement;
 import lpctools.script.AbstractScript;
 import lpctools.script.CompileEnvironment;
 import lpctools.script.IScriptWithSubScript;
-import lpctools.script.runtimeInterfaces.ScriptFunction;
+import lpctools.script.runtimeInterfaces.ScriptNullableFunction;
 import net.minecraft.client.MinecraftClient;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class ClientPlayers extends AbstractScript implements IIterableSupplier {
 	public ClientPlayers(IScriptWithSubScript parent) {super(parent);}
-	@Override public @NotNull ScriptFunction<CompileEnvironment.RuntimeVariableMap, ObjectIterable>
+	@Override public @NotNull ScriptNullableFunction<CompileEnvironment.RuntimeVariableMap, ObjectIterable>
 	compile(CompileEnvironment variableMap) {
 		return map->{
 			var world = MinecraftClient.getInstance().world;

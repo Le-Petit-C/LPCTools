@@ -2,8 +2,7 @@ package lpctools.script.suppliers.ControlFlowIssue;
 
 import lpctools.script.CompileEnvironment;
 import lpctools.script.IScriptWithSubScript;
-import lpctools.script.exceptions.ScriptRuntimeException;
-import lpctools.script.runtimeInterfaces.ScriptFunction;
+import lpctools.script.runtimeInterfaces.ScriptNotNullFunction;
 import lpctools.script.suppliers.AbstractSupplierWithTypeDeterminedSubSuppliers;
 import lpctools.script.suppliers.Boolean.ConstantBoolean;
 import lpctools.script.suppliers.Entity.PlayerEntity.MainPlayerEntity;
@@ -14,30 +13,26 @@ import net.minecraft.util.Hand;
 import org.jetbrains.annotations.NotNull;
 
 public class InteractEntity extends AbstractSupplierWithTypeDeterminedSubSuppliers implements IControlFlowSupplier {
-	protected final SupplierStorage<Boolean> useOffhand = ofStorage(Boolean.class, new ConstantBoolean(this),
-		Text.translatable("lpctools.script.suppliers.ControlFlowIssue.interactEntity.subSuppliers.useOffhand.name"), "useOffhand");
 	protected final SupplierStorage<Entity> entity = ofStorage(Entity.class, new MainPlayerEntity(this),
 		Text.translatable("lpctools.script.suppliers.ControlFlowIssue.interactEntity.subSuppliers.entity.name"), "entity");
-	protected final SupplierStorage<?>[] subSuppliers = ofStorages(useOffhand, entity);
+	protected final SupplierStorage<Boolean> useOffhand = ofStorage(Boolean.class, new ConstantBoolean(this),
+		Text.translatable("lpctools.script.suppliers.ControlFlowIssue.interactEntity.subSuppliers.useOffhand.name"), "useOffhand");
+	protected final SupplierStorage<?>[] subSuppliers = ofStorages(entity, useOffhand);
 	
 	public InteractEntity(IScriptWithSubScript parent) {super(parent);}
 	
 	@Override protected SupplierStorage<?>[] getSubSuppliers() {return subSuppliers;}
 	
-	@Override public @NotNull ScriptFunction<CompileEnvironment.RuntimeVariableMap, ControlFlowIssue>
-	compile(CompileEnvironment variableMap) {
-		var compiledUseOffhandSupplier = useOffhand.get().compile(variableMap);
-		var compiledEntitySupplier = entity.get().compile(variableMap);
+	@Override public @NotNull ScriptNotNullFunction<CompileEnvironment.RuntimeVariableMap, ControlFlowIssue>
+	compileNotNull(CompileEnvironment variableMap) {
+		var compiledEntitySupplier = entity.get().compileCheckedNotNull(variableMap);
+		var compiledUseOffhandSupplier = useOffhand.get().compileCheckedNotNull(variableMap);
 		return map->{
 			var mc = MinecraftClient.getInstance();
 			var itm = mc.interactionManager;
 			var player = mc.player;
 			if(itm == null || player == null) return ControlFlowIssue.NO_ISSUE;
-			var useOffhand = compiledUseOffhandSupplier.scriptApply(map);
-			if(useOffhand == null) throw ScriptRuntimeException.nullPointer(this);
-			var entity = compiledEntitySupplier.scriptApply(map);
-			if(entity == null) throw ScriptRuntimeException.nullPointer(this);
-			itm.interactEntity(player, entity, useOffhand ? Hand.OFF_HAND : Hand.MAIN_HAND);
+			itm.interactEntity(player, compiledEntitySupplier.scriptApply(map), compiledUseOffhandSupplier.scriptApply(map) ? Hand.OFF_HAND : Hand.MAIN_HAND);
 			return ControlFlowIssue.NO_ISSUE;
 		};
 	}

@@ -3,7 +3,7 @@ package lpctools.script.suppliers.BlockPos;
 import lpctools.script.CompileEnvironment;
 import lpctools.script.IScriptWithSubScript;
 import lpctools.script.exceptions.ScriptRuntimeException;
-import lpctools.script.runtimeInterfaces.ScriptFunction;
+import lpctools.script.runtimeInterfaces.ScriptNullableFunction;
 import lpctools.script.suppliers.AbstractSignResultSupplier;
 import lpctools.util.Functions;
 import net.minecraft.text.Text;
@@ -21,7 +21,7 @@ public class CalculateBlockPoses extends AbstractSignResultSupplier<Functions.Bl
 	
 	@Override protected SupplierStorage<?>[] getSubSuppliers() {return subSuppliers;}
 	
-	@Override public @NotNull ScriptFunction<CompileEnvironment.RuntimeVariableMap, BlockPos>
+	@Override public @NotNull ScriptNullableFunction<CompileEnvironment.RuntimeVariableMap, BlockPos>
 	compile(CompileEnvironment variableMap) {
 		var pos1Supplier = pos1.get().compile(variableMap);
 		var sign = compareSign;

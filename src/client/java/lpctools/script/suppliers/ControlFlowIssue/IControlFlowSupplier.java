@@ -1,7 +1,7 @@
 package lpctools.script.suppliers.ControlFlowIssue;
 
-import lpctools.script.suppliers.IScriptSupplier;
+import lpctools.script.suppliers.IScriptSupplierNotNull;
 
-public interface IControlFlowSupplier extends IScriptSupplier<ControlFlowIssue> {
+public interface IControlFlowSupplier extends IScriptSupplierNotNull<ControlFlowIssue> {
 	@Override default Class<? extends ControlFlowIssue> getSuppliedClass(){return ControlFlowIssue.class;}
 }

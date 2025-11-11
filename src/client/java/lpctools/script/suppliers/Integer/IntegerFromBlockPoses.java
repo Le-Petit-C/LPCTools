@@ -3,7 +3,7 @@ package lpctools.script.suppliers.Integer;
 import lpctools.script.CompileEnvironment;
 import lpctools.script.IScriptWithSubScript;
 import lpctools.script.exceptions.ScriptRuntimeException;
-import lpctools.script.runtimeInterfaces.ScriptFunction;
+import lpctools.script.runtimeInterfaces.ScriptNullableFunction;
 import lpctools.script.suppliers.AbstractSignResultSupplier;
 import lpctools.script.suppliers.BlockPos.ConstantBlockPos;
 import lpctools.util.Functions;
@@ -22,7 +22,7 @@ public class IntegerFromBlockPoses extends AbstractSignResultSupplier<Functions.
 	
 	@Override protected SupplierStorage<?>[] getSubSuppliers() {return subSuppliers;}
 	
-	@Override public @NotNull ScriptFunction<CompileEnvironment.RuntimeVariableMap, Integer>
+	@Override public @NotNull ScriptNullableFunction<CompileEnvironment.RuntimeVariableMap, Integer>
 	compile(CompileEnvironment variableMap) {
 		var pos1Supplier = pos1.get().compile(variableMap);
 		var sign = compareSign;

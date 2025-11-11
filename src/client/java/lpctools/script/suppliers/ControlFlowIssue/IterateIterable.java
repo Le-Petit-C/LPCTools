@@ -8,8 +8,7 @@ import lpctools.script.IScript;
 import lpctools.script.IScriptWithSubScript;
 import lpctools.script.editScreen.ScriptDisplayWidget;
 import lpctools.script.editScreen.WidthAutoAdjustTextField;
-import lpctools.script.exceptions.ScriptRuntimeException;
-import lpctools.script.runtimeInterfaces.ScriptFunction;
+import lpctools.script.runtimeInterfaces.ScriptNotNullFunction;
 import lpctools.script.suppliers.AbstractSupplierWithTypeDeterminedSubSuppliers;
 import lpctools.script.suppliers.Iterable.ObjectIterable;
 import lpctools.script.suppliers.Random.Null;
@@ -58,14 +57,13 @@ public class IterateIterable extends AbstractSupplierWithTypeDeterminedSubSuppli
 		return super.buildWidgets(res);
 	}
 	
-	@Override public @NotNull ScriptFunction<CompileEnvironment.RuntimeVariableMap, ControlFlowIssue>
-	compile(CompileEnvironment variableMap) {
-		var compiledIterableSupplier = iterable.get().compile(variableMap);
-		var compiledLoopBody = loopBody.compile(variableMap);
+	@Override public @NotNull ScriptNotNullFunction<CompileEnvironment.RuntimeVariableMap, ControlFlowIssue>
+	compileNotNull(CompileEnvironment variableMap) {
+		var compiledIterableSupplier = iterable.get().compileCheckedNotNull(variableMap);
+		var compiledLoopBody = loopBody.compileCheckedNotNull(variableMap);
 		var variableRef = variableMap.getVariableReference(variableName);
 		return map->{
 			var iterable = compiledIterableSupplier.scriptApply(map);
-			if(iterable == null) throw ScriptRuntimeException.nullPointer(this);
 			for(var v : iterable){
 				variableRef.setValue(map, v);
 				var issue = compiledLoopBody.scriptApply(map);

@@ -3,7 +3,7 @@ package lpctools.script.suppliers.Integer;
 import lpctools.script.CompileEnvironment;
 import lpctools.script.IScriptWithSubScript;
 import lpctools.script.exceptions.ScriptRuntimeException;
-import lpctools.script.runtimeInterfaces.ScriptFunction;
+import lpctools.script.runtimeInterfaces.ScriptNullableFunction;
 import lpctools.script.suppliers.AbstractSignResultSupplier;
 import lpctools.util.Functions;
 import net.minecraft.text.Text;
@@ -22,7 +22,7 @@ public class IntegerTriFunction extends AbstractSignResultSupplier<Functions.Int
 	
 	@Override protected SupplierStorage<?>[] getSubSuppliers() {return subSuppliers;}
 	
-	@Override public @NotNull ScriptFunction<CompileEnvironment.RuntimeVariableMap, Integer>
+	@Override public @NotNull ScriptNullableFunction<CompileEnvironment.RuntimeVariableMap, Integer>
 	compile(CompileEnvironment variableMap) {
 		var sign = compareSign;
 		var integer1Supplier = integer1.get().compile(variableMap);

@@ -3,7 +3,7 @@ package lpctools.script.suppliers.Vec3d;
 import lpctools.script.CompileEnvironment;
 import lpctools.script.IScriptWithSubScript;
 import lpctools.script.exceptions.ScriptRuntimeException;
-import lpctools.script.runtimeInterfaces.ScriptFunction;
+import lpctools.script.runtimeInterfaces.ScriptNullableFunction;
 import lpctools.script.suppliers.AbstractSignResultSupplier;
 import lpctools.util.Functions;
 import net.minecraft.text.Text;
@@ -21,7 +21,7 @@ public class CalculateVec3ds extends AbstractSignResultSupplier<Functions.Vec3dC
 	
 	@Override protected SupplierStorage<?>[] getSubSuppliers() {return subSuppliers;}
 	
-	@Override public @NotNull ScriptFunction<CompileEnvironment.RuntimeVariableMap, Vec3d>
+	@Override public @NotNull ScriptNullableFunction<CompileEnvironment.RuntimeVariableMap, Vec3d>
 	compile(CompileEnvironment variableMap) {
 		var vec1Supplier = vec1.get().compile(variableMap);
 		var sign = compareSign;

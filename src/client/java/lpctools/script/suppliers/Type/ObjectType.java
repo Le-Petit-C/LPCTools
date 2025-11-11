@@ -3,7 +3,7 @@ package lpctools.script.suppliers.Type;
 import lpctools.script.CompileEnvironment;
 import lpctools.script.IScriptWithSubScript;
 import lpctools.script.exceptions.ScriptRuntimeException;
-import lpctools.script.runtimeInterfaces.ScriptFunction;
+import lpctools.script.runtimeInterfaces.ScriptNullableFunction;
 import lpctools.script.suppliers.AbstractSupplierWithTypeDeterminedSubSuppliers;
 import lpctools.script.suppliers.ScriptType;
 import lpctools.script.suppliers.Random.Null;
@@ -18,7 +18,7 @@ public class ObjectType extends AbstractSupplierWithTypeDeterminedSubSuppliers i
 	
 	@Override protected SupplierStorage<?>[] getSubSuppliers() {return subSuppliers;}
 	
-	@Override public @org.jetbrains.annotations.NotNull ScriptFunction<CompileEnvironment.RuntimeVariableMap, ScriptType>
+	@Override public @org.jetbrains.annotations.NotNull ScriptNullableFunction<CompileEnvironment.RuntimeVariableMap, ScriptType>
 	compile(CompileEnvironment variableMap) {
 		var compiledObjectSupplier = object.get().compile(variableMap);
 		return map->{

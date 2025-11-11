@@ -2,8 +2,7 @@ package lpctools.script.suppliers.ControlFlowIssue;
 
 import lpctools.script.CompileEnvironment;
 import lpctools.script.IScriptWithSubScript;
-import lpctools.script.exceptions.ScriptRuntimeException;
-import lpctools.script.runtimeInterfaces.ScriptFunction;
+import lpctools.script.runtimeInterfaces.ScriptNotNullFunction;
 import lpctools.script.suppliers.AbstractSupplierWithTypeDeterminedSubSuppliers;
 import lpctools.script.suppliers.BlockPos.ConstantBlockPos;
 import lpctools.script.suppliers.Direction.ConstantDirection;
@@ -24,17 +23,13 @@ public class AttackBlock extends AbstractSupplierWithTypeDeterminedSubSuppliers 
 	
 	@Override protected SupplierStorage<?>[] getSubSuppliers() {return subSuppliers;}
 	
-	@Override public @NotNull ScriptFunction<CompileEnvironment.RuntimeVariableMap, ControlFlowIssue>
-	compile(CompileEnvironment variableMap) {
-		var compiledBlockPosSupplier = blockPos.get().compile(variableMap);
-		var compiledDirectionSupplier = direction.get().compile(variableMap);
+	@Override public @NotNull ScriptNotNullFunction<CompileEnvironment.RuntimeVariableMap, ControlFlowIssue>
+	compileNotNull(CompileEnvironment variableMap) {
+		var compiledBlockPosSupplier = blockPos.get().compileCheckedNotNull(variableMap);
+		var compiledDirectionSupplier = direction.get().compileCheckedNotNull(variableMap);
 		return map->{
-			BlockPos blockPos = compiledBlockPosSupplier.scriptApply(map);
-			if(blockPos == null) throw ScriptRuntimeException.nullPointer(this);
-			Direction direction = compiledDirectionSupplier.scriptApply(map);
-			if(direction == null) throw ScriptRuntimeException.nullPointer(this);
 			var itm = MinecraftClient.getInstance().interactionManager;
-			if (itm != null) itm.attackBlock(blockPos, direction);
+			if (itm != null) itm.attackBlock(compiledBlockPosSupplier.scriptApply(map), compiledDirectionSupplier.scriptApply(map));
 			return ControlFlowIssue.NO_ISSUE;
 		};
 	}

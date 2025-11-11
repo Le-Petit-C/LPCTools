@@ -7,7 +7,7 @@ import lpctools.script.CompileEnvironment;
 import lpctools.script.IScript;
 import lpctools.script.IScriptWithSubScript;
 import lpctools.script.exceptions.ScriptRuntimeException;
-import lpctools.script.runtimeInterfaces.ScriptFunction;
+import lpctools.script.runtimeInterfaces.ScriptNotNullFunction;
 import lpctools.script.suppliers.Boolean.And;
 import net.minecraft.text.Text;
 import org.jetbrains.annotations.NotNull;
@@ -18,10 +18,10 @@ import java.util.List;
 import static lpctools.lpcfymasaapi.LPCConfigUtils.warnFailedLoadingConfig;
 
 public class ForLoop extends AbstractScriptWithSubScript implements IControlFlowSupplier {
-	RunMultiple initialization = new RunMultiple(this, Text.translatable("lpctools.script.suppliers.ControlFlowIssue.forLoop.initialization.name"));
-	And condition = new And(this, Text.translatable("lpctools.script.suppliers.ControlFlowIssue.forLoop.condition.name"));
-	RunMultiple update = new RunMultiple(this, Text.translatable("lpctools.script.suppliers.ControlFlowIssue.forLoop.update.name"));
-	RunMultiple loopBody = new RunMultiple(this, Text.translatable("lpctools.script.suppliers.ControlFlowIssue.forLoop.loopBody.name"));
+	public final RunMultiple initialization = new RunMultiple(this, Text.translatable("lpctools.script.suppliers.ControlFlowIssue.forLoop.initialization.name"));
+	public final And condition = new And(this, Text.translatable("lpctools.script.suppliers.ControlFlowIssue.forLoop.condition.name"));
+	public final RunMultiple update = new RunMultiple(this, Text.translatable("lpctools.script.suppliers.ControlFlowIssue.forLoop.update.name"));
+	public final RunMultiple loopBody = new RunMultiple(this, Text.translatable("lpctools.script.suppliers.ControlFlowIssue.forLoop.loopBody.name"));
 	public static final String initializationJsonKey = "initialization";
 	public static final String conditionJsonKey = "condition";
 	public static final String updateJsonKey = "update";
@@ -29,27 +29,24 @@ public class ForLoop extends AbstractScriptWithSubScript implements IControlFlow
 	
 	public ForLoop(IScriptWithSubScript parent) {super(parent);}
 	
-	@Override public @NotNull ScriptFunction<CompileEnvironment.RuntimeVariableMap, ControlFlowIssue>
-	compile(CompileEnvironment variableMap) {
-		var compiledInitialization = initialization.compile(variableMap);
-		var compiledCondition = condition.compile(variableMap);
-		var compiledUpdate = update.compile(variableMap);
-		var compiled = loopBody.compile(variableMap);
+	@Override public @NotNull ScriptNotNullFunction<CompileEnvironment.RuntimeVariableMap, ControlFlowIssue>
+	compileNotNull(CompileEnvironment variableMap) {
+		var compiledInitialization = initialization.compileCheckedNotNull(variableMap);
+		var compiledCondition = condition.compileCheckedNotNull(variableMap);
+		var compiledUpdate = update.compileCheckedNotNull(variableMap);
+		var compiled = loopBody.compileCheckedNotNull(variableMap);
 		return map->{
 			var initializationFlow = compiledInitialization.scriptApply(map);
 			if(initializationFlow.shouldEndRunMultiple){
 				if(initializationFlow != ControlFlowIssue.RETURN) return ControlFlowIssue.RETURN;
 				else throw ScriptRuntimeException.illegalControlFlow(this);
 			}
-			while(true){
-				var conditionResult = compiledCondition.scriptApply(map);
-				if(conditionResult == null) throw ScriptRuntimeException.nullPointer(this);
-				if(!conditionResult) break;
+			while (compiledCondition.scriptApply(map)) {
 				var flow = compiled.scriptApply(map);
-				if(flow.shouldBreak) return flow.applied();
+				if (flow.shouldBreak) return flow.applied();
 				var updateFlow = compiledUpdate.scriptApply(map);
-				if(updateFlow.shouldEndRunMultiple){
-					if(updateFlow != ControlFlowIssue.RETURN) return ControlFlowIssue.RETURN;
+				if (updateFlow.shouldEndRunMultiple) {
+					if (updateFlow != ControlFlowIssue.RETURN) return ControlFlowIssue.RETURN;
 					else throw ScriptRuntimeException.illegalControlFlow(this);
 				}
 			}

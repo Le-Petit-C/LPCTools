@@ -4,7 +4,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import lpctools.script.CompileEnvironment;
 import lpctools.script.IScriptWithSubScript;
-import lpctools.script.runtimeInterfaces.ScriptFunction;
+import lpctools.script.runtimeInterfaces.ScriptNotNullFunction;
 import lpctools.script.suppliers.AbstractSupplierWithSubScriptMutable;
 import net.minecraft.text.Text;
 import org.jetbrains.annotations.NotNull;
@@ -17,7 +17,7 @@ import static lpctools.lpcfymasaapi.LPCConfigUtils.warnFailedLoadingConfig;
 
 public class RunMultiple extends AbstractSupplierWithSubScriptMutable<ControlFlowIssue, ControlFlowIssue> implements IControlFlowSupplier {
 	private @Nullable Iterable<?> widgets;
-	protected @Nullable Text name;
+	protected final @Nullable Text name;
 	
 	public RunMultiple(IScriptWithSubScript parent, @Nullable Text name) {
 		super(parent);
@@ -26,10 +26,10 @@ public class RunMultiple extends AbstractSupplierWithSubScriptMutable<ControlFlo
 	public RunMultiple(IScriptWithSubScript parent) {this(parent, null);}
 	
 	@Override public Class<ControlFlowIssue> getArgumentClass() {return ControlFlowIssue.class;}
-	@Override public @NotNull ScriptFunction<CompileEnvironment.RuntimeVariableMap, ControlFlowIssue>
-	compile(CompileEnvironment variableMap) {
-		ArrayList<ScriptFunction<CompileEnvironment.RuntimeVariableMap, ? extends ControlFlowIssue>> compiledSubRunners = new ArrayList<>();
-		for(var sub : getSubScripts()) compiledSubRunners.add(sub.compile(variableMap));
+	@Override public @NotNull ScriptNotNullFunction<CompileEnvironment.RuntimeVariableMap, ControlFlowIssue>
+	compileNotNull(CompileEnvironment variableMap) {
+		ArrayList<ScriptNotNullFunction<CompileEnvironment.RuntimeVariableMap, ? extends ControlFlowIssue>> compiledSubRunners = new ArrayList<>();
+		for(var sub : getSubScripts()) compiledSubRunners.add(sub.compileCheckedNotNull(variableMap));
 		return map-> {
 			for(var runnable : compiledSubRunners){
 				var issue = runnable.scriptApply(map);

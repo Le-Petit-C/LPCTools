@@ -3,7 +3,7 @@ package lpctools.script.suppliers.Block;
 import lpctools.script.CompileEnvironment;
 import lpctools.script.IScriptWithSubScript;
 import lpctools.script.exceptions.ScriptRuntimeException;
-import lpctools.script.runtimeInterfaces.ScriptFunction;
+import lpctools.script.runtimeInterfaces.ScriptNullableFunction;
 import lpctools.script.suppliers.AbstractSupplierWithTypeDeterminedSubSuppliers;
 import lpctools.script.suppliers.BlockPos.ConstantBlockPos;
 import net.minecraft.block.Block;
@@ -20,7 +20,7 @@ public class BlockInWorld extends AbstractSupplierWithTypeDeterminedSubSuppliers
 	
 	@Override protected SupplierStorage<?>[] getSubSuppliers() {return subSuppliers;}
 	
-	@Override public @org.jetbrains.annotations.NotNull ScriptFunction<CompileEnvironment.RuntimeVariableMap, Block>
+	@Override public @org.jetbrains.annotations.NotNull ScriptNullableFunction<CompileEnvironment.RuntimeVariableMap, Block>
 	compile(CompileEnvironment variableMap) {
 		var booleanSupplier = blockPos.get().compile(variableMap);
 		return map->{

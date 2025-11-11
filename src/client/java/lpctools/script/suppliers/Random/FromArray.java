@@ -3,7 +3,7 @@ package lpctools.script.suppliers.Random;
 import lpctools.script.CompileEnvironment;
 import lpctools.script.IScriptWithSubScript;
 import lpctools.script.exceptions.ScriptRuntimeException;
-import lpctools.script.runtimeInterfaces.ScriptFunction;
+import lpctools.script.runtimeInterfaces.ScriptNullableFunction;
 import lpctools.script.suppliers.AbstractSupplierWithTypeDeterminedSubSuppliers;
 import lpctools.script.suppliers.Integer.ConstantInteger;
 import net.minecraft.text.Text;
@@ -16,7 +16,7 @@ public class FromArray<T> extends AbstractSupplierWithTypeDeterminedSubSuppliers
 		Text.translatable("lpctools.script.suppliers.Random.fromArray.subSuppliers.index.name"), "index");
 	protected final SupplierStorage<?>[] subSuppliers = ofStorages(array, index);
 	
-	Class<T> targetClass;
+	public final Class<T> targetClass;
 	
 	public FromArray(IScriptWithSubScript parent, Class<T> targetClass) {
 		super(parent);
@@ -25,7 +25,7 @@ public class FromArray<T> extends AbstractSupplierWithTypeDeterminedSubSuppliers
 	
 	@Override protected SupplierStorage<?>[] getSubSuppliers() {return subSuppliers;}
 	
-	@Override public @NotNull ScriptFunction<CompileEnvironment.RuntimeVariableMap, Object>
+	@Override public @NotNull ScriptNullableFunction<CompileEnvironment.RuntimeVariableMap, Object>
 	compileRandom(CompileEnvironment variableMap) {
 		var compiledArraySupplier = array.get().compile(variableMap);
 		var compiledIndexSupplier = index.get().compile(variableMap);

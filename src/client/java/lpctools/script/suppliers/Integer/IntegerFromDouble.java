@@ -3,7 +3,7 @@ package lpctools.script.suppliers.Integer;
 import lpctools.script.CompileEnvironment;
 import lpctools.script.IScriptWithSubScript;
 import lpctools.script.exceptions.ScriptRuntimeException;
-import lpctools.script.runtimeInterfaces.ScriptFunction;
+import lpctools.script.runtimeInterfaces.ScriptNullableFunction;
 import lpctools.script.suppliers.AbstractSignResultSupplier;
 import lpctools.script.suppliers.Double.ConstantDouble;
 import lpctools.util.Functions;
@@ -19,7 +19,7 @@ public class IntegerFromDouble extends AbstractSignResultSupplier<Functions.Doub
 	
 	@Override protected SupplierStorage<?>[] getSubSuppliers() {return subSuppliers;}
 	
-	@Override public @NotNull ScriptFunction<CompileEnvironment.RuntimeVariableMap, Integer>
+	@Override public @NotNull ScriptNullableFunction<CompileEnvironment.RuntimeVariableMap, Integer>
 	compile(CompileEnvironment variableMap) {
 		var sign = compareSign;
 		var doubleSupplier = _double.get().compile(variableMap);

@@ -6,8 +6,7 @@ import lpctools.script.AbstractScriptWithSubScript;
 import lpctools.script.CompileEnvironment;
 import lpctools.script.IScript;
 import lpctools.script.IScriptWithSubScript;
-import lpctools.script.exceptions.ScriptRuntimeException;
-import lpctools.script.runtimeInterfaces.ScriptFunction;
+import lpctools.script.runtimeInterfaces.ScriptNotNullFunction;
 import lpctools.script.suppliers.Boolean.And;
 import net.minecraft.text.Text;
 import org.jetbrains.annotations.NotNull;
@@ -18,25 +17,21 @@ import java.util.List;
 import static lpctools.lpcfymasaapi.LPCConfigUtils.warnFailedLoadingConfig;
 
 public class DoWhileLoop extends AbstractScriptWithSubScript implements IControlFlowSupplier {
-	RunMultiple loopBody = new RunMultiple(this, Text.translatable("lpctools.script.suppliers.ControlFlowIssue.doWhileLoop.loopBody.name"));
-	And condition = new And(this, Text.translatable("lpctools.script.suppliers.ControlFlowIssue.doWhileLoop.condition.name"));
+	public final RunMultiple loopBody = new RunMultiple(this, Text.translatable("lpctools.script.suppliers.ControlFlowIssue.doWhileLoop.loopBody.name"));
+	public final And condition = new And(this, Text.translatable("lpctools.script.suppliers.ControlFlowIssue.doWhileLoop.condition.name"));
 	public static final String conditionJsonKey = "condition";
 	public static final String loopBodyJsonKey = "loopBody";
 	
 	public DoWhileLoop(IScriptWithSubScript parent) {super(parent);}
 	
-	@Override public @NotNull ScriptFunction<CompileEnvironment.RuntimeVariableMap, ControlFlowIssue>
-	compile(CompileEnvironment variableMap) {
-		var compiled = loopBody.compile(variableMap);
-		var compiledCondition = condition.compile(variableMap);
+	@Override public @NotNull ScriptNotNullFunction<CompileEnvironment.RuntimeVariableMap, ControlFlowIssue>
+	compileNotNull(CompileEnvironment variableMap) {
+		var compiled = loopBody.compileCheckedNotNull(variableMap);
+		var compiledCondition = condition.compileCheckedNotNull(variableMap);
 		return map->{
-			while(true){
-				var flow = compiled.scriptApply(map);
-				if(flow.shouldBreak) return flow.applied();
-				var conditionResult = compiledCondition.scriptApply(map);
-				if(conditionResult == null) throw ScriptRuntimeException.nullPointer(this);
-				if(!conditionResult) break;
-			}
+			do {var flow = compiled.scriptApply(map);
+				if (flow.shouldBreak) return flow.applied();
+			} while (compiledCondition.scriptApply(map));
 			return ControlFlowIssue.NO_ISSUE;
 		};
 	}

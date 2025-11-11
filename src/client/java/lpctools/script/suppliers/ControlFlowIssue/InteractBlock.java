@@ -2,8 +2,7 @@ package lpctools.script.suppliers.ControlFlowIssue;
 
 import lpctools.script.CompileEnvironment;
 import lpctools.script.IScriptWithSubScript;
-import lpctools.script.exceptions.ScriptRuntimeException;
-import lpctools.script.runtimeInterfaces.ScriptFunction;
+import lpctools.script.runtimeInterfaces.ScriptNotNullFunction;
 import lpctools.script.suppliers.AbstractSupplierWithTypeDeterminedSubSuppliers;
 import lpctools.script.suppliers.BlockPos.ConstantBlockPos;
 import lpctools.script.suppliers.Boolean.ConstantBoolean;
@@ -35,30 +34,21 @@ public class InteractBlock extends AbstractSupplierWithTypeDeterminedSubSupplier
 	
 	@Override protected SupplierStorage<?>[] getSubSuppliers() {return subSuppliers;}
 	
-	@Override public @NotNull ScriptFunction<CompileEnvironment.RuntimeVariableMap, ControlFlowIssue>
-	compile(CompileEnvironment variableMap) {
-		var compiledUseOffhandSupplier = useOffhand.get().compile(variableMap);
-		var compiledPosSupplier = pos.get().compile(variableMap);
-		var compiledDirectionSupplier = direction.get().compile(variableMap);
-		var compiledBlockPosSupplier = blockPos.get().compile(variableMap);
-		var compiledInsideBlock = insideBlock.get().compile(variableMap);
+	@Override public @NotNull ScriptNotNullFunction<CompileEnvironment.RuntimeVariableMap, ControlFlowIssue>
+	compileNotNull(CompileEnvironment variableMap) {
+		var compiledUseOffhandSupplier = useOffhand.get().compileCheckedNotNull(variableMap);
+		var compiledPosSupplier = pos.get().compileCheckedNotNull(variableMap);
+		var compiledDirectionSupplier = direction.get().compileCheckedNotNull(variableMap);
+		var compiledBlockPosSupplier = blockPos.get().compileCheckedNotNull(variableMap);
+		var compiledInsideBlock = insideBlock.get().compileCheckedNotNull(variableMap);
 		return map->{
 			var mc = MinecraftClient.getInstance();
 			var itm = mc.interactionManager;
 			var player = mc.player;
 			if(itm == null || player == null) return ControlFlowIssue.NO_ISSUE;
-			var useOffhand = compiledUseOffhandSupplier.scriptApply(map);
-			if(useOffhand == null) throw ScriptRuntimeException.nullPointer(this);
-			var pos = compiledPosSupplier.scriptApply(map);
-			if(pos == null) throw ScriptRuntimeException.nullPointer(this);
-			var direction = compiledDirectionSupplier.scriptApply(map);
-			if(direction == null) throw ScriptRuntimeException.nullPointer(this);
-			var blockPos = compiledBlockPosSupplier.scriptApply(map);
-			if(blockPos == null) throw ScriptRuntimeException.nullPointer(this);
-			var insideBlock = compiledInsideBlock.scriptApply(map);
-			if(insideBlock == null) throw ScriptRuntimeException.nullPointer(this);
-			itm.interactBlock(player, useOffhand ? Hand.OFF_HAND : Hand.MAIN_HAND,
-				new BlockHitResult(pos, direction, blockPos, insideBlock));
+			itm.interactBlock(player, compiledUseOffhandSupplier.scriptApply(map) ? Hand.OFF_HAND : Hand.MAIN_HAND,
+				new BlockHitResult(compiledPosSupplier.scriptApply(map), compiledDirectionSupplier.scriptApply(map),
+					compiledBlockPosSupplier.scriptApply(map), compiledInsideBlock.scriptApply(map)));
 			return ControlFlowIssue.NO_ISSUE;
 		};
 	}

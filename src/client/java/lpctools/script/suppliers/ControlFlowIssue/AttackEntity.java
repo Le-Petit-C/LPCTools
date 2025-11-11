@@ -2,8 +2,7 @@ package lpctools.script.suppliers.ControlFlowIssue;
 
 import lpctools.script.CompileEnvironment;
 import lpctools.script.IScriptWithSubScript;
-import lpctools.script.exceptions.ScriptRuntimeException;
-import lpctools.script.runtimeInterfaces.ScriptFunction;
+import lpctools.script.runtimeInterfaces.ScriptNotNullFunction;
 import lpctools.script.suppliers.AbstractSupplierWithTypeDeterminedSubSuppliers;
 import lpctools.script.suppliers.Entity.PlayerEntity.MainPlayerEntity;
 import net.minecraft.client.MinecraftClient;
@@ -20,17 +19,15 @@ public class AttackEntity extends AbstractSupplierWithTypeDeterminedSubSuppliers
 	
 	@Override protected SupplierStorage<?>[] getSubSuppliers() {return subSuppliers;}
 	
-	@Override public @NotNull ScriptFunction<CompileEnvironment.RuntimeVariableMap, ControlFlowIssue>
-	compile(CompileEnvironment variableMap) {
-		var compiledEntitySupplier = entity.get().compile(variableMap);
+	@Override public @NotNull ScriptNotNullFunction<CompileEnvironment.RuntimeVariableMap, ControlFlowIssue>
+	compileNotNull(CompileEnvironment variableMap) {
+		var compiledEntitySupplier = entity.get().compileCheckedNotNull(variableMap);
 		return map->{
 			var mc = MinecraftClient.getInstance();
 			var itm = mc.interactionManager;
 			var player = mc.player;
 			if(itm == null || player == null) return ControlFlowIssue.NO_ISSUE;
-			Entity entity = compiledEntitySupplier.scriptApply(map);
-			if(entity == null) throw ScriptRuntimeException.nullPointer(this);
-			itm.attackEntity(player, entity);
+			itm.attackEntity(player, compiledEntitySupplier.scriptApply(map));
 			return ControlFlowIssue.NO_ISSUE;
 		};
 	}

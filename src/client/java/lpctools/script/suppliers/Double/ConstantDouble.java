@@ -7,7 +7,7 @@ import lpctools.script.CompileEnvironment;
 import lpctools.script.IScriptWithSubScript;
 import lpctools.script.editScreen.ScriptDisplayWidget;
 import lpctools.script.editScreen.WidthAutoAdjustTextField;
-import lpctools.script.runtimeInterfaces.ScriptFunction;
+import lpctools.script.runtimeInterfaces.ScriptNullableFunction;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -19,7 +19,7 @@ public class ConstantDouble extends AbstractScript implements IDoubleSupplier {
 	private @NotNull Double value = 0.0;
 	protected @Nullable WidthAutoAdjustTextField textField = null;
 	public ConstantDouble(IScriptWithSubScript parent) {super(parent);}
-	@Override public @NotNull ScriptFunction<CompileEnvironment.RuntimeVariableMap, Double>
+	@Override public @NotNull ScriptNullableFunction<CompileEnvironment.RuntimeVariableMap, Double>
 	compile(CompileEnvironment variableMap) {
 		final var cachedValue = value;
 		return map->cachedValue;

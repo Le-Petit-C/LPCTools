@@ -3,7 +3,7 @@ package lpctools.script.suppliers.Iterable;
 import lpctools.script.CompileEnvironment;
 import lpctools.script.IScriptWithSubScript;
 import lpctools.script.exceptions.ScriptRuntimeException;
-import lpctools.script.runtimeInterfaces.ScriptFunction;
+import lpctools.script.runtimeInterfaces.ScriptNullableFunction;
 import lpctools.script.suppliers.AbstractSupplierWithTypeDeterminedSubSuppliers;
 import lpctools.script.suppliers.Double.ConstantDouble;
 import lpctools.script.suppliers.Vec3d.ConstantVec3d;
@@ -24,7 +24,7 @@ public class BlockPosInDistance extends AbstractSupplierWithTypeDeterminedSubSup
 	
 	@Override protected SupplierStorage<?>[] getSubSuppliers() {return subSuppliers;}
 	
-	@Override public @NotNull ScriptFunction<CompileEnvironment.RuntimeVariableMap, ObjectIterable>
+	@Override public @NotNull ScriptNullableFunction<CompileEnvironment.RuntimeVariableMap, ObjectIterable>
 	compile(CompileEnvironment variableMap) {
 		var compiledCenterSupplier = center.get().compile(variableMap);
 		var compiledDistanceSupplier = distance.get().compile(variableMap);

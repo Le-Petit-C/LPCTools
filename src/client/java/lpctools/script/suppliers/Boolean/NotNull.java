@@ -2,7 +2,7 @@ package lpctools.script.suppliers.Boolean;
 
 import lpctools.script.CompileEnvironment;
 import lpctools.script.IScriptWithSubScript;
-import lpctools.script.runtimeInterfaces.ScriptFunction;
+import lpctools.script.runtimeInterfaces.ScriptNullableFunction;
 import lpctools.script.suppliers.AbstractSupplierWithTypeDeterminedSubSuppliers;
 import lpctools.script.suppliers.Random.Null;
 import net.minecraft.text.Text;
@@ -16,7 +16,7 @@ public class NotNull extends AbstractSupplierWithTypeDeterminedSubSuppliers impl
 	
 	@Override protected SupplierStorage<?>[] getSubSuppliers() {return subSuppliers;}
 	
-	@Override public @org.jetbrains.annotations.NotNull ScriptFunction<CompileEnvironment.RuntimeVariableMap, Boolean>
+	@Override public @org.jetbrains.annotations.NotNull ScriptNullableFunction<CompileEnvironment.RuntimeVariableMap, Boolean>
 	compile(CompileEnvironment variableMap) {
 		var compiledSupplier = objectStorage.get().compile(variableMap);
 		return map->compiledSupplier.scriptApply(map) != null;

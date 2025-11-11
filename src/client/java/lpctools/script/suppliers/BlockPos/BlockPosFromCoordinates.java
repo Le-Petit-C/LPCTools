@@ -3,7 +3,7 @@ package lpctools.script.suppliers.BlockPos;
 import lpctools.script.CompileEnvironment;
 import lpctools.script.IScriptWithSubScript;
 import lpctools.script.exceptions.ScriptRuntimeException;
-import lpctools.script.runtimeInterfaces.ScriptFunction;
+import lpctools.script.runtimeInterfaces.ScriptNullableFunction;
 import lpctools.script.suppliers.AbstractSupplierWithTypeDeterminedSubSuppliers;
 import lpctools.script.suppliers.Integer.ConstantInteger;
 import net.minecraft.text.Text;
@@ -23,7 +23,7 @@ public class BlockPosFromCoordinates extends AbstractSupplierWithTypeDeterminedS
 	
 	@Override protected SupplierStorage<?>[] getSubSuppliers() {return subSuppliers;}
 	
-	@Override public @NotNull ScriptFunction<CompileEnvironment.RuntimeVariableMap, BlockPos>
+	@Override public @NotNull ScriptNullableFunction<CompileEnvironment.RuntimeVariableMap, BlockPos>
 	compile(CompileEnvironment variableMap) {
 		var compiledXSupplier = x.get().compile(variableMap);
 		var compiledYSupplier = y.get().compile(variableMap);

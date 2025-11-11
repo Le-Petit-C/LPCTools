@@ -17,6 +17,9 @@ import lpctools.script.suppliers.Double.*;
 import lpctools.script.suppliers.Entity.VehicleEntity;
 import lpctools.script.suppliers.Entity.PlayerEntity.MainPlayerEntity;
 import lpctools.script.suppliers.Integer.*;
+import lpctools.script.suppliers.Item.ConstantItem;
+import lpctools.script.suppliers.Item.StackItem;
+import lpctools.script.suppliers.ItemStack.SlotItemStack;
 import lpctools.script.suppliers.Iterable.*;
 import lpctools.script.suppliers.Random.FromArray;
 import lpctools.script.suppliers.Random.FromVariable;
@@ -29,6 +32,8 @@ import lpctools.script.suppliers.ControlFlowIssue.*;
 import net.minecraft.block.Block;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.item.Item;
+import net.minecraft.item.ItemStack;
 import net.minecraft.text.Text;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
@@ -165,6 +170,8 @@ public class ScriptSupplierLake {
 		registerType(Vec3d.class, 			Text.translatable("lpctools.script.typeName.Vec3d"), "vec3d");
 		registerType(Direction.class, 		Text.translatable("lpctools.script.typeName.Direction"), "vec3d");
 		registerType(Block.class, 			Text.translatable("lpctools.script.typeName.Block"), "block");
+		registerType(Item.class, 			Text.translatable("lpctools.script.typeName.Item"), "item");
+		registerType(ItemStack.class, 		Text.translatable("lpctools.script.typeName.ItemStack"), "itemStack");
 		registerType(Entity.class, 			Text.translatable("lpctools.script.typeName.Entity"), "entity");
 		registerType(PlayerEntity.class, 	Text.translatable("lpctools.script.typeName.PlayerEntity"), "playerEntity");
 	}
@@ -254,6 +261,11 @@ public class ScriptSupplierLake {
 		//注册block suppliers
 		registerPrecise("constantBlock", 			Text.translatable("lpctools.script.suppliers.Block.constantBlock.name"), Block.class, ConstantBlock.class, ConstantBlock::new);
 		registerPrecise("blockInWorld", 			Text.translatable("lpctools.script.suppliers.Block.blockInWorld.name"), Block.class, BlockInWorld.class, BlockInWorld::new);
+		//注册item suppliers
+		registerPrecise("constantItem", 			Text.translatable("lpctools.script.suppliers.Item.constantItem.name"), Item.class, ConstantItem.class, ConstantItem::new);
+		registerPrecise("stackItem", 				Text.translatable("lpctools.script.suppliers.Item.stackItem.name"), Item.class, StackItem.class, StackItem::new);
+		//注册item stack suppliers
+		registerPrecise("slotItemStack", 			Text.translatable("lpctools.script.suppliers.ItemStack.slotItemStack.name"), ItemStack.class, SlotItemStack.class, SlotItemStack::new);
 		//注册entity suppliers
 		registerPrecise("vehicleEntity", 			Text.translatable("lpctools.script.suppliers.Entity.vehicleEntity.name"), Entity.class, VehicleEntity.class, VehicleEntity::new);
 		//注册player entity suppliers

@@ -5,7 +5,7 @@ import com.google.gson.JsonElement;
 import lpctools.script.CompileEnvironment;
 import lpctools.script.IScriptWithSubScript;
 import lpctools.script.exceptions.ScriptRuntimeException;
-import lpctools.script.runtimeInterfaces.ScriptFunction;
+import lpctools.script.runtimeInterfaces.ScriptNullableFunction;
 import lpctools.script.suppliers.AbstractSupplierWithSubScriptMutable;
 import net.minecraft.text.Text;
 import org.jetbrains.annotations.NotNull;
@@ -18,7 +18,7 @@ import static lpctools.lpcfymasaapi.LPCConfigUtils.warnFailedLoadingConfig;
 
 public class And extends AbstractSupplierWithSubScriptMutable<Boolean, Boolean> implements IBooleanSupplier {
 	private @Nullable Iterable<?> widgets;
-	public @Nullable Text name;
+	public final @Nullable Text name;
 	
 	public And(IScriptWithSubScript parent, @Nullable Text name) {
 		super(parent);
@@ -27,9 +27,9 @@ public class And extends AbstractSupplierWithSubScriptMutable<Boolean, Boolean> 
 	public And(IScriptWithSubScript parent) {this(parent, null);}
 	
 	@Override public Class<Boolean> getArgumentClass() {return Boolean.class;}
-	@Override public @NotNull ScriptFunction<CompileEnvironment.RuntimeVariableMap, Boolean>
+	@Override public @NotNull ScriptNullableFunction<CompileEnvironment.RuntimeVariableMap, Boolean>
 	compile(CompileEnvironment variableMap) {
-		ArrayList<ScriptFunction<CompileEnvironment.RuntimeVariableMap, ? extends Boolean>> compiledSubRunners = new ArrayList<>();
+		ArrayList<ScriptNullableFunction<CompileEnvironment.RuntimeVariableMap, ? extends Boolean>> compiledSubRunners = new ArrayList<>();
 		for(var sub : getSubScripts()) compiledSubRunners.add(sub.compile(variableMap));
 		return map->{
 			for(var runnable : compiledSubRunners){

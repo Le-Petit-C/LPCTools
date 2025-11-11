@@ -5,7 +5,7 @@ import com.google.gson.JsonElement;
 import lpctools.script.CompileEnvironment;
 import lpctools.script.IScriptWithSubScript;
 import lpctools.script.exceptions.ScriptRuntimeException;
-import lpctools.script.runtimeInterfaces.ScriptFunction;
+import lpctools.script.runtimeInterfaces.ScriptNullableFunction;
 import lpctools.script.suppliers.AbstractSupplierWithSubScriptMutable;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -21,9 +21,9 @@ public class Or extends AbstractSupplierWithSubScriptMutable<Boolean, Boolean> i
 	public Or(IScriptWithSubScript parent) {super(parent);}
 	
 	@Override public Class<Boolean> getArgumentClass() {return Boolean.class;}
-	@Override public @NotNull ScriptFunction<CompileEnvironment.RuntimeVariableMap, Boolean>
+	@Override public @NotNull ScriptNullableFunction<CompileEnvironment.RuntimeVariableMap, Boolean>
 	compile(CompileEnvironment variableMap) {
-		ArrayList<ScriptFunction<CompileEnvironment.RuntimeVariableMap, ? extends Boolean>> compiledSubRunners = new ArrayList<>();
+		ArrayList<ScriptNullableFunction<CompileEnvironment.RuntimeVariableMap, ? extends Boolean>> compiledSubRunners = new ArrayList<>();
 		for(var sub : getSubScripts()) compiledSubRunners.add(sub.compile(variableMap));
 		return map->{
 			for(var runnable : compiledSubRunners){

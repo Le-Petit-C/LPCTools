@@ -2,7 +2,7 @@ package lpctools.script.suppliers.Entity;
 
 import lpctools.script.*;
 import lpctools.script.exceptions.ScriptRuntimeException;
-import lpctools.script.runtimeInterfaces.ScriptFunction;
+import lpctools.script.runtimeInterfaces.ScriptNullableFunction;
 import lpctools.script.suppliers.AbstractSupplierWithTypeDeterminedSubSuppliers;
 import lpctools.script.suppliers.Entity.PlayerEntity.MainPlayerEntity;
 import net.minecraft.entity.Entity;
@@ -19,7 +19,7 @@ public class VehicleEntity extends AbstractSupplierWithTypeDeterminedSubSupplier
 	
 	@Override protected SupplierStorage<?>[] getSubSuppliers() {return subSuppliers;}
 	
-	@Override public @NotNull ScriptFunction<CompileEnvironment.RuntimeVariableMap, Entity>
+	@Override public @NotNull ScriptNullableFunction<CompileEnvironment.RuntimeVariableMap, Entity>
 	compile(CompileEnvironment variableMap) {
 		var compiledEntitySupplier = passenger.get().compile(variableMap);
 		return map->{

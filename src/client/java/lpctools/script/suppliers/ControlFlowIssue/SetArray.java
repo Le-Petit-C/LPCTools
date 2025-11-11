@@ -3,7 +3,7 @@ package lpctools.script.suppliers.ControlFlowIssue;
 import lpctools.script.CompileEnvironment;
 import lpctools.script.IScriptWithSubScript;
 import lpctools.script.exceptions.ScriptRuntimeException;
-import lpctools.script.runtimeInterfaces.ScriptFunction;
+import lpctools.script.runtimeInterfaces.ScriptNotNullFunction;
 import lpctools.script.suppliers.AbstractSupplierWithTypeDeterminedSubSuppliers;
 import lpctools.script.suppliers.Integer.ConstantInteger;
 import lpctools.script.suppliers.Random.Null;
@@ -23,17 +23,15 @@ public class SetArray extends AbstractSupplierWithTypeDeterminedSubSuppliers imp
 	
 	@Override protected SupplierStorage<?>[] getSubSuppliers() {return subSuppliers;}
 	
-	@Override public @NotNull ScriptFunction<CompileEnvironment.RuntimeVariableMap, ControlFlowIssue>
-	compile(CompileEnvironment variableMap) {
-		var compiledArraySupplier = array.get().compile(variableMap);
-		var compiledIndexSupplier = index.get().compile(variableMap);
+	@Override public @NotNull ScriptNotNullFunction<CompileEnvironment.RuntimeVariableMap, ControlFlowIssue>
+	compileNotNull(CompileEnvironment variableMap) {
+		var compiledArraySupplier = array.get().compileCheckedNotNull(variableMap);
+		var compiledIndexSupplier = index.get().compileCheckedNotNull(variableMap);
 		var compiledValueSupplier = value.get().compile(variableMap);
 		return map->{
 			Object value = compiledValueSupplier.scriptApply(map);
 			Object[] array = compiledArraySupplier.scriptApply(map);
-			if(array == null) throw ScriptRuntimeException.nullPointer(this);
-			Integer index = compiledIndexSupplier.scriptApply(map);
-			if(index == null) throw ScriptRuntimeException.nullPointer(this);
+			int index = compiledIndexSupplier.scriptApply(map);
 			if(index < 0 || index >= array.length)
 				throw ScriptRuntimeException.indexOutOfBounds(this, index, array.length);
 			array[index] = value;
