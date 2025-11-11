@@ -19,6 +19,7 @@ public class UniqueIntegerConfig extends LPCUniqueConfigBase implements IConfigI
     public int intValue, minInteger, maxInteger;
     public final int defaultInteger;
     public boolean useSlider = false;
+    public boolean allowSlider = true;
     public UniqueIntegerConfig(@NotNull ILPCConfigReadable parent, @NotNull String nameKey, int defaultInteger, int minInteger, int maxInteger, @Nullable ILPCValueChangeCallback callback) {
         super(parent, nameKey, callback);
         intValue = this.defaultInteger = defaultInteger;
@@ -55,7 +56,7 @@ public class UniqueIntegerConfig extends LPCUniqueConfigBase implements IConfigI
     }
     @Override public String getStringValue() {return String.valueOf(intValue);}
     @Override public void getButtonOptions(ButtonOptionArrayList res) {
-        if(useSlider){
+        if(allowSlider && useSlider){
             res.add(new ButtonOption(1, null, null, (x, y, w, h, str, listener, consumer, resetButton)->{
                 ISliderCallback callback = new ISliderCallback() {
                     @Override public int getMaxSteps() {return maxInteger - minInteger > 0 ? Integer.MAX_VALUE : maxInteger - minInteger;}
@@ -72,7 +73,7 @@ public class UniqueIntegerConfig extends LPCUniqueConfigBase implements IConfigI
             }));
         }
         else res.add(ILPCUniqueConfigBase.textFieldConfigValuePreset(1, this));
-        res.add(ILPCUniqueConfigBase.iconButtonPreset(useSlider ? MaLiLibIcons.BTN_TXTFIELD : MaLiLibIcons.BTN_SLIDER,
+        if(allowSlider) res.add(ILPCUniqueConfigBase.iconButtonPreset(useSlider ? MaLiLibIcons.BTN_TXTFIELD : MaLiLibIcons.BTN_SLIDER,
             (button, mouseButton)->{useSlider = !useSlider;getPage().markNeedUpdate();}, null));
     }
     @Override public @Nullable JsonPrimitive getAsJsonElement() {return new JsonPrimitive(intValue);}

@@ -8,6 +8,7 @@ import lpctools.lpcfymasaapi.configButtons.transferredConfigs.BooleanConfig;
 import lpctools.lpcfymasaapi.configButtons.transferredConfigs.ColorConfig;
 import lpctools.lpcfymasaapi.configButtons.transferredConfigs.IntegerConfig;
 import lpctools.lpcfymasaapi.configButtons.uniqueConfigs.ButtonConfig;
+import lpctools.lpcfymasaapi.configButtons.uniqueConfigs.ThirdListConfig;
 import lpctools.lpcfymasaapi.configButtons.uniqueConfigs.UniqueIntegerConfig;
 import lpctools.lpcfymasaapi.interfaces.ButtonConsumer;
 import lpctools.lpcfymasaapi.interfaces.ILPCConfigReadable;
@@ -30,6 +31,9 @@ public class ScriptConfigs {
             dragVisualMode.addOption(prefix + method.key, method.key, method);
     }
     public static final BooleanConfig dragBoundaryConstraint = addBooleanConfig("dragBoundaryConstraint", true);
+    public static final ColorConfig moveHighlightColor = addColorConfig("moveHighlightColor", Color4f.fromColor(0x3fffffff));
+    public static final ReservedDistanceConfig reservedDistance = addConfig(new ReservedDistanceConfig());
+    
     @SuppressWarnings("unused")
     public static final ButtonConfig reloadScripts = addButtonConfig("reloadScripts", (button, mouseButton)->{
             ScriptsConfig.instance.setValueFromJsonElement(ScriptsConfig.instance.getAsJsonElement());
@@ -64,6 +68,29 @@ public class ScriptConfigs {
             this.key = key;
             this.moveX = moveX;
             this.moveY = moveY;
+        }
+    }
+    
+    public static class ReservedDistanceConfig extends ThirdListConfig{
+        public final UniqueIntegerConfig
+            left = new UniqueIntegerConfig(this, "left", 40, 0, Integer.MAX_VALUE, null),
+            top = new UniqueIntegerConfig(this, "top", 40, 0, Integer.MAX_VALUE, null),
+            right = new UniqueIntegerConfig(this, "right", 40, 0, Integer.MAX_VALUE, null),
+            bottom = new UniqueIntegerConfig(this, "bottom", 40, 0, Integer.MAX_VALUE, null);
+        public ReservedDistanceConfig() {
+            super(script, "reservedDistance", null);
+            left.allowSlider = top.allowSlider = right.allowSlider = bottom.allowSlider = false;
+            addConfigs(left, top, right, bottom);
+        }
+        
+        @Override public void getButtonOptions(ButtonOptionArrayList res) {
+            super.getButtonOptions(res);
+            if(!isExpanded()){
+                left.getButtonOptions(res);
+                top.getButtonOptions(res);
+                right.getButtonOptions(res);
+                bottom.getButtonOptions(res);
+            }
         }
     }
 }

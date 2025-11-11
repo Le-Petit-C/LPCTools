@@ -17,8 +17,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
-import static lpctools.script.ScriptConfigs.dragBoundaryConstraint;
-import static lpctools.script.ScriptConfigs.dragVisualMode;
+import static lpctools.script.ScriptConfigs.*;
 
 public class ScriptEditScreen extends GuiConfigsBase {
 	public final Script script;
@@ -27,7 +26,7 @@ public class ScriptEditScreen extends GuiConfigsBase {
 	//此变量为鼠标按下时鼠标按下位置相对于显示区域左上角的坐标，为null表示未按下
 	private Vec2d holdingScreenBackground = null;
 	//移动后左上角坐标
-	private double x = reserve, y = topReserve;
+	private double x = 10, y = 40;
 	//缩放
 	private double stretch = 1.0;
 	private @Nullable Element scriptFocused;
@@ -38,10 +37,23 @@ public class ScriptEditScreen extends GuiConfigsBase {
 	private final ButtonGeneric removeButton = createGenericSquareButton("-", "lpctools.script.trigger.chooseScreen.remove");
 	private final Object2LongOpenHashMap<WidgetBase> infoWidgets = new Object2LongOpenHashMap<>();
 	
-	private static final int reserve = 10, topReserve = 40;
-	
 	private double calcFixedX(double mouseX){return (mouseX - x) / stretch;}
 	private double calcFixedY(double mouseY){return (mouseY - y) / stretch;}
+	
+	private void adjustPosition(){
+		var root = getRootDisplayWidget();
+		int width = root.getRight();
+		int height = root.getSize() * 22;
+		Rect2d bound = new Rect2d(x - reservedDistance.left.getIntegerValue() * stretch, y - reservedDistance.top.getIntegerValue() * stretch,
+			x + (width + reservedDistance.right.getIntegerValue()) * stretch, y + (height + reservedDistance.bottom.getIntegerValue()) * stretch);
+		int SCRW = getScreenWidth(), SCRH = getScreenHeight();
+		boolean b1 = bound.right - bound.left > SCRW;
+		boolean b2 = bound.bottom - bound.top > SCRH;
+		if((bound.left > 0) == b1) x -= bound.left;
+		else if((bound.right < SCRW) == b1) x -= bound.right - SCRW;
+		if((bound.top > 0) == b2) y -= bound.top;
+		else if((bound.bottom < SCRH) == b2) y -= bound.bottom - SCRH;
+	}
 	
 	public ScriptEditScreen(Script script) {
 		super(0, 0, "lpctools", null, "lpctools.script.editScreen.title");
@@ -138,20 +150,9 @@ public class ScriptEditScreen extends GuiConfigsBase {
 		if(scriptFocused != null) scriptFocused.mouseMoved(fixedMouseX, fixedMouseY);
 		//移动显示区域
 		if (holdingScreenBackground != null) {
-			var root = getRootDisplayWidget();
 			x = mouseX - holdingScreenBackground.x;
 			y = mouseY - holdingScreenBackground.y;
-			int width = root.getRight();
-			int height = root.getSize() * 22;
-			Rect2d bound = new Rect2d(x - reserve * stretch, y - topReserve * stretch,
-				x + (width + reserve) * stretch, y + (height + reserve) * stretch);
-			int SCRW = getScreenWidth(), SCRH = getScreenHeight();
-			boolean b1 = bound.right - bound.left > SCRW;
-			boolean b2 = bound.bottom - bound.top > SCRH;
-			if((bound.left > 0) == b1) x -= bound.left;
-			else if((bound.right < SCRW) == b1) x -= bound.right - SCRW;
-			if((bound.top > 0) == b2) y -= bound.top;
-			else if((bound.bottom < SCRH) == b2) y -= bound.bottom - SCRH;
+			adjustPosition();
 		}
 		//移动配置
 		else if(scriptHoldingData != null){
@@ -241,6 +242,7 @@ public class ScriptEditScreen extends GuiConfigsBase {
 	}
 	//渲染内容，选择重载drawTitle只是因为渲染顺序
 	@Override public void drawTitle(DrawContext drawContext, int mouseX, int mouseY, float partialTicks) {
+		adjustPosition();
 		//渲染内容
 		var root = getRootDisplayWidget();
 		var matrices = drawContext.getMatrices();
@@ -249,7 +251,9 @@ public class ScriptEditScreen extends GuiConfigsBase {
 		matrices.pushMatrix().translate((float)x, (float)y).scale((float)stretch);
 		int fixedMouseX = (int)Math.round(calcFixedX(mouseX)), fixedMouseY = (int)Math.round(calcFixedY(mouseY));
 		if(holdingScreenBackground != null)
-			drawContext.fill(-reserve, -topReserve, root.getRight() + reserve, root.getSize() * 22 + reserve, 0x7fffffff);
+			drawContext.fill(-reservedDistance.left.getIntegerValue(), -reservedDistance.top.getIntegerValue(),
+				root.getRight() + reservedDistance.right.getIntegerValue(), root.getSize() * 22 + reservedDistance.bottom.getIntegerValue(),
+				moveHighlightColor.getIntegerValue());
 		int minLineIndex = Math.max((int)Math.floor(-y / stretch / 22), 0);
 		int maxLineIndex = Math.min((int)Math.floor((getScreenHeight() - y - 1) / stretch / 22), root.getSize() - 1);
 		int line = minLineIndex;
