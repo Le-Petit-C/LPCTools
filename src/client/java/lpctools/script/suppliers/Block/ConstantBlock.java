@@ -8,7 +8,7 @@ import lpctools.script.AbstractScript;
 import lpctools.script.CompileEnvironment;
 import lpctools.script.IScriptWithSubScript;
 import lpctools.script.editScreen.WidthAutoAdjustButtonGeneric;
-import lpctools.script.runtimeInterfaces.ScriptNullableFunction;
+import lpctools.script.runtimeInterfaces.ScriptNotNullSupplier;
 import lpctools.util.DataUtils;
 import net.minecraft.block.Block;
 import net.minecraft.block.Blocks;
@@ -25,8 +25,8 @@ public class ConstantBlock extends AbstractScript implements IBlockSupplier {
 	private @Nullable ItemButton itemButton;
 	private @Nullable WidthAutoAdjustButtonGeneric selectButton;
 	public ConstantBlock(IScriptWithSubScript parent) {super(parent);}
-	@Override public @NotNull ScriptNullableFunction<CompileEnvironment.RuntimeVariableMap, Block>
-	compile(CompileEnvironment variableMap) {return map->block;}
+	@Override public @NotNull ScriptNotNullSupplier<Block>
+	compileNotNull(CompileEnvironment environment) {return map->block;}
 	
 	@Override public @Nullable JsonElement getAsJsonElement() {
 		return new JsonPrimitive(DataUtils.getBlockId(block));

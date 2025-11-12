@@ -6,10 +6,11 @@ import lpctools.lpcfymasaapi.screen.ChooseScreen;
 import lpctools.script.*;
 import lpctools.script.editScreen.ScriptDisplayWidget;
 import lpctools.script.editScreen.WidthAutoAdjustButtonGeneric;
-import lpctools.script.runtimeInterfaces.ScriptNullableFunction;
+import lpctools.script.runtimeInterfaces.ScriptNotNullSupplier;
 import lpctools.script.suppliers.ScriptSupplierLake;
 import lpctools.script.suppliers.ScriptType;
 import net.minecraft.text.Text;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.HashMap;
@@ -25,8 +26,8 @@ public class ConstantType extends AbstractScript implements ITypeSupplier {
 	
 	public ConstantType(IScriptWithSubScript parent) {super(parent);}
 	
-	@Override public @org.jetbrains.annotations.NotNull ScriptNullableFunction<CompileEnvironment.RuntimeVariableMap, ScriptType>
-	compile(CompileEnvironment variableMap) {
+	@Override public @NotNull ScriptNotNullSupplier<ScriptType>
+	compileNotNull(CompileEnvironment environment) {
 		final ScriptType cachedType = type;
 		return map->cachedType;
 	}

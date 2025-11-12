@@ -2,8 +2,7 @@ package lpctools.script.suppliers.Integer;
 
 import lpctools.script.CompileEnvironment;
 import lpctools.script.IScriptWithSubScript;
-import lpctools.script.exceptions.ScriptRuntimeException;
-import lpctools.script.runtimeInterfaces.ScriptNullableFunction;
+import lpctools.script.runtimeInterfaces.ScriptIntegerSupplier;
 import lpctools.script.suppliers.AbstractSignResultSupplier;
 import lpctools.util.Functions;
 import net.minecraft.text.Text;
@@ -18,14 +17,10 @@ public class IntegerFunction extends AbstractSignResultSupplier<Functions.Intege
 	
 	@Override protected SupplierStorage<?>[] getSubSuppliers() {return subSuppliers;}
 	
-	@Override public @NotNull ScriptNullableFunction<CompileEnvironment.RuntimeVariableMap, Integer>
-	compile(CompileEnvironment variableMap) {
+	@Override public @NotNull ScriptIntegerSupplier
+	compileInteger(CompileEnvironment environment) {
 		var sign = compareSign;
-		var integerSupplier = integer.get().compile(variableMap);
-		return map->{
-			var integer = integerSupplier.scriptApply(map);
-			if(integer == null) throw ScriptRuntimeException.nullPointer(this);
-			return sign.applyInteger(integer);
-		};
+		var integerSupplier = compileCheckedInteger(integer.get(), environment);
+		return map->sign.applyInteger(integerSupplier.scriptApplyAsInt(map));
 	}
 }

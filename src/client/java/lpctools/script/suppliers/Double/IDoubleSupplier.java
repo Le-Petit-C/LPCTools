@@ -1,7 +1,7 @@
 package lpctools.script.suppliers.Double;
 
-import lpctools.script.suppliers.IScriptSupplier;
+import lpctools.script.suppliers.IScriptSupplierDouble;
 
-public interface IDoubleSupplier extends IScriptSupplier<Double> {
+public interface IDoubleSupplier extends IScriptSupplierDouble {
 	@Override default Class<? extends Double> getSuppliedClass(){return Double.class;}
 }

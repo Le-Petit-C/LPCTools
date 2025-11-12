@@ -2,7 +2,7 @@ package lpctools.script.suppliers.Boolean;
 
 import lpctools.script.CompileEnvironment;
 import lpctools.script.IScriptWithSubScript;
-import lpctools.script.runtimeInterfaces.ScriptNullableFunction;
+import lpctools.script.runtimeInterfaces.ScriptBooleanSupplier;
 import lpctools.script.suppliers.AbstractSignResultSupplier;
 import lpctools.script.suppliers.Random.Null;
 import lpctools.util.Functions;
@@ -19,11 +19,11 @@ public class CompareObjects extends AbstractSignResultSupplier<Functions.ObjectC
 	
 	@Override protected SupplierStorage<?>[] getSubSuppliers() {return subSuppliers;}
 	
-	@Override public @org.jetbrains.annotations.NotNull ScriptNullableFunction<CompileEnvironment.RuntimeVariableMap, Boolean>
-	compile(CompileEnvironment variableMap) {
-		var object1Supplier = object1.get().compile(variableMap);
+	@Override public @org.jetbrains.annotations.NotNull ScriptBooleanSupplier
+	compileBoolean(CompileEnvironment environment) {
+		var object1Supplier = object1.get().compile(environment);
 		var sign = compareSign;
-		var object2Supplier = object2.get().compile(variableMap);
+		var object2Supplier = object2.get().compile(environment);
 		return map->sign.compareObjects(object1Supplier.scriptApply(map), object2Supplier.scriptApply(map));
 	}
 }

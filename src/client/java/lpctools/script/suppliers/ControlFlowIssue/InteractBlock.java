@@ -2,7 +2,7 @@ package lpctools.script.suppliers.ControlFlowIssue;
 
 import lpctools.script.CompileEnvironment;
 import lpctools.script.IScriptWithSubScript;
-import lpctools.script.runtimeInterfaces.ScriptNotNullFunction;
+import lpctools.script.runtimeInterfaces.ScriptNotNullSupplier;
 import lpctools.script.suppliers.AbstractSupplierWithTypeDeterminedSubSuppliers;
 import lpctools.script.suppliers.BlockPos.ConstantBlockPos;
 import lpctools.script.suppliers.Boolean.ConstantBoolean;
@@ -34,13 +34,13 @@ public class InteractBlock extends AbstractSupplierWithTypeDeterminedSubSupplier
 	
 	@Override protected SupplierStorage<?>[] getSubSuppliers() {return subSuppliers;}
 	
-	@Override public @NotNull ScriptNotNullFunction<CompileEnvironment.RuntimeVariableMap, ControlFlowIssue>
-	compileNotNull(CompileEnvironment variableMap) {
-		var compiledUseOffhandSupplier = useOffhand.get().compileCheckedNotNull(variableMap);
-		var compiledPosSupplier = pos.get().compileCheckedNotNull(variableMap);
-		var compiledDirectionSupplier = direction.get().compileCheckedNotNull(variableMap);
-		var compiledBlockPosSupplier = blockPos.get().compileCheckedNotNull(variableMap);
-		var compiledInsideBlock = insideBlock.get().compileCheckedNotNull(variableMap);
+	@Override public @NotNull ScriptNotNullSupplier<ControlFlowIssue>
+	compileNotNull(CompileEnvironment environment) {
+		var compiledUseOffhandSupplier = useOffhand.get().compileCheckedNotNull(environment);
+		var compiledPosSupplier = pos.get().compileCheckedNotNull(environment);
+		var compiledDirectionSupplier = direction.get().compileCheckedNotNull(environment);
+		var compiledBlockPosSupplier = blockPos.get().compileCheckedNotNull(environment);
+		var compiledInsideBlock = insideBlock.get().compileCheckedNotNull(environment);
 		return map->{
 			var mc = MinecraftClient.getInstance();
 			var itm = mc.interactionManager;

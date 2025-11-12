@@ -7,7 +7,7 @@ import lpctools.script.CompileEnvironment;
 import lpctools.script.IScriptWithSubScript;
 import lpctools.script.editScreen.ScriptDisplayWidget;
 import lpctools.script.editScreen.WidthAutoAdjustTextField;
-import lpctools.script.runtimeInterfaces.ScriptNullableFunction;
+import lpctools.script.runtimeInterfaces.ScriptIntegerSupplier;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -16,19 +16,19 @@ import java.util.List;
 import static lpctools.lpcfymasaapi.LPCConfigUtils.warnFailedLoadingConfig;
 
 public class ConstantInteger extends AbstractScript implements IIntegerSupplier {
-	private @NotNull Integer value = 0;
+	private int value = 0;
 	protected @Nullable WidthAutoAdjustTextField textField;
 	public ConstantInteger(IScriptWithSubScript parent) {super(parent);}
-	@Override public @NotNull ScriptNullableFunction<CompileEnvironment.RuntimeVariableMap, Integer>
-	compile(CompileEnvironment variableMap) {
+	@Override public @NotNull ScriptIntegerSupplier
+	compileInteger(CompileEnvironment environment) {
 		final var cachedValue = value;
 		return map->cachedValue;
 	}
 	
-	public void setIntegerValue(@NotNull Integer value){
-		if(!this.value.equals(value)){
+	public void setIntegerValue(int value){
+		if(this.value != value){
 			this.value = value;
-			if(textField != null) textField.setText(value.toString());
+			if(textField != null) textField.setText(String.valueOf(value));
 		}
 	}
 	
@@ -46,10 +46,10 @@ public class ConstantInteger extends AbstractScript implements IIntegerSupplier 
 	private @NotNull WidthAutoAdjustTextField getTextField(){
 		if(textField == null){
 			textField = new WidthAutoAdjustTextField(
-				getDisplayWidget(), 100, value.toString(), text->{
-				try {value = Integer.valueOf(text);
+				getDisplayWidget(), 100, String.valueOf(value), text->{
+				try {value = Integer.parseInt(text);
 				} catch (NumberFormatException ignored) {}
-				textField.setText(value.toString());
+				textField.setText(String.valueOf(value));
 				applyToDisplayWidgetIfNotNull(ScriptDisplayWidget::markUpdateChain);
 			});
 		}

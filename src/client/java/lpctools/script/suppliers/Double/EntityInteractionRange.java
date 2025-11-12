@@ -2,8 +2,7 @@ package lpctools.script.suppliers.Double;
 
 import lpctools.script.CompileEnvironment;
 import lpctools.script.IScriptWithSubScript;
-import lpctools.script.exceptions.ScriptRuntimeException;
-import lpctools.script.runtimeInterfaces.ScriptNullableFunction;
+import lpctools.script.runtimeInterfaces.ScriptDoubleSupplier;
 import lpctools.script.suppliers.AbstractSupplierWithTypeDeterminedSubSuppliers;
 import lpctools.script.suppliers.Entity.PlayerEntity.MainPlayerEntity;
 import net.minecraft.entity.player.PlayerEntity;
@@ -19,13 +18,9 @@ public class EntityInteractionRange extends AbstractSupplierWithTypeDeterminedSu
 	
 	@Override protected SupplierStorage<?>[] getSubSuppliers() {return subSuppliers;}
 	
-	@Override public @NotNull ScriptNullableFunction<CompileEnvironment.RuntimeVariableMap, Double>
-	compile(CompileEnvironment variableMap) {
-		var compiledPlayerSupplier = player.get().compile(variableMap);
-		return map->{
-			PlayerEntity player = compiledPlayerSupplier.scriptApply(map);
-			if(player == null) throw ScriptRuntimeException.nullPointer(this);
-			return player.getEntityInteractionRange();
-		};
+	@Override public @NotNull ScriptDoubleSupplier
+	compileDouble(CompileEnvironment environment) {
+		var compiledPlayerSupplier = player.get().compileCheckedNotNull(environment);
+		return map->compiledPlayerSupplier.scriptApply(map).getEntityInteractionRange();
 	}
 }

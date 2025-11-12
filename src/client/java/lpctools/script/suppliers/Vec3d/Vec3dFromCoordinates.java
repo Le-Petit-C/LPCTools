@@ -2,8 +2,7 @@ package lpctools.script.suppliers.Vec3d;
 
 import lpctools.script.CompileEnvironment;
 import lpctools.script.IScriptWithSubScript;
-import lpctools.script.exceptions.ScriptRuntimeException;
-import lpctools.script.runtimeInterfaces.ScriptNullableFunction;
+import lpctools.script.runtimeInterfaces.ScriptNotNullSupplier;
 import lpctools.script.suppliers.AbstractSupplierWithTypeDeterminedSubSuppliers;
 import lpctools.script.suppliers.Double.ConstantDouble;
 import net.minecraft.text.Text;
@@ -23,19 +22,15 @@ public class Vec3dFromCoordinates extends AbstractSupplierWithTypeDeterminedSubS
 	
 	@Override protected SupplierStorage<?>[] getSubSuppliers(){ return subSuppliers; }
 	
-	@Override public @NotNull ScriptNullableFunction<CompileEnvironment.RuntimeVariableMap, Vec3d>
-	compile(CompileEnvironment variableMap) {
-		var compiledDouble1Supplier = x.get().compile(variableMap);
-		var compiledDouble2Supplier = y.get().compile(variableMap);
-		var compiledDouble3Supplier = z.get().compile(variableMap);
-		return map->{
-			var x = compiledDouble1Supplier.scriptApply(map);
-			if(x == null) throw ScriptRuntimeException.nullPointer(this);
-			var y = compiledDouble2Supplier.scriptApply(map);
-			if(y == null) throw ScriptRuntimeException.nullPointer(this);
-			var z = compiledDouble3Supplier.scriptApply(map);
-			if(z == null) throw ScriptRuntimeException.nullPointer(this);
-			return new Vec3d(x, y, z);
-		};
+	@Override public @NotNull ScriptNotNullSupplier<Vec3d>
+	compileNotNull(CompileEnvironment environment) {
+		var compiledDouble1Supplier = compileCheckedDouble(x.get(), environment);
+		var compiledDouble2Supplier = compileCheckedDouble(y.get(), environment);
+		var compiledDouble3Supplier = compileCheckedDouble(z.get(), environment);
+		return map->new Vec3d(
+			compiledDouble1Supplier.scriptApplyAsDouble(map),
+			compiledDouble2Supplier.scriptApplyAsDouble(map),
+			compiledDouble3Supplier.scriptApplyAsDouble(map)
+		);
 	}
 }

@@ -8,7 +8,7 @@ import lpctools.script.IScript;
 import lpctools.script.IScriptWithSubScript;
 import lpctools.script.editScreen.ScriptDisplayWidget;
 import lpctools.script.editScreen.WidthAutoAdjustTextField;
-import lpctools.script.runtimeInterfaces.ScriptNotNullFunction;
+import lpctools.script.runtimeInterfaces.ScriptNotNullSupplier;
 import lpctools.script.suppliers.AbstractSupplierWithTypeDeterminedSubSuppliers;
 import lpctools.script.suppliers.Random.Null;
 import net.minecraft.text.Text;
@@ -54,11 +54,11 @@ public class IterateArray extends AbstractSupplierWithTypeDeterminedSubSuppliers
 		return super.buildWidgets(res);
 	}
 	
-	@Override public @NotNull ScriptNotNullFunction<CompileEnvironment.RuntimeVariableMap, ControlFlowIssue>
-	compileNotNull(CompileEnvironment variableMap) {
-		var compiledIterableSupplier = array.get().compileCheckedNotNull(variableMap);
-		var compiledLoopBody = loopBody.compileCheckedNotNull(variableMap);
-		var variableRef = variableMap.getVariableReference(variableName);
+	@Override public @NotNull ScriptNotNullSupplier<ControlFlowIssue>
+	compileNotNull(CompileEnvironment environment) {
+		var compiledIterableSupplier = array.get().compileCheckedNotNull(environment);
+		var compiledLoopBody = loopBody.compileCheckedNotNull(environment);
+		var variableRef = environment.getVariableReference(variableName);
 		return map->{
 			var iterable = compiledIterableSupplier.scriptApply(map);
 			for(var v : iterable){

@@ -7,7 +7,7 @@ import lpctools.script.CompileEnvironment;
 import lpctools.script.IScriptWithSubScript;
 import lpctools.script.editScreen.ScriptDisplayWidget;
 import lpctools.script.editScreen.WidthAutoAdjustTextField;
-import lpctools.script.runtimeInterfaces.ScriptNullableFunction;
+import lpctools.script.runtimeInterfaces.ScriptDoubleSupplier;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -16,19 +16,19 @@ import java.util.List;
 import static lpctools.lpcfymasaapi.LPCConfigUtils.warnFailedLoadingConfig;
 
 public class ConstantDouble extends AbstractScript implements IDoubleSupplier {
-	private @NotNull Double value = 0.0;
+	private double value = 0.0;
 	protected @Nullable WidthAutoAdjustTextField textField = null;
 	public ConstantDouble(IScriptWithSubScript parent) {super(parent);}
-	@Override public @NotNull ScriptNullableFunction<CompileEnvironment.RuntimeVariableMap, Double>
-	compile(CompileEnvironment variableMap) {
+	@Override public @NotNull ScriptDoubleSupplier
+	compileDouble(CompileEnvironment environment) {
 		final var cachedValue = value;
 		return map->cachedValue;
 	}
 	
-	public void setDoubleValue(@NotNull Double value){
-		if(!this.value.equals(value)){
+	public void setDoubleValue(double value){
+		if(this.value != value){
 			this.value = value;
-			if(textField != null) textField.setText(value.toString());
+			if(textField != null) textField.setText(String.valueOf(value));
 		}
 	}
 	
@@ -46,10 +46,10 @@ public class ConstantDouble extends AbstractScript implements IDoubleSupplier {
 	private @NotNull WidthAutoAdjustTextField getTextField(){
 		if(textField == null){
 			textField = new WidthAutoAdjustTextField(
-				getDisplayWidget(), 100, value.toString(), text->{
-				try {value = Double.valueOf(text);
+				getDisplayWidget(), 100, String.valueOf(value), text->{
+				try {value = Double.parseDouble(text);
 				} catch (NumberFormatException ignored) {}
-				textField.setText(value.toString());
+				textField.setText(String.valueOf(value));
 				applyToDisplayWidgetIfNotNull(ScriptDisplayWidget::markUpdateChain);
 			});
 		}

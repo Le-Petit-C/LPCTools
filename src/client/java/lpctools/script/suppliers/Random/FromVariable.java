@@ -5,7 +5,7 @@ import com.google.gson.JsonPrimitive;
 import lpctools.script.*;
 import lpctools.script.editScreen.ScriptDisplayWidget;
 import lpctools.script.editScreen.WidthAutoAdjustTextField;
-import lpctools.script.runtimeInterfaces.ScriptNullableFunction;
+import lpctools.script.runtimeInterfaces.ScriptNullableSupplier;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -41,9 +41,9 @@ public class FromVariable<T> extends AbstractScript implements IRandomSupplier<T
 		return List.of(textField);
 	}
 	
-	@Override public @NotNull ScriptNullableFunction<CompileEnvironment.RuntimeVariableMap, Object>
-	compileRandom(CompileEnvironment variableMap) {
-		var variableRef = variableMap.getVariableReference(variableName);
+	@Override public @NotNull ScriptNullableSupplier<Object>
+	compileRandom(CompileEnvironment environment) {
+		var variableRef = environment.getVariableReference(variableName);
 		return variableRef::getValue;
 	}
 	

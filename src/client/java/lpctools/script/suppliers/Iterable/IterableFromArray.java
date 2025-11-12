@@ -2,8 +2,7 @@ package lpctools.script.suppliers.Iterable;
 
 import lpctools.script.CompileEnvironment;
 import lpctools.script.IScriptWithSubScript;
-import lpctools.script.exceptions.ScriptRuntimeException;
-import lpctools.script.runtimeInterfaces.ScriptNullableFunction;
+import lpctools.script.runtimeInterfaces.ScriptNotNullSupplier;
 import lpctools.script.suppliers.AbstractSupplierWithTypeDeterminedSubSuppliers;
 import lpctools.script.suppliers.Random.Null;
 import net.minecraft.text.Text;
@@ -19,13 +18,9 @@ public class IterableFromArray extends AbstractSupplierWithTypeDeterminedSubSupp
 	
 	@Override protected SupplierStorage<?>[] getSubSuppliers() {return subSuppliers;}
 	
-	@Override public @NotNull ScriptNullableFunction<CompileEnvironment.RuntimeVariableMap, ObjectIterable>
-	compile(CompileEnvironment variableMap) {
-		var compiledArraySupplier = array.get().compile(variableMap);
-		return map->{
-			var array = compiledArraySupplier.scriptApply(map);
-			if(array == null) throw ScriptRuntimeException.nullPointer(this);
-			return ObjectIterable.of(array);
-		};
+	@Override public @NotNull ScriptNotNullSupplier<ObjectIterable>
+	compileNotNull(CompileEnvironment environment) {
+		var compiledArraySupplier = array.get().compileCheckedNotNull(environment);
+		return map->ObjectIterable.of(compiledArraySupplier.scriptApply(map));
 	}
 }

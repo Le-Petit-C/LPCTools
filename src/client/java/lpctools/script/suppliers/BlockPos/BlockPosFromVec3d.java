@@ -2,8 +2,7 @@ package lpctools.script.suppliers.BlockPos;
 
 import lpctools.script.CompileEnvironment;
 import lpctools.script.IScriptWithSubScript;
-import lpctools.script.exceptions.ScriptRuntimeException;
-import lpctools.script.runtimeInterfaces.ScriptNullableFunction;
+import lpctools.script.runtimeInterfaces.ScriptNotNullSupplier;
 import lpctools.script.suppliers.AbstractSignResultSupplier;
 import lpctools.script.suppliers.Vec3d.ConstantVec3d;
 import lpctools.util.Functions;
@@ -21,14 +20,10 @@ public class BlockPosFromVec3d extends AbstractSignResultSupplier<Functions.Vec3
 	
 	@Override protected SupplierStorage<?>[] getSubSuppliers() {return subSuppliers;}
 	
-	@Override public @NotNull ScriptNullableFunction<CompileEnvironment.RuntimeVariableMap, BlockPos>
-	compile(CompileEnvironment variableMap) {
+	@Override public @NotNull ScriptNotNullSupplier<BlockPos>
+	compileNotNull(CompileEnvironment environment) {
 		var sign = compareSign;
-		var vecSupplier = vec.get().compile(variableMap);
-		return map->{
-			var vec = vecSupplier.scriptApply(map);
-			if(vec == null) throw ScriptRuntimeException.nullPointer(this);
-			return sign.blockPosFromVec3d(vec);
-		};
+		var vecSupplier = vec.get().compileCheckedNotNull(environment);
+		return map->sign.blockPosFromVec3d(vecSupplier.scriptApply(map));
 	}
 }

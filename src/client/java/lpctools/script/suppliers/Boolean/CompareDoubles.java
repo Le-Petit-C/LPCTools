@@ -2,8 +2,7 @@ package lpctools.script.suppliers.Boolean;
 
 import lpctools.script.CompileEnvironment;
 import lpctools.script.IScriptWithSubScript;
-import lpctools.script.exceptions.ScriptRuntimeException;
-import lpctools.script.runtimeInterfaces.ScriptNullableFunction;
+import lpctools.script.runtimeInterfaces.ScriptBooleanSupplier;
 import lpctools.script.suppliers.AbstractSignResultSupplier;
 import lpctools.script.suppliers.Double.ConstantDouble;
 import lpctools.util.Functions;
@@ -20,17 +19,11 @@ public class CompareDoubles extends AbstractSignResultSupplier<Functions.DoubleC
 	
 	@Override protected SupplierStorage<?>[] getSubSuppliers() {return subSuppliers;}
 	
-	@Override public @org.jetbrains.annotations.NotNull ScriptNullableFunction<CompileEnvironment.RuntimeVariableMap, Boolean>
-	compile(CompileEnvironment variableMap) {
-		var double1Supplier = double1.get().compile(variableMap);
+	@Override public @org.jetbrains.annotations.NotNull ScriptBooleanSupplier
+	compileBoolean(CompileEnvironment environment) {
+		var double1Supplier = compileCheckedDouble(double1.get(), environment);
 		var sign = compareSign;
-		var double2Supplier = double2.get().compile(variableMap);
-		return map->{
-			var double1 = double1Supplier.scriptApply(map);
-			if(double1 == null) throw ScriptRuntimeException.nullPointer(this);
-			var double2 = double2Supplier.scriptApply(map);
-			if(double2 == null) throw ScriptRuntimeException.nullPointer(this);
-			return sign.compareDoubles(double1, double2);
-		};
+		var double2Supplier = compileCheckedDouble(double2.get(), environment);
+		return map->sign.compareDoubles(double1Supplier.scriptApplyAsDouble(map), double2Supplier.scriptApplyAsDouble(map));
 	}
 }

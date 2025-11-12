@@ -2,8 +2,7 @@ package lpctools.script.suppliers.Integer;
 
 import lpctools.script.CompileEnvironment;
 import lpctools.script.IScriptWithSubScript;
-import lpctools.script.exceptions.ScriptRuntimeException;
-import lpctools.script.runtimeInterfaces.ScriptNullableFunction;
+import lpctools.script.runtimeInterfaces.ScriptIntegerSupplier;
 import lpctools.script.suppliers.AbstractSignResultSupplier;
 import lpctools.util.Functions;
 import net.minecraft.text.Text;
@@ -22,20 +21,12 @@ public class IntegerTriFunction extends AbstractSignResultSupplier<Functions.Int
 	
 	@Override protected SupplierStorage<?>[] getSubSuppliers() {return subSuppliers;}
 	
-	@Override public @NotNull ScriptNullableFunction<CompileEnvironment.RuntimeVariableMap, Integer>
-	compile(CompileEnvironment variableMap) {
+	@Override public @NotNull ScriptIntegerSupplier
+	compileInteger(CompileEnvironment environment) {
 		var sign = compareSign;
-		var integer1Supplier = integer1.get().compile(variableMap);
-		var integer2Supplier = integer2.get().compile(variableMap);
-		var integer3Supplier = integer3.get().compile(variableMap);
-		return map->{
-			var integer1 = integer1Supplier.scriptApply(map);
-			if(integer1 == null) throw ScriptRuntimeException.nullPointer(this);
-			var integer2 = integer2Supplier.scriptApply(map);
-			if(integer2 == null) throw ScriptRuntimeException.nullPointer(this);
-			var integer3 = integer3Supplier.scriptApply(map);
-			if(integer3 == null) throw ScriptRuntimeException.nullPointer(this);
-			return sign.apply3Integers(integer1, integer2, integer3);
-		};
+		var integer1Supplier = compileCheckedInteger(integer1.get(), environment);
+		var integer2Supplier = compileCheckedInteger(integer2.get(), environment);
+		var integer3Supplier = compileCheckedInteger(integer3.get(), environment);
+		return map->sign.apply3Integers(integer1Supplier.scriptApplyAsInt(map), integer2Supplier.scriptApplyAsInt(map), integer3Supplier.scriptApplyAsInt(map));
 	}
 }

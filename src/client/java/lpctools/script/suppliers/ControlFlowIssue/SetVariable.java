@@ -7,7 +7,7 @@ import lpctools.script.CompileEnvironment;
 import lpctools.script.IScriptWithSubScript;
 import lpctools.script.editScreen.ScriptDisplayWidget;
 import lpctools.script.editScreen.WidthAutoAdjustTextField;
-import lpctools.script.runtimeInterfaces.ScriptNotNullFunction;
+import lpctools.script.runtimeInterfaces.ScriptNotNullSupplier;
 import lpctools.script.suppliers.AbstractSupplierWithTypeDeterminedSubSuppliers;
 import lpctools.script.suppliers.Random.Null;
 import net.minecraft.entity.Entity;
@@ -51,10 +51,10 @@ public class SetVariable extends AbstractSupplierWithTypeDeterminedSubSuppliers 
 		return super.buildWidgets(res);
 	}
 	
-	@Override public @NotNull ScriptNotNullFunction<CompileEnvironment.RuntimeVariableMap, ControlFlowIssue>
-	compileNotNull(CompileEnvironment variableMap) {
-		var compiledEntitySupplier = value.get().compile(variableMap);
-		var variableRef = variableMap.getVariableReference(variableName);
+	@Override public @NotNull ScriptNotNullSupplier<ControlFlowIssue>
+	compileNotNull(CompileEnvironment environment) {
+		var compiledEntitySupplier = value.get().compile(environment);
+		var variableRef = environment.getVariableReference(variableName);
 		return map->{
 			Object object = compiledEntitySupplier.scriptApply(map);
 			variableRef.setValue(map, object);

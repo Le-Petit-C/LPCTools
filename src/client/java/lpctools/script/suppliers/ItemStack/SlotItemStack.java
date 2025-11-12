@@ -6,11 +6,9 @@ import com.google.gson.JsonPrimitive;
 import lpctools.script.CompileEnvironment;
 import lpctools.script.IScriptWithSubScript;
 import lpctools.script.editScreen.WidthAutoAdjustButtonGeneric;
-import lpctools.script.exceptions.ScriptRuntimeException;
-import lpctools.script.runtimeInterfaces.ScriptNotNullFunction;
+import lpctools.script.runtimeInterfaces.ScriptNotNullSupplier;
 import lpctools.script.suppliers.AbstractSupplierWithTypeDeterminedSubSuppliers;
 import lpctools.script.suppliers.Entity.PlayerEntity.MainPlayerEntity;
-import lpctools.script.suppliers.IScriptSupplierNotNull;
 import lpctools.script.utils.StackGetter;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.LivingEntity;
@@ -23,7 +21,7 @@ import java.util.ArrayList;
 
 import static lpctools.lpcfymasaapi.LPCConfigUtils.warnFailedLoadingConfig;
 
-public class SlotItemStack extends AbstractSupplierWithTypeDeterminedSubSuppliers implements IItemStackSupplier, IScriptSupplierNotNull<ItemStack> {
+public class SlotItemStack extends AbstractSupplierWithTypeDeterminedSubSuppliers implements IItemStackSupplier{
 	protected final SupplierStorage<Entity> entity = ofStorage(Entity.class, new MainPlayerEntity(this),
 		Text.translatable("lpctools.script.suppliers.ItemStack.slotItemStack.subSuppliers.entity.name"), "entity");
 	protected @NotNull StackGetter getter = StackGetter.values()[0];
@@ -66,13 +64,12 @@ public class SlotItemStack extends AbstractSupplierWithTypeDeterminedSubSupplier
 		}
 	}
 	
-	@Override public @NotNull ScriptNotNullFunction<CompileEnvironment.RuntimeVariableMap, ItemStack>
-	compileNotNull(CompileEnvironment variableMap) {
-		var compiledEntitySupplier = entity.get().compile(variableMap);
+	@Override public @NotNull ScriptNotNullSupplier<ItemStack>
+	compileNotNull(CompileEnvironment environment) {
+		var compiledEntitySupplier = entity.get().compileCheckedNotNull(environment);
 		return map->{
-			Entity entity = compiledEntitySupplier.scriptApply(map);
-			if(entity == null) throw ScriptRuntimeException.nullPointer(this);
-			if(entity instanceof LivingEntity livingEntity) return getter.getEntityStack(livingEntity);
+			if(compiledEntitySupplier.scriptApply(map) instanceof LivingEntity livingEntity)
+				return getter.getEntityStack(livingEntity);
 			else return ItemStack.EMPTY;
 		};
 	}

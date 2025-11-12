@@ -2,8 +2,7 @@ package lpctools.script.suppliers.Integer;
 
 import lpctools.script.CompileEnvironment;
 import lpctools.script.IScriptWithSubScript;
-import lpctools.script.exceptions.ScriptRuntimeException;
-import lpctools.script.runtimeInterfaces.ScriptNullableFunction;
+import lpctools.script.runtimeInterfaces.ScriptIntegerSupplier;
 import lpctools.script.suppliers.AbstractSignResultSupplier;
 import lpctools.script.suppliers.BlockPos.ConstantBlockPos;
 import lpctools.util.Functions;
@@ -20,14 +19,10 @@ public class IntegerFromBlockPos extends AbstractSignResultSupplier<Functions.In
 	
 	@Override protected SupplierStorage<?>[] getSubSuppliers() {return subSuppliers;}
 	
-	@Override public @NotNull ScriptNullableFunction<CompileEnvironment.RuntimeVariableMap, Integer>
-	compile(CompileEnvironment variableMap) {
+	@Override public @NotNull ScriptIntegerSupplier
+	compileInteger(CompileEnvironment environment) {
 		var sign = compareSign;
-		var posSupplier = pos.get().compile(variableMap);
-		return map->{
-			var pos = posSupplier.scriptApply(map);
-			if(pos == null) throw ScriptRuntimeException.nullPointer(this);
-			return sign.integerFromBlockPos(pos);
-		};
+		var posSupplier = pos.get().compileCheckedNotNull(environment);
+		return map->sign.integerFromBlockPos(posSupplier.scriptApply(map));
 	}
 }

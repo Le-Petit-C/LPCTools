@@ -2,8 +2,7 @@ package lpctools.script.suppliers.Vec3d;
 
 import lpctools.script.CompileEnvironment;
 import lpctools.script.IScriptWithSubScript;
-import lpctools.script.exceptions.ScriptRuntimeException;
-import lpctools.script.runtimeInterfaces.ScriptNullableFunction;
+import lpctools.script.runtimeInterfaces.ScriptNotNullSupplier;
 import lpctools.script.suppliers.AbstractSupplierWithTypeDeterminedSubSuppliers;
 import lpctools.script.suppliers.Entity.PlayerEntity.MainPlayerEntity;
 import net.minecraft.entity.Entity;
@@ -20,13 +19,9 @@ public class EntityEyePos extends AbstractSupplierWithTypeDeterminedSubSuppliers
 	
 	@Override protected SupplierStorage<?>[] getSubSuppliers() {return subSuppliers;}
 	
-	@Override public @NotNull ScriptNullableFunction<CompileEnvironment.RuntimeVariableMap, Vec3d>
-	compile(CompileEnvironment variableMap) {
-		var compiledEntitySupplier = entity.get().compile(variableMap);
-		return map->{
-			Entity entity = compiledEntitySupplier.scriptApply(map);
-			if(entity == null) throw ScriptRuntimeException.nullPointer(this);
-			return entity.getEyePos();
-		};
+	@Override public @NotNull ScriptNotNullSupplier<Vec3d>
+	compileNotNull(CompileEnvironment environment) {
+		var compiledEntitySupplier = entity.get().compileCheckedNotNull(environment);
+		return map->compiledEntitySupplier.scriptApply(map).getEyePos();
 	}
 }

@@ -6,7 +6,7 @@ import lpctools.script.AbstractScriptWithSubScript;
 import lpctools.script.CompileEnvironment;
 import lpctools.script.IScript;
 import lpctools.script.IScriptWithSubScript;
-import lpctools.script.runtimeInterfaces.ScriptNotNullFunction;
+import lpctools.script.runtimeInterfaces.ScriptNotNullSupplier;
 import lpctools.script.suppliers.Boolean.And;
 import net.minecraft.text.Text;
 import org.jetbrains.annotations.NotNull;
@@ -24,10 +24,10 @@ public class DoWhileLoop extends AbstractScriptWithSubScript implements IControl
 	
 	public DoWhileLoop(IScriptWithSubScript parent) {super(parent);}
 	
-	@Override public @NotNull ScriptNotNullFunction<CompileEnvironment.RuntimeVariableMap, ControlFlowIssue>
-	compileNotNull(CompileEnvironment variableMap) {
-		var compiled = loopBody.compileCheckedNotNull(variableMap);
-		var compiledCondition = condition.compileCheckedNotNull(variableMap);
+	@Override public @NotNull ScriptNotNullSupplier<ControlFlowIssue>
+	compileNotNull(CompileEnvironment environment) {
+		var compiled = loopBody.compileCheckedNotNull(environment);
+		var compiledCondition = condition.compileCheckedNotNull(environment);
 		return map->{
 			do {var flow = compiled.scriptApply(map);
 				if (flow.shouldBreak) return flow.applied();

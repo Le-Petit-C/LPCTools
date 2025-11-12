@@ -8,7 +8,7 @@ import lpctools.script.CompileEnvironment;
 import lpctools.script.IScriptWithSubScript;
 import lpctools.script.editScreen.ScriptDisplayWidget;
 import lpctools.script.editScreen.WidthAutoAdjustTextField;
-import lpctools.script.runtimeInterfaces.ScriptNullableFunction;
+import lpctools.script.runtimeInterfaces.ScriptNotNullSupplier;
 import net.minecraft.util.math.Vec3d;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -22,8 +22,8 @@ public class ConstantVec3d extends AbstractScript implements IVec3dSupplier {
 	private static final char[] valDesc = {'x', 'y', 'z'};
 	private WidthAutoAdjustTextField@Nullable [] textFields = null;
 	public ConstantVec3d(IScriptWithSubScript parent) {super(parent);}
-	@Override public @NotNull ScriptNullableFunction<CompileEnvironment.RuntimeVariableMap, Vec3d>
-	compile(CompileEnvironment variableMap) {
+	@Override public @NotNull ScriptNotNullSupplier<Vec3d>
+	compileNotNull(CompileEnvironment environment) {
 		Vec3d res = new Vec3d(val[0], val[1], val[2]);
 		return map->res;
 	}

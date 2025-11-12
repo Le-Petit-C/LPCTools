@@ -2,8 +2,7 @@ package lpctools.script.suppliers.Double;
 
 import lpctools.script.CompileEnvironment;
 import lpctools.script.IScriptWithSubScript;
-import lpctools.script.exceptions.ScriptRuntimeException;
-import lpctools.script.runtimeInterfaces.ScriptNullableFunction;
+import lpctools.script.runtimeInterfaces.ScriptDoubleSupplier;
 import lpctools.script.suppliers.AbstractSupplierWithTypeDeterminedSubSuppliers;
 import lpctools.script.suppliers.Integer.ConstantInteger;
 import net.minecraft.text.Text;
@@ -18,13 +17,9 @@ public class DoubleFromInteger extends AbstractSupplierWithTypeDeterminedSubSupp
 	
 	@Override protected SupplierStorage<?>[] getSubSuppliers() {return subSuppliers;}
 	
-	@Override public @NotNull ScriptNullableFunction<CompileEnvironment.RuntimeVariableMap, Double>
-	compile(CompileEnvironment variableMap) {
-		var compiledIntegerSupplier = integer.get().compile(variableMap);
-		return map->{
-			var integer = compiledIntegerSupplier.scriptApply(map);
-			if(integer == null) throw ScriptRuntimeException.nullPointer(this);
-			return Double.valueOf(integer);
-		};
+	@Override public @NotNull ScriptDoubleSupplier
+	compileDouble(CompileEnvironment environment) {
+		var compiledIntegerSupplier = compileCheckedInteger(integer.get(), environment);
+		return map->(double)compiledIntegerSupplier.scriptApplyAsInt(map);
 	}
 }

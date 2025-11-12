@@ -6,7 +6,7 @@ import fi.dy.masa.malilib.gui.button.ButtonGeneric;
 import lpctools.script.AbstractScript;
 import lpctools.script.CompileEnvironment;
 import lpctools.script.IScriptWithSubScript;
-import lpctools.script.runtimeInterfaces.ScriptNullableFunction;
+import lpctools.script.runtimeInterfaces.ScriptDoubleSupplier;
 import lpctools.util.Functions;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -47,10 +47,9 @@ public class DoubleConstant extends AbstractScript implements IDoubleSupplier {
 		else warnFailedLoadingConfig("DoubleConstant", element);
 	}
 	
-	@Override public @NotNull ScriptNullableFunction<CompileEnvironment.RuntimeVariableMap, Double>
-	compile(CompileEnvironment variableMap) {
-		//noinspection WrapperTypeMayBePrimitive
-		Double val = sign.getDouble();
+	@Override public @NotNull ScriptDoubleSupplier
+	compileDouble(CompileEnvironment environment) {
+		double val = sign.getDouble();
 		return map->val;
 	}
 }

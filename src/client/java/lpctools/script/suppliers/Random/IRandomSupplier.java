@@ -2,14 +2,14 @@ package lpctools.script.suppliers.Random;
 
 import lpctools.script.CompileEnvironment;
 import lpctools.script.exceptions.ScriptRuntimeException;
-import lpctools.script.runtimeInterfaces.ScriptNullableFunction;
+import lpctools.script.runtimeInterfaces.ScriptNullableSupplier;
 import lpctools.script.suppliers.IScriptSupplier;
 import org.jetbrains.annotations.NotNull;
 
 public interface IRandomSupplier<T> extends IScriptSupplier<T> {
-	@Override default @NotNull ScriptNullableFunction<CompileEnvironment.RuntimeVariableMap, T>
-	compile(CompileEnvironment variableMap){
-		var func = compileRandom(variableMap);
+	@Override default @NotNull ScriptNullableSupplier<T>
+	compile(CompileEnvironment environment){
+		var func = compileRandom(environment);
 		var targetClass = getSuppliedClass();
 		if(targetClass != Object.class) return runtimeVariableMap->{
 			var res = func.scriptApply(runtimeVariableMap);
@@ -19,8 +19,8 @@ public interface IRandomSupplier<T> extends IScriptSupplier<T> {
 			else throw ScriptRuntimeException.notInstanceOf(this, res, targetClass);
 		};
 		else //noinspection unchecked
-			return (ScriptNullableFunction<CompileEnvironment.RuntimeVariableMap, T>) func;
+			return (ScriptNullableSupplier<T>) func;
 	}
-	@NotNull ScriptNullableFunction<CompileEnvironment.RuntimeVariableMap, Object>
-	compileRandom(CompileEnvironment variableMap);
+	@NotNull ScriptNullableSupplier<Object>
+	compileRandom(CompileEnvironment environment);
 }

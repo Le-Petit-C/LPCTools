@@ -2,8 +2,7 @@ package lpctools.script.suppliers.Double;
 
 import lpctools.script.CompileEnvironment;
 import lpctools.script.IScriptWithSubScript;
-import lpctools.script.exceptions.ScriptRuntimeException;
-import lpctools.script.runtimeInterfaces.ScriptNullableFunction;
+import lpctools.script.runtimeInterfaces.ScriptDoubleSupplier;
 import lpctools.script.suppliers.AbstractSignResultSupplier;
 import lpctools.util.Functions;
 import net.minecraft.text.Text;
@@ -18,14 +17,10 @@ public class DoubleFunction extends AbstractSignResultSupplier<Functions.DoubleF
 	
 	@Override protected SupplierStorage<?>[] getSubSuppliers() {return subSuppliers;}
 	
-	@Override public @NotNull ScriptNullableFunction<CompileEnvironment.RuntimeVariableMap, Double>
-	compile(CompileEnvironment variableMap) {
+	@Override public @NotNull ScriptDoubleSupplier
+	compileDouble(CompileEnvironment environment) {
 		var sign = compareSign;
-		var doubleSupplier = _double.get().compile(variableMap);
-		return map->{
-			var _double = doubleSupplier.scriptApply(map);
-			if(_double == null) throw ScriptRuntimeException.nullPointer(this);
-			return sign.applyDouble(_double);
-		};
+		var doubleSupplier = compileCheckedDouble(_double.get(), environment);
+		return map->sign.applyDouble(doubleSupplier.scriptApplyAsDouble(map));
 	}
 }

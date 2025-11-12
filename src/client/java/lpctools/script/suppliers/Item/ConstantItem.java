@@ -8,7 +8,7 @@ import lpctools.script.AbstractScript;
 import lpctools.script.CompileEnvironment;
 import lpctools.script.IScriptWithSubScript;
 import lpctools.script.editScreen.WidthAutoAdjustButtonGeneric;
-import lpctools.script.runtimeInterfaces.ScriptNullableFunction;
+import lpctools.script.runtimeInterfaces.ScriptNotNullSupplier;
 import lpctools.util.DataUtils;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.item.Item;
@@ -25,8 +25,11 @@ public class ConstantItem extends AbstractScript implements IItemSupplier {
 	private @Nullable ItemButton itemButton;
 	private @Nullable WidthAutoAdjustButtonGeneric selectButton;
 	public ConstantItem(IScriptWithSubScript parent) {super(parent);}
-	@Override public @NotNull ScriptNullableFunction<CompileEnvironment.RuntimeVariableMap, Item>
-	compile(CompileEnvironment variableMap) {return map->item;}
+	@Override public @NotNull ScriptNotNullSupplier<Item>
+	compileNotNull(CompileEnvironment environment) {
+		var item = this.item;
+		return map->item;
+	}
 	
 	@Override public @Nullable JsonElement getAsJsonElement() {return new JsonPrimitive(DataUtils.getItemId(item));}
 	@Override public void setValueFromJsonElement(@Nullable JsonElement element) {

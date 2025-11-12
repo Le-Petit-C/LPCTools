@@ -2,8 +2,7 @@ package lpctools.script.suppliers.Vec3d;
 
 import lpctools.script.CompileEnvironment;
 import lpctools.script.IScriptWithSubScript;
-import lpctools.script.exceptions.ScriptRuntimeException;
-import lpctools.script.runtimeInterfaces.ScriptNullableFunction;
+import lpctools.script.runtimeInterfaces.ScriptNotNullSupplier;
 import lpctools.script.suppliers.AbstractSupplierWithTypeDeterminedSubSuppliers;
 import lpctools.script.suppliers.BlockPos.ConstantBlockPos;
 import net.minecraft.text.Text;
@@ -20,13 +19,9 @@ public class Vec3dFromBlockPos extends AbstractSupplierWithTypeDeterminedSubSupp
 	
 	@Override protected SupplierStorage<?>[] getSubSuppliers(){ return subSuppliers; }
 	
-	@Override public @NotNull ScriptNullableFunction<CompileEnvironment.RuntimeVariableMap, Vec3d>
-	compile(CompileEnvironment variableMap) {
-		var compiledEntitySupplier = blockPos.get().compile(variableMap);
-		return map->{
-			BlockPos pos = compiledEntitySupplier.scriptApply(map);
-			if(pos == null) throw ScriptRuntimeException.nullPointer(this);
-			return Vec3d.of(pos);
-		};
+	@Override public @NotNull ScriptNotNullSupplier<Vec3d>
+	compileNotNull(CompileEnvironment environment) {
+		var compiledEntitySupplier = blockPos.get().compileCheckedNotNull(environment);
+		return map->Vec3d.of(compiledEntitySupplier.scriptApply(map));
 	}
 }

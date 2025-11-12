@@ -2,8 +2,7 @@ package lpctools.script.suppliers.Boolean;
 
 import lpctools.script.CompileEnvironment;
 import lpctools.script.IScriptWithSubScript;
-import lpctools.script.exceptions.ScriptRuntimeException;
-import lpctools.script.runtimeInterfaces.ScriptNullableFunction;
+import lpctools.script.runtimeInterfaces.ScriptBooleanSupplier;
 import lpctools.script.suppliers.AbstractSupplierWithTypeDeterminedSubSuppliers;
 import lpctools.script.suppliers.BlockPos.ConstantBlockPos;
 import lpctools.util.BlockUtils;
@@ -21,16 +20,12 @@ public class CanBreakInstantly extends AbstractSupplierWithTypeDeterminedSubSupp
 	
 	@Override protected SupplierStorage<?>[] getSubSuppliers() {return subSuppliers;}
 	
-	@Override public @org.jetbrains.annotations.NotNull ScriptNullableFunction<CompileEnvironment.RuntimeVariableMap, Boolean>
-	compile(CompileEnvironment variableMap) {
-		var booleanSupplier = blockPos.get().compile(variableMap);
+	@Override public @org.jetbrains.annotations.NotNull ScriptBooleanSupplier
+	compileBoolean(CompileEnvironment environment) {
+		var booleanSupplier = blockPos.get().compileCheckedNotNull(environment);
 		return map->{
 			ClientPlayerEntity player = MinecraftClient.getInstance().player;
-			if(player != null) {
-				var pos = booleanSupplier.scriptApply(map);
-				if(pos == null) throw ScriptRuntimeException.nullPointer(this);
-				return BlockUtils.canBreakInstantly(player, pos);
-			}
+			if(player != null) return BlockUtils.canBreakInstantly(player, booleanSupplier.scriptApply(map));
 			else return false;
 		};
 	}

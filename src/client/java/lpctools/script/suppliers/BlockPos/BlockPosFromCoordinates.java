@@ -2,8 +2,7 @@ package lpctools.script.suppliers.BlockPos;
 
 import lpctools.script.CompileEnvironment;
 import lpctools.script.IScriptWithSubScript;
-import lpctools.script.exceptions.ScriptRuntimeException;
-import lpctools.script.runtimeInterfaces.ScriptNullableFunction;
+import lpctools.script.runtimeInterfaces.ScriptNotNullSupplier;
 import lpctools.script.suppliers.AbstractSupplierWithTypeDeterminedSubSuppliers;
 import lpctools.script.suppliers.Integer.ConstantInteger;
 import net.minecraft.text.Text;
@@ -23,19 +22,11 @@ public class BlockPosFromCoordinates extends AbstractSupplierWithTypeDeterminedS
 	
 	@Override protected SupplierStorage<?>[] getSubSuppliers() {return subSuppliers;}
 	
-	@Override public @NotNull ScriptNullableFunction<CompileEnvironment.RuntimeVariableMap, BlockPos>
-	compile(CompileEnvironment variableMap) {
-		var compiledXSupplier = x.get().compile(variableMap);
-		var compiledYSupplier = y.get().compile(variableMap);
-		var compiledZSupplier = z.get().compile(variableMap);
-		return map->{
-			var x = compiledXSupplier.scriptApply(map);
-			if(x == null) throw ScriptRuntimeException.nullPointer(this);
-			var y = compiledYSupplier.scriptApply(map);
-			if(y == null) throw ScriptRuntimeException.nullPointer(this);
-			var z = compiledZSupplier.scriptApply(map);
-			if(z == null) throw ScriptRuntimeException.nullPointer(this);
-			return new BlockPos(x, y, z);
-		};
+	@Override public @NotNull ScriptNotNullSupplier<BlockPos>
+	compileNotNull(CompileEnvironment environment) {
+		var compiledXSupplier = x.get().compileCheckedNotNull(environment);
+		var compiledYSupplier = y.get().compileCheckedNotNull(environment);
+		var compiledZSupplier = z.get().compileCheckedNotNull(environment);
+		return map->new BlockPos(compiledXSupplier.scriptApply(map), compiledYSupplier.scriptApply(map), compiledZSupplier.scriptApply(map));
 	}
 }

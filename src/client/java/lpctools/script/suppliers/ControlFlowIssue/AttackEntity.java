@@ -2,7 +2,7 @@ package lpctools.script.suppliers.ControlFlowIssue;
 
 import lpctools.script.CompileEnvironment;
 import lpctools.script.IScriptWithSubScript;
-import lpctools.script.runtimeInterfaces.ScriptNotNullFunction;
+import lpctools.script.runtimeInterfaces.ScriptNotNullSupplier;
 import lpctools.script.suppliers.AbstractSupplierWithTypeDeterminedSubSuppliers;
 import lpctools.script.suppliers.Entity.PlayerEntity.MainPlayerEntity;
 import net.minecraft.client.MinecraftClient;
@@ -19,9 +19,9 @@ public class AttackEntity extends AbstractSupplierWithTypeDeterminedSubSuppliers
 	
 	@Override protected SupplierStorage<?>[] getSubSuppliers() {return subSuppliers;}
 	
-	@Override public @NotNull ScriptNotNullFunction<CompileEnvironment.RuntimeVariableMap, ControlFlowIssue>
-	compileNotNull(CompileEnvironment variableMap) {
-		var compiledEntitySupplier = entity.get().compileCheckedNotNull(variableMap);
+	@Override public @NotNull ScriptNotNullSupplier<ControlFlowIssue>
+	compileNotNull(CompileEnvironment environment) {
+		var compiledEntitySupplier = entity.get().compileCheckedNotNull(environment);
 		return map->{
 			var mc = MinecraftClient.getInstance();
 			var itm = mc.interactionManager;

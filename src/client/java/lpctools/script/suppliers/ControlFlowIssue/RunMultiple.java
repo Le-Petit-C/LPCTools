@@ -4,7 +4,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import lpctools.script.CompileEnvironment;
 import lpctools.script.IScriptWithSubScript;
-import lpctools.script.runtimeInterfaces.ScriptNotNullFunction;
+import lpctools.script.runtimeInterfaces.ScriptNotNullSupplier;
 import lpctools.script.suppliers.AbstractSupplierWithSubScriptMutable;
 import net.minecraft.text.Text;
 import org.jetbrains.annotations.NotNull;
@@ -26,10 +26,10 @@ public class RunMultiple extends AbstractSupplierWithSubScriptMutable<ControlFlo
 	public RunMultiple(IScriptWithSubScript parent) {this(parent, null);}
 	
 	@Override public Class<ControlFlowIssue> getArgumentClass() {return ControlFlowIssue.class;}
-	@Override public @NotNull ScriptNotNullFunction<CompileEnvironment.RuntimeVariableMap, ControlFlowIssue>
-	compileNotNull(CompileEnvironment variableMap) {
-		ArrayList<ScriptNotNullFunction<CompileEnvironment.RuntimeVariableMap, ? extends ControlFlowIssue>> compiledSubRunners = new ArrayList<>();
-		for(var sub : getSubScripts()) compiledSubRunners.add(sub.compileCheckedNotNull(variableMap));
+	@Override public @NotNull ScriptNotNullSupplier<ControlFlowIssue>
+	compileNotNull(CompileEnvironment environment) {
+		ArrayList<ScriptNotNullSupplier<? extends ControlFlowIssue>> compiledSubRunners = new ArrayList<>();
+		for(var sub : getSubScripts()) compiledSubRunners.add(sub.compileCheckedNotNull(environment));
 		return map-> {
 			for(var runnable : compiledSubRunners){
 				var issue = runnable.scriptApply(map);

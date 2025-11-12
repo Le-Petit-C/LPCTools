@@ -2,8 +2,7 @@ package lpctools.script.suppliers.BlockPos;
 
 import lpctools.script.CompileEnvironment;
 import lpctools.script.IScriptWithSubScript;
-import lpctools.script.exceptions.ScriptRuntimeException;
-import lpctools.script.runtimeInterfaces.ScriptNullableFunction;
+import lpctools.script.runtimeInterfaces.ScriptNotNullSupplier;
 import lpctools.script.suppliers.AbstractSupplierWithTypeDeterminedSubSuppliers;
 import lpctools.script.suppliers.Direction.ConstantDirection;
 import net.minecraft.text.Text;
@@ -20,13 +19,9 @@ public class DirectionVector extends AbstractSupplierWithTypeDeterminedSubSuppli
 	
 	@Override protected SupplierStorage<?>[] getSubSuppliers() {return subSuppliers;}
 	
-	@Override public @NotNull ScriptNullableFunction<CompileEnvironment.RuntimeVariableMap, BlockPos>
-	compile(CompileEnvironment variableMap) {
-		var compiledEntitySupplier = direction.get().compile(variableMap);
-		return map->{
-			Direction direction = compiledEntitySupplier.scriptApply(map);
-			if(direction == null) throw ScriptRuntimeException.nullPointer(this);
-			return new BlockPos(direction.getVector());
-		};
+	@Override public @NotNull ScriptNotNullSupplier<BlockPos>
+	compileNotNull(CompileEnvironment environment) {
+		var compiledEntitySupplier = direction.get().compileCheckedNotNull(environment);
+		return map->new BlockPos(compiledEntitySupplier.scriptApply(map).getVector());
 	}
 }

@@ -2,8 +2,7 @@ package lpctools.script.suppliers.Double;
 
 import lpctools.script.CompileEnvironment;
 import lpctools.script.IScriptWithSubScript;
-import lpctools.script.exceptions.ScriptRuntimeException;
-import lpctools.script.runtimeInterfaces.ScriptNullableFunction;
+import lpctools.script.runtimeInterfaces.ScriptDoubleSupplier;
 import lpctools.script.suppliers.AbstractSignResultSupplier;
 import lpctools.util.Functions;
 import net.minecraft.text.Text;
@@ -20,17 +19,11 @@ public class DoubleBiFunction extends AbstractSignResultSupplier<Functions.Doubl
 	
 	@Override protected SupplierStorage<?>[] getSubSuppliers() {return subSuppliers;}
 	
-	@Override public @NotNull ScriptNullableFunction<CompileEnvironment.RuntimeVariableMap, Double>
-	compile(CompileEnvironment variableMap) {
+	@Override public @NotNull ScriptDoubleSupplier
+	compileDouble(CompileEnvironment environment) {
 		var sign = compareSign;
-		var double1Supplier = double1.get().compile(variableMap);
-		var double2Supplier = double2.get().compile(variableMap);
-		return map->{
-			var double1 = double1Supplier.scriptApply(map);
-			if(double1 == null) throw ScriptRuntimeException.nullPointer(this);
-			var double2 = double2Supplier.scriptApply(map);
-			if(double2 == null) throw ScriptRuntimeException.nullPointer(this);
-			return sign.apply2Doubles(double1, double2);
-		};
+		var double1Supplier = compileCheckedDouble(double1.get(), environment);
+		var double2Supplier = compileCheckedDouble(double2.get(), environment);
+		return map->sign.apply2Doubles(double1Supplier.scriptApplyAsDouble(map), double2Supplier.scriptApplyAsDouble(map));
 	}
 }

@@ -6,7 +6,7 @@ import lpctools.script.AbstractScriptWithSubScript;
 import lpctools.script.CompileEnvironment;
 import lpctools.script.IScript;
 import lpctools.script.IScriptWithSubScript;
-import lpctools.script.runtimeInterfaces.ScriptNotNullFunction;
+import lpctools.script.runtimeInterfaces.ScriptNotNullSupplier;
 import lpctools.script.suppliers.Boolean.And;
 import net.minecraft.text.Text;
 import org.jetbrains.annotations.NotNull;
@@ -24,10 +24,10 @@ public class WhileLoop extends AbstractScriptWithSubScript implements IControlFl
 	
 	public WhileLoop(IScriptWithSubScript parent) {super(parent);}
 	
-	@Override public @NotNull ScriptNotNullFunction<CompileEnvironment.RuntimeVariableMap, ControlFlowIssue>
-	compileNotNull(CompileEnvironment variableMap) {
-		var compiledCondition = condition.compileCheckedNotNull(variableMap);
-		var compiled = loopBody.compileCheckedNotNull(variableMap);
+	@Override public @NotNull ScriptNotNullSupplier<ControlFlowIssue>
+	compileNotNull(CompileEnvironment environment) {
+		var compiledCondition = condition.compileCheckedNotNull(environment);
+		var compiled = loopBody.compileCheckedNotNull(environment);
 		return map->{
 			while (compiledCondition.scriptApply(map)) {
 				var flow = compiled.scriptApply(map);

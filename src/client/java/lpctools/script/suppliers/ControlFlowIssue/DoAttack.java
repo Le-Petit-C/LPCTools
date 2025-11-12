@@ -5,15 +5,15 @@ import lpctools.mixin.client.BlockReplaceAction;
 import lpctools.script.AbstractScript;
 import lpctools.script.CompileEnvironment;
 import lpctools.script.IScriptWithSubScript;
-import lpctools.script.runtimeInterfaces.ScriptNotNullFunction;
+import lpctools.script.runtimeInterfaces.ScriptNotNullSupplier;
 import net.minecraft.client.MinecraftClient;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class DoAttack extends AbstractScript implements IControlFlowSupplier {
 	public DoAttack(IScriptWithSubScript parent) {super(parent);}
-	@Override public @NotNull ScriptNotNullFunction<CompileEnvironment.RuntimeVariableMap, ControlFlowIssue>
-	compileNotNull(CompileEnvironment variableMap) {
+	@Override public @NotNull ScriptNotNullSupplier<ControlFlowIssue>
+	compileNotNull(CompileEnvironment environment) {
 		return map->{
 			((BlockReplaceAction) MinecraftClient.getInstance()).invokeDoAttack();
 			return ControlFlowIssue.NO_ISSUE;

@@ -1,7 +1,7 @@
 package lpctools.script.suppliers.Integer;
 
-import lpctools.script.suppliers.IScriptSupplier;
+import lpctools.script.suppliers.IScriptSupplierInteger;
 
-public interface IIntegerSupplier extends IScriptSupplier<Integer> {
+public interface IIntegerSupplier extends IScriptSupplierInteger {
 	@Override default Class<? extends Integer> getSuppliedClass(){return Integer.class;}
 }

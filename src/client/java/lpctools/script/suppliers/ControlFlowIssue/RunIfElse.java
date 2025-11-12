@@ -3,7 +3,7 @@ package lpctools.script.suppliers.ControlFlowIssue;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import lpctools.script.*;
-import lpctools.script.runtimeInterfaces.ScriptNotNullFunction;
+import lpctools.script.runtimeInterfaces.ScriptNotNullSupplier;
 import lpctools.script.suppliers.Boolean.And;
 import net.minecraft.text.Text;
 import org.jetbrains.annotations.NotNull;
@@ -23,11 +23,11 @@ public class RunIfElse extends AbstractScriptWithSubScript implements IControlFl
 	
 	public RunIfElse(IScriptWithSubScript parent) {super(parent);}
 	
-	@Override public @org.jetbrains.annotations.NotNull ScriptNotNullFunction<CompileEnvironment.RuntimeVariableMap, ControlFlowIssue>
-	compileNotNull(CompileEnvironment variableMap) {
-		var compiledCondition = condition.compileCheckedNotNull(variableMap);
-		var compiledIfTrue = ifTrue.compileCheckedNotNull(variableMap);
-		var compiledIfFalse = ifFalse.compileCheckedNotNull(variableMap);
+	@Override public @org.jetbrains.annotations.NotNull ScriptNotNullSupplier<ControlFlowIssue>
+	compileNotNull(CompileEnvironment environment) {
+		var compiledCondition = condition.compileCheckedNotNull(environment);
+		var compiledIfTrue = ifTrue.compileCheckedNotNull(environment);
+		var compiledIfFalse = ifFalse.compileCheckedNotNull(environment);
 		return map->(compiledCondition.scriptApply(map) ? compiledIfTrue : compiledIfFalse).scriptApply(map);
 	}
 	

@@ -6,7 +6,7 @@ import fi.dy.masa.malilib.gui.button.ButtonGeneric;
 import lpctools.script.AbstractScript;
 import lpctools.script.CompileEnvironment;
 import lpctools.script.IScriptWithSubScript;
-import lpctools.script.runtimeInterfaces.ScriptNullableFunction;
+import lpctools.script.runtimeInterfaces.ScriptNotNullSupplier;
 import net.minecraft.util.math.Direction;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -19,8 +19,8 @@ public class ConstantDirection extends AbstractScript implements IDirectionSuppl
 	Direction value = Direction.UP;
 	private @Nullable ButtonGeneric switchButton = null;
 	public ConstantDirection(IScriptWithSubScript parent) {super(parent);}
-	@Override public @NotNull ScriptNullableFunction<CompileEnvironment.RuntimeVariableMap, Direction>
-	compile(CompileEnvironment variableMap) {
+	@Override public @NotNull ScriptNotNullSupplier<Direction>
+	compileNotNull(CompileEnvironment environment) {
 		final var cachedValue = value;
 		return map->cachedValue;
 	}

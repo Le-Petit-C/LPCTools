@@ -7,7 +7,7 @@ import fi.dy.masa.malilib.gui.button.ConfigButtonBoolean;
 import lpctools.script.AbstractScript;
 import lpctools.script.CompileEnvironment;
 import lpctools.script.IScriptWithSubScript;
-import lpctools.script.runtimeInterfaces.ScriptNullableFunction;
+import lpctools.script.runtimeInterfaces.ScriptBooleanSupplier;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -17,8 +17,8 @@ public class ConstantBoolean extends AbstractScript implements IBooleanSupplier 
 	public final IConfigBoolean value = new ConfigBoolean("ConstantBoolean.value", false);
 	private @Nullable ConfigButtonBoolean button = null;
 	public ConstantBoolean(IScriptWithSubScript parent) {super(parent);}
-	@Override public @NotNull ScriptNullableFunction<CompileEnvironment.RuntimeVariableMap, Boolean>
-	compile(CompileEnvironment variableMap) {
+	@Override public @NotNull ScriptBooleanSupplier
+	compileBoolean(CompileEnvironment environment) {
 		boolean cachedValue = value.getBooleanValue();
 		return map->cachedValue;
 	}

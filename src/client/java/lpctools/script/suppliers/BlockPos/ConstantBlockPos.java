@@ -8,7 +8,7 @@ import lpctools.script.CompileEnvironment;
 import lpctools.script.IScriptWithSubScript;
 import lpctools.script.editScreen.ScriptDisplayWidget;
 import lpctools.script.editScreen.WidthAutoAdjustTextField;
-import lpctools.script.runtimeInterfaces.ScriptNullableFunction;
+import lpctools.script.runtimeInterfaces.ScriptNotNullSupplier;
 import net.minecraft.util.math.BlockPos;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -22,8 +22,8 @@ public class ConstantBlockPos extends AbstractScript implements IBlockPosSupplie
 	private static final char[] valDesc = {'x', 'y', 'z'};
 	private WidthAutoAdjustTextField @Nullable [] textFields = null;
 	public ConstantBlockPos(IScriptWithSubScript parent) {super(parent);}
-	@Override public @NotNull ScriptNullableFunction<CompileEnvironment.RuntimeVariableMap, BlockPos>
-	compile(CompileEnvironment variableMap) {
+	@Override public @NotNull ScriptNotNullSupplier<BlockPos>
+	compileNotNull(CompileEnvironment environment) {
 		BlockPos res = new BlockPos(val[0], val[1], val[2]);
 		return map->res;
 	}

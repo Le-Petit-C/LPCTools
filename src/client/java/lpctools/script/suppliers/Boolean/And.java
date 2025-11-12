@@ -4,8 +4,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import lpctools.script.CompileEnvironment;
 import lpctools.script.IScriptWithSubScript;
-import lpctools.script.exceptions.ScriptRuntimeException;
-import lpctools.script.runtimeInterfaces.ScriptNullableFunction;
+import lpctools.script.runtimeInterfaces.ScriptBooleanSupplier;
 import lpctools.script.suppliers.AbstractSupplierWithSubScriptMutable;
 import net.minecraft.text.Text;
 import org.jetbrains.annotations.NotNull;
@@ -16,7 +15,7 @@ import java.util.List;
 
 import static lpctools.lpcfymasaapi.LPCConfigUtils.warnFailedLoadingConfig;
 
-public class And extends AbstractSupplierWithSubScriptMutable<Boolean, Boolean> implements IBooleanSupplier {
+public class And extends AbstractSupplierWithSubScriptMutable<Boolean, Boolean> implements IBooleanSupplier{
 	private @Nullable Iterable<?> widgets;
 	public final @Nullable Text name;
 	
@@ -27,16 +26,13 @@ public class And extends AbstractSupplierWithSubScriptMutable<Boolean, Boolean> 
 	public And(IScriptWithSubScript parent) {this(parent, null);}
 	
 	@Override public Class<Boolean> getArgumentClass() {return Boolean.class;}
-	@Override public @NotNull ScriptNullableFunction<CompileEnvironment.RuntimeVariableMap, Boolean>
-	compile(CompileEnvironment variableMap) {
-		ArrayList<ScriptNullableFunction<CompileEnvironment.RuntimeVariableMap, ? extends Boolean>> compiledSubRunners = new ArrayList<>();
-		for(var sub : getSubScripts()) compiledSubRunners.add(sub.compile(variableMap));
+	@Override public @NotNull ScriptBooleanSupplier
+	compileBoolean(CompileEnvironment environment) {
+		ArrayList<ScriptBooleanSupplier> compiledSubRunners = new ArrayList<>();
+		for(var sub : getSubScripts()) compiledSubRunners.add(compileCheckedBoolean(sub, environment));
 		return map->{
-			for(var runnable : compiledSubRunners){
-				Boolean val = runnable.scriptApply(map);
-				if(val == null) throw ScriptRuntimeException.nullPointer(this);
-				if(!val) return false;
-			}
+			for(var runnable : compiledSubRunners)
+				if(!runnable.scriptApplyAsBoolean(map)) return false;
 			return true;
 		};
 	}

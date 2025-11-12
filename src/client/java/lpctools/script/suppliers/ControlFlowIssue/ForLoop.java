@@ -7,7 +7,7 @@ import lpctools.script.CompileEnvironment;
 import lpctools.script.IScript;
 import lpctools.script.IScriptWithSubScript;
 import lpctools.script.exceptions.ScriptRuntimeException;
-import lpctools.script.runtimeInterfaces.ScriptNotNullFunction;
+import lpctools.script.runtimeInterfaces.ScriptNotNullSupplier;
 import lpctools.script.suppliers.Boolean.And;
 import net.minecraft.text.Text;
 import org.jetbrains.annotations.NotNull;
@@ -29,12 +29,12 @@ public class ForLoop extends AbstractScriptWithSubScript implements IControlFlow
 	
 	public ForLoop(IScriptWithSubScript parent) {super(parent);}
 	
-	@Override public @NotNull ScriptNotNullFunction<CompileEnvironment.RuntimeVariableMap, ControlFlowIssue>
-	compileNotNull(CompileEnvironment variableMap) {
-		var compiledInitialization = initialization.compileCheckedNotNull(variableMap);
-		var compiledCondition = condition.compileCheckedNotNull(variableMap);
-		var compiledUpdate = update.compileCheckedNotNull(variableMap);
-		var compiled = loopBody.compileCheckedNotNull(variableMap);
+	@Override public @NotNull ScriptNotNullSupplier<ControlFlowIssue>
+	compileNotNull(CompileEnvironment environment) {
+		var compiledInitialization = initialization.compileCheckedNotNull(environment);
+		var compiledCondition = condition.compileCheckedNotNull(environment);
+		var compiledUpdate = update.compileCheckedNotNull(environment);
+		var compiled = loopBody.compileCheckedNotNull(environment);
 		return map->{
 			var initializationFlow = compiledInitialization.scriptApply(map);
 			if(initializationFlow.shouldEndRunMultiple){

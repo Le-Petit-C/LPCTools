@@ -3,7 +3,7 @@ package lpctools.script.suppliers.Random;
 import lpctools.script.CompileEnvironment;
 import lpctools.script.IScriptWithSubScript;
 import lpctools.script.exceptions.ScriptRuntimeException;
-import lpctools.script.runtimeInterfaces.ScriptNullableFunction;
+import lpctools.script.runtimeInterfaces.ScriptNullableSupplier;
 import lpctools.script.suppliers.AbstractSupplierWithTypeDeterminedSubSuppliers;
 import lpctools.script.suppliers.Integer.ConstantInteger;
 import net.minecraft.text.Text;
@@ -25,15 +25,13 @@ public class FromArray<T> extends AbstractSupplierWithTypeDeterminedSubSuppliers
 	
 	@Override protected SupplierStorage<?>[] getSubSuppliers() {return subSuppliers;}
 	
-	@Override public @NotNull ScriptNullableFunction<CompileEnvironment.RuntimeVariableMap, Object>
-	compileRandom(CompileEnvironment variableMap) {
-		var compiledArraySupplier = array.get().compile(variableMap);
-		var compiledIndexSupplier = index.get().compile(variableMap);
+	@Override public @NotNull ScriptNullableSupplier<Object>
+	compileRandom(CompileEnvironment environment) {
+		var compiledArraySupplier = array.get().compileCheckedNotNull(environment);
+		var compiledIndexSupplier = compileCheckedInteger(index.get(), environment);
 		return map->{
 			Object[] array = compiledArraySupplier.scriptApply(map);
-			if(array == null) throw ScriptRuntimeException.nullPointer(this);
-			Integer index = compiledIndexSupplier.scriptApply(map);
-			if(index == null) throw ScriptRuntimeException.nullPointer(this);
+			int index = compiledIndexSupplier.scriptApplyAsInt(map);
 			if(index < 0 || index >= array.length)
 				throw ScriptRuntimeException.indexOutOfBounds(this, index, array.length);
 			return array[index];
