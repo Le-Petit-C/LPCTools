@@ -10,7 +10,7 @@ import lpctools.script.suppliers.Random.Null;
 import net.minecraft.text.Text;
 import org.jetbrains.annotations.NotNull;
 
-public class SetArray extends AbstractSupplierWithTypeDeterminedSubSuppliers implements IControlFlowSupplier {
+public class SetArray extends AbstractSupplierWithTypeDeterminedSubSuppliers implements IControlFlowIssueSupplier {
 	protected final SupplierStorage<Object[]> array = ofStorage(Object[].class, new Null<>(this, Object[].class),
 		Text.translatable("lpctools.script.suppliers.ControlFlowIssue.setArray.subSuppliers.array.name"), "array");
 	protected final SupplierStorage<Integer> index = ofStorage(Integer.class, new ConstantInteger(this),

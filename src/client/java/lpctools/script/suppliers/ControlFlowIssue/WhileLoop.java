@@ -16,7 +16,7 @@ import java.util.List;
 
 import static lpctools.lpcfymasaapi.LPCConfigUtils.warnFailedLoadingConfig;
 
-public class WhileLoop extends AbstractScriptWithSubScript implements IControlFlowSupplier {
+public class WhileLoop extends AbstractScriptWithSubScript implements IControlFlowIssueSupplier {
 	public final And condition = new And(this, Text.translatable("lpctools.script.suppliers.ControlFlowIssue.whileLoop.condition.name"));
 	public final RunMultiple loopBody = new RunMultiple(this, Text.translatable("lpctools.script.suppliers.ControlFlowIssue.whileLoop.loopBody.name"));
 	public static final String conditionJsonKey = "condition";

@@ -1,6 +1,7 @@
 package lpctools.tools.antiSpawner;
 
 import lpctools.compact.derived.ShapeList;
+import lpctools.util.DataUtils;
 import lpctools.util.HandRestock;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.minecraft.block.BlockState;
@@ -15,7 +16,6 @@ import static lpctools.generic.GenericUtils.mayMobSpawnAt;
 import static lpctools.lpcfymasaapi.configButtons.derivedConfigs.LimitOperationSpeedConfig.OperationResult.*;
 import static lpctools.tools.antiSpawner.AntiSpawner.*;
 import static lpctools.tools.antiSpawner.AntiSpawnerData.*;
-import static lpctools.util.DataUtils.notifyPlayer;
 
 public class AntiSpawnerRunner implements ClientTickEvents.EndTick {
     @Override public void onEndTick(MinecraftClient mc) {
@@ -44,7 +44,7 @@ public class AntiSpawnerRunner implements ClientTickEvents.EndTick {
                     BlockState below = mc.world.getBlockState(pos.down());
                     ActionResult result = below.onUse(mc.world, mc.player, hitResult);
                     if (result == ActionResult.SUCCESS) {
-                        notifyPlayer(String.format("onUse at %s", pos.down().toString()), false);
+                        DataUtils.clientMessage(String.format("onUse at %s", pos.down().toString()), false);
                         return NO_OPERATION;
                     }
                 }

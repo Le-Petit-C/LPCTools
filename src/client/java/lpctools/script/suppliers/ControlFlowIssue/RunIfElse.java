@@ -13,7 +13,7 @@ import java.util.List;
 
 import static lpctools.lpcfymasaapi.LPCConfigUtils.warnFailedLoadingConfig;
 
-public class RunIfElse extends AbstractScriptWithSubScript implements IControlFlowSupplier {
+public class RunIfElse extends AbstractScriptWithSubScript implements IControlFlowIssueSupplier {
 	protected final And condition = new And(this, Text.translatable("lpctools.script.suppliers.ControlFlowIssue.runIfElse.condition.name"));
 	protected final RunMultiple ifTrue = new RunMultiple(this, Text.translatable("lpctools.script.suppliers.ControlFlowIssue.runIfElse.ifTrue.name"));
 	protected final RunMultiple ifFalse = new RunMultiple(this, Text.translatable("lpctools.script.suppliers.ControlFlowIssue.runIfElse.ifFalse.name"));

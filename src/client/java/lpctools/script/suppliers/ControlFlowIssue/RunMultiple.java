@@ -15,7 +15,7 @@ import java.util.List;
 
 import static lpctools.lpcfymasaapi.LPCConfigUtils.warnFailedLoadingConfig;
 
-public class RunMultiple extends AbstractSupplierWithSubScriptMutable<ControlFlowIssue, ControlFlowIssue> implements IControlFlowSupplier {
+public class RunMultiple extends AbstractSupplierWithSubScriptMutable<ControlFlowIssue, ControlFlowIssue> implements IControlFlowIssueSupplier {
 	private @Nullable Iterable<?> widgets;
 	protected final @Nullable Text name;
 	

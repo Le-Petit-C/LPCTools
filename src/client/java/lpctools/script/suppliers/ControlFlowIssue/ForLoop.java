@@ -17,7 +17,7 @@ import java.util.List;
 
 import static lpctools.lpcfymasaapi.LPCConfigUtils.warnFailedLoadingConfig;
 
-public class ForLoop extends AbstractScriptWithSubScript implements IControlFlowSupplier {
+public class ForLoop extends AbstractScriptWithSubScript implements IControlFlowIssueSupplier {
 	public final RunMultiple initialization = new RunMultiple(this, Text.translatable("lpctools.script.suppliers.ControlFlowIssue.forLoop.initialization.name"));
 	public final And condition = new And(this, Text.translatable("lpctools.script.suppliers.ControlFlowIssue.forLoop.condition.name"));
 	public final RunMultiple update = new RunMultiple(this, Text.translatable("lpctools.script.suppliers.ControlFlowIssue.forLoop.update.name"));

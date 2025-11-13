@@ -60,11 +60,11 @@ public class DebugConfigs {
     
     private static void booleanHotkeyThirdListTestCallback(){
         if(booleanHotkeyThirdListTest.isExpanded())
-            notifyPlayer("Value changed! current is " + booleanHotkeyThirdListTest.getBooleanValue(), false);
+            clientMessage("Value changed! current is " + booleanHotkeyThirdListTest.getBooleanValue(), false);
     }
     
     private static void buttonConfigTestCallback(ButtonBase button, int mouseButton){
-        notifyPlayer("❤Ahh❤It's❤Button❤" + mouseButton + "❤", false);
+        clientMessage("❤Ahh❤It's❤Button❤" + mouseButton + "❤", false);
         if(buttonConfigTest.buttonName == null) buttonConfigTest.buttonName = Text.translatable("lpctools.mew~").getString();
         else buttonConfigTest.buttonName = "❤" + buttonConfigTest.buttonName + "❤";
     }

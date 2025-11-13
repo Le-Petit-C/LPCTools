@@ -12,7 +12,7 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
 import org.jetbrains.annotations.NotNull;
 
-public class AttackBlock extends AbstractSupplierWithTypeDeterminedSubSuppliers implements IControlFlowSupplier {
+public class AttackBlock extends AbstractSupplierWithTypeDeterminedSubSuppliers implements IControlFlowIssueSupplier {
 	protected final SupplierStorage<BlockPos> blockPos = ofStorage(BlockPos.class, new ConstantBlockPos(this),
 		Text.translatable("lpctools.script.suppliers.ControlFlowIssue.attackBlock.subSuppliers.blockPos.name"), "blockPos");
 	protected final SupplierStorage<Direction> direction = ofStorage(Direction.class, new ConstantDirection(this),

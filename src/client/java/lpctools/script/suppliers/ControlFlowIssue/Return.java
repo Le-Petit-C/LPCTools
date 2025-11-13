@@ -8,7 +8,7 @@ import lpctools.script.runtimeInterfaces.ScriptNotNullSupplier;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class Return extends AbstractScript implements IControlFlowSupplier {
+public class Return extends AbstractScript implements IControlFlowIssueSupplier {
 	public Return(IScriptWithSubScript parent) {super(parent);}
 	@Override public @NotNull ScriptNotNullSupplier<ControlFlowIssue>
 	compileNotNull(CompileEnvironment environment) {return map-> ControlFlowIssue.RETURN;}

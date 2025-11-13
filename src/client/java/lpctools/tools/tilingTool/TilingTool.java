@@ -21,7 +21,7 @@ import java.util.List;
 import static lpctools.lpcfymasaapi.LPCConfigStatics.*;
 import static lpctools.tools.ToolUtils.*;
 import static lpctools.tools.tilingTool.TilingToolData.*;
-import static lpctools.util.DataUtils.notifyPlayer;
+import static lpctools.util.DataUtils.clientMessage;
 
 public class TilingTool {
     public static final BooleanHotkeyThirdListConfig TTConfig = new BooleanHotkeyThirdListConfig(ToolConfigs.toolConfigs, "TT", TilingTool::switchCallback);
@@ -105,17 +105,17 @@ public class TilingTool {
         if(CompactMain.getLitematicaInstance() instanceof LitematicaMethods methods){
             Box3i box = methods.getSelectionBox();
             if(box != null) setConfigBox(box);
-            else notifyPlayer(Text.translatable("lpctools.compact.litematica.cantGetSelectionBox"), true);
+            else clientMessage(Text.translatable("lpctools.compact.litematica.cantGetSelectionBox"), true);
         }
-        else notifyPlayer(Text.translatable("lpctools.compact.missingLitematica"), true);
+        else clientMessage(Text.translatable("lpctools.compact.missingLitematica"), true);
     }
     private static void litematicaRefreshDirectly(){
         if(CompactMain.getLitematicaInstance() instanceof LitematicaMethods methods){
             Box3i box = methods.getSelectionBox();
             if(box != null) refresh(box);
-            else notifyPlayer(Text.translatable("lpctools.compact.litematica.cantGetSelectionBox"), true);
+            else clientMessage(Text.translatable("lpctools.compact.litematica.cantGetSelectionBox"), true);
         }
-        else notifyPlayer(Text.translatable("lpctools.compact.missingLitematica"), true);
+        else clientMessage(Text.translatable("lpctools.compact.missingLitematica"), true);
     }
     private static void setByLitematica(){litematicaButtonMode.get().run();}
     private static void refreshVagueBlocks(){

@@ -25,6 +25,8 @@ import lpctools.script.suppliers.Random.FromArray;
 import lpctools.script.suppliers.Random.FromVariable;
 import lpctools.script.suppliers.Random.IRandomSupplierAllocator;
 import lpctools.script.suppliers.Random.Null;
+import lpctools.script.suppliers.String.ConstantString;
+import lpctools.script.suppliers.String.ObjectToString;
 import lpctools.script.suppliers.Type.ConstantType;
 import lpctools.script.suppliers.Type.ObjectType;
 import lpctools.script.suppliers.Vec3d.*;
@@ -163,6 +165,7 @@ public class ScriptSupplierLake {
 		registerType(Boolean.class, 		Text.translatable("lpctools.script.typeName.Boolean"), "boolean");
 		registerType(Integer.class, 		Text.translatable("lpctools.script.typeName.Integer"), "integer");
 		registerType(Double.class, 			Text.translatable("lpctools.script.typeName.Double"), "double");
+		registerType(String.class, 			Text.translatable("lpctools.script.typeName.String"), "string");
 		registerType(Object[].class, 		Text.translatable("lpctools.script.typeName.Array"), "array");
 		registerType(ScriptType.class, 		Text.translatable("lpctools.script.typeName.ScriptType"), "type");
 		registerType(ObjectIterable.class, 	Text.translatable("lpctools.script.typeName.Iterable"), "iterable");
@@ -182,7 +185,7 @@ public class ScriptSupplierLake {
 		registerRandom("null", 						Text.translatable("lpctools.script.suppliers.Random.null.name"), Null.class, Null::new);
 		registerRandom("fromVariable", 				Text.translatable("lpctools.script.suppliers.Random.fromVariable.name"), FromVariable.class, FromVariable::new);
 		registerRandom("fromArray", 				Text.translatable("lpctools.script.suppliers.Random.fromArray.name"), FromArray.class, FromArray::new);
-		//注册void suppliers，也就是无返回值的基础操作
+		//注册control flow issue suppliers，也就是执行操作
 		registerPrecise("doNothing", 				Text.translatable("lpctools.script.suppliers.ControlFlowIssue.doNothing.name"), ControlFlowIssue.class, DoNothing.class, DoNothing::new);
 		registerPrecise("runMultiple", 				Text.translatable("lpctools.script.suppliers.ControlFlowIssue.runMultiple.name"), ControlFlowIssue.class, RunMultiple.class, RunMultiple::new);
 		registerPrecise("runIfElse", 				Text.translatable("lpctools.script.suppliers.ControlFlowIssue.runIfElse.name"), ControlFlowIssue.class, RunIfElse.class, RunIfElse::new);
@@ -196,6 +199,7 @@ public class ScriptSupplierLake {
 		registerPrecise("setArray", 				Text.translatable("lpctools.script.suppliers.ControlFlowIssue.setArray.name"), ControlFlowIssue.class, SetArray.class, SetArray::new);
 		registerPrecise("iterateArray", 			Text.translatable("lpctools.script.suppliers.ControlFlowIssue.iterateArray.name"), ControlFlowIssue.class, IterateArray.class, IterateArray::new);
 		registerPrecise("iterateIterable", 			Text.translatable("lpctools.script.suppliers.ControlFlowIssue.iterateIterable.name"), ControlFlowIssue.class, IterateIterable.class, IterateIterable::new);
+		registerPrecise("clientMessage", 			Text.translatable("lpctools.script.suppliers.ControlFlowIssue.clientMessage.name"), ControlFlowIssue.class, ClientMessage.class, ClientMessage::new);
 		registerPrecise("doAttack", 				Text.translatable("lpctools.script.suppliers.ControlFlowIssue.doAttack.name"), ControlFlowIssue.class, DoAttack.class, DoAttack::new);
 		registerPrecise("doItemUse", 				Text.translatable("lpctools.script.suppliers.ControlFlowIssue.doItemUse.name"), ControlFlowIssue.class, DoItemUse.class, DoItemUse::new);
 		registerPrecise("attackBlock", 				Text.translatable("lpctools.script.suppliers.ControlFlowIssue.attackBlock.name"), ControlFlowIssue.class, AttackBlock.class, AttackBlock::new);
@@ -221,6 +225,7 @@ public class ScriptSupplierLake {
 		registerPrecise("integerFromDouble", 		Text.translatable("lpctools.script.suppliers.Integer.integerFromDouble.name"), Integer.class, IntegerFromDouble.class, IntegerFromDouble::new);
 		registerPrecise("integerFromBlockPos", 		Text.translatable("lpctools.script.suppliers.Integer.integerFromBlockPos.name"), Integer.class, IntegerFromBlockPos.class, IntegerFromBlockPos::new);
 		registerPrecise("integerFromBlockPoses", 	Text.translatable("lpctools.script.suppliers.Integer.integerFromBlockPoses.name"), Integer.class, IntegerFromBlockPoses.class, IntegerFromBlockPoses::new);
+		registerPrecise("itemStackCount", 			Text.translatable("lpctools.script.suppliers.Integer.itemStackCount.name"), Integer.class, ItemStackCount.class, ItemStackCount::new);
 		//注册double suppliers
 		registerPrecise("constantDouble", 			Text.translatable("lpctools.script.suppliers.Double.constantDouble.name"), Double.class, ConstantDouble.class, ConstantDouble::new);
 		registerPrecise("calculateDoubles", 		Text.translatable("lpctools.script.suppliers.Double.calculateDoubles.name"), Double.class, CalculateDoubles.class, CalculateDoubles::new);
@@ -232,6 +237,9 @@ public class ScriptSupplierLake {
 		registerPrecise("doubleFromVec3ds", 		Text.translatable("lpctools.script.suppliers.Double.doubleFromVec3ds.name"), Double.class, DoubleFromVec3ds.class, DoubleFromVec3ds::new);
 		registerPrecise("blockInteractionRange", 	Text.translatable("lpctools.script.suppliers.Double.blockInteractionRange.name"), Double.class, BlockInteractionRange.class, BlockInteractionRange::new);
 		registerPrecise("entityInteractionRange", 	Text.translatable("lpctools.script.suppliers.Double.entityInteractionRange.name"), Double.class, EntityInteractionRange.class, EntityInteractionRange::new);
+		//注册string suppliers
+		registerPrecise("constantString", 			Text.translatable("lpctools.script.suppliers.String.constantString.name"), String.class, ConstantString.class, ConstantString::new);
+		registerPrecise("objectToString", 			Text.translatable("lpctools.script.suppliers.String.objectToString.name"), String.class, ObjectToString.class, ObjectToString::new);
 		//注册array suppliers
 		registerPrecise("newArray", 				Text.translatable("lpctools.script.suppliers.Array.newArray.name"), Object[].class, NewArray.class, NewArray::new);
 		//注册type suppliers

@@ -12,7 +12,7 @@ import net.minecraft.text.Text;
 import net.minecraft.util.Hand;
 import org.jetbrains.annotations.NotNull;
 
-public class InteractEntity extends AbstractSupplierWithTypeDeterminedSubSuppliers implements IControlFlowSupplier {
+public class InteractEntity extends AbstractSupplierWithTypeDeterminedSubSuppliers implements IControlFlowIssueSupplier {
 	protected final SupplierStorage<Entity> entity = ofStorage(Entity.class, new MainPlayerEntity(this),
 		Text.translatable("lpctools.script.suppliers.ControlFlowIssue.interactEntity.subSuppliers.entity.name"), "entity");
 	protected final SupplierStorage<Boolean> useOffhand = ofStorage(Boolean.class, new ConstantBoolean(this),

@@ -8,7 +8,7 @@ import lpctools.script.runtimeInterfaces.ScriptNotNullSupplier;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class Break extends AbstractScript implements IControlFlowSupplier {
+public class Break extends AbstractScript implements IControlFlowIssueSupplier {
 	public Break(IScriptWithSubScript parent) {super(parent);}
 	@Override public @NotNull ScriptNotNullSupplier<ControlFlowIssue>
 	compileNotNull(CompileEnvironment environment) {return map-> ControlFlowIssue.BREAK;}

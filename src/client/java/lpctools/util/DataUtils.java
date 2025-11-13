@@ -7,7 +7,6 @@ import lpctools.lpcfymasaapi.LPCAPIInit;
 import lpctools.util.javaex.Object2BooleanFunction;
 import net.minecraft.block.Block;
 import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.entity.EntityType;
 import net.minecraft.item.BlockItem;
 import net.minecraft.item.Item;
@@ -40,16 +39,10 @@ public class DataUtils {
         try {return new String(res.get().getInputStream().readAllBytes());
         } catch (IOException ignored) {return null;}
     }
-    public static void notifyPlayer(String message, boolean overlay){
-        ClientPlayerEntity player = MinecraftClient.getInstance().player;
-        if(player != null) player.sendMessage(Text.of(message), overlay);
-    }
-    public static void notifyPlayer(Text message, boolean overlay){
-        ClientPlayerEntity player = MinecraftClient.getInstance().player;
-        if(player != null) player.sendMessage(message, overlay);
-    }
+    public static void clientMessage(String message, boolean overlay){MinecraftClient.getInstance().getMessageHandler().onGameMessage(Text.of(message), overlay);}
+    public static void clientMessage(Text message, boolean overlay){MinecraftClient.getInstance().getMessageHandler().onGameMessage(message, overlay);}
     public static <T> void notifyPlayerIf(T value, Function<T, String> converter, Object2BooleanFunction<T> condition, boolean overlay){
-        if(condition.getBoolean(value)) notifyPlayer(converter.apply(value), overlay);
+        if(condition.getBoolean(value)) clientMessage(converter.apply(value), overlay);
     }
     public static String getItemId(Item item){return Registries.ITEM.getId(item).toString();}
     public static String getBlockId(Block block){return Registries.BLOCK.getId(block).toString();}
@@ -99,7 +92,7 @@ public class DataUtils {
             return caster.cast(ret);
         }catch (Exception e){
             if(notifies){
-                notifyPlayer(String.format("§e%s(%s) failed.", loggerInfo, id), false);
+                clientMessage(String.format("§e%s(%s) failed.", loggerInfo, id), false);
                 LPCAPIInit.LOGGER.warn("{}(\"{}\"): {}", loggerInfo, id, e.getMessage());
             }
             return null;
@@ -166,7 +159,7 @@ public class DataUtils {
         String info = ofGLError(err, null);
         if(info == null) return err;
         String formatted = String.format("%s:%x:%s", pos, err, info);
-        notifyPlayer(Text.of(formatted), false);
+        clientMessage(Text.of(formatted), false);
         LPCTools.LOGGER.info(formatted);
         return err;
     }

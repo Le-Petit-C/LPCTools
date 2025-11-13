@@ -10,7 +10,7 @@ import net.minecraft.client.MinecraftClient;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class DoAttack extends AbstractScript implements IControlFlowSupplier {
+public class DoAttack extends AbstractScript implements IControlFlowIssueSupplier {
 	public DoAttack(IScriptWithSubScript parent) {super(parent);}
 	@Override public @NotNull ScriptNotNullSupplier<ControlFlowIssue>
 	compileNotNull(CompileEnvironment environment) {

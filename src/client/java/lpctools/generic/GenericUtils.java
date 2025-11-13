@@ -55,7 +55,7 @@ public class GenericUtils {
             synchronized (synchronizeRunnableCountObject){
                 notifyPlayer = (--runnableCount == 0);
             }
-            if(notifyPlayer) notifyPlayer("Task done. Took "
+            if(notifyPlayer) clientMessage("Task done. Took "
                 + (System.currentTimeMillis() - executeStartMillis)
                 + " millis.", false);
         });

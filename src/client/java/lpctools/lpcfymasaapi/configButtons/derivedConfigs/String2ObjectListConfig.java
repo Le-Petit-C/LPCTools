@@ -41,7 +41,7 @@ public class String2ObjectListConfig<T> extends UniqueStringListConfig {
         getStrings().forEach(str->{
             T v = converter.apply(str);
             if(set.add(v)) return;
-            notifyPlayer(String.format("§e%s duplicates.", str), false);
+            clientMessage(String.format("§e%s duplicates.", str), false);
             LPCAPIInit.LOGGER.warn("{} duplicates.", str);
         });
         if(set.equals(this.set)) return;

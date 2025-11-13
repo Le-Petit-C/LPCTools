@@ -2,6 +2,7 @@ package lpctools.tools.furnaceMaintainer;
 
 import lpctools.lpcfymasaapi.Registries;
 import lpctools.util.AlgorithmUtils;
+import lpctools.util.DataUtils;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.minecraft.block.AbstractFurnaceBlock;
 import net.minecraft.client.MinecraftClient;
@@ -17,18 +18,11 @@ import net.minecraft.util.math.Direction;
 
 import static lpctools.tools.furnaceMaintainer.FurnaceMaintainer.*;
 import static lpctools.tools.furnaceMaintainer.FurnaceMaintainerData.*;
-import static lpctools.util.DataUtils.notifyPlayer;
 
 public class FurnaceMaintainerRunner implements AutoCloseable, ClientTickEvents.EndTick {
-    FurnaceMaintainerRunner(){
-        registerAll(true);
-    }
-    @Override public void close(){
-        registerAll(false);
-    }
-    private void registerAll(boolean b){
-        Registries.END_CLIENT_TICK.register(this, b);
-    }
+    FurnaceMaintainerRunner(){registerAll(true);}
+    @Override public void close(){registerAll(false);}
+    private void registerAll(boolean b){Registries.END_CLIENT_TICK.register(this, b);}
     @Override public void onEndTick(MinecraftClient mc) {
         AlgorithmUtils.fastRemove(detectTasks, task->{
             if(!task.isDone()) return false;
@@ -50,7 +44,7 @@ public class FurnaceMaintainerRunner implements AutoCloseable, ClientTickEvents.
             }
         }
         if(!hasEmptyStack) {
-            notifyPlayer(Text.translatable("lpctools.configs.tools.FM.noEmptyStack").getString(), true);
+            DataUtils.clientMessage(Text.translatable("lpctools.configs.tools.FM.noEmptyStack").getString(), true);
             return;
         }
         for(BlockPos pos : reachDistance.iterateFromClosest(player.getEyePos())){

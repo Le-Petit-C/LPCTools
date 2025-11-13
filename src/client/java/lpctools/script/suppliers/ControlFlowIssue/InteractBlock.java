@@ -17,7 +17,7 @@ import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.Vec3d;
 import org.jetbrains.annotations.NotNull;
 
-public class InteractBlock extends AbstractSupplierWithTypeDeterminedSubSuppliers implements IControlFlowSupplier {
+public class InteractBlock extends AbstractSupplierWithTypeDeterminedSubSuppliers implements IControlFlowIssueSupplier {
 	protected final SupplierStorage<Boolean> useOffhand = ofStorage(Boolean.class, new ConstantBoolean(this),
 		Text.translatable("lpctools.script.suppliers.ControlFlowIssue.interactBlock.subSuppliers.useOffhand.name"), "useOffhand");
 	protected final SupplierStorage<Vec3d> pos = ofStorage(Vec3d.class, new ConstantVec3d(this),

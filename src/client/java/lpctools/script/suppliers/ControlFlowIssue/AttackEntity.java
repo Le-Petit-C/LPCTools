@@ -10,7 +10,7 @@ import net.minecraft.entity.Entity;
 import net.minecraft.text.Text;
 import org.jetbrains.annotations.NotNull;
 
-public class AttackEntity extends AbstractSupplierWithTypeDeterminedSubSuppliers implements IControlFlowSupplier {
+public class AttackEntity extends AbstractSupplierWithTypeDeterminedSubSuppliers implements IControlFlowIssueSupplier {
 	protected final SupplierStorage<Entity> entity = ofStorage(Entity.class, new MainPlayerEntity(this),
 		Text.translatable("lpctools.script.suppliers.ControlFlowIssue.attackEntity.subSuppliers.entity.name"), "entity");
 	protected final SupplierStorage<?>[] subSuppliers = ofStorages(entity);
@@ -26,8 +26,8 @@ public class AttackEntity extends AbstractSupplierWithTypeDeterminedSubSuppliers
 			var mc = MinecraftClient.getInstance();
 			var itm = mc.interactionManager;
 			var player = mc.player;
-			if(itm == null || player == null) return ControlFlowIssue.NO_ISSUE;
-			itm.attackEntity(player, compiledEntitySupplier.scriptApply(map));
+			if(itm != null && player != null)
+				itm.attackEntity(player, compiledEntitySupplier.scriptApply(map));
 			return ControlFlowIssue.NO_ISSUE;
 		};
 	}

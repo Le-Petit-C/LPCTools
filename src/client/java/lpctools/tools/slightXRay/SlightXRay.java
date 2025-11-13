@@ -92,7 +92,7 @@ public class SlightXRay{
         HashMap<Block, MutableInt> newBlocks = new HashMap<>();
         XRayBlocksConfig.iterateConfigs().forEach(c->{
             var block = c.getBlock();
-            if(newBlocks.containsKey(block)) notifyPlayer(String.format("§eWarning: Repeat block \"%s\"", block.getName()), false);
+            if(newBlocks.containsKey(block)) clientMessage(String.format("§eWarning: Repeat block \"%s\"", block.getName()), false);
             else newBlocks.put(block, new MutableInt(DataUtils.argb2agbr(c.getColor().getIntValue())));
         });
         synchronized (XRayBlocks){

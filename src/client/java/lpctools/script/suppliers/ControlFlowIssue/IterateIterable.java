@@ -22,7 +22,7 @@ import java.util.List;
 
 import static lpctools.lpcfymasaapi.LPCConfigUtils.warnFailedLoadingConfig;
 
-public class IterateIterable extends AbstractSupplierWithTypeDeterminedSubSuppliers implements IControlFlowSupplier {
+public class IterateIterable extends AbstractSupplierWithTypeDeterminedSubSuppliers implements IControlFlowIssueSupplier {
 	private @NotNull String variableName = "var";
 	protected @Nullable WidthAutoAdjustTextField textField;
 	protected final SupplierStorage<ObjectIterable> iterable = ofStorage(ObjectIterable.class, new Null<>(this, ObjectIterable.class),

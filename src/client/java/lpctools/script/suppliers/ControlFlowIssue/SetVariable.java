@@ -19,7 +19,7 @@ import java.util.ArrayList;
 
 import static lpctools.lpcfymasaapi.LPCConfigUtils.warnFailedLoadingConfig;
 
-public class SetVariable extends AbstractSupplierWithTypeDeterminedSubSuppliers implements IControlFlowSupplier {
+public class SetVariable extends AbstractSupplierWithTypeDeterminedSubSuppliers implements IControlFlowIssueSupplier {
 	private @NotNull String variableName = "var";
 	protected @Nullable WidthAutoAdjustTextField textField;
 	protected final SupplierStorage<Object> value = ofStorage(Object.class, new Null<>(this, Entity.class),

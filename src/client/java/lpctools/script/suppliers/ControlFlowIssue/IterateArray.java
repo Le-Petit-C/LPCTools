@@ -20,7 +20,7 @@ import java.util.List;
 
 import static lpctools.lpcfymasaapi.LPCConfigUtils.warnFailedLoadingConfig;
 
-public class IterateArray extends AbstractSupplierWithTypeDeterminedSubSuppliers implements IControlFlowSupplier {
+public class IterateArray extends AbstractSupplierWithTypeDeterminedSubSuppliers implements IControlFlowIssueSupplier {
 	private @NotNull String variableName = "var";
 	protected @Nullable WidthAutoAdjustTextField textField;
 	protected final SupplierStorage<Object[]> array = ofStorage(Object[].class, new Null<>(this, Object[].class),
