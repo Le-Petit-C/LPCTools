@@ -15,13 +15,11 @@ public class WHAutoAdjustStringWidget extends WidgetBase {
 	private final ArrayList<String> texts = new ArrayList<>();
 	private final int alignX, alignY;
 	private int textStartX, textStartY;
+	private int frameColor = 0xbf3f3fff, fillColor = 0x7f3f3f3f;
 	public WHAutoAdjustStringWidget(int x, int y, Align align, String ...text) {
 		super(x, y, 20, 20);
 		this.align = align;
-		for(var str : text){
-			String[] separates = str.split("\n");
-			texts.addAll(Arrays.asList(separates));
-		}
+		setTexts(text);
 		this.alignX = x;
 		this.alignY = y;
 	}
@@ -32,11 +30,29 @@ public class WHAutoAdjustStringWidget extends WidgetBase {
 		needUpdateSize = true;
 	}
 	
+	public void setFrameColor(int frameColor) {this.frameColor = frameColor;}
+	public void setFillColor(int fillColor) {this.fillColor = fillColor;}
+	public void setTexts(String[] texts){
+		this.texts.clear();
+		for(var str : texts){
+			String[] separates = str.split("\n");
+			this.texts.addAll(Arrays.asList(separates));
+		}
+		needUpdateSize = true;
+	}
+	public void setTexts(Iterable<String> texts){
+		this.texts.clear();
+		for(var str : texts){
+			String[] separates = str.split("\n");
+			this.texts.addAll(Arrays.asList(separates));
+		}
+		needUpdateSize = true;
+	}
+	
 	@Override public void render(DrawContext drawContext, int mouseX, int mouseY, boolean selected) {
 		tryUpdateSize();
 		super.render(drawContext, mouseX, mouseY, selected);
 		int x = getX(), y = getY(), w = getWidth(), h = getHeight();
-		int frameColor = 0xbf3f3fff, fillColor = 0x7f3f3f3f;
 		drawContext.fill(x - 2, y - 2, x + w + 2, y, frameColor);
 		drawContext.fill(x - 2, y + h, x + w + 2, y + h + 2, frameColor);
 		drawContext.fill(x - 2, y, x, y + h, frameColor);

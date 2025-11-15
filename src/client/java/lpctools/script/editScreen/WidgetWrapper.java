@@ -3,12 +3,14 @@ package lpctools.script.editScreen;
 import fi.dy.masa.malilib.gui.widgets.WidgetBase;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.narration.NarrationMessageBuilder;
-import net.minecraft.client.gui.widget.ClickableWidget;
 import net.minecraft.text.Text;
 
 public class WidgetWrapper {
-	public static ClickableWidget wrap(WidgetBase widget, ScriptEditScreen screen){
-		return new ClickableWidget(widget.getX(), widget.getY(), widget.getWidth(), widget.getHeight(), Text.of("")) {
+	public static HoveredClickableWidget wrap(WidgetBase widget, ScriptEditScreen screen){
+		return new HoveredClickableWidget(widget.getX(), widget.getY(), widget.getWidth(), widget.getHeight(), Text.of("")) {
+			@Override public void postRenderHovered(DrawContext drawContext, int mouseX, int mouseY, boolean selected){
+				widget.postRenderHovered(drawContext, mouseX, mouseY, selected);
+			}
 			@Override public void setX(int x) {
 				super.setX(x);
 				widget.setX(x);

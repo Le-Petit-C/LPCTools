@@ -187,8 +187,17 @@ public class ScriptDisplayWidget extends ClickableWidget{
 	//渲染时并不渲染所有而是只渲染自己这一行，应当由ScriptEditScreen来决定具体渲染哪些行
 	@Override public void renderWidget(DrawContext context, int mouseX, int mouseY, float deltaTicks) {
 		updateDisplayWidgets();
-		if (nameButton != null) nameButton.render(context, mouseX, mouseY, nameButton.isMouseOver(mouseX, mouseY));
-		for (var widget : widgets) widget.render(context, mouseX, mouseY, deltaTicks);
+		if (nameButton != null) {
+			boolean isOver = nameButton.isMouseOver(mouseX, mouseY);
+			nameButton.render(context, mouseX, mouseY, isOver);
+			if(nameButton.hasHoverText())
+				nameButton.postRenderHovered(context, mouseX, mouseY, false);
+		}
+		for (var widget : widgets) {
+			widget.render(context, mouseX, mouseY, deltaTicks);
+			if(widget.isMouseOver(mouseX, mouseY) && widget instanceof HoveredClickableWidget hoveredClickableWidget)
+				editScreen.setHover(hoveredClickableWidget, mouseX, mouseY, context.getMatrices());
+		}
 	}
 	
 	protected Iterable<ClickableWidget> getAllWidgets(){
