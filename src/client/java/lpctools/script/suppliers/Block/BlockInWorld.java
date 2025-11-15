@@ -4,7 +4,6 @@ import lpctools.script.CompileEnvironment;
 import lpctools.script.IScriptWithSubScript;
 import lpctools.script.runtimeInterfaces.ScriptNotNullSupplier;
 import lpctools.script.suppliers.AbstractSupplierWithTypeDeterminedSubSuppliers;
-import lpctools.script.suppliers.BlockPos.ConstantBlockPos;
 import net.minecraft.block.Block;
 import net.minecraft.block.Blocks;
 import net.minecraft.client.MinecraftClient;
@@ -13,7 +12,7 @@ import net.minecraft.util.math.BlockPos;
 import org.jetbrains.annotations.NotNull;
 
 public class BlockInWorld extends AbstractSupplierWithTypeDeterminedSubSuppliers implements IBlockSupplier {
-	protected final SupplierStorage<BlockPos> blockPos = ofStorage(BlockPos.class, new ConstantBlockPos(this),
+	protected final SupplierStorage<BlockPos> blockPos = ofStorage(BlockPos.class,
 		Text.translatable("lpctools.script.suppliers.Block.blockInWorld.subSuppliers.blockPos.name"), "blockPos");
 	protected final SupplierStorage<?>[] subSuppliers = ofStorages(blockPos);
 	

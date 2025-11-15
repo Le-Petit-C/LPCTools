@@ -1,11 +1,14 @@
 package lpctools.script.suppliers;
 
+import lpctools.script.IScriptWithSubScript;
 import net.minecraft.text.Text;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.HashMap;
+import java.util.function.Function;
 
 public interface ScriptType {
-	Class<?> basicClass();
+	TypeGenerics<?> generics();
 	boolean isAssignableFrom(ScriptType another);
 	boolean isInstance(Object obj);
 	Text name();
@@ -18,12 +21,32 @@ public interface ScriptType {
 		return TypeData.getType(obj.getClass());
 	}
 	
-	record BasicType(Class<?> basicClass, Text name, String id) implements ScriptType {
+	interface TypeGenerics<T>{
+		Class<T> basicClass();
+		IScriptSupplier<? extends T> allocateDefault(IScriptWithSubScript parent);
+		default @Nullable <U> TypeGenerics<U> checkType(Class<U> clazz){
+			if(clazz.equals(basicClass()))
+				//noinspection unchecked
+				return (TypeGenerics<U>) this;
+			else return null;
+		}
+		record BasicGeneric<T>(Class<T> basicClass, Function<IScriptWithSubScript, IScriptSupplier<? extends T>> defaultAllocator)
+			implements TypeGenerics<T>{
+			@Override public IScriptSupplier<? extends T> allocateDefault(IScriptWithSubScript parent) {
+				return defaultAllocator.apply(parent);
+			}
+		}
+	}
+	
+	record BasicType<T>(TypeGenerics<T> generics, Text name, String id) implements ScriptType {
+		BasicType(Class<T> basicClass, Function<IScriptWithSubScript, IScriptSupplier<? extends T>> defaultAllocator, Text name, String id){
+			this(new TypeGenerics.BasicGeneric<>(basicClass, defaultAllocator), name, id);
+		}
 		@Override public boolean isAssignableFrom(ScriptType another) {
-			return basicClass.isAssignableFrom(another.basicClass());
+			return generics().basicClass().isAssignableFrom(another.generics().basicClass());
 		}
 		@Override public boolean isInstance(Object obj) {
-			return basicClass.isInstance(obj);
+			return generics().basicClass().isInstance(obj);
 		}
 	}
 }

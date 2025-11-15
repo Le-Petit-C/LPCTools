@@ -8,7 +8,6 @@ import lpctools.script.IScriptWithSubScript;
 import lpctools.script.editScreen.WidthAutoAdjustButtonGeneric;
 import lpctools.script.runtimeInterfaces.ScriptNotNullSupplier;
 import lpctools.script.suppliers.AbstractSupplierWithTypeDeterminedSubSuppliers;
-import lpctools.script.suppliers.Integer.ConstantInteger;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.screen.slot.SlotActionType;
 import net.minecraft.text.Text;
@@ -20,9 +19,9 @@ import java.util.ArrayList;
 import static lpctools.lpcfymasaapi.LPCConfigUtils.warnFailedLoadingConfig;
 
 public class ClickSlot extends AbstractSupplierWithTypeDeterminedSubSuppliers implements IControlFlowIssueSupplier {
-	protected final SupplierStorage<Integer> slotId = ofStorage(Integer.class, new ConstantInteger(this),
+	protected final SupplierStorage<Integer> slotId = ofStorage(Integer.class,
 		Text.translatable("lpctools.script.suppliers.ControlFlowIssue.clickSlot.subSuppliers.slotId.name"), "slotId");
-	protected final SupplierStorage<Integer> button = ofStorage(Integer.class, new ConstantInteger(this),
+	protected final SupplierStorage<Integer> button = ofStorage(Integer.class,
 		Text.translatable("lpctools.script.suppliers.ControlFlowIssue.clickSlot.subSuppliers.button.name"), "button");
 	protected SlotActionType slotActionType = SlotActionType.PICKUP;
 	protected @Nullable WidthAutoAdjustButtonGeneric actionTypeButton;

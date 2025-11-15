@@ -4,14 +4,13 @@ import lpctools.script.CompileEnvironment;
 import lpctools.script.IScriptWithSubScript;
 import lpctools.script.runtimeInterfaces.ScriptBooleanSupplier;
 import lpctools.script.suppliers.AbstractSignResultSupplier;
-import lpctools.script.suppliers.Integer.ConstantInteger;
 import lpctools.util.Functions;
 import net.minecraft.text.Text;
 
 public class CompareIntegers extends AbstractSignResultSupplier<Functions.IntegerCompareSign> implements IBooleanSupplier {
-	protected final SupplierStorage<Integer> integer1 = ofStorage(Integer.class, new ConstantInteger(this),
+	protected final SupplierStorage<Integer> integer1 = ofStorage(Integer.class,
 		Text.translatable("lpctools.script.suppliers.Boolean.compareIntegers.subSuppliers.integer1.name"), "integer1");
-	protected final SupplierStorage<Integer> integer2 = ofStorage(Integer.class, new ConstantInteger(this),
+	protected final SupplierStorage<Integer> integer2 = ofStorage(Integer.class,
 		Text.translatable("lpctools.script.suppliers.Boolean.compareIntegers.subSuppliers.integer2.name"), "integer2");
 	protected final SupplierStorage<?>[] subSuppliers = ofStorages(integer1, integer2);
 	

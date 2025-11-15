@@ -4,8 +4,6 @@ import lpctools.script.CompileEnvironment;
 import lpctools.script.IScriptWithSubScript;
 import lpctools.script.runtimeInterfaces.ScriptNotNullSupplier;
 import lpctools.script.suppliers.AbstractSupplierWithTypeDeterminedSubSuppliers;
-import lpctools.script.suppliers.BlockPos.ConstantBlockPos;
-import lpctools.script.suppliers.Direction.ConstantDirection;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.text.Text;
 import net.minecraft.util.math.BlockPos;
@@ -13,9 +11,9 @@ import net.minecraft.util.math.Direction;
 import org.jetbrains.annotations.NotNull;
 
 public class AttackBlock extends AbstractSupplierWithTypeDeterminedSubSuppliers implements IControlFlowIssueSupplier {
-	protected final SupplierStorage<BlockPos> blockPos = ofStorage(BlockPos.class, new ConstantBlockPos(this),
+	protected final SupplierStorage<BlockPos> blockPos = ofStorage(BlockPos.class,
 		Text.translatable("lpctools.script.suppliers.ControlFlowIssue.attackBlock.subSuppliers.blockPos.name"), "blockPos");
-	protected final SupplierStorage<Direction> direction = ofStorage(Direction.class, new ConstantDirection(this),
+	protected final SupplierStorage<Direction> direction = ofStorage(Direction.class,
 		Text.translatable("lpctools.script.suppliers.ControlFlowIssue.attackBlock.subSuppliers.direction.name"), "direction");
 	protected final SupplierStorage<?>[] subSuppliers = ofStorages(blockPos, direction);
 	

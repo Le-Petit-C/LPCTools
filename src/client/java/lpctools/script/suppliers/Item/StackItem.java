@@ -4,14 +4,13 @@ import lpctools.script.CompileEnvironment;
 import lpctools.script.IScriptWithSubScript;
 import lpctools.script.runtimeInterfaces.ScriptNotNullSupplier;
 import lpctools.script.suppliers.AbstractSupplierWithTypeDeterminedSubSuppliers;
-import lpctools.script.suppliers.Random.Null;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.text.Text;
 import org.jetbrains.annotations.NotNull;
 
 public class StackItem extends AbstractSupplierWithTypeDeterminedSubSuppliers implements IItemSupplier {
-	protected final SupplierStorage<ItemStack> stack = ofStorage(ItemStack.class, new Null<>(this, ItemStack.class),
+	protected final SupplierStorage<ItemStack> stack = ofStorage(ItemStack.class,
 		Text.translatable("lpctools.script.suppliers.Item.stackItem.subSuppliers.stack.name"), "stack");
 	protected final SupplierStorage<?>[] subSuppliers = ofStorages(stack);
 	

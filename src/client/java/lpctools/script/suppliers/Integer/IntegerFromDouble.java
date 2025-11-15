@@ -4,13 +4,12 @@ import lpctools.script.CompileEnvironment;
 import lpctools.script.IScriptWithSubScript;
 import lpctools.script.runtimeInterfaces.ScriptIntegerSupplier;
 import lpctools.script.suppliers.AbstractSignResultSupplier;
-import lpctools.script.suppliers.Double.ConstantDouble;
 import lpctools.util.Functions;
 import net.minecraft.text.Text;
 import org.jetbrains.annotations.NotNull;
 
 public class IntegerFromDouble extends AbstractSignResultSupplier<Functions.Double2IntFunction> implements IIntegerSupplier {
-	protected final SupplierStorage<Double> _double = ofStorage(Double.class, new ConstantDouble(this),
+	protected final SupplierStorage<Double> _double = ofStorage(Double.class,
 		Text.translatable("lpctools.script.suppliers.Integer.integerFromDouble.subSuppliers.double.name"), "double");
 	protected final SupplierStorage<?>[] subSuppliers = ofStorages(_double);
 	

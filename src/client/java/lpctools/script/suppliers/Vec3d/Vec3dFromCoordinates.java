@@ -4,17 +4,16 @@ import lpctools.script.CompileEnvironment;
 import lpctools.script.IScriptWithSubScript;
 import lpctools.script.runtimeInterfaces.ScriptNotNullSupplier;
 import lpctools.script.suppliers.AbstractSupplierWithTypeDeterminedSubSuppliers;
-import lpctools.script.suppliers.Double.ConstantDouble;
 import net.minecraft.text.Text;
 import net.minecraft.util.math.Vec3d;
 import org.jetbrains.annotations.NotNull;
 
 public class Vec3dFromCoordinates extends AbstractSupplierWithTypeDeterminedSubSuppliers implements IVec3dSupplier {
-	protected final SupplierStorage<Double> x = ofStorage(Double.class, new ConstantDouble(this),
+	protected final SupplierStorage<Double> x = ofStorage(Double.class,
 		Text.translatable("lpctools.script.suppliers.Vec3d.vec3dFromCoordinates.subSuppliers.x.name"), "x");
-	protected final SupplierStorage<Double> y = ofStorage(Double.class, new ConstantDouble(this),
+	protected final SupplierStorage<Double> y = ofStorage(Double.class,
 		Text.translatable("lpctools.script.suppliers.Vec3d.vec3dFromCoordinates.subSuppliers.y.name"), "y");
-	protected final SupplierStorage<Double> z = ofStorage(Double.class, new ConstantDouble(this),
+	protected final SupplierStorage<Double> z = ofStorage(Double.class,
 		Text.translatable("lpctools.script.suppliers.Vec3d.vec3dFromCoordinates.subSuppliers.z.name"), "z");
 	protected final SupplierStorage<?>[] subSuppliers = ofStorages(x, y, z);
 	

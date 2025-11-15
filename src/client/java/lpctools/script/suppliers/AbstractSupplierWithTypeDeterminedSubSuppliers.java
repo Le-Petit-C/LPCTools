@@ -8,6 +8,7 @@ import lpctools.script.IScript;
 import lpctools.script.IScriptWithSubScript;
 import lpctools.script.editScreen.ScriptDisplayWidget;
 import lpctools.script.editScreen.WidthAutoAdjustButtonGeneric;
+import lpctools.script.suppliers.Random.Null;
 import net.minecraft.text.Text;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -84,8 +85,8 @@ public abstract class AbstractSupplierWithTypeDeterminedSubSuppliers extends Abs
 		return res;
 	}
 	
-	protected final <T> SupplierStorage<T> ofStorage(Class<T> clazz, IScriptSupplier<? extends T> supplier, Text argumentName, String jsonKey){
-		return new SupplierStorage<>(clazz, supplier, argumentName, jsonKey);
+	protected final <T> SupplierStorage<T> ofStorage(Class<T> clazz, Text argumentName, String jsonKey){
+		return new SupplierStorage<>(clazz, argumentName, jsonKey);
 	}
 	
 	protected class SupplierStorage<T> {
@@ -99,9 +100,11 @@ public abstract class AbstractSupplierWithTypeDeterminedSubSuppliers extends Abs
 			storageMap.put(supplier, this);
 		}
 		public IScriptSupplier<? extends T> get(){return supplier;}
-		public SupplierStorage(Class<T> clazz, IScriptSupplier<? extends T> supplier, Text argumentName, String jsonKey) {
+		public SupplierStorage(Class<T> clazz, Text argumentName, String jsonKey) {
 			this.clazz = clazz;
-			this.supplier = supplier;
+			var typeGeneric = ScriptType.getType(clazz).generics().checkType(clazz);
+			if(typeGeneric != null) this.supplier = typeGeneric.allocateDefault(AbstractSupplierWithTypeDeterminedSubSuppliers.this);
+			else this.supplier = new Null<>(AbstractSupplierWithTypeDeterminedSubSuppliers.this, clazz);
 			this.argumentName = argumentName;
 			this.jsonKey = jsonKey;
 			storageMap.put(supplier, this);
@@ -113,9 +116,9 @@ public abstract class AbstractSupplierWithTypeDeterminedSubSuppliers extends Abs
 			object.add(jsonKey, getAsJsonElement());
 		}
 		public void setValueFromJsonElement(JsonElement element){
-			ScriptSupplierLake.loadSupplierOrWarn(
+			ScriptSupplierLake.<T>loadSupplierOrWarn(
 				element, clazz, AbstractSupplierWithTypeDeterminedSubSuppliers.this,
-				res -> supplier = res, className + '.' + jsonKey);
+				this::set, className + '.' + jsonKey);
 		}
 		public void setValueFromSubJsonElement(JsonObject object){
 			setValueFromJsonElement(object.get(jsonKey));

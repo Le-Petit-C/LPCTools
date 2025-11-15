@@ -9,8 +9,6 @@ import lpctools.script.editScreen.ScriptDisplayWidget;
 import lpctools.script.editScreen.WidthAutoAdjustTextField;
 import lpctools.script.runtimeInterfaces.ScriptNotNullSupplier;
 import lpctools.script.suppliers.AbstractSupplierWithTypeDeterminedSubSuppliers;
-import lpctools.script.suppliers.Random.Null;
-import net.minecraft.entity.Entity;
 import net.minecraft.text.Text;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -22,7 +20,7 @@ import static lpctools.lpcfymasaapi.LPCConfigUtils.warnFailedLoadingConfig;
 public class SetVariable extends AbstractSupplierWithTypeDeterminedSubSuppliers implements IControlFlowIssueSupplier {
 	private @NotNull String variableName = "var";
 	protected @Nullable WidthAutoAdjustTextField textField;
-	protected final SupplierStorage<Object> value = ofStorage(Object.class, new Null<>(this, Entity.class),
+	protected final SupplierStorage<Object> value = ofStorage(Object.class,
 		Text.translatable("lpctools.script.suppliers.ControlFlowIssue.setVariable.subSuppliers.value.name"), valueJsonKey);
 	protected final SupplierStorage<?>[] subSuppliers = ofStorages(value);
 	public static final String variableNameJsonKey = "variableName";

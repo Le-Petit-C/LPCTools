@@ -4,14 +4,13 @@ import lpctools.script.CompileEnvironment;
 import lpctools.script.IScriptWithSubScript;
 import lpctools.script.runtimeInterfaces.ScriptIntegerSupplier;
 import lpctools.script.suppliers.AbstractSignResultSupplier;
-import lpctools.script.suppliers.BlockPos.ConstantBlockPos;
 import lpctools.util.Functions;
 import net.minecraft.text.Text;
 import net.minecraft.util.math.BlockPos;
 import org.jetbrains.annotations.NotNull;
 
 public class IntegerFromBlockPos extends AbstractSignResultSupplier<Functions.IntegerFromBlockPosFunction> implements IIntegerSupplier {
-	protected final SupplierStorage<BlockPos> pos = ofStorage(BlockPos.class, new ConstantBlockPos(this),
+	protected final SupplierStorage<BlockPos> pos = ofStorage(BlockPos.class,
 		Text.translatable("lpctools.script.suppliers.Integer.integerFromBlockPos.subSuppliers.pos.name"), "pos");
 	protected final SupplierStorage<?>[] subSuppliers = ofStorages(pos);
 	

@@ -8,7 +8,6 @@ import lpctools.script.IScriptWithSubScript;
 import lpctools.script.editScreen.WidthAutoAdjustButtonGeneric;
 import lpctools.script.runtimeInterfaces.ScriptNotNullSupplier;
 import lpctools.script.suppliers.AbstractSupplierWithTypeDeterminedSubSuppliers;
-import lpctools.script.suppliers.Entity.PlayerEntity.MainPlayerEntity;
 import lpctools.script.utils.StackGetter;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.LivingEntity;
@@ -22,7 +21,7 @@ import java.util.ArrayList;
 import static lpctools.lpcfymasaapi.LPCConfigUtils.warnFailedLoadingConfig;
 
 public class SlotItemStack extends AbstractSupplierWithTypeDeterminedSubSuppliers implements IItemStackSupplier{
-	protected final SupplierStorage<Entity> entity = ofStorage(Entity.class, new MainPlayerEntity(this),
+	protected final SupplierStorage<Entity> entity = ofStorage(Entity.class,
 		Text.translatable("lpctools.script.suppliers.ItemStack.slotItemStack.subSuppliers.entity.name"), "entity");
 	protected @NotNull StackGetter getter = StackGetter.values()[0];
 	protected @Nullable WidthAutoAdjustButtonGeneric cycleButton;

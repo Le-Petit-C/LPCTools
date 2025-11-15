@@ -4,14 +4,13 @@ import lpctools.script.CompileEnvironment;
 import lpctools.script.IScriptWithSubScript;
 import lpctools.script.runtimeInterfaces.ScriptNotNullSupplier;
 import lpctools.script.suppliers.AbstractSupplierWithTypeDeterminedSubSuppliers;
-import lpctools.script.suppliers.BlockPos.ConstantBlockPos;
 import net.minecraft.text.Text;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
 import org.jetbrains.annotations.NotNull;
 
 public class Vec3dFromBlockPos extends AbstractSupplierWithTypeDeterminedSubSuppliers implements IVec3dSupplier {
-	protected final SupplierStorage<BlockPos> blockPos = ofStorage(BlockPos.class, new ConstantBlockPos(this),
+	protected final SupplierStorage<BlockPos> blockPos = ofStorage(BlockPos.class,
 		Text.translatable("lpctools.script.suppliers.Vec3d.vec3dFromBlockPos.subSuppliers.blockPos.name"), "blockPos");
 	protected final SupplierStorage<?>[] subSuppliers = ofStorages(blockPos);
 	

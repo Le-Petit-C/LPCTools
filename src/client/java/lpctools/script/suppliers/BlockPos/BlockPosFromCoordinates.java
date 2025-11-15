@@ -4,17 +4,16 @@ import lpctools.script.CompileEnvironment;
 import lpctools.script.IScriptWithSubScript;
 import lpctools.script.runtimeInterfaces.ScriptNotNullSupplier;
 import lpctools.script.suppliers.AbstractSupplierWithTypeDeterminedSubSuppliers;
-import lpctools.script.suppliers.Integer.ConstantInteger;
 import net.minecraft.text.Text;
 import net.minecraft.util.math.BlockPos;
 import org.jetbrains.annotations.NotNull;
 
 public class BlockPosFromCoordinates extends AbstractSupplierWithTypeDeterminedSubSuppliers implements IBlockPosSupplier {
-	protected final SupplierStorage<Integer> x = ofStorage(Integer.class, new ConstantInteger(this),
+	protected final SupplierStorage<Integer> x = ofStorage(Integer.class,
 		Text.translatable("lpctools.script.suppliers.BlockPos.blockPosFromCoordinates.subSuppliers.x.name"), "x");
-	protected final SupplierStorage<Integer> y = ofStorage(Integer.class, new ConstantInteger(this),
+	protected final SupplierStorage<Integer> y = ofStorage(Integer.class,
 		Text.translatable("lpctools.script.suppliers.BlockPos.blockPosFromCoordinates.subSuppliers.y.name"), "y");
-	protected final SupplierStorage<Integer> z = ofStorage(Integer.class, new ConstantInteger(this),
+	protected final SupplierStorage<Integer> z = ofStorage(Integer.class,
 		Text.translatable("lpctools.script.suppliers.BlockPos.blockPosFromCoordinates.subSuppliers.z.name"), "z");
 	protected final SupplierStorage<?>[] subSuppliers = ofStorages(x);
 	

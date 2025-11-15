@@ -11,7 +11,6 @@ import lpctools.script.editScreen.WidthAutoAdjustTextField;
 import lpctools.script.runtimeInterfaces.ScriptNotNullSupplier;
 import lpctools.script.suppliers.AbstractSupplierWithTypeDeterminedSubSuppliers;
 import lpctools.script.suppliers.Iterable.ObjectIterable;
-import lpctools.script.suppliers.Random.Null;
 import lpctools.script.suppliers.ScriptSupplierLake;
 import net.minecraft.text.Text;
 import org.jetbrains.annotations.NotNull;
@@ -25,7 +24,7 @@ import static lpctools.lpcfymasaapi.LPCConfigUtils.warnFailedLoadingConfig;
 public class IterateIterable extends AbstractSupplierWithTypeDeterminedSubSuppliers implements IControlFlowIssueSupplier {
 	private @NotNull String variableName = "var";
 	protected @Nullable WidthAutoAdjustTextField textField;
-	protected final SupplierStorage<ObjectIterable> iterable = ofStorage(ObjectIterable.class, new Null<>(this, ObjectIterable.class),
+	protected final SupplierStorage<ObjectIterable> iterable = ofStorage(ObjectIterable.class,
 		Text.translatable("lpctools.script.suppliers.ControlFlowIssue.iterateIterable.subSuppliers.iterable.name"), iterableJsonKey);
 	protected final RunMultiple loopBody = new RunMultiple(this, Text.translatable("lpctools.script.suppliers.ControlFlowIssue.iterateIterable.loopBody.name"));
 	protected final SupplierStorage<?>[] subSuppliers = ofStorages(iterable);

@@ -567,6 +567,7 @@
   "lpctools.script.suppliers.Item.constantItem.name": "Constant Item",
   "lpctools.script.suppliers.Item.stackItem.name": "Stack Item",
   "lpctools.script.suppliers.Item.stackItem.subSuppliers.stack.name": "Stack",
+  "lpctools.script.suppliers.ItemStack.emptyStack.name": "Empty Stack",
   "lpctools.script.suppliers.ItemStack.slotItemStack.name": "Slot ItemStack",
   "lpctools.script.suppliers.ItemStack.slotItemStack.subSuppliers.entity.name": "Entity",
   "lpctools.script.suppliers.ItemStack.inventoryItemStack.name": "Inventory ItemStack",

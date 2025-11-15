@@ -4,7 +4,6 @@ import lpctools.script.CompileEnvironment;
 import lpctools.script.IScriptWithSubScript;
 import lpctools.script.runtimeInterfaces.ScriptBooleanSupplier;
 import lpctools.script.suppliers.AbstractSupplierWithTypeDeterminedSubSuppliers;
-import lpctools.script.suppliers.BlockPos.ConstantBlockPos;
 import lpctools.util.BlockUtils;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ClientPlayerEntity;
@@ -12,7 +11,7 @@ import net.minecraft.text.Text;
 import net.minecraft.util.math.BlockPos;
 
 public class CanBreakInstantly extends AbstractSupplierWithTypeDeterminedSubSuppliers implements IBooleanSupplier {
-	protected final SupplierStorage<BlockPos> blockPos = ofStorage(BlockPos.class, new ConstantBlockPos(this),
+	protected final SupplierStorage<BlockPos> blockPos = ofStorage(BlockPos.class,
 		Text.translatable("lpctools.script.suppliers.Boolean.canBreakInstantly.subSuppliers.blockPos.name"), "blockPos");
 	protected final SupplierStorage<?>[] subSuppliers = ofStorages(blockPos);
 	

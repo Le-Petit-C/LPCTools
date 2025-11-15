@@ -4,10 +4,6 @@ import lpctools.script.CompileEnvironment;
 import lpctools.script.IScriptWithSubScript;
 import lpctools.script.runtimeInterfaces.ScriptNotNullSupplier;
 import lpctools.script.suppliers.AbstractSupplierWithTypeDeterminedSubSuppliers;
-import lpctools.script.suppliers.BlockPos.ConstantBlockPos;
-import lpctools.script.suppliers.Boolean.ConstantBoolean;
-import lpctools.script.suppliers.Direction.ConstantDirection;
-import lpctools.script.suppliers.Vec3d.ConstantVec3d;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.text.Text;
 import net.minecraft.util.Hand;
@@ -18,15 +14,15 @@ import net.minecraft.util.math.Vec3d;
 import org.jetbrains.annotations.NotNull;
 
 public class InteractBlock extends AbstractSupplierWithTypeDeterminedSubSuppliers implements IControlFlowIssueSupplier {
-	protected final SupplierStorage<Boolean> useOffhand = ofStorage(Boolean.class, new ConstantBoolean(this),
+	protected final SupplierStorage<Boolean> useOffhand = ofStorage(Boolean.class,
 		Text.translatable("lpctools.script.suppliers.ControlFlowIssue.interactBlock.subSuppliers.useOffhand.name"), "useOffhand");
-	protected final SupplierStorage<Vec3d> pos = ofStorage(Vec3d.class, new ConstantVec3d(this),
+	protected final SupplierStorage<Vec3d> pos = ofStorage(Vec3d.class,
 		Text.translatable("lpctools.script.suppliers.ControlFlowIssue.interactBlock.subSuppliers.pos.name"), "pos");
-	protected final SupplierStorage<Direction> direction = ofStorage(Direction.class, new ConstantDirection(this),
+	protected final SupplierStorage<Direction> direction = ofStorage(Direction.class,
 		Text.translatable("lpctools.script.suppliers.ControlFlowIssue.interactBlock.subSuppliers.direction.name"), "direction");
-	protected final SupplierStorage<BlockPos> blockPos = ofStorage(BlockPos.class, new ConstantBlockPos(this),
+	protected final SupplierStorage<BlockPos> blockPos = ofStorage(BlockPos.class,
 		Text.translatable("lpctools.script.suppliers.ControlFlowIssue.interactBlock.subSuppliers.blockPos.name"), "blockPos");
-	protected final SupplierStorage<Boolean> insideBlock = ofStorage(Boolean.class, new ConstantBoolean(this),
+	protected final SupplierStorage<Boolean> insideBlock = ofStorage(Boolean.class,
 		Text.translatable("lpctools.script.suppliers.ControlFlowIssue.interactBlock.subSuppliers.insideBlock.name"), "insideBlock");
 	protected final SupplierStorage<?>[] subSuppliers = ofStorages(useOffhand, pos, direction, blockPos, insideBlock);
 	

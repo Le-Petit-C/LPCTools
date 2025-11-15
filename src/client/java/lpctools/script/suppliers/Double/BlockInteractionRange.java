@@ -4,13 +4,12 @@ import lpctools.script.CompileEnvironment;
 import lpctools.script.IScriptWithSubScript;
 import lpctools.script.runtimeInterfaces.ScriptDoubleSupplier;
 import lpctools.script.suppliers.AbstractSupplierWithTypeDeterminedSubSuppliers;
-import lpctools.script.suppliers.Entity.PlayerEntity.MainPlayerEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.text.Text;
 import org.jetbrains.annotations.NotNull;
 
 public class BlockInteractionRange extends AbstractSupplierWithTypeDeterminedSubSuppliers implements IDoubleSupplier {
-	protected final SupplierStorage<PlayerEntity> player = ofStorage(PlayerEntity.class, new MainPlayerEntity(this),
+	protected final SupplierStorage<PlayerEntity> player = ofStorage(PlayerEntity.class,
 		Text.translatable("lpctools.script.suppliers.Double.blockInteractionRange.subSuppliers.player.name"), "player");
 	protected final SupplierStorage<?>[] subSuppliers = ofStorages(player);
 	

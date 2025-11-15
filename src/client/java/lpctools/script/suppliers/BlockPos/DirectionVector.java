@@ -4,14 +4,13 @@ import lpctools.script.CompileEnvironment;
 import lpctools.script.IScriptWithSubScript;
 import lpctools.script.runtimeInterfaces.ScriptNotNullSupplier;
 import lpctools.script.suppliers.AbstractSupplierWithTypeDeterminedSubSuppliers;
-import lpctools.script.suppliers.Direction.ConstantDirection;
 import net.minecraft.text.Text;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
 import org.jetbrains.annotations.NotNull;
 
 public class DirectionVector extends AbstractSupplierWithTypeDeterminedSubSuppliers implements IBlockPosSupplier {
-	protected final SupplierStorage<Direction> direction = ofStorage(Direction.class, new ConstantDirection(this),
+	protected final SupplierStorage<Direction> direction = ofStorage(Direction.class,
 		Text.translatable("lpctools.script.suppliers.BlockPos.directionVector.subSuppliers.direction.name"), "direction");
 	protected final SupplierStorage<?>[] subSuppliers = ofStorages(direction);
 	

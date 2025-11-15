@@ -9,9 +9,9 @@ import net.minecraft.text.Text;
 import org.jetbrains.annotations.NotNull;
 
 public class IntegerBiFunction extends AbstractSignResultSupplier<Functions.IntegerBiFunction> implements IIntegerSupplier {
-	protected final SupplierStorage<Integer> integer1 = ofStorage(Integer.class, new ConstantInteger(this),
+	protected final SupplierStorage<Integer> integer1 = ofStorage(Integer.class,
 		Text.translatable("lpctools.script.suppliers.Integer.integerBiFunction.subSuppliers.integer1.name"), "integer1");
-	protected final SupplierStorage<Integer> integer2 = ofStorage(Integer.class, new ConstantInteger(this),
+	protected final SupplierStorage<Integer> integer2 = ofStorage(Integer.class,
 		Text.translatable("lpctools.script.suppliers.Integer.integerBiFunction.subSuppliers.integer2.name"), "integer2");
 	protected final SupplierStorage<?>[] subSuppliers = ofStorages(integer1, integer2);
 	

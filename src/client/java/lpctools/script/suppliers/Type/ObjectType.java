@@ -5,11 +5,10 @@ import lpctools.script.IScriptWithSubScript;
 import lpctools.script.runtimeInterfaces.ScriptNotNullSupplier;
 import lpctools.script.suppliers.AbstractSupplierWithTypeDeterminedSubSuppliers;
 import lpctools.script.suppliers.ScriptType;
-import lpctools.script.suppliers.Random.Null;
 import net.minecraft.text.Text;
 
 public class ObjectType extends AbstractSupplierWithTypeDeterminedSubSuppliers implements ITypeSupplier {
-	protected final SupplierStorage<Object> object = ofStorage(Object.class, new Null<>(this, Object.class),
+	protected final SupplierStorage<Object> object = ofStorage(Object.class,
 		Text.translatable("lpctools.script.suppliers.Boolean.notNull.subSuppliers.object.name"), "object");
 	protected final SupplierStorage<?>[] subSuppliers = ofStorages(object);
 	

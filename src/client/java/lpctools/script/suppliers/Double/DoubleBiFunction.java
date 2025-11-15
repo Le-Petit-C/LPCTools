@@ -9,9 +9,9 @@ import net.minecraft.text.Text;
 import org.jetbrains.annotations.NotNull;
 
 public class DoubleBiFunction extends AbstractSignResultSupplier<Functions.DoubleBiFunction> implements IDoubleSupplier {
-	protected final SupplierStorage<Double> double1 = ofStorage(Double.class, new ConstantDouble(this),
+	protected final SupplierStorage<Double> double1 = ofStorage(Double.class,
 		Text.translatable("lpctools.script.suppliers.Double.doubleBiFunction.subSuppliers.double1.name"), "double1");
-	protected final SupplierStorage<Double> double2 = ofStorage(Double.class, new ConstantDouble(this),
+	protected final SupplierStorage<Double> double2 = ofStorage(Double.class,
 		Text.translatable("lpctools.script.suppliers.Double.doubleBiFunction.subSuppliers.double2.name"), "double2");
 	protected final SupplierStorage<?>[] subSuppliers = ofStorages(double1, double2);
 	

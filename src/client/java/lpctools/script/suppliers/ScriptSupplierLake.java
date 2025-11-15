@@ -20,6 +20,7 @@ import lpctools.script.suppliers.Integer.*;
 import lpctools.script.suppliers.Item.ConstantItem;
 import lpctools.script.suppliers.Item.StackItem;
 import lpctools.script.suppliers.ItemStack.CurrentScreenSlotStack;
+import lpctools.script.suppliers.ItemStack.EmptyStack;
 import lpctools.script.suppliers.ItemStack.InventoryItemStack;
 import lpctools.script.suppliers.ItemStack.SlotItemStack;
 import lpctools.script.suppliers.Iterable.*;
@@ -47,6 +48,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.function.Supplier;
 
 import static lpctools.lpcfymasaapi.LPCConfigUtils.warnFailedLoadingConfig;
@@ -162,23 +164,23 @@ public class ScriptSupplierLake {
 	
 	//注册类型
 	static{
-		registerType(Object.class, 			Text.translatable("lpctools.script.typeName.Object"), "object");
-		registerType(ControlFlowIssue.class,Text.translatable("lpctools.script.typeName.ControlFlowIssue"), "void");
-		registerType(Boolean.class, 		Text.translatable("lpctools.script.typeName.Boolean"), "boolean");
-		registerType(Integer.class, 		Text.translatable("lpctools.script.typeName.Integer"), "integer");
-		registerType(Double.class, 			Text.translatable("lpctools.script.typeName.Double"), "double");
-		registerType(String.class, 			Text.translatable("lpctools.script.typeName.String"), "string");
-		registerType(Object[].class, 		Text.translatable("lpctools.script.typeName.Array"), "array");
-		registerType(ScriptType.class, 		Text.translatable("lpctools.script.typeName.ScriptType"), "type");
-		registerType(ObjectIterable.class, 	Text.translatable("lpctools.script.typeName.Iterable"), "iterable");
-		registerType(BlockPos.class, 		Text.translatable("lpctools.script.typeName.BlockPos"), "blockPos");
-		registerType(Vec3d.class, 			Text.translatable("lpctools.script.typeName.Vec3d"), "vec3d");
-		registerType(Direction.class, 		Text.translatable("lpctools.script.typeName.Direction"), "vec3d");
-		registerType(Block.class, 			Text.translatable("lpctools.script.typeName.Block"), "block");
-		registerType(Item.class, 			Text.translatable("lpctools.script.typeName.Item"), "item");
-		registerType(ItemStack.class, 		Text.translatable("lpctools.script.typeName.ItemStack"), "itemStack");
-		registerType(Entity.class, 			Text.translatable("lpctools.script.typeName.Entity"), "entity");
-		registerType(PlayerEntity.class, 	Text.translatable("lpctools.script.typeName.PlayerEntity"), "playerEntity");
+		registerType(Object.class, 			parent->new Null<>(parent, Object.class), 			Text.translatable("lpctools.script.typeName.Object"), "object");
+		registerType(ControlFlowIssue.class,DoNothing::new, 									Text.translatable("lpctools.script.typeName.ControlFlowIssue"), "void");
+		registerType(Boolean.class, 		ConstantBoolean::new, 								Text.translatable("lpctools.script.typeName.Boolean"), "boolean");
+		registerType(Integer.class, 		ConstantInteger::new, 								Text.translatable("lpctools.script.typeName.Integer"), "integer");
+		registerType(Double.class, 			ConstantDouble::new, 								Text.translatable("lpctools.script.typeName.Double"), "double");
+		registerType(String.class, 			ConstantString::new, 								Text.translatable("lpctools.script.typeName.String"), "string");
+		registerType(Object[].class, 		parent->new Null<>(parent, Object[].class), 		Text.translatable("lpctools.script.typeName.Array"), "array");
+		registerType(ScriptType.class, 		ConstantType::new, 									Text.translatable("lpctools.script.typeName.ScriptType"), "type");
+		registerType(ObjectIterable.class, 	parent->new Null<>(parent, ObjectIterable.class), 	Text.translatable("lpctools.script.typeName.Iterable"), "iterable");
+		registerType(BlockPos.class, 		ConstantBlockPos::new, 								Text.translatable("lpctools.script.typeName.BlockPos"), "blockPos");
+		registerType(Vec3d.class, 			ConstantVec3d::new, 								Text.translatable("lpctools.script.typeName.Vec3d"), "vec3d");
+		registerType(Direction.class, 		ConstantDirection::new, 							Text.translatable("lpctools.script.typeName.Direction"), "vec3d");
+		registerType(Block.class, 			ConstantBlock::new, 								Text.translatable("lpctools.script.typeName.Block"), "block");
+		registerType(Item.class, 			ConstantItem::new, 									Text.translatable("lpctools.script.typeName.Item"), "item");
+		registerType(ItemStack.class, 		EmptyStack::new, 									Text.translatable("lpctools.script.typeName.ItemStack"), "itemStack");
+		registerType(Entity.class, 			MainPlayerEntity::new, 								Text.translatable("lpctools.script.typeName.Entity"), "entity");
+		registerType(PlayerEntity.class, 	MainPlayerEntity::new, 								Text.translatable("lpctools.script.typeName.PlayerEntity"), "playerEntity");
 	}
 	
 	//注册suppliers
@@ -276,6 +278,7 @@ public class ScriptSupplierLake {
 		registerPrecise("constantItem", 			Text.translatable("lpctools.script.suppliers.Item.constantItem.name"), Item.class, ConstantItem.class, ConstantItem::new);
 		registerPrecise("stackItem", 				Text.translatable("lpctools.script.suppliers.Item.stackItem.name"), Item.class, StackItem.class, StackItem::new);
 		//注册item stack suppliers
+		registerPrecise("emptyStack", 				Text.translatable("lpctools.script.suppliers.ItemStack.emptyStack.name"), ItemStack.class, EmptyStack.class, EmptyStack::new);
 		registerPrecise("slotItemStack", 			Text.translatable("lpctools.script.suppliers.ItemStack.slotItemStack.name"), ItemStack.class, SlotItemStack.class, SlotItemStack::new);
 		registerPrecise("inventoryItemStack", 		Text.translatable("lpctools.script.suppliers.ItemStack.inventoryItemStack.name"), ItemStack.class, InventoryItemStack.class, InventoryItemStack::new);
 		registerPrecise("currentScreenSlotStack", 	Text.translatable("lpctools.script.suppliers.ItemStack.currentScreenSlotStack.name"), ItemStack.class, CurrentScreenSlotStack.class, CurrentScreenSlotStack::new);
@@ -350,8 +353,8 @@ public class ScriptSupplierLake {
 		return true;
 	}
 	
-	private static void registerType(Class<?> basicClass, Text name, String id){
-		var type = new ScriptType.BasicType(basicClass, name, id);
+	private static <T> void registerType(Class<T> basicClass, Function<IScriptWithSubScript, IScriptSupplier<? extends T>> defaultValue, Text name, String id){
+		var type = new ScriptType.BasicType<>(basicClass, defaultValue, name, id);
 		typeMapTemp.put(basicClass, type);
 		typeIdMapTemp.put(id, type);
 		LinkedHashSet<Class<?>> set = new LinkedHashSet<>();
