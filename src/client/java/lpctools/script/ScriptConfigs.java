@@ -1,11 +1,13 @@
 package lpctools.script;
 
+import fi.dy.masa.malilib.hotkeys.KeybindSettings;
 import fi.dy.masa.malilib.util.data.Color4f;
 import lpctools.LPCTools;
 import lpctools.lpcfymasaapi.LPCConfigList;
 import lpctools.lpcfymasaapi.configButtons.derivedConfigs.ArrayOptionListConfig;
 import lpctools.lpcfymasaapi.configButtons.transferredConfigs.BooleanConfig;
 import lpctools.lpcfymasaapi.configButtons.transferredConfigs.ColorConfig;
+import lpctools.lpcfymasaapi.configButtons.transferredConfigs.HotkeyConfig;
 import lpctools.lpcfymasaapi.configButtons.transferredConfigs.IntegerConfig;
 import lpctools.lpcfymasaapi.configButtons.uniqueConfigs.ButtonConfig;
 import lpctools.lpcfymasaapi.configButtons.uniqueConfigs.ThirdListConfig;
@@ -33,6 +35,9 @@ public class ScriptConfigs {
     public static final BooleanConfig dragBoundaryConstraint = addBooleanConfig("dragBoundaryConstraint", true);
     public static final ColorConfig moveHighlightColor = addColorConfig("moveHighlightColor", Color4f.fromColor(0x3fffffff));
     public static final ReservedDistanceConfig reservedDistance = addConfig(new ReservedDistanceConfig());
+    public static final HotkeyConfig dragDisplayKey = addHotkeyConfig("dragDisplayKey", KeybindSettings.MODIFIER_GUI, "LEFT_ALT", null);
+    public static final HotkeyConfig copyPastDisplayKey = addHotkeyConfig("copyPastDisplayKey", KeybindSettings.MODIFIER_GUI, "LEFT_CONTROL", null);
+    public static final HotkeyConfig insertRemoveDisplayKey = addHotkeyConfig("insertRemoveDisplayKey", KeybindSettings.MODIFIER_GUI, "LEFT_SHIFT", null);
     
     @SuppressWarnings("unused")
     public static final ButtonConfig reloadScripts = addButtonConfig("reloadScripts", (button, mouseButton)->{
@@ -43,6 +48,23 @@ public class ScriptConfigs {
     //static {addConfig(StaticVariables.instance);}
     static {listStack.pop();}
     
+    public static boolean isDragDisplayKeyPressed(){
+        var keybind = dragDisplayKey.getKeybind();
+        if(keybind.getKeys().isEmpty()) return true;
+        return keybind.isPressed();
+    }
+    
+    public static boolean isCopyPastDisplayKeyPressed(){
+        var keybind = copyPastDisplayKey.getKeybind();
+        if(keybind.getKeys().isEmpty()) return true;
+        return keybind.isPressed();
+    }
+    
+    public static boolean isInsertRemoveDisplayKeyPressed(){
+        var keybind = insertRemoveDisplayKey.getKeybind();
+        if(keybind.getKeys().isEmpty()) return true;
+        return keybind.isPressed();
+    }
     
     public static class ConfigSizeConfig extends UniqueIntegerConfig {
         public ConfigSizeConfig(ILPCConfigReadable parent) {super(parent, "guiScale", 0, 0, 10, null);}

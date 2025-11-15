@@ -5,6 +5,7 @@ import com.google.common.collect.ImmutableMap;
 import fi.dy.masa.malilib.config.IConfigOptionListEntry;
 import fi.dy.masa.malilib.gui.button.IButtonActionListener;
 import fi.dy.masa.malilib.hotkeys.IHotkeyCallback;
+import fi.dy.masa.malilib.hotkeys.KeybindSettings;
 import fi.dy.masa.malilib.util.data.Color4f;
 import lpctools.lpcfymasaapi.configButtons.derivedConfigs.*;
 import lpctools.lpcfymasaapi.configButtons.transferredConfigs.*;
@@ -55,6 +56,9 @@ public interface LPCConfigStatics {
     }
     static DoubleConfig addDoubleConfig(ILPCConfigList list, @NotNull String nameKey, double defaultDouble, double minValue, double maxValue, @Nullable ILPCValueChangeCallback callback){
         return list.addConfig(new DoubleConfig(list, nameKey, defaultDouble, minValue, maxValue, callback));
+    }
+    static HotkeyConfig addHotkeyConfig(ILPCConfigList list, @NotNull String nameKey, @NotNull KeybindSettings defaultKeybindSettings, @Nullable String defaultStorageString, @Nullable IHotkeyCallback callBack){
+        return list.addConfig(new HotkeyConfig(list, nameKey, defaultKeybindSettings, defaultStorageString, callBack));
     }
     static HotkeyConfig addHotkeyConfig(ILPCConfigList list, @NotNull String nameKey, @Nullable String defaultStorageString, @Nullable IHotkeyCallback callBack){
         return list.addConfig(new HotkeyConfig(list, nameKey, defaultStorageString, callBack));
@@ -256,6 +260,9 @@ public interface LPCConfigStatics {
     }
     static DoubleConfig addDoubleConfig(@NotNull String nameKey, double defaultDouble, double minValue, double maxValue, @Nullable ILPCValueChangeCallback callback){
         return addDoubleConfig(peekConfigList(), nameKey, defaultDouble, minValue, maxValue, callback);
+    }
+    static HotkeyConfig addHotkeyConfig(@NotNull String nameKey, KeybindSettings defaultKeybindSettings, @Nullable String defaultStorageString, @Nullable IHotkeyCallback callBack){
+        return addHotkeyConfig(peekConfigList(), nameKey, defaultKeybindSettings, defaultStorageString, callBack);
     }
     static HotkeyConfig addHotkeyConfig(@NotNull String nameKey, @Nullable String defaultStorageString, @NotNull IHotkeyCallback callBack){
         return addHotkeyConfig(peekConfigList(), nameKey, defaultStorageString, callBack);

@@ -5,6 +5,7 @@ import fi.dy.masa.malilib.config.options.ConfigHotkey;
 import fi.dy.masa.malilib.hotkeys.IHotkeyCallback;
 import fi.dy.masa.malilib.hotkeys.IKeybind;
 import fi.dy.masa.malilib.hotkeys.KeyAction;
+import fi.dy.masa.malilib.hotkeys.KeybindSettings;
 import fi.dy.masa.malilib.util.StringUtils;
 import lpctools.lpcfymasaapi.configButtons.UpdateTodo;
 import lpctools.lpcfymasaapi.interfaces.IButtonDisplay;
@@ -22,21 +23,22 @@ import java.util.function.IntConsumer;
 import java.util.function.IntSupplier;
 
 public class HotkeyConfig extends ConfigHotkey implements ILPC_MASAConfigWrapper<ConfigHotkey>, AutoCloseable {
-    public HotkeyConfig(@NotNull ILPCConfigReadable parent, @NotNull String nameKey, @Nullable String defaultStorageString, @Nullable IHotkeyCallback hotkeyCallback){
-        super(nameKey, defaultStorageString != null ? defaultStorageString : "");
+    public HotkeyConfig(@NotNull ILPCConfigReadable parent, @NotNull String nameKey, @NotNull KeybindSettings defaultKeybindSettings, @Nullable String defaultStorageString, @Nullable IHotkeyCallback hotkeyCallback){
+        super(nameKey, defaultStorageString != null ? defaultStorageString : "", defaultKeybindSettings);
         data = new LPCConfigData(parent, true);
         ILPC_MASAConfigWrapperDefaultInit(null);
         parent.getPage().getInputHandler().addHotkey(this);
         getKeybind().setCallback(hotkeyCallback);
+    }
+    public HotkeyConfig(@NotNull ILPCConfigReadable parent, @NotNull String nameKey, @Nullable String defaultStorageString, @Nullable IHotkeyCallback hotkeyCallback){
+        this(parent, nameKey, KeybindSettings.DEFAULT, defaultStorageString, hotkeyCallback);
     }
     
     public HotkeyConfig(@NotNull ILPCConfigReadable parent, @NotNull String nameKey, @Nullable String defaultStorageString){
         this(parent, nameKey, defaultStorageString, null);
     }
     
-    @Override public void close() {
-        getPage().getInputHandler().removeHotkey(this);
-    }
+    @Override public void close() {getPage().getInputHandler().removeHotkey(this);}
     
     @SuppressWarnings("unused")
     public static class IntegerChanger<T extends IntSupplier & IntConsumer & IButtonDisplay> implements IHotkeyCallback{

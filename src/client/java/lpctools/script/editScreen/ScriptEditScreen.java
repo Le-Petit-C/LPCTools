@@ -3,6 +3,7 @@ package lpctools.script.editScreen;
 import fi.dy.masa.malilib.gui.*;
 import fi.dy.masa.malilib.gui.button.ButtonGeneric;
 import fi.dy.masa.malilib.gui.widgets.WidgetBase;
+import fi.dy.masa.malilib.gui.widgets.WidgetListConfigOptions;
 import fi.dy.masa.malilib.util.position.Vec2d;
 import it.unimi.dsi.fastutil.objects.Object2LongOpenHashMap;
 import lpctools.script.*;
@@ -59,6 +60,9 @@ public class ScriptEditScreen extends GuiConfigsBase {
 		super(0, 0, "lpctools", null, "lpctools.script.editScreen.title");
 		this.script = script;
 	}
+	
+	@Override public @Nullable WidgetListConfigOptions getListWidget() {return super.getListWidget();}
+	
 	private @NotNull ScriptWithSubScriptDisplayWidget getRootDisplayWidget(){
 		return script.getDisplayWidget();
 	}
@@ -94,12 +98,12 @@ public class ScriptEditScreen extends GuiConfigsBase {
 		if (mouseButton == 0) {
 			if(widget != null){
 				int mx = (int)Math.floor(fixedMouseX), my = (int)Math.floor(fixedMouseY);
-				if(copyButton.onMouseClicked(mx, my, mouseButton)){
+				if(isCopyPastDisplayKeyPressed() && copyButton.onMouseClicked(mx, my, mouseButton)){
 					ScriptData.setClipboard(widget.script.getAsJsonElement(), widget.script.getClass());
 					cursorInfo("Copied", 2000);
 					return true;
 				}
-				else if(pasteButton.onMouseClicked(mx, my, mouseButton)){
+				else if(isCopyPastDisplayKeyPressed() && pasteButton.onMouseClicked(mx, my, mouseButton)){
 					if(ScriptData.pasteTo(json->{
 						widget.script.setValueFromJsonElement(json);
 						widget.markUpdateChain();
@@ -109,18 +113,18 @@ public class ScriptEditScreen extends GuiConfigsBase {
 					return true;
 				}
 				else if(widget.parent instanceof ScriptWithSubScriptMutableDisplayWidget<?> parent) {
-					if(dragButton.onMouseClicked(mx, my, mouseButton)){
+					if(isDragDisplayKeyPressed() && dragButton.onMouseClicked(mx, my, mouseButton)){
 						scriptHoldingData = new ScriptHoldingData(
 							new Vec2d(fixedMouseX - widget.getX(), fixedMouseY - widget.getY()),
 							widget
 						);
 						return true;
 					}
-					else if(insertButton.onMouseClicked(mx, my, mouseButton)){
+					else if(isInsertRemoveDisplayKeyPressed() && insertButton.onMouseClicked(mx, my, mouseButton)){
 						insertionButtonClicked(widget, parent);
 						return true;
 					}
-					else if(removeButton.onMouseClicked(mx, my, mouseButton)){
+					else if(isInsertRemoveDisplayKeyPressed() && removeButton.onMouseClicked(mx, my, mouseButton)){
 						int i = parent.indexOf(widget);
 						if(i >= 0) {
 							var v = parent.getIScript().getSubScripts().remove(i);
@@ -269,7 +273,7 @@ public class ScriptEditScreen extends GuiConfigsBase {
 			var w = root.getByLine(i);
 			if(w == null) break;
 			if(line >= hideMinLineIndex && line < hideMaxLineIndex)
-				drawContext.fill(w.getX() + 1, w.getY() + 1, w.getX() + w.getWidth() - 1, w.getY() + w.getHeight() - 1, 0x7fffffff);
+				drawContext.fill(w.getX() + 1, w.getY() + 1, w.getX() + w.getWidth() - 1, w.getY() + w.getHeight() - 1, moveHighlightColor.getIntegerValue());
 			else w.render(drawContext, fixedMouseX, fixedMouseY, partialTicks);
 			++line;
 		}
@@ -316,18 +320,28 @@ public class ScriptEditScreen extends GuiConfigsBase {
 		//绘制拖动按钮
 		if(hoverWidget != null){
 			int x = hoverWidget.getX() + hoverWidget.getWidth() + 1, y = hoverWidget.getY() + 1;
-			copyButton.setPosition(x, y);
-			pasteButton.setPosition(x + 22, y);
-			copyButton.render(drawContext, fixedMouseX, fixedMouseY, copyButton.isMouseOver(fixedMouseX, fixedMouseY));
-			pasteButton.render(drawContext, fixedMouseX, fixedMouseY, pasteButton.isMouseOver(fixedMouseX, fixedMouseY));
+			int shift = 0;
+			if(isCopyPastDisplayKeyPressed()){
+				copyButton.setPosition(x + shift, y);
+				pasteButton.setPosition(x + shift + 22, y);
+				copyButton.render(drawContext, fixedMouseX, fixedMouseY, copyButton.isMouseOver(fixedMouseX, fixedMouseY));
+				pasteButton.render(drawContext, fixedMouseX, fixedMouseY, pasteButton.isMouseOver(fixedMouseX, fixedMouseY));
+				shift += 44;
+			}
 			var parentScript = hoverWidget.script.getParent();
 			if(parentScript instanceof IScriptWithSubScriptMutable<?>){
-				dragButton.setPosition(x + 44, y);
-				insertButton.setPosition(x + 66, y);
-				removeButton.setPosition(x + 88, y);
-				dragButton.render(drawContext, fixedMouseX, fixedMouseY, dragButton.isMouseOver(fixedMouseX, fixedMouseY));
-				insertButton.render(drawContext, fixedMouseX, fixedMouseY, insertButton.isMouseOver(fixedMouseX, fixedMouseY));
-				removeButton.render(drawContext, fixedMouseX, fixedMouseY, removeButton.isMouseOver(fixedMouseX, fixedMouseY));
+				if(isDragDisplayKeyPressed()) {
+					dragButton.setPosition(x + shift, y);
+					dragButton.render(drawContext, fixedMouseX, fixedMouseY, dragButton.isMouseOver(fixedMouseX, fixedMouseY));
+					shift += 22;
+				}
+				if(isInsertRemoveDisplayKeyPressed()){
+					insertButton.setPosition(x + shift, y);
+					removeButton.setPosition(x + shift + 22, y);
+					insertButton.render(drawContext, fixedMouseX, fixedMouseY, insertButton.isMouseOver(fixedMouseX, fixedMouseY));
+					removeButton.render(drawContext, fixedMouseX, fixedMouseY, removeButton.isMouseOver(fixedMouseX, fixedMouseY));
+					//shift += 44;
+				}
 			}
 		}
 		matrices.popMatrix();
