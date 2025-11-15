@@ -19,6 +19,8 @@ import lpctools.script.suppliers.Entity.PlayerEntity.MainPlayerEntity;
 import lpctools.script.suppliers.Integer.*;
 import lpctools.script.suppliers.Item.ConstantItem;
 import lpctools.script.suppliers.Item.StackItem;
+import lpctools.script.suppliers.ItemStack.CurrentScreenSlotStack;
+import lpctools.script.suppliers.ItemStack.InventoryItemStack;
 import lpctools.script.suppliers.ItemStack.SlotItemStack;
 import lpctools.script.suppliers.Iterable.*;
 import lpctools.script.suppliers.Random.FromArray;
@@ -206,6 +208,7 @@ public class ScriptSupplierLake {
 		registerPrecise("interactBlock", 			Text.translatable("lpctools.script.suppliers.ControlFlowIssue.interactBlock.name"), ControlFlowIssue.class, InteractBlock.class, InteractBlock::new);
 		registerPrecise("attackEntity", 			Text.translatable("lpctools.script.suppliers.ControlFlowIssue.attackEntity.name"), ControlFlowIssue.class, AttackEntity.class, AttackEntity::new);
 		registerPrecise("interactEntity", 			Text.translatable("lpctools.script.suppliers.ControlFlowIssue.interactEntity.name"), ControlFlowIssue.class, InteractEntity.class, InteractEntity::new);
+		registerPrecise("clickSlot", 				Text.translatable("lpctools.script.suppliers.ControlFlowIssue.clickSlot.name"), ControlFlowIssue.class, ClickSlot.class, ClickSlot::new);
 		//注册boolean suppliers
 		registerPrecise("constantBoolean", 			Text.translatable("lpctools.script.suppliers.Boolean.constantBoolean.name"), Boolean.class, ConstantBoolean.class, ConstantBoolean::new);
 		registerPrecise("and", 						Text.translatable("lpctools.script.suppliers.Boolean.and.name"), Boolean.class, And.class, And::new);
@@ -274,6 +277,8 @@ public class ScriptSupplierLake {
 		registerPrecise("stackItem", 				Text.translatable("lpctools.script.suppliers.Item.stackItem.name"), Item.class, StackItem.class, StackItem::new);
 		//注册item stack suppliers
 		registerPrecise("slotItemStack", 			Text.translatable("lpctools.script.suppliers.ItemStack.slotItemStack.name"), ItemStack.class, SlotItemStack.class, SlotItemStack::new);
+		registerPrecise("inventoryItemStack", 		Text.translatable("lpctools.script.suppliers.ItemStack.inventoryItemStack.name"), ItemStack.class, InventoryItemStack.class, InventoryItemStack::new);
+		registerPrecise("currentScreenSlotStack", 	Text.translatable("lpctools.script.suppliers.ItemStack.currentScreenSlotStack.name"), ItemStack.class, CurrentScreenSlotStack.class, CurrentScreenSlotStack::new);
 		//注册entity suppliers
 		registerPrecise("vehicleEntity", 			Text.translatable("lpctools.script.suppliers.Entity.vehicleEntity.name"), Entity.class, VehicleEntity.class, VehicleEntity::new);
 		//注册player entity suppliers
