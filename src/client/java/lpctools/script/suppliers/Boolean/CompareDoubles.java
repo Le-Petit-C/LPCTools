@@ -9,9 +9,9 @@ import net.minecraft.text.Text;
 
 public class CompareDoubles extends AbstractSignResultSupplier<Functions.DoubleCompareSign> implements IBooleanSupplier {
 	protected final SupplierStorage<Double> double1 = ofStorage(Double.class,
-		Text.translatable("lpctools.script.suppliers.Boolean.compareDoubles.subSuppliers.double1.name"), "double1");
+		Text.translatable("lpctools.script.suppliers.boolean.compareDoubles.subSuppliers.double1.name"), "double1");
 	protected final SupplierStorage<Double> double2 = ofStorage(Double.class,
-		Text.translatable("lpctools.script.suppliers.Boolean.compareDoubles.subSuppliers.double2.name"), "double2");
+		Text.translatable("lpctools.script.suppliers.boolean.compareDoubles.subSuppliers.double2.name"), "double2");
 	protected final SupplierStorage<?>[] subSuppliers = ofStorages(double1, double2);
 	
 	public CompareDoubles(IScriptWithSubScript parent) {super(parent, Functions.EQUALS, Functions.doubleCompareSignInfo, 1);}

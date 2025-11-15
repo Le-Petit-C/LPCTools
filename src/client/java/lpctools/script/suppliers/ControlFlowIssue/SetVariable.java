@@ -21,7 +21,7 @@ public class SetVariable extends AbstractSupplierWithTypeDeterminedSubSuppliers 
 	private @NotNull String variableName = "var";
 	protected @Nullable WidthAutoAdjustTextField textField;
 	protected final SupplierStorage<Object> value = ofStorage(Object.class,
-		Text.translatable("lpctools.script.suppliers.ControlFlowIssue.setVariable.subSuppliers.value.name"), valueJsonKey);
+		Text.translatable("lpctools.script.suppliers.controlFlowIssue.setVariable.subSuppliers.value.name"), valueJsonKey);
 	protected final SupplierStorage<?>[] subSuppliers = ofStorages(value);
 	public static final String variableNameJsonKey = "variableName";
 	public static final String valueJsonKey = "value";

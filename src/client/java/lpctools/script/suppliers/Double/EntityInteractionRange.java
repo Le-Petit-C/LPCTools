@@ -10,7 +10,7 @@ import org.jetbrains.annotations.NotNull;
 
 public class EntityInteractionRange extends AbstractSupplierWithTypeDeterminedSubSuppliers implements IDoubleSupplier {
 	protected final SupplierStorage<PlayerEntity> player = ofStorage(PlayerEntity.class,
-		Text.translatable("lpctools.script.suppliers.Double.entityInteractionRange.subSuppliers.player.name"), "player");
+		Text.translatable("lpctools.script.suppliers.double.entityInteractionRange.subSuppliers.player.name"), "player");
 	protected final SupplierStorage<?>[] subSuppliers = ofStorages(player);
 	
 	public EntityInteractionRange(IScriptWithSubScript parent) {super(parent);}

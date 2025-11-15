@@ -12,6 +12,7 @@ import java.util.function.Consumer;
 
 public interface IScript {
 	@Nullable Text getName();
+	@Nullable Text getComment();
 	//获取Buttons, Widgets和TextFields
 	default @Nullable Iterable<?> getWidgets(){return null;}
 	@Nullable JsonElement getAsJsonElement();

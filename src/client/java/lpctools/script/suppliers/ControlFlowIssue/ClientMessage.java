@@ -11,9 +11,9 @@ import static lpctools.util.DataUtils.clientMessage;
 
 public class ClientMessage extends AbstractSupplierWithTypeDeterminedSubSuppliers implements IControlFlowIssueSupplier {
 	protected final SupplierStorage<String> message = ofStorage(String.class,
-		Text.translatable("lpctools.script.suppliers.ControlFlowIssue.clientMessage.subSuppliers.message.name"), "message");
+		Text.translatable("lpctools.script.suppliers.controlFlowIssue.clientMessage.subSuppliers.message.name"), "message");
 	protected final SupplierStorage<Boolean> overlay = ofStorage(Boolean.class,
-		Text.translatable("lpctools.script.suppliers.ControlFlowIssue.clientMessage.subSuppliers.overlay.name"), "overlay");
+		Text.translatable("lpctools.script.suppliers.controlFlowIssue.clientMessage.subSuppliers.overlay.name"), "overlay");
 	protected final SupplierStorage<?>[] subSuppliers = ofStorages(message, overlay);
 	
 	public ClientMessage(IScriptWithSubScript parent) {super(parent);}

@@ -11,9 +11,9 @@ import org.jetbrains.annotations.NotNull;
 
 public class CalculateVec3ds extends AbstractSignResultSupplier<Functions.Vec3dCalculateSign> implements IVec3dSupplier {
 	protected final SupplierStorage<Vec3d> vec1 = ofStorage(Vec3d.class,
-		Text.translatable("lpctools.script.suppliers.Vec3d.calculateVec3ds.subSuppliers.vec1.name"), "vec1");
+		Text.translatable("lpctools.script.suppliers.vec3d.calculateVec3ds.subSuppliers.vec1.name"), "vec1");
 	protected final SupplierStorage<Vec3d> vec2 = ofStorage(Vec3d.class,
-		Text.translatable("lpctools.script.suppliers.Vec3d.calculateVec3ds.subSuppliers.vec2.name"), "vec2");
+		Text.translatable("lpctools.script.suppliers.vec3d.calculateVec3ds.subSuppliers.vec2.name"), "vec2");
 	protected final SupplierStorage<?>[] subSuppliers = ofStorages(vec1, vec2);
 	
 	public CalculateVec3ds(IScriptWithSubScript parent) {super(parent, Functions.ADD, Functions.vec3dCalculateSignInfo, 1);}

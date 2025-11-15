@@ -41,12 +41,13 @@ public class ScriptDisplayWidget extends ClickableWidget{
 		if(parent != null) depth = parent.depth + 1;
 		else depth = 0;
 		Text name = script.getName();
+		Text comment = script.getComment();
 		Text prefix = parentScript != null ? parentScript.getSubScriptNamePrefix(script) : null;
 		String nameStr = (prefix == null ? "" : prefix.getString() + ": ") + (name == null ? "" : name.getString());
-		if(!nameStr.isEmpty()){
-			nameButton = new ButtonGeneric(0, 0, calculateTextButtonWidth(nameStr, editScreen.textRenderer, 20), 20, nameStr)
+		if(!nameStr.isEmpty())
+			nameButton = new ButtonGeneric(0, 0, calculateTextButtonWidth(nameStr, editScreen.textRenderer, 20),
+				20, nameStr, comment == null ? null : comment.getString())
 				.setRenderDefaultBackground(false);
-		}
 		else nameButton = null;
 	}
 	
@@ -190,8 +191,8 @@ public class ScriptDisplayWidget extends ClickableWidget{
 		if (nameButton != null) {
 			boolean isOver = nameButton.isMouseOver(mouseX, mouseY);
 			nameButton.render(context, mouseX, mouseY, isOver);
-			if(nameButton.hasHoverText())
-				nameButton.postRenderHovered(context, mouseX, mouseY, false);
+			if(nameButton.hasHoverText() && nameButton.isMouseOver(mouseX, mouseY))
+				editScreen.setHover(nameButton, mouseX, mouseY, context.getMatrices());
 		}
 		for (var widget : widgets) {
 			widget.render(context, mouseX, mouseY, deltaTicks);

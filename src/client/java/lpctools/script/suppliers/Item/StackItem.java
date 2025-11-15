@@ -11,7 +11,7 @@ import org.jetbrains.annotations.NotNull;
 
 public class StackItem extends AbstractSupplierWithTypeDeterminedSubSuppliers implements IItemSupplier {
 	protected final SupplierStorage<ItemStack> stack = ofStorage(ItemStack.class,
-		Text.translatable("lpctools.script.suppliers.Item.stackItem.subSuppliers.stack.name"), "stack");
+		Text.translatable("lpctools.script.suppliers.item.stackItem.subSuppliers.stack.name"), "stack");
 	protected final SupplierStorage<?>[] subSuppliers = ofStorages(stack);
 	
 	public StackItem(IScriptWithSubScript parent) {super(parent);}

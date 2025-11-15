@@ -10,7 +10,7 @@ import org.jetbrains.annotations.NotNull;
 
 public class BlockInteractionRange extends AbstractSupplierWithTypeDeterminedSubSuppliers implements IDoubleSupplier {
 	protected final SupplierStorage<PlayerEntity> player = ofStorage(PlayerEntity.class,
-		Text.translatable("lpctools.script.suppliers.Double.blockInteractionRange.subSuppliers.player.name"), "player");
+		Text.translatable("lpctools.script.suppliers.double.blockInteractionRange.subSuppliers.player.name"), "player");
 	protected final SupplierStorage<?>[] subSuppliers = ofStorages(player);
 	
 	public BlockInteractionRange(IScriptWithSubScript parent) {super(parent);}

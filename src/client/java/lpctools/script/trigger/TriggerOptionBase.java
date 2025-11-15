@@ -18,6 +18,7 @@ abstract class TriggerOptionBase extends AbstractScript implements TriggerOption
 	@Override public void setValueFromJsonElement(@Nullable JsonElement element) {}
 	@Override public TriggerOptionFactory getFactory() {return factory;}
 	@Override public @Nullable Text getName() {return factory.name();}
+	@Override public @Nullable Text getComment() {return factory.comment();}
 	@Override public @Nullable ScriptTrigger getParent() {
 		return (ScriptTrigger)super.getParent();
 	}

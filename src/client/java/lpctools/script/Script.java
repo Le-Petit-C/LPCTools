@@ -73,7 +73,10 @@ public class Script extends AbstractScriptWithSubScript implements IScriptWithSu
 			trigger.registerAll(enable);
 		}
 	}
+	
 	@Override public @Nullable Text getName() {return null;}
+	@Override public @Nullable Text getComment() {return null;}
+	
 	public @NotNull String getId(){return id;}
 	public void setId(String id){
 		if(id.equals(this.id)) return;
@@ -171,7 +174,7 @@ public class Script extends AbstractScriptWithSubScript implements IScriptWithSu
 	
 	private ScriptRunnable compile(){
 		var environment = new CompileEnvironment();
-		var func = operations.compile(environment);
+		var func = operations.compileNotNull(environment);
 		var runtimeVariableMapSupplier = environment.createRuntimeVariableMapSupplier();
 		needRecompile = false;
 		return ()->func.scriptApply(runtimeVariableMapSupplier.get());

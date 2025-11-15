@@ -12,7 +12,7 @@ import org.jetbrains.annotations.NotNull;
 
 public class CurrentScreenSlotStack extends AbstractSupplierWithTypeDeterminedSubSuppliers implements IItemStackSupplier{
 	protected final SupplierStorage<Integer> index = ofStorage(Integer.class,
-		Text.translatable("lpctools.script.suppliers.ItemStack.currentScreenSlotStack.subSuppliers.index.name"), "index");
+		Text.translatable("lpctools.script.suppliers.itemStack.currentScreenSlotStack.subSuppliers.index.name"), "index");
 	protected final SupplierStorage<?>[] subSuppliers = ofStorages(index);
 	
 	public CurrentScreenSlotStack(IScriptWithSubScript parent) {super(parent);}

@@ -8,7 +8,7 @@ import net.minecraft.text.Text;
 
 public class NotNull extends AbstractSupplierWithTypeDeterminedSubSuppliers implements IBooleanSupplier {
 	protected final SupplierStorage<Object> objectStorage = ofStorage(Object.class,
-		Text.translatable("lpctools.script.suppliers.Boolean.notNull.subSuppliers.object.name"), "objectStorage");
+		Text.translatable("lpctools.script.suppliers.boolean.notNull.subSuppliers.object.name"), "objectStorage");
 	protected final SupplierStorage<?>[] subSuppliers = ofStorages(objectStorage);
 	
 	public NotNull(IScriptWithSubScript parent) {super(parent);}

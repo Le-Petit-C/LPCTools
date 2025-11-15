@@ -17,8 +17,8 @@ import java.util.List;
 import static lpctools.lpcfymasaapi.LPCConfigUtils.warnFailedLoadingConfig;
 
 public class DoWhileLoop extends AbstractScriptWithSubScript implements IControlFlowIssueSupplier {
-	public final RunMultiple loopBody = new RunMultiple(this, Text.translatable("lpctools.script.suppliers.ControlFlowIssue.doWhileLoop.loopBody.name"));
-	public final And condition = new And(this, Text.translatable("lpctools.script.suppliers.ControlFlowIssue.doWhileLoop.condition.name"));
+	public final RunMultiple loopBody = new RunMultiple(this, Text.translatable("lpctools.script.suppliers.controlFlowIssue.doWhileLoop.loopBody.name"));
+	public final And condition = new And(this, Text.translatable("lpctools.script.suppliers.controlFlowIssue.doWhileLoop.condition.name"));
 	public static final String conditionJsonKey = "condition";
 	public static final String loopBodyJsonKey = "loopBody";
 	

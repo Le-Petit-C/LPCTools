@@ -10,7 +10,7 @@ import org.jetbrains.annotations.NotNull;
 public class VehicleEntity extends AbstractSupplierWithTypeDeterminedSubSuppliers implements IEntitySupplier {
 	
 	protected final SupplierStorage<Entity> passenger = ofStorage(Entity.class,
-		Text.translatable("lpctools.script.suppliers.Entity.vehicleEntity.subSuppliers.passenger.name"), "passenger");
+		Text.translatable("lpctools.script.suppliers.entity.vehicleEntity.subSuppliers.passenger.name"), "passenger");
 	protected final SupplierStorage<?>[] subSuppliers = ofStorages(passenger);
 	
 	public VehicleEntity(IScriptWithSubScript parent) {super(parent);}

@@ -10,7 +10,7 @@ import org.jetbrains.annotations.NotNull;
 public class ObjectToString extends AbstractSupplierWithTypeDeterminedSubSuppliers implements IStringSupplier {
 	
 	protected final SupplierStorage<Object> object = ofStorage(Object.class,
-		Text.translatable("lpctools.script.suppliers.String.objectToString.subSuppliers.object.name"), "object");
+		Text.translatable("lpctools.script.suppliers.string.objectToString.subSuppliers.object.name"), "object");
 	protected final SupplierStorage<?>[] subSuppliers = ofStorages(object);
 	
 	public ObjectToString(IScriptWithSubScript parent) {super(parent);}

@@ -10,11 +10,11 @@ import org.jetbrains.annotations.NotNull;
 
 public class BlockPosFromCoordinates extends AbstractSupplierWithTypeDeterminedSubSuppliers implements IBlockPosSupplier {
 	protected final SupplierStorage<Integer> x = ofStorage(Integer.class,
-		Text.translatable("lpctools.script.suppliers.BlockPos.blockPosFromCoordinates.subSuppliers.x.name"), "x");
+		Text.translatable("lpctools.script.suppliers.blockPos.blockPosFromCoordinates.subSuppliers.x.name"), "x");
 	protected final SupplierStorage<Integer> y = ofStorage(Integer.class,
-		Text.translatable("lpctools.script.suppliers.BlockPos.blockPosFromCoordinates.subSuppliers.y.name"), "y");
+		Text.translatable("lpctools.script.suppliers.blockPos.blockPosFromCoordinates.subSuppliers.y.name"), "y");
 	protected final SupplierStorage<Integer> z = ofStorage(Integer.class,
-		Text.translatable("lpctools.script.suppliers.BlockPos.blockPosFromCoordinates.subSuppliers.z.name"), "z");
+		Text.translatable("lpctools.script.suppliers.blockPos.blockPosFromCoordinates.subSuppliers.z.name"), "z");
 	protected final SupplierStorage<?>[] subSuppliers = ofStorages(x);
 	
 	public BlockPosFromCoordinates(IScriptWithSubScript parent) {super(parent);}

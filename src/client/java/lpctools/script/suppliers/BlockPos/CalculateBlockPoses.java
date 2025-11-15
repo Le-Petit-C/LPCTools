@@ -11,9 +11,9 @@ import org.jetbrains.annotations.NotNull;
 
 public class CalculateBlockPoses extends AbstractSignResultSupplier<Functions.BlockPosCalculateSign> implements IBlockPosSupplier {
 	protected final SupplierStorage<BlockPos> pos1 = ofStorage(BlockPos.class,
-		Text.translatable("lpctools.script.suppliers.BlockPos.calculateBlockPoses.subSuppliers.pos1.name"), "pos1");
+		Text.translatable("lpctools.script.suppliers.blockPos.calculateBlockPoses.subSuppliers.pos1.name"), "pos1");
 	protected final SupplierStorage<BlockPos> pos2 = ofStorage(BlockPos.class,
-		Text.translatable("lpctools.script.suppliers.BlockPos.calculateBlockPoses.subSuppliers.pos2.name"), "pos2");
+		Text.translatable("lpctools.script.suppliers.blockPos.calculateBlockPoses.subSuppliers.pos2.name"), "pos2");
 	protected final SupplierStorage<?>[] subSuppliers = ofStorages(pos1, pos2);
 	
 	public CalculateBlockPoses(IScriptWithSubScript parent) {super(parent, Functions.ADD, Functions.blockPosCalculateSignInfo, 1);}

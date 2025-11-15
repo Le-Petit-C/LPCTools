@@ -11,7 +11,7 @@ import org.jetbrains.annotations.NotNull;
 
 public class AttackEntity extends AbstractSupplierWithTypeDeterminedSubSuppliers implements IControlFlowIssueSupplier {
 	protected final SupplierStorage<Entity> entity = ofStorage(Entity.class,
-		Text.translatable("lpctools.script.suppliers.ControlFlowIssue.attackEntity.subSuppliers.entity.name"), "entity");
+		Text.translatable("lpctools.script.suppliers.controlFlowIssue.attackEntity.subSuppliers.entity.name"), "entity");
 	protected final SupplierStorage<?>[] subSuppliers = ofStorages(entity);
 	
 	public AttackEntity(IScriptWithSubScript parent) {super(parent);}

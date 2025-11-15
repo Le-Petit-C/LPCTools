@@ -10,11 +10,11 @@ import org.jetbrains.annotations.NotNull;
 
 public class SetArray extends AbstractSupplierWithTypeDeterminedSubSuppliers implements IControlFlowIssueSupplier {
 	protected final SupplierStorage<Object[]> array = ofStorage(Object[].class,
-		Text.translatable("lpctools.script.suppliers.ControlFlowIssue.setArray.subSuppliers.array.name"), "array");
+		Text.translatable("lpctools.script.suppliers.controlFlowIssue.setArray.subSuppliers.array.name"), "array");
 	protected final SupplierStorage<Integer> index = ofStorage(Integer.class,
-		Text.translatable("lpctools.script.suppliers.ControlFlowIssue.setArray.subSuppliers.index.name"), "index");
+		Text.translatable("lpctools.script.suppliers.controlFlowIssue.setArray.subSuppliers.index.name"), "index");
 	protected final SupplierStorage<Object> value = ofStorage(Object.class,
-		Text.translatable("lpctools.script.suppliers.ControlFlowIssue.setArray.subSuppliers.value.name"), "value");
+		Text.translatable("lpctools.script.suppliers.controlFlowIssue.setArray.subSuppliers.value.name"), "value");
 	protected final SupplierStorage<?>[] subSuppliers = ofStorages(array, index, value);
 	
 	public SetArray(IScriptWithSubScript parent) {super(parent);}

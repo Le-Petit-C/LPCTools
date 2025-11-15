@@ -11,9 +11,9 @@ import org.jetbrains.annotations.NotNull;
 
 public class CalculateIntegers extends AbstractSignResultSupplier<Functions.IntegerCalculateSign> implements IIntegerSupplier {
 	protected final SupplierStorage<Integer> integer1 = ofStorage(Integer.class,
-		Text.translatable("lpctools.script.suppliers.Integer.calculateIntegers.subSuppliers.integer1.name"), "integer1");
+		Text.translatable("lpctools.script.suppliers.integer.calculateIntegers.subSuppliers.integer1.name"), "integer1");
 	protected final SupplierStorage<Integer> integer2 = ofStorage(Integer.class,
-		Text.translatable("lpctools.script.suppliers.Integer.calculateIntegers.subSuppliers.integer2.name"), "integer2");
+		Text.translatable("lpctools.script.suppliers.integer.calculateIntegers.subSuppliers.integer2.name"), "integer2");
 	protected final SupplierStorage<?>[] subSuppliers = ofStorages(integer1, integer2);
 	
 	public CalculateIntegers(IScriptWithSubScript parent) {super(parent, Functions.ADD, Functions.integerCalculateSignInfo, 1);}

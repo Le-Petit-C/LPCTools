@@ -12,7 +12,7 @@ import org.jetbrains.annotations.NotNull;
 
 public class BlockPosFromVec3d extends AbstractSignResultSupplier<Functions.Vec3d2BlockPosFunction> implements IBlockPosSupplier {
 	protected final SupplierStorage<Vec3d> vec = ofStorage(Vec3d.class,
-		Text.translatable("lpctools.script.suppliers.BlockPos.blockPosFromVec3d.subSuppliers.vec.name"), "vec");
+		Text.translatable("lpctools.script.suppliers.blockPos.blockPosFromVec3d.subSuppliers.vec.name"), "vec");
 	protected final SupplierStorage<?>[] subSuppliers = ofStorages(vec);
 	
 	public BlockPosFromVec3d(IScriptWithSubScript parent) {super(parent, Functions.FLOOR, Functions.vec3d2BlockPosFunctionInfo, 0);}

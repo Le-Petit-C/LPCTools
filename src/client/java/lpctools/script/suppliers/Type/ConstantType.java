@@ -47,7 +47,7 @@ public class ConstantType extends AbstractScript implements ITypeSupplier {
 					});
 					selectTree.put(type.name().getString(), type.name().getString());
 				}
-				ChooseScreen.openChooseScreen(Text.translatable("lpctools.script.suppliers.ScriptType.constantType.selectType.title").getString(),
+				ChooseScreen.openChooseScreen(Text.translatable("lpctools.script.suppliers.scriptType.constantType.selectType.title").getString(),
 					true, options, selectTree, this);
 			});
 			cachedWidgets = List.of(selectButton);

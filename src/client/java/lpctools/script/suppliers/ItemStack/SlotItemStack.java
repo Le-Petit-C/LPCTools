@@ -22,7 +22,7 @@ import static lpctools.lpcfymasaapi.LPCConfigUtils.warnFailedLoadingConfig;
 
 public class SlotItemStack extends AbstractSupplierWithTypeDeterminedSubSuppliers implements IItemStackSupplier{
 	protected final SupplierStorage<Entity> entity = ofStorage(Entity.class,
-		Text.translatable("lpctools.script.suppliers.ItemStack.slotItemStack.subSuppliers.entity.name"), "entity");
+		Text.translatable("lpctools.script.suppliers.itemStack.slotItemStack.subSuppliers.entity.name"), "entity");
 	protected @NotNull StackGetter getter = StackGetter.values()[0];
 	protected @Nullable WidthAutoAdjustButtonGeneric cycleButton;
 	protected final SupplierStorage<?>[] subSuppliers = ofStorages(entity);

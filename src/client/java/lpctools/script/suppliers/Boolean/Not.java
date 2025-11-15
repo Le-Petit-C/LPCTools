@@ -8,7 +8,7 @@ import net.minecraft.text.Text;
 
 public class Not extends AbstractSupplierWithTypeDeterminedSubSuppliers implements IBooleanSupplier {
 	protected final SupplierStorage<Boolean> _boolean = ofStorage(Boolean.class,
-		Text.translatable("lpctools.script.suppliers.Boolean.not.subSuppliers.boolean.name"), "boolean");
+		Text.translatable("lpctools.script.suppliers.boolean.not.subSuppliers.boolean.name"), "boolean");
 	protected final SupplierStorage<?>[] subSuppliers = ofStorages(_boolean);
 	
 	public Not(IScriptWithSubScript parent) {super(parent);}

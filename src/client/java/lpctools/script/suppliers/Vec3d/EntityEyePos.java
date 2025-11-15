@@ -11,7 +11,7 @@ import org.jetbrains.annotations.NotNull;
 
 public class EntityEyePos extends AbstractSupplierWithTypeDeterminedSubSuppliers implements IVec3dSupplier {
 	protected final SupplierStorage<Entity> entity = ofStorage(Entity.class,
-		Text.translatable("lpctools.script.suppliers.Vec3d.entityEyePos.subSuppliers.entity.name"), "entity");
+		Text.translatable("lpctools.script.suppliers.vec3d.entityEyePos.subSuppliers.entity.name"), "entity");
 	protected final SupplierStorage<?>[] subSuppliers = ofStorages(entity);
 	
 	public EntityEyePos(IScriptWithSubScript parent) {super(parent);}

@@ -10,7 +10,7 @@ import org.jetbrains.annotations.NotNull;
 
 public class DoubleFunction extends AbstractSignResultSupplier<Functions.DoubleFunction> implements IDoubleSupplier {
 	protected final SupplierStorage<Double> _double = ofStorage(Double.class,
-		Text.translatable("lpctools.script.suppliers.Double.doubleFunction.subSuppliers.double.name"), "double");
+		Text.translatable("lpctools.script.suppliers.double.doubleFunction.subSuppliers.double.name"), "double");
 	protected final SupplierStorage<?>[] subSuppliers = ofStorages(_double);
 	
 	public DoubleFunction(IScriptWithSubScript parent) {super(parent, Functions.NEGATIVE, Functions.doubleFunctionInfo, 0);}

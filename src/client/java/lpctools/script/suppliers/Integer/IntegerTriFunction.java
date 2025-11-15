@@ -10,11 +10,11 @@ import org.jetbrains.annotations.NotNull;
 
 public class IntegerTriFunction extends AbstractSignResultSupplier<Functions.IntegerTriFunction> implements IIntegerSupplier {
 	protected final SupplierStorage<Integer> integer1 = ofStorage(Integer.class,
-		Text.translatable("lpctools.script.suppliers.Integer.integerTriFunction.subSuppliers.integer1.name"), "integer1");
+		Text.translatable("lpctools.script.suppliers.integer.integerTriFunction.subSuppliers.integer1.name"), "integer1");
 	protected final SupplierStorage<Integer> integer2 = ofStorage(Integer.class,
-		Text.translatable("lpctools.script.suppliers.Integer.integerTriFunction.subSuppliers.integer2.name"), "integer2");
+		Text.translatable("lpctools.script.suppliers.integer.integerTriFunction.subSuppliers.integer2.name"), "integer2");
 	protected final SupplierStorage<Integer> integer3 = ofStorage(Integer.class,
-		Text.translatable("lpctools.script.suppliers.Integer.integerTriFunction.subSuppliers.integer3.name"), "integer3");
+		Text.translatable("lpctools.script.suppliers.integer.integerTriFunction.subSuppliers.integer3.name"), "integer3");
 	protected final SupplierStorage<?>[] subSuppliers = ofStorages(integer1, integer2);
 	
 	public IntegerTriFunction(IScriptWithSubScript parent) {super(parent, Functions.MOD_POW, Functions.integerTriFunctionInfo, 0);}

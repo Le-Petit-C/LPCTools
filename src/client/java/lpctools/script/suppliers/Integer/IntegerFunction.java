@@ -10,7 +10,7 @@ import org.jetbrains.annotations.NotNull;
 
 public class IntegerFunction extends AbstractSignResultSupplier<Functions.IntegerFunction> implements IIntegerSupplier {
 	protected final SupplierStorage<Integer> integer = ofStorage(Integer.class,
-		Text.translatable("lpctools.script.suppliers.Integer.integerFunction.subSuppliers.integer.name"), "integer");
+		Text.translatable("lpctools.script.suppliers.integer.integerFunction.subSuppliers.integer.name"), "integer");
 	protected final SupplierStorage<?>[] subSuppliers = ofStorages(integer);
 	
 	public IntegerFunction(IScriptWithSubScript parent) {super(parent, Functions.NEGATIVE, Functions.integerFunctionInfo, 0);}

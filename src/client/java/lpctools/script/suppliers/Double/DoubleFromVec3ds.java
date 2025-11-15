@@ -11,9 +11,9 @@ import org.jetbrains.annotations.NotNull;
 
 public class DoubleFromVec3ds extends AbstractSignResultSupplier<Functions.DoubleFromVec3dsSign> implements IDoubleSupplier {
 	protected final SupplierStorage<Vec3d> vec1 = ofStorage(Vec3d.class,
-		Text.translatable("lpctools.script.suppliers.Double.doubleFromVec3ds.subSuppliers.vec1.name"), "vec1");
+		Text.translatable("lpctools.script.suppliers.double.doubleFromVec3ds.subSuppliers.vec1.name"), "vec1");
 	protected final SupplierStorage<Vec3d> vec2 = ofStorage(Vec3d.class,
-		Text.translatable("lpctools.script.suppliers.Double.doubleFromVec3ds.subSuppliers.vec2.name"), "vec2");
+		Text.translatable("lpctools.script.suppliers.double.doubleFromVec3ds.subSuppliers.vec2.name"), "vec2");
 	protected final SupplierStorage<?>[] subSuppliers = ofStorages(vec1, vec2);
 	
 	public DoubleFromVec3ds(IScriptWithSubScript parent) {super(parent, Functions.DOT, Functions.doubleFromVec3dsSignInfo, 1);}

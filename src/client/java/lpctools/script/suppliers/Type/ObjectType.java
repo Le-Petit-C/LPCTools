@@ -9,7 +9,7 @@ import net.minecraft.text.Text;
 
 public class ObjectType extends AbstractSupplierWithTypeDeterminedSubSuppliers implements ITypeSupplier {
 	protected final SupplierStorage<Object> object = ofStorage(Object.class,
-		Text.translatable("lpctools.script.suppliers.Boolean.notNull.subSuppliers.object.name"), "object");
+		Text.translatable("lpctools.script.suppliers.boolean.notNull.subSuppliers.object.name"), "object");
 	protected final SupplierStorage<?>[] subSuppliers = ofStorages(object);
 	
 	public ObjectType(IScriptWithSubScript parent) {super(parent);}

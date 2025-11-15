@@ -30,7 +30,8 @@ public class ScriptTrigger extends AbstractScriptWithSubScriptMutable<TriggerOpt
 	public static final String triggerKeyJsonKey = "key";
 	public static final String triggerValueJsonKey = "value";
 	
-	@Override public @Nullable Text getName() {return Text.translatable("lpctools.script.trigger");}
+	@Override public @Nullable Text getName() {return Text.translatable("lpctools.script.trigger.name");}
+	@Override public @Nullable Text getComment() {return Text.translatable("lpctools.script.trigger.comment");}
 	@Override public @Nullable JsonElement getAsJsonElement() {
 		JsonArray array = new JsonArray();
 		for(var trigger : getSubScripts()){

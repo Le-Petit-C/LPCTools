@@ -11,7 +11,7 @@ import org.jetbrains.annotations.NotNull;
 
 public class DirectionVector extends AbstractSupplierWithTypeDeterminedSubSuppliers implements IBlockPosSupplier {
 	protected final SupplierStorage<Direction> direction = ofStorage(Direction.class,
-		Text.translatable("lpctools.script.suppliers.BlockPos.directionVector.subSuppliers.direction.name"), "direction");
+		Text.translatable("lpctools.script.suppliers.blockPos.directionVector.subSuppliers.direction.name"), "direction");
 	protected final SupplierStorage<?>[] subSuppliers = ofStorages(direction);
 	
 	public DirectionVector(IScriptWithSubScript parent) {super(parent);}

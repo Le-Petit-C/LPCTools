@@ -20,9 +20,9 @@ import static lpctools.lpcfymasaapi.LPCConfigUtils.warnFailedLoadingConfig;
 
 public class ClickSlot extends AbstractSupplierWithTypeDeterminedSubSuppliers implements IControlFlowIssueSupplier {
 	protected final SupplierStorage<Integer> slotId = ofStorage(Integer.class,
-		Text.translatable("lpctools.script.suppliers.ControlFlowIssue.clickSlot.subSuppliers.slotId.name"), "slotId");
+		Text.translatable("lpctools.script.suppliers.controlFlowIssue.clickSlot.subSuppliers.slotId.name"), "slotId");
 	protected final SupplierStorage<Integer> button = ofStorage(Integer.class,
-		Text.translatable("lpctools.script.suppliers.ControlFlowIssue.clickSlot.subSuppliers.button.name"), "button");
+		Text.translatable("lpctools.script.suppliers.controlFlowIssue.clickSlot.subSuppliers.button.name"), "button");
 	protected SlotActionType slotActionType = SlotActionType.PICKUP;
 	protected @Nullable WidthAutoAdjustButtonGeneric actionTypeButton;
 	protected final SupplierStorage<?>[] subSuppliers = ofStorages(slotId, button);

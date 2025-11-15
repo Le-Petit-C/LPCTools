@@ -10,9 +10,9 @@ import org.jetbrains.annotations.NotNull;
 
 public class CalculateDoubles extends AbstractSignResultSupplier<Functions.DoubleCalculateSign> implements IDoubleSupplier {
 	protected final SupplierStorage<Double> double1 = ofStorage(Double.class,
-		Text.translatable("lpctools.script.suppliers.Double.calculateDoubles.subSuppliers.double1.name"), "double1");
+		Text.translatable("lpctools.script.suppliers.double.calculateDoubles.subSuppliers.double1.name"), "double1");
 	protected final SupplierStorage<Double> double2 = ofStorage(Double.class,
-		Text.translatable("lpctools.script.suppliers.Double.calculateDoubles.subSuppliers.double2.name"), "double2");
+		Text.translatable("lpctools.script.suppliers.double.calculateDoubles.subSuppliers.double2.name"), "double2");
 	protected final SupplierStorage<?>[] subSuppliers = ofStorages(double1, double2);
 	
 	public CalculateDoubles(IScriptWithSubScript parent) {super(parent, Functions.ADD, Functions.doubleCalculateSignInfo, 1);}

@@ -23,8 +23,8 @@ public class IterateArray extends AbstractSupplierWithTypeDeterminedSubSuppliers
 	private @NotNull String variableName = "var";
 	protected @Nullable WidthAutoAdjustTextField textField;
 	protected final SupplierStorage<Object[]> array = ofStorage(Object[].class,
-		Text.translatable("lpctools.script.suppliers.ControlFlowIssue.iterateArray.subSuppliers.array.name"), "array");
-	protected final RunMultiple loopBody = new RunMultiple(this, Text.translatable("lpctools.script.suppliers.ControlFlowIssue.iterateArray.loopBody.name"));
+		Text.translatable("lpctools.script.suppliers.controlFlowIssue.iterateArray.subSuppliers.array.name"), "array");
+	protected final RunMultiple loopBody = new RunMultiple(this, Text.translatable("lpctools.script.suppliers.controlFlowIssue.iterateArray.loopBody.name"));
 	protected final SupplierStorage<?>[] subSuppliers = ofStorages(array);
 	
 	public static final String variableNameJsonKey = "variableName";

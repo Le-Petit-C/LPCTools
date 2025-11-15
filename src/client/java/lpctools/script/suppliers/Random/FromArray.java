@@ -10,9 +10,9 @@ import org.jetbrains.annotations.NotNull;
 
 public class FromArray<T> extends AbstractSupplierWithTypeDeterminedSubSuppliers implements IRandomSupplier<T> {
 	protected final SupplierStorage<Object[]> array = ofStorage(Object[].class,
-		Text.translatable("lpctools.script.suppliers.Random.fromArray.subSuppliers.array.name"), "array");
+		Text.translatable("lpctools.script.suppliers.random.fromArray.subSuppliers.array.name"), "array");
 	protected final SupplierStorage<Integer> index = ofStorage(Integer.class,
-		Text.translatable("lpctools.script.suppliers.Random.fromArray.subSuppliers.index.name"), "index");
+		Text.translatable("lpctools.script.suppliers.random.fromArray.subSuppliers.index.name"), "index");
 	protected final SupplierStorage<?>[] subSuppliers = ofStorages(array, index);
 	
 	public final Class<T> targetClass;

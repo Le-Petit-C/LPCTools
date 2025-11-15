@@ -37,13 +37,8 @@ public class ScriptEditScreen extends GuiConfigsBase {
 	private final ButtonGeneric dragButton = createGenericSquareButton("≡", "lpctools.script.trigger.chooseScreen.drag");
 	private final ButtonGeneric insertButton = createGenericSquareButton("+", "lpctools.script.trigger.chooseScreen.insert");
 	private final ButtonGeneric removeButton = createGenericSquareButton("-", "lpctools.script.trigger.chooseScreen.remove");
-	private final HoveredClickableWidget wrappedCopyButton = WidgetWrapper.wrap(copyButton, this);
-	private final HoveredClickableWidget wrappedPasteButton = WidgetWrapper.wrap(pasteButton, this);
-	private final HoveredClickableWidget wrappedDragButton = WidgetWrapper.wrap(dragButton, this);
-	private final HoveredClickableWidget wrappedInsertButton = WidgetWrapper.wrap(insertButton, this);
-	private final HoveredClickableWidget wrappedRemoveButton = WidgetWrapper.wrap(removeButton, this);
 	private final Object2LongOpenHashMap<WidgetBase> infoWidgets = new Object2LongOpenHashMap<>();
-	private final HoveredRenderer hoveredRenderer = new HoveredRenderer();
+	private final HoveredRenderer hoveredRenderer = new HoveredRenderer(this);
 	
 	private double calcFixedX(double mouseX){return (mouseX - x) / stretch;}
 	private double calcFixedY(double mouseY){return (mouseY - y) / stretch;}
@@ -332,22 +327,22 @@ public class ScriptEditScreen extends GuiConfigsBase {
 			if(isCopyPastDisplayKeyPressed()){
 				copyButton.setPosition(x + shift, y);
 				pasteButton.setPosition(x + shift + 22, y);
-				renderAndTryHover(drawContext, copyButton, wrappedCopyButton, fixedMouseX, fixedMouseY);
-				renderAndTryHover(drawContext, pasteButton, wrappedPasteButton, fixedMouseX, fixedMouseY);
+				renderAndTryHover(drawContext, copyButton, fixedMouseX, fixedMouseY);
+				renderAndTryHover(drawContext, pasteButton, fixedMouseX, fixedMouseY);
 				shift += 44;
 			}
 			var parentScript = hoverWidget.script.getParent();
 			if(parentScript instanceof IScriptWithSubScriptMutable<?>){
 				if(isDragDisplayKeyPressed()) {
 					dragButton.setPosition(x + shift, y);
-					renderAndTryHover(drawContext, dragButton, wrappedDragButton, fixedMouseX, fixedMouseY);
+					renderAndTryHover(drawContext, dragButton, fixedMouseX, fixedMouseY);
 					shift += 22;
 				}
 				if(isInsertRemoveDisplayKeyPressed()){
 					insertButton.setPosition(x + shift, y);
 					removeButton.setPosition(x + shift + 22, y);
-					renderAndTryHover(drawContext, insertButton, wrappedInsertButton, fixedMouseX, fixedMouseY);
-					renderAndTryHover(drawContext, removeButton, wrappedRemoveButton, fixedMouseX, fixedMouseY);
+					renderAndTryHover(drawContext, insertButton, fixedMouseX, fixedMouseY);
+					renderAndTryHover(drawContext, removeButton, fixedMouseX, fixedMouseY);
 					//shift += 44;
 				}
 			}
@@ -359,14 +354,18 @@ public class ScriptEditScreen extends GuiConfigsBase {
 		super.drawTitle(drawContext, mouseX, mouseY, partialTicks);
 	}
 	
+	public void setHover(WidgetBase widget, int mouseX, int mouseY, Matrix3x2f matrix){
+		hoveredRenderer.setHover(widget, mouseX, mouseY, matrix);
+	}
+	
 	public void setHover(HoveredClickableWidget widget, int mouseX, int mouseY, Matrix3x2f matrix){
 		hoveredRenderer.setHover(widget, mouseX, mouseY, matrix);
 	}
 	
-	public void renderAndTryHover(DrawContext drawContext, ButtonGeneric buttonGeneric, HoveredClickableWidget wrappedButton, int fixedMouseX, int fixedMouseY){
+	public void renderAndTryHover(DrawContext drawContext, ButtonGeneric buttonGeneric, int fixedMouseX, int fixedMouseY){
 		boolean isOver = buttonGeneric.isMouseOver(fixedMouseX, fixedMouseY);
 		buttonGeneric.render(drawContext, fixedMouseX, fixedMouseY, isOver);
-		if(isOver) setHover(wrappedButton, fixedMouseX, fixedMouseY, drawContext.getMatrices());
+		if(isOver) setHover(buttonGeneric, fixedMouseX, fixedMouseY, drawContext.getMatrices());
 	}
 	
 	@Override protected void drawHoveredWidget(DrawContext drawContext, int mouseX, int mouseY) {
@@ -421,8 +420,14 @@ public class ScriptEditScreen extends GuiConfigsBase {
 	
 	private static class HoveredRenderer{
 		private @Nullable HoveredClickableWidget hoveredWidget;
+		private final WidgetWrapper tempWidgetWrapper;
 		private int storedMouseX, storedMouseY;
 		private final Matrix3x2f renderMatrix = new Matrix3x2f();
+		
+		HoveredRenderer(ScriptEditScreen screen){
+			tempWidgetWrapper = new WidgetWrapper(null, screen);
+		}
+		
 		public void tryRender(DrawContext context){
 			if(hoveredWidget != null){
 				context.getMatrices().pushMatrix().set(renderMatrix);
@@ -431,6 +436,13 @@ public class ScriptEditScreen extends GuiConfigsBase {
 			}
 		}
 		public void clear(){hoveredWidget = null;}
+		public void setHover(WidgetBase widget, int mouseX, int mouseY, Matrix3x2f matrix){
+			tempWidgetWrapper.setWrappedWidget(widget);
+			hoveredWidget = tempWidgetWrapper;
+			storedMouseX = mouseX;
+			storedMouseY = mouseY;
+			this.renderMatrix.set(matrix);
+		}
 		public void setHover(HoveredClickableWidget widget, int mouseX, int mouseY, Matrix3x2f matrix){
 			hoveredWidget = widget;
 			storedMouseX = mouseX;

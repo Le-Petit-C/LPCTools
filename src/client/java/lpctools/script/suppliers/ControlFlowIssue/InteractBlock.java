@@ -15,15 +15,15 @@ import org.jetbrains.annotations.NotNull;
 
 public class InteractBlock extends AbstractSupplierWithTypeDeterminedSubSuppliers implements IControlFlowIssueSupplier {
 	protected final SupplierStorage<Boolean> useOffhand = ofStorage(Boolean.class,
-		Text.translatable("lpctools.script.suppliers.ControlFlowIssue.interactBlock.subSuppliers.useOffhand.name"), "useOffhand");
+		Text.translatable("lpctools.script.suppliers.controlFlowIssue.interactBlock.subSuppliers.useOffhand.name"), "useOffhand");
 	protected final SupplierStorage<Vec3d> pos = ofStorage(Vec3d.class,
-		Text.translatable("lpctools.script.suppliers.ControlFlowIssue.interactBlock.subSuppliers.pos.name"), "pos");
+		Text.translatable("lpctools.script.suppliers.controlFlowIssue.interactBlock.subSuppliers.pos.name"), "pos");
 	protected final SupplierStorage<Direction> direction = ofStorage(Direction.class,
-		Text.translatable("lpctools.script.suppliers.ControlFlowIssue.interactBlock.subSuppliers.direction.name"), "direction");
+		Text.translatable("lpctools.script.suppliers.controlFlowIssue.interactBlock.subSuppliers.direction.name"), "direction");
 	protected final SupplierStorage<BlockPos> blockPos = ofStorage(BlockPos.class,
-		Text.translatable("lpctools.script.suppliers.ControlFlowIssue.interactBlock.subSuppliers.blockPos.name"), "blockPos");
+		Text.translatable("lpctools.script.suppliers.controlFlowIssue.interactBlock.subSuppliers.blockPos.name"), "blockPos");
 	protected final SupplierStorage<Boolean> insideBlock = ofStorage(Boolean.class,
-		Text.translatable("lpctools.script.suppliers.ControlFlowIssue.interactBlock.subSuppliers.insideBlock.name"), "insideBlock");
+		Text.translatable("lpctools.script.suppliers.controlFlowIssue.interactBlock.subSuppliers.insideBlock.name"), "insideBlock");
 	protected final SupplierStorage<?>[] subSuppliers = ofStorages(useOffhand, pos, direction, blockPos, insideBlock);
 	
 	public InteractBlock(IScriptWithSubScript parent) {super(parent);}

@@ -9,7 +9,7 @@ import org.jetbrains.annotations.NotNull;
 
 public class NewArray extends AbstractSupplierWithTypeDeterminedSubSuppliers implements IArraySupplier {
 	protected final SupplierStorage<Integer> size = ofStorage(Integer.class,
-		Text.translatable("lpctools.script.suppliers.Array.newArray.subSuppliers.size.name"), "size");
+		Text.translatable("lpctools.script.suppliers.array.newArray.subSuppliers.size.name"), "size");
 	protected final SupplierStorage<?>[] subSuppliers = ofStorages(size);
 	
 	public NewArray(IScriptWithSubScript parent) {super(parent);}

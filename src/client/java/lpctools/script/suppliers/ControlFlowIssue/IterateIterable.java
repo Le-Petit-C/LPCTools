@@ -25,8 +25,8 @@ public class IterateIterable extends AbstractSupplierWithTypeDeterminedSubSuppli
 	private @NotNull String variableName = "var";
 	protected @Nullable WidthAutoAdjustTextField textField;
 	protected final SupplierStorage<ObjectIterable> iterable = ofStorage(ObjectIterable.class,
-		Text.translatable("lpctools.script.suppliers.ControlFlowIssue.iterateIterable.subSuppliers.iterable.name"), iterableJsonKey);
-	protected final RunMultiple loopBody = new RunMultiple(this, Text.translatable("lpctools.script.suppliers.ControlFlowIssue.iterateIterable.loopBody.name"));
+		Text.translatable("lpctools.script.suppliers.controlFlowIssue.iterateIterable.subSuppliers.iterable.name"), iterableJsonKey);
+	protected final RunMultiple loopBody = new RunMultiple(this, Text.translatable("lpctools.script.suppliers.controlFlowIssue.iterateIterable.loopBody.name"));
 	protected final SupplierStorage<?>[] subSuppliers = ofStorages(iterable);
 	
 	public static final String variableNameJsonKey = "variableName";

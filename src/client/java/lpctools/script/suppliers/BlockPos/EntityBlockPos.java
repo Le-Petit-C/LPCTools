@@ -11,7 +11,7 @@ import org.jetbrains.annotations.NotNull;
 
 public class EntityBlockPos extends AbstractSupplierWithTypeDeterminedSubSuppliers implements IBlockPosSupplier {
 	protected final SupplierStorage<Entity> entity = ofStorage(Entity.class,
-		Text.translatable("lpctools.script.suppliers.BlockPos.entityBlockPos.subSuppliers.entity.name"), "entity");
+		Text.translatable("lpctools.script.suppliers.blockPos.entityBlockPos.subSuppliers.entity.name"), "entity");
 	protected final SupplierStorage<?>[] subSuppliers = ofStorages(entity);
 	
 	public EntityBlockPos(IScriptWithSubScript parent) {super(parent);}

@@ -12,18 +12,20 @@ import java.util.function.Consumer;
 public abstract class ScriptRegistration<T, U extends IScriptSupplier<? extends T>> implements ChooseScreen.OptionCallback<Consumer<ScriptRegistration<T, U>>> {
 	public final String key;
 	public final Text displayName;
+	public final Text comment;
 	public final Class<U> supplierClass;
 	@Override public void action(ButtonBase button, int mouseButton, Consumer<ScriptRegistration<T, U>> userData) {userData.accept(this);}
 	public abstract @Nullable <V> IScriptSupplierAllocator<? extends IScriptSupplier<V>>
 	tryAllocate(Class<V> targetType);
-	private ScriptRegistration(String key, Text displayName, Class<U> supplierClass) {
+	private ScriptRegistration(String key, Text displayName, Text comment, Class<U> supplierClass) {
 		this.key = key;
 		this.supplierClass = supplierClass;
 		this.displayName = displayName;
+		this.comment = comment;
 	}
 	
-	public static <T, U extends IScriptSupplier<T>> ScriptRegistration<T, U> ofPrecise(String key, Text displayName, Class<T> clazz, Class<U> supplierClass, IScriptSupplierAllocator<U> allocator){
-		return new ScriptRegistration<>(key, displayName, supplierClass) {
+	public static <T, U extends IScriptSupplier<T>> ScriptRegistration<T, U> ofPrecise(String key, Text displayName, Text comment, Class<T> clazz, Class<U> supplierClass, IScriptSupplierAllocator<U> allocator){
+		return new ScriptRegistration<>(key, displayName, comment, supplierClass) {
 			@Override public @Nullable <V> IScriptSupplierAllocator<? extends IScriptSupplier<V>>
 			tryAllocate(Class<V> targetType) {
 				if(targetType.isAssignableFrom(clazz))
@@ -34,8 +36,8 @@ public abstract class ScriptRegistration<T, U extends IScriptSupplier<? extends 
 		};
 	}
 	
-	public static <U extends IScriptSupplier<?>> ScriptRegistration<Object, U> ofRandom(String key, Text displayName, Class<U> supplierClass, IRandomSupplierAllocator allocator){
-		return new ScriptRegistration<>(key, displayName, supplierClass) {
+	public static <U extends IScriptSupplier<?>> ScriptRegistration<Object, U> ofRandom(String key, Text displayName, Text comment, Class<U> supplierClass, IRandomSupplierAllocator allocator){
+		return new ScriptRegistration<>(key, displayName, comment, supplierClass) {
 			@Override public <V> @NotNull IScriptSupplierAllocator<IScriptSupplier<V>>
 			tryAllocate(Class<V> targetType) {return parent->allocator.allocate(parent, targetType);}
 		};

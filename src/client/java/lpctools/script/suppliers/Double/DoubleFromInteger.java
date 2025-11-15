@@ -9,7 +9,7 @@ import org.jetbrains.annotations.NotNull;
 
 public class DoubleFromInteger extends AbstractSupplierWithTypeDeterminedSubSuppliers implements IDoubleSupplier {
 	protected final SupplierStorage<Integer> integer = ofStorage(Integer.class,
-		Text.translatable("lpctools.script.suppliers.Double.doubleFromInteger.subSuppliers.integer.name"), "integer");
+		Text.translatable("lpctools.script.suppliers.double.doubleFromInteger.subSuppliers.integer.name"), "integer");
 	protected final SupplierStorage<?>[] subSuppliers = ofStorages(integer);
 	
 	public DoubleFromInteger(IScriptWithSubScript parent) {super(parent);}

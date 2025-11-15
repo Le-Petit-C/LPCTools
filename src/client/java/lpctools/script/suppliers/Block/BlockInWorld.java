@@ -13,7 +13,7 @@ import org.jetbrains.annotations.NotNull;
 
 public class BlockInWorld extends AbstractSupplierWithTypeDeterminedSubSuppliers implements IBlockSupplier {
 	protected final SupplierStorage<BlockPos> blockPos = ofStorage(BlockPos.class,
-		Text.translatable("lpctools.script.suppliers.Block.blockInWorld.subSuppliers.blockPos.name"), "blockPos");
+		Text.translatable("lpctools.script.suppliers.block.blockInWorld.subSuppliers.blockPos.name"), "blockPos");
 	protected final SupplierStorage<?>[] subSuppliers = ofStorages(blockPos);
 	
 	public BlockInWorld(IScriptWithSubScript parent) {super(parent);}

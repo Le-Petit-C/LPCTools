@@ -10,11 +10,11 @@ import org.jetbrains.annotations.NotNull;
 
 public class Vec3dFromCoordinates extends AbstractSupplierWithTypeDeterminedSubSuppliers implements IVec3dSupplier {
 	protected final SupplierStorage<Double> x = ofStorage(Double.class,
-		Text.translatable("lpctools.script.suppliers.Vec3d.vec3dFromCoordinates.subSuppliers.x.name"), "x");
+		Text.translatable("lpctools.script.suppliers.vec3d.vec3dFromCoordinates.subSuppliers.x.name"), "x");
 	protected final SupplierStorage<Double> y = ofStorage(Double.class,
-		Text.translatable("lpctools.script.suppliers.Vec3d.vec3dFromCoordinates.subSuppliers.y.name"), "y");
+		Text.translatable("lpctools.script.suppliers.vec3d.vec3dFromCoordinates.subSuppliers.y.name"), "y");
 	protected final SupplierStorage<Double> z = ofStorage(Double.class,
-		Text.translatable("lpctools.script.suppliers.Vec3d.vec3dFromCoordinates.subSuppliers.z.name"), "z");
+		Text.translatable("lpctools.script.suppliers.vec3d.vec3dFromCoordinates.subSuppliers.z.name"), "z");
 	protected final SupplierStorage<?>[] subSuppliers = ofStorages(x, y, z);
 	
 	public Vec3dFromCoordinates(IScriptWithSubScript parent) {super(parent);}

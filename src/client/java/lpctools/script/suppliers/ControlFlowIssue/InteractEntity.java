@@ -12,9 +12,9 @@ import org.jetbrains.annotations.NotNull;
 
 public class InteractEntity extends AbstractSupplierWithTypeDeterminedSubSuppliers implements IControlFlowIssueSupplier {
 	protected final SupplierStorage<Entity> entity = ofStorage(Entity.class,
-		Text.translatable("lpctools.script.suppliers.ControlFlowIssue.interactEntity.subSuppliers.entity.name"), "entity");
+		Text.translatable("lpctools.script.suppliers.controlFlowIssue.interactEntity.subSuppliers.entity.name"), "entity");
 	protected final SupplierStorage<Boolean> useOffhand = ofStorage(Boolean.class,
-		Text.translatable("lpctools.script.suppliers.ControlFlowIssue.interactEntity.subSuppliers.useOffhand.name"), "useOffhand");
+		Text.translatable("lpctools.script.suppliers.controlFlowIssue.interactEntity.subSuppliers.useOffhand.name"), "useOffhand");
 	protected final SupplierStorage<?>[] subSuppliers = ofStorages(entity, useOffhand);
 	
 	public InteractEntity(IScriptWithSubScript parent) {super(parent);}

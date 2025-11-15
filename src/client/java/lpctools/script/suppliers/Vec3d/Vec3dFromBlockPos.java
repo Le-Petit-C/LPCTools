@@ -11,7 +11,7 @@ import org.jetbrains.annotations.NotNull;
 
 public class Vec3dFromBlockPos extends AbstractSupplierWithTypeDeterminedSubSuppliers implements IVec3dSupplier {
 	protected final SupplierStorage<BlockPos> blockPos = ofStorage(BlockPos.class,
-		Text.translatable("lpctools.script.suppliers.Vec3d.vec3dFromBlockPos.subSuppliers.blockPos.name"), "blockPos");
+		Text.translatable("lpctools.script.suppliers.vec3d.vec3dFromBlockPos.subSuppliers.blockPos.name"), "blockPos");
 	protected final SupplierStorage<?>[] subSuppliers = ofStorages(blockPos);
 	
 	public Vec3dFromBlockPos(IScriptWithSubScript parent) {super(parent);}

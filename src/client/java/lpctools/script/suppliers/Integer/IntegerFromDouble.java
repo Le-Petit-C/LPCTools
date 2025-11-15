@@ -10,7 +10,7 @@ import org.jetbrains.annotations.NotNull;
 
 public class IntegerFromDouble extends AbstractSignResultSupplier<Functions.Double2IntFunction> implements IIntegerSupplier {
 	protected final SupplierStorage<Double> _double = ofStorage(Double.class,
-		Text.translatable("lpctools.script.suppliers.Integer.integerFromDouble.subSuppliers.double.name"), "double");
+		Text.translatable("lpctools.script.suppliers.integer.integerFromDouble.subSuppliers.double.name"), "double");
 	protected final SupplierStorage<?>[] subSuppliers = ofStorages(_double);
 	
 	public IntegerFromDouble(IScriptWithSubScript parent) {super(parent, Functions.FLOOR, Functions.double2IntFunctionInfo, 0);}

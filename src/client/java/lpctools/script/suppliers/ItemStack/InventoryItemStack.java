@@ -12,7 +12,7 @@ import org.jetbrains.annotations.NotNull;
 
 public class InventoryItemStack extends AbstractSupplierWithTypeDeterminedSubSuppliers implements IItemStackSupplier{
 	protected final SupplierStorage<Integer> index = ofStorage(Integer.class,
-		Text.translatable("lpctools.script.suppliers.ItemStack.inventoryItemStack.subSuppliers.index.name"), "index");
+		Text.translatable("lpctools.script.suppliers.itemStack.inventoryItemStack.subSuppliers.index.name"), "index");
 	protected final SupplierStorage<?>[] subSuppliers = ofStorages(index);
 	
 	public InventoryItemStack(IScriptWithSubScript parent) {super(parent);}

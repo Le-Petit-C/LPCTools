@@ -12,6 +12,10 @@ public interface IScriptSupplier<T> extends IScript {
 		return ScriptSupplierLake.getSupplierRegistration(this).displayName;
 	}
 	
+	@Override default Text getComment(){
+		return ScriptSupplierLake.getSupplierRegistration(this).comment;
+	}
+	
 	Class<? extends T> getSuppliedClass();
 	@NotNull ScriptNullableSupplier<T>
 	compile(CompileEnvironment environment);
