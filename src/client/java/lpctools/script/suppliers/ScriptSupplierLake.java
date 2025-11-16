@@ -162,11 +162,11 @@ public class ScriptSupplierLake {
 		registerType(Double.class, 			ConstantDouble::new, 								"double");
 		registerType(String.class, 			ConstantString::new, 								"string");
 		registerType(Object[].class, 		parent->new Null<>(parent, Object[].class), 		"array");
-		registerType(ScriptType.class, 		ConstantType::new, 									"type");
+		registerType(ScriptType.class, 		ConstantType::new, 									"scriptType");
 		registerType(ObjectIterable.class, 	parent->new Null<>(parent, ObjectIterable.class), 	"iterable");
 		registerType(BlockPos.class, 		ConstantBlockPos::new, 								"blockPos");
 		registerType(Vec3d.class, 			ConstantVec3d::new, 								"vec3d");
-		registerType(Direction.class, 		ConstantDirection::new, 							"vec3d");
+		registerType(Direction.class, 		ConstantDirection::new, 							"direction");
 		registerType(Block.class, 			ConstantBlock::new, 								"block");
 		registerType(Item.class, 			ConstantItem::new, 									"item");
 		registerType(ItemStack.class, 		EmptyStack::new, 									"itemStack");
