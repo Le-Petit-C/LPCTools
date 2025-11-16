@@ -5,10 +5,7 @@ import fi.dy.masa.malilib.util.data.Color4f;
 import lpctools.LPCTools;
 import lpctools.lpcfymasaapi.LPCConfigList;
 import lpctools.lpcfymasaapi.configButtons.derivedConfigs.ArrayOptionListConfig;
-import lpctools.lpcfymasaapi.configButtons.transferredConfigs.BooleanConfig;
-import lpctools.lpcfymasaapi.configButtons.transferredConfigs.ColorConfig;
-import lpctools.lpcfymasaapi.configButtons.transferredConfigs.HotkeyConfig;
-import lpctools.lpcfymasaapi.configButtons.transferredConfigs.IntegerConfig;
+import lpctools.lpcfymasaapi.configButtons.transferredConfigs.*;
 import lpctools.lpcfymasaapi.configButtons.uniqueConfigs.ButtonConfig;
 import lpctools.lpcfymasaapi.configButtons.uniqueConfigs.ThirdListConfig;
 import lpctools.lpcfymasaapi.configButtons.uniqueConfigs.UniqueIntegerConfig;
@@ -38,6 +35,8 @@ public class ScriptConfigs {
     public static final HotkeyConfig dragDisplayKey = addHotkeyConfig("dragDisplayKey", KeybindSettings.MODIFIER_GUI, "LEFT_ALT", null);
     public static final HotkeyConfig copyPastDisplayKey = addHotkeyConfig("copyPastDisplayKey", KeybindSettings.MODIFIER_GUI, "LEFT_CONTROL", null);
     public static final HotkeyConfig insertRemoveDisplayKey = addHotkeyConfig("insertRemoveDisplayKey", KeybindSettings.MODIFIER_GUI, "LEFT_SHIFT", null);
+    public static final HotkeyConfig hoverTextDisplayKey = addHotkeyConfig("hoverTextDisplayKey", KeybindSettings.MODIFIER_GUI, "", null);
+    public static final DoubleConfig stretchSensitivity = addDoubleConfig("stretchSensitivity", 0.25, -1.0, 1.0);
     
     @SuppressWarnings("unused")
     public static final ButtonConfig reloadScripts = addButtonConfig("reloadScripts", (button, mouseButton)->{
@@ -47,6 +46,12 @@ public class ScriptConfigs {
     static {addConfig(ScriptsConfig.instance);}
     //static {addConfig(StaticVariables.instance);}
     static {listStack.pop();}
+    
+    public static boolean isHoverTextDisplayKeyPressed(){
+        var keybind = hoverTextDisplayKey.getKeybind();
+        if(keybind.getKeys().isEmpty()) return true;
+        return keybind.isPressed();
+    }
     
     public static boolean isDragDisplayKeyPressed(){
         var keybind = dragDisplayKey.getKeybind();

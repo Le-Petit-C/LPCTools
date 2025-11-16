@@ -219,7 +219,7 @@ public class ScriptEditScreen extends GuiConfigsBase {
 		double fixedMouseX = calcFixedX(mouseX);
 		double fixedMouseY = calcFixedY(mouseY);
 		if(scriptFocused != null && scriptFocused.mouseScrolled(fixedMouseX, fixedMouseY, horizontalAmount, verticalAmount)) return true;
-		stretch *= Math.exp(verticalAmount * 0.25);
+		stretch *= Math.exp(verticalAmount * stretchSensitivity.getAsDouble());
 		x = mouseX - fixedMouseX * stretch;
 		y = mouseY - fixedMouseY * stretch;
 		return super.mouseScrolled(mouseX, mouseY, horizontalAmount, verticalAmount);
@@ -370,6 +370,7 @@ public class ScriptEditScreen extends GuiConfigsBase {
 	
 	@Override protected void drawHoveredWidget(DrawContext drawContext, int mouseX, int mouseY) {
 		super.drawHoveredWidget(drawContext, mouseX, mouseY);
+		if(!isHoverTextDisplayKeyPressed()) return;
 		hoveredRenderer.tryRender(drawContext);
 	}
 	
