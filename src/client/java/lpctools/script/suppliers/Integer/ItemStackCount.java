@@ -1,26 +1,25 @@
 package lpctools.script.suppliers.Integer;
 
-import com.google.gson.JsonElement;
-import lpctools.script.AbstractScript;
 import lpctools.script.CompileEnvironment;
 import lpctools.script.IScriptWithSubScript;
 import lpctools.script.runtimeInterfaces.ScriptIntegerSupplier;
-import net.minecraft.client.MinecraftClient;
+import lpctools.script.suppliers.AbstractSupplierWithTypeDeterminedSubSuppliers;
+import net.minecraft.item.ItemStack;
+import net.minecraft.text.Text;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
-public class ItemStackCount extends AbstractScript implements IIntegerSupplier {
+public class ItemStackCount extends AbstractSupplierWithTypeDeterminedSubSuppliers implements IIntegerSupplier {
+	protected final SupplierStorage<ItemStack> stack = ofStorage(ItemStack.class,
+		Text.translatable("lpctools.script.suppliers.integer.itemStackCount.subSuppliers.stack.name"), "stack");
+	protected final SupplierStorage<?>[] subSuppliers = ofStorages(stack);
+	
 	public ItemStackCount(IScriptWithSubScript parent) {super(parent);}
+	
+	@Override protected SupplierStorage<?>[] getSubSuppliers() {return subSuppliers;}
 	
 	@Override public @NotNull ScriptIntegerSupplier
 	compileInteger(CompileEnvironment environment) {
-		return map -> {
-			var player = MinecraftClient.getInstance().player;
-			if(player != null) return player.currentScreenHandler.slots.size();
-			else return 0;
-		};
+		var compiledSupplier = stack.get().compileCheckedNotNull(environment);
+		return map->compiledSupplier.scriptApply(map).getCount();
 	}
-	
-	@Override public @Nullable JsonElement getAsJsonElement() {return null;}
-	@Override public void setValueFromJsonElement(@Nullable JsonElement element) {}
 }

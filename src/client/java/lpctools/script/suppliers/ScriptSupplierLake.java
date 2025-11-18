@@ -221,7 +221,9 @@ public class ScriptSupplierLake {
 		registerPrecise("integerFromDouble", Integer.class, IntegerFromDouble.class, IntegerFromDouble::new);
 		registerPrecise("integerFromBlockPos", Integer.class, IntegerFromBlockPos.class, IntegerFromBlockPos::new);
 		registerPrecise("integerFromBlockPoses", Integer.class, IntegerFromBlockPoses.class, IntegerFromBlockPoses::new);
+		registerPrecise("screenSlotCount", Integer.class, ScreenSlotCount.class, ScreenSlotCount::new);
 		registerPrecise("itemStackCount", Integer.class, ItemStackCount.class, ItemStackCount::new);
+		registerPrecise("itemMaxStack", Integer.class, ItemMaxStack.class, ItemMaxStack::new);
 		//注册double suppliers
 		registerPrecise("constantDouble", Double.class, ConstantDouble.class, ConstantDouble::new);
 		registerPrecise("calculateDoubles", Double.class, CalculateDoubles.class, CalculateDoubles::new);
