@@ -45,6 +45,9 @@
     "defaultRequire": 1
   },
   "mixins": [
+    "propertiesMixin.BooleanPropertyRegisterMixin",
+    "propertiesMixin.IntegerPropertyRegisterMixin",
+    "propertiesMixin.PropertyRegisterMixin",
     "TweakerooMixin.ConfigsListsMixin",
     "TweakerooMixin.ConfigsMixin"
   ]

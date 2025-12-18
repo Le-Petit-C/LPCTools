@@ -24,4 +24,7 @@ public class ScriptRuntimeException extends ScriptException {
 	public static ScriptRuntimeException mathProblem(IScript source) {
 		return ofTranslate(source, "lpctools.script.exception.runtime.mathProblem");
 	}
+	public static ScriptRuntimeException illegalArgument(IScript source, String details) {
+		return ofTranslate(source, "lpctools.script.exception.runtime.illegalArgument", details);
+	}
 }

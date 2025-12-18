@@ -19,6 +19,7 @@ import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3i;
+import org.apache.commons.text.similarity.LevenshteinDistance;
 import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -202,5 +203,27 @@ public class DataUtils {
     public static StringBuilder appendNodeIfNotEmpty(StringBuilder builder, String str){
         if(str.isEmpty()) return builder;
         return builder.append('.').append(str);
+    }
+    
+    public static String findMostSimilar(Collection<String> collection, String target) {
+        if (collection == null || target == null) return null;
+        
+        LevenshteinDistance levenshtein = LevenshteinDistance.getDefaultInstance();
+        String mostSimilar = null;
+        int minDistance = Integer.MAX_VALUE;
+        
+        for (String str : collection) {
+            int distance = levenshtein.apply(target, str);
+            if (distance < minDistance) {
+                minDistance = distance;
+                mostSimilar = str;
+            }
+        }
+        return mostSimilar;
+    }
+    
+    public static <T> T findMostSimilar(Map<String, T> map, String target) {
+        if (map.get(target) instanceof T directMatch) return directMatch;
+        return map.get(findMostSimilar(map.keySet(), target));
     }
 }

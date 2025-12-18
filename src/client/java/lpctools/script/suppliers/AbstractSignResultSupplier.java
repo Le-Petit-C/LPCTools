@@ -3,8 +3,8 @@ package lpctools.script.suppliers;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
-import fi.dy.masa.malilib.gui.button.ButtonGeneric;
 import lpctools.script.IScriptWithSubScript;
+import lpctools.script.editScreen.WidthAutoAdjustButtonGeneric;
 import lpctools.util.Functions;
 import org.jetbrains.annotations.Nullable;
 
@@ -14,12 +14,12 @@ import static lpctools.lpcfymasaapi.LPCConfigUtils.warnFailedLoadingConfig;
 
 public abstract class AbstractSignResultSupplier<T extends Functions.SignBase> extends AbstractSupplierWithTypeDeterminedSubSuppliers {
 	protected T compareSign;
-	protected final Functions.SignInfo<T> signInfo;
+	protected final Functions.ISignInfo<T> signInfo;
 	protected final int signPosition;
 	
 	public static final String compareSignJsonKey = "compareSign";
 	
-	public AbstractSignResultSupplier(IScriptWithSubScript parent, T defaultSign, Functions.SignInfo<T> signInfo, int signPosition) {
+	public AbstractSignResultSupplier(IScriptWithSubScript parent, T defaultSign, Functions.ISignInfo<T> signInfo, int signPosition) {
 		super(parent);
 		compareSign = defaultSign;
 		this.signInfo = signInfo;
@@ -28,12 +28,12 @@ public abstract class AbstractSignResultSupplier<T extends Functions.SignBase> e
 	
 	@Override protected ArrayList<Object> buildWidgets(ArrayList<Object> res) {
 		super.buildWidgets(res);
-		var button = new ButtonGeneric(0, 0, 50, 20, compareSign.signString());
+		var button = new WidthAutoAdjustButtonGeneric(getDisplayWidget(), 0, 0, 20, compareSign.displayString(), null);
 		button.setActionListener(
-			(bt, mouseButton)->{
-				compareSign = signInfo.cycleSign(compareSign, mouseButton == 0);
-				button.setDisplayString(compareSign.signString());
-			}
+			(bt, mouseButton)->signInfo.mouseButtonClicked(compareSign, mouseButton == 0, val -> {
+				compareSign = val;
+				button.setDisplayString(compareSign.displayString());
+			})
 		);
 		res.add(signPosition, button);
 		return res;
@@ -41,7 +41,7 @@ public abstract class AbstractSignResultSupplier<T extends Functions.SignBase> e
 	
 	@Override public @Nullable JsonElement getAsJsonElement() {
 		JsonObject res = getASWTDSSAsJsonElement(this);
-		res.addProperty(compareSignJsonKey, compareSign.signString());
+		res.addProperty(compareSignJsonKey, compareSign.idString());
 		return res;
 	}
 	

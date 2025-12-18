@@ -23,11 +23,11 @@ public class DoubleConstant extends AbstractScript implements IDoubleSupplier {
 	
 	@Override public @Nullable Iterable<?> getWidgets() {
 		if(button == null){
-			button = new ButtonGeneric(0, 0, 50, 20, sign.signString());
+			button = new ButtonGeneric(0, 0, 50, 20, sign.displayString());
 			button.setActionListener(
 				(bt, mouseButton)->{
 					sign = Functions.doubleConstantInfo.cycleSign(sign, mouseButton == 0);
-					button.setDisplayString(sign.signString());
+					button.setDisplayString(sign.displayString());
 				}
 			);
 		}
@@ -35,7 +35,7 @@ public class DoubleConstant extends AbstractScript implements IDoubleSupplier {
 	}
 	
 	@Override public @Nullable JsonElement getAsJsonElement() {
-		return new JsonPrimitive(sign.signString());
+		return new JsonPrimitive(sign.idString());
 	}
 	
 	@Override public void setValueFromJsonElement(@Nullable JsonElement element) {

@@ -7,16 +7,17 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 import lpctools.lpcfymasaapi.screen.ChooseScreen;
 import lpctools.script.IScriptWithSubScript;
-import lpctools.script.suppliers.Array.NewArray;
-import lpctools.script.suppliers.Block.BlockInWorld;
-import lpctools.script.suppliers.Block.ConstantBlock;
+import lpctools.script.suppliers.Array.*;
+import lpctools.script.suppliers.Block.*;
 import lpctools.script.suppliers.BlockPos.*;
+import lpctools.script.suppliers.BlockState.*;
 import lpctools.script.suppliers.Boolean.*;
 import lpctools.script.suppliers.Direction.ConstantDirection;
 import lpctools.script.suppliers.Double.*;
 import lpctools.script.suppliers.Entity.VehicleEntity;
 import lpctools.script.suppliers.Entity.PlayerEntity.MainPlayerEntity;
 import lpctools.script.suppliers.Integer.*;
+import lpctools.script.suppliers.Item.BlockItem;
 import lpctools.script.suppliers.Item.ConstantItem;
 import lpctools.script.suppliers.Item.StackItem;
 import lpctools.script.suppliers.ItemStack.CurrentScreenSlotStack;
@@ -35,6 +36,7 @@ import lpctools.script.suppliers.Type.ObjectType;
 import lpctools.script.suppliers.Vec3d.*;
 import lpctools.script.suppliers.ControlFlowIssue.*;
 import net.minecraft.block.Block;
+import net.minecraft.block.BlockState;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Item;
@@ -167,6 +169,7 @@ public class ScriptSupplierLake {
 		registerType(BlockPos.class, 		ConstantBlockPos::new, 								"blockPos");
 		registerType(Vec3d.class, 			ConstantVec3d::new, 								"vec3d");
 		registerType(Direction.class, 		ConstantDirection::new, 							"direction");
+		registerType(BlockState.class, 		BlockDefaultState::new, 							"blockState");
 		registerType(Block.class, 			ConstantBlock::new, 								"block");
 		registerType(Item.class, 			ConstantItem::new, 									"item");
 		registerType(ItemStack.class, 		EmptyStack::new, 									"itemStack");
@@ -202,6 +205,7 @@ public class ScriptSupplierLake {
 		registerPrecise("attackEntity", ControlFlowIssue.class, AttackEntity.class, AttackEntity::new);
 		registerPrecise("interactEntity", ControlFlowIssue.class, InteractEntity.class, InteractEntity::new);
 		registerPrecise("clickSlot", ControlFlowIssue.class, ClickSlot.class, ClickSlot::new);
+		registerPrecise("tryRestock", ControlFlowIssue.class, TryRestock.class, TryRestock::new);
 		//注册boolean suppliers
 		registerPrecise("constantBoolean", Boolean.class, ConstantBoolean.class, ConstantBoolean::new);
 		registerPrecise("and", Boolean.class, And.class, And::new);
@@ -211,6 +215,8 @@ public class ScriptSupplierLake {
 		registerPrecise("compareDoubles", Boolean.class, CompareDoubles.class, CompareDoubles::new);
 		registerPrecise("compareObjects", Boolean.class, CompareObjects.class, CompareObjects::new);
 		registerPrecise("notNull", Boolean.class, lpctools.script.suppliers.Boolean.NotNull.class, lpctools.script.suppliers.Boolean.NotNull::new);
+		registerPrecise("doBlockStateHasProperty", Boolean.class, DoBlockStateHasProperty.class, DoBlockStateHasProperty::new);
+		registerPrecise("blockStateBooleanProperty", Boolean.class, BlockStateBooleanProperty.class, BlockStateBooleanProperty::new);
 		registerPrecise("canBreakInstantly", Boolean.class, CanBreakInstantly.class, CanBreakInstantly::new);
 		//注册integer suppliers
 		registerPrecise("constantInteger", Integer.class, ConstantInteger.class, ConstantInteger::new);
@@ -221,6 +227,7 @@ public class ScriptSupplierLake {
 		registerPrecise("integerFromDouble", Integer.class, IntegerFromDouble.class, IntegerFromDouble::new);
 		registerPrecise("integerFromBlockPos", Integer.class, IntegerFromBlockPos.class, IntegerFromBlockPos::new);
 		registerPrecise("integerFromBlockPoses", Integer.class, IntegerFromBlockPoses.class, IntegerFromBlockPoses::new);
+		registerPrecise("blockStateIntegerProperty", Integer.class, BlockStateIntegerProperty.class, BlockStateIntegerProperty::new);
 		registerPrecise("screenSlotCount", Integer.class, ScreenSlotCount.class, ScreenSlotCount::new);
 		registerPrecise("itemStackCount", Integer.class, ItemStackCount.class, ItemStackCount::new);
 		registerPrecise("itemMaxStack", Integer.class, ItemMaxStack.class, ItemMaxStack::new);
@@ -264,12 +271,18 @@ public class ScriptSupplierLake {
 		registerPrecise("vec3dFromBlockPos", Vec3d.class, Vec3dFromBlockPos.class, Vec3dFromBlockPos::new);
 		registerPrecise("entityPos", Vec3d.class, EntityPos.class, EntityPos::new);
 		registerPrecise("entityEyePos", Vec3d.class, EntityEyePos.class, EntityEyePos::new);
+		//注册blockState suppliers
+		registerPrecise("blockDefaultState", BlockState.class, BlockDefaultState.class, BlockDefaultState::new);
+		registerPrecise("blockStateInWorld", BlockState.class, BlockStateInWorld.class, BlockStateInWorld::new);
 		//注册block suppliers
 		registerPrecise("constantBlock", Block.class, ConstantBlock.class, ConstantBlock::new);
+		registerPrecise("stateStoredBlock", Block.class, StateStoredBlock.class, StateStoredBlock::new);
+		registerPrecise("itemReferredBlock", Block.class, ItemReferredBlock.class, ItemReferredBlock::new);
 		registerPrecise("blockInWorld", Block.class, BlockInWorld.class, BlockInWorld::new);
 		//注册item suppliers
 		registerPrecise("constantItem", Item.class, ConstantItem.class, ConstantItem::new);
 		registerPrecise("stackItem", Item.class, StackItem.class, StackItem::new);
+		registerPrecise("blockItem", Item.class, BlockItem.class, BlockItem::new);
 		//注册item stack suppliers
 		registerPrecise("emptyStack", ItemStack.class, EmptyStack.class, EmptyStack::new);
 		registerPrecise("slotItemStack", ItemStack.class, SlotItemStack.class, SlotItemStack::new);
