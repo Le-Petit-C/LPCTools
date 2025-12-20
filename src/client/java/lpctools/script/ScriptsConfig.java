@@ -115,4 +115,8 @@ public class ScriptsConfig extends ConfigListConfig<ScriptConfig> {
 			else LPCTools.LOGGER.warn("Unable to access directory {}", scriptDirectoryPath);
 		}
 	}
+	
+	public void markNeedRecompileAll(){
+		iterateConfigs().forEach(scriptConfig -> scriptConfig.script.markNeedRecompile());
+	}
 }

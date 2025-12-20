@@ -46,6 +46,7 @@
   },
   "mixins": [
     "propertiesMixin.BooleanPropertyRegisterMixin",
+    "propertiesMixin.EnumPropertyMixin",
     "propertiesMixin.IntegerPropertyRegisterMixin",
     "propertiesMixin.PropertyRegisterMixin",
     "TweakerooMixin.ConfigsListsMixin",

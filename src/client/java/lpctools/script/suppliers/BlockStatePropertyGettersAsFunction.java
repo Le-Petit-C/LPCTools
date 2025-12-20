@@ -2,10 +2,12 @@ package lpctools.script.suppliers;
 
 import com.google.common.collect.ImmutableMap;
 import fi.dy.masa.malilib.gui.button.ButtonBase;
+import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import lpctools.lpcfymasaapi.screen.ChooseScreen;
 import lpctools.util.Functions.ISignInfo;
 import lpctools.util.Functions.SignBase;
 import net.minecraft.block.BlockState;
+import net.minecraft.state.property.EnumProperty;
 import net.minecraft.state.property.IntProperty;
 import net.minecraft.state.property.Property;
 import org.jetbrains.annotations.NotNull;
@@ -45,10 +47,24 @@ public class BlockStatePropertyGettersAsFunction {
 		});
 		int getInteger(BlockState state);
 	}
+	public interface EnumPropertyGetter extends SignBase{
+		class EnumPropertyGetters extends PropertyGetters<EnumPropertyGetter, EnumProperty<?>>{
+			public EnumPropertyGetters() {
+				super((idString, displayString, property) -> new EnumPropertyGetter(){
+					@Override public String displayString() {return displayString;}
+					@Override public String idString() {return idString;}
+					@Override public Enum<?> getEnum(BlockState state) {return state.get(property);}
+				});
+			}
+		}
+		PropertyGetters<EnumPropertyGetter, EnumProperty<?>> propertyGetters = new EnumPropertyGetters();
+		Enum<?> getEnum(BlockState state);
+	}
 	
 	public interface ISignGenerator<SignType extends SignBase, PropertyType extends Property<?>> {
 		SignType generate(String idString, String displayString, PropertyType property);
 	}
+	
 	
 	public static class PropertyGetters<SignType extends SignBase, PropertyType extends Property<?>> implements ISignInfo<SignType> {
 		public final ISignGenerator<SignType, PropertyType> signGenerator;
@@ -65,20 +81,19 @@ public class BlockStatePropertyGettersAsFunction {
 			// 生成详细描述字符串
 			// 不带哈希值了，因为哈希值或许会变化，程序无法正确保存和加载同一个属性
 			// 如果真的有完全一样的属性，，，活累了，毁灭吧，丢一个Exception给用户算了
-			private static String buildDetailedString(Property<?> property){
+			private static String buildDetailedString(Property<?> property, boolean withValueDetails){
 				StringBuilder builder = new StringBuilder();
 				builder.append(property.getName());
 				builder.append(" (Type=");
 				builder.append(property.getType().getSimpleName());
-				if(property instanceof IntProperty intProp) {
+				if(withValueDetails){
 					builder.append(", ");
-					builder.append("min=").append(intProp.getValues().getFirst());
-					builder.append(", ");
-					builder.append("max=").append(intProp.getValues().getLast());
-				}
-				else {
-					builder.append(", ");
-					builder.append("values=").append(property.getValues());
+					if(property instanceof IntProperty intProp) {
+						builder.append("min=").append(intProp.getValues().getFirst());
+						builder.append(", ");
+						builder.append("max=").append(intProp.getValues().getLast());
+					}
+					else builder.append("values=").append(property.getValues());
 				}
 				builder.append(")");
 				return builder.toString();
@@ -98,6 +113,8 @@ public class BlockStatePropertyGettersAsFunction {
 			}
 			return properties;
 		}
+		// 可能出现的问题：两个不同的类型具有相同的simpleName，从而导致displayString冲突
+		// 暂时不考虑这种情况，不过或许可以设为TODO
 		private @NotNull ImmutableMap<String, PropertyData<SignType, PropertyType>> getPropertyIdMap(){
 			if(propertyIdMap != null) return propertyIdMap;
 			TreeMap<String, List<PropertyType>> tempMap = new TreeMap<>();
@@ -106,17 +123,24 @@ public class BlockStatePropertyGettersAsFunction {
 			tempMap.forEach((cleanName, propList)->{
 				if(propList.size() > 1){
 					ArrayList<PropertyData<SignType, PropertyType>> dataList = new ArrayList<>();
+					Object2IntOpenHashMap<Class<?>> occurrenceMap = new Object2IntOpenHashMap<>();
+					// 计算每种类型的出现次数
+					propList.forEach(prop->occurrenceMap.put(prop.getType(), occurrenceMap.getOrDefault(prop.getType(), 0) + 1));
+					// 如果某种类型只出现了一次，就用简短的描述，否则用详细描述
 					propList.forEach(prop->{
-						String detailedIdString = PropertyData.buildDetailedString(prop);
-						SignType sign = signGenerator.generate(detailedIdString, detailedIdString, prop);
-						dataList.add(new PropertyData<>(detailedIdString, detailedIdString, prop, sign));
+						String detailedIdString = PropertyData.buildDetailedString(prop, true);
+						String displayString;
+						if(occurrenceMap.getInt(prop.getType()) > 1) displayString = detailedIdString;
+						else displayString = PropertyData.buildDetailedString(prop, false);
+						SignType sign = signGenerator.generate(detailedIdString, displayString, prop);
+						dataList.add(new PropertyData<>(detailedIdString, displayString, prop, sign));
 					});
 					dataList.sort(Comparator.naturalOrder());
 					dataList.forEach(data->optionCallbacksBuilder.put(data.detailedIdString, data));
 				}
 				else {
 					PropertyType prop = propList.getFirst();
-					String detailedIdString = PropertyData.buildDetailedString(prop);
+					String detailedIdString = PropertyData.buildDetailedString(prop, true);
 					SignType sign = signGenerator.generate(detailedIdString, prop.getName(), prop);
 					PropertyData<SignType, PropertyType> data = new PropertyData<>(detailedIdString, prop.getName(), prop, sign);
 					optionCallbacksBuilder.put(data.detailedIdString, data);

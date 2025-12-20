@@ -27,6 +27,7 @@ public class ScriptConfig extends WrappedThirdListConfig implements AutoCloseabl
 	};
 	public final UniqueStringConfig scriptId = new UniqueStringConfig(this, "id", "", null);
 	public final ButtonConfig editButton = new ButtonConfig(this, "edit");
+	public final ButtonConfig variableClearButton = new ButtonConfig(this, "clearVariables");
 	public final ButtonConfig exceptionButton = new ButtonConfig(this, "exception"){
 		@Override public void getButtonOptions(ButtonOptionArrayList res) {
 			buttonName = script.hasExceptions() ?
@@ -39,13 +40,23 @@ public class ScriptConfig extends WrappedThirdListConfig implements AutoCloseabl
 		super(parent, "script", null);
 		addConfig(isEnabled);
 		addConfig(editButton);
+		addConfig(variableClearButton);
 		addConfig(exceptionButton);
 		script = new Script(this);
 		scriptId.setValueFromString(script.getId());
 		scriptId.setValueChangeCallback(()->script.setId(scriptId.getStringValue()));
 		isEnabled.setValueChangeCallback(()->script.enable(isEnabled.getBooleanValue()));
 		editButton.setListener((button, mouseButton) -> script.openEditScreen());
+		variableClearButton.setListener((button, mouseButton) -> {
+			clearStaticVariables();
+			getPage().applyToPageInstanceIfNotNull(page->page.cursorInfo(Text.translatable("lpctools.configs.scripts.scripts.script.clearVariables.info"), 2000));
+		});
 		exceptionButton.setListener((button, mouseButton) -> script.clearExceptions());
+	}
+	
+	public void clearStaticVariables(){
+		scriptStaticVariables.clearVariables();
+		script.markNeedRecompile();
 	}
 	
 	@Override public void getButtonOptions(ButtonOptionArrayList res) {
@@ -82,4 +93,6 @@ public class ScriptConfig extends WrappedThirdListConfig implements AutoCloseabl
 	}
 	
 	@Override public void close() {script.close();}
+	
+	public final ScriptConfigs.StaticVariableMap scriptStaticVariables = new ScriptConfigs.StaticVariableMap();
 }

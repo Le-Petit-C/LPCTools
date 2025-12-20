@@ -2,6 +2,7 @@ package lpctools.script;
 
 import fi.dy.masa.malilib.hotkeys.KeybindSettings;
 import fi.dy.masa.malilib.util.data.Color4f;
+import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import lpctools.LPCTools;
 import lpctools.lpcfymasaapi.LPCConfigList;
 import lpctools.lpcfymasaapi.configButtons.derivedConfigs.ArrayOptionListConfig;
@@ -13,6 +14,8 @@ import lpctools.lpcfymasaapi.interfaces.ButtonConsumer;
 import lpctools.lpcfymasaapi.interfaces.ILPCConfigReadable;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.text.Text;
+
+import java.util.ArrayList;
 
 import static lpctools.lpcfymasaapi.LPCConfigStatics.*;
 
@@ -39,6 +42,16 @@ public class ScriptConfigs {
     public static final DoubleConfig stretchSensitivity = addDoubleConfig("stretchSensitivity", 0.25, -1.0, 1.0);
     
     @SuppressWarnings("unused")
+    public static final ButtonConfig clearGlobalStaticVariables = addButtonConfig("clearGlobalStaticVariables", (button, mouseButton)->{
+            clearGlobalStaticVariables();
+            script.getPage().applyToPageInstanceIfNotNull(page->page.cursorInfo(Text.translatable("lpctools.configs.scripts.clearGlobalStaticVariables.info"), 2000));
+        });
+    @SuppressWarnings("unused")
+    public static final ButtonConfig clearAllStaticVariables = addButtonConfig("clearAllStaticVariables", (button, mouseButton)->{
+            clearAllStaticVariables();
+            script.getPage().applyToPageInstanceIfNotNull(page->page.cursorInfo(Text.translatable("lpctools.configs.scripts.clearAllStaticVariables.info"), 2000));
+        });
+    @SuppressWarnings("unused")
     public static final ButtonConfig reloadScripts = addButtonConfig("reloadScripts", (button, mouseButton)->{
             ScriptsConfig.instance.setValueFromJsonElement(ScriptsConfig.instance.getAsJsonElement());
             script.getPage().applyToPageInstanceIfNotNull(page->page.cursorInfo(Text.translatable("lpctools.configs.scripts.reloadScripts.info"), 2000));
@@ -46,6 +59,8 @@ public class ScriptConfigs {
     static {addConfig(ScriptsConfig.instance);}
     //static {addConfig(StaticVariables.instance);}
     static {listStack.pop();}
+    
+    public static final StaticVariableMap globalStaticVariables = new StaticVariableMap();
     
     public static boolean isHoverTextDisplayKeyPressed(){
         var keybind = hoverTextDisplayKey.getKeybind();
@@ -69,6 +84,16 @@ public class ScriptConfigs {
         var keybind = insertRemoveDisplayKey.getKeybind();
         if(keybind.getKeys().isEmpty()) return true;
         return keybind.isPressed();
+    }
+    
+    public static void clearGlobalStaticVariables(){
+        globalStaticVariables.clearVariables();
+        ScriptsConfig.instance.markNeedRecompileAll();
+    }
+    
+    public static void clearAllStaticVariables(){
+        clearGlobalStaticVariables();
+        ScriptsConfig.instance.iterateConfigs().forEach(ScriptConfig::clearStaticVariables);
     }
     
     public static class ConfigSizeConfig extends UniqueIntegerConfig {
@@ -118,6 +143,40 @@ public class ScriptConfigs {
                 right.getButtonOptions(res);
                 bottom.getButtonOptions(res);
             }
+        }
+    }
+    
+    public static class StaticVariableMap{
+        public final Object2IntOpenHashMap<String> variableIndexMap = new Object2IntOpenHashMap<>();
+        public final ArrayList<Object> variableList = new ArrayList<>();
+        
+        // 清除所有静态变量，但不会清除变量引用，请自行确保不再有之前的变量引用被使用
+        public void clearVariables(){
+            variableIndexMap.clear();
+            variableList.clear();
+        }
+        
+        public StaticVariableReference getVariableReference(String name){
+			int index;
+			if(variableIndexMap.containsKey(name))
+				index = variableIndexMap.getInt(name);
+            else {
+				index = variableList.size();
+                variableIndexMap.put(name, index);
+                variableList.add(null);
+			}
+			return new StaticVariableReference(name, index);
+		}
+        
+        public class StaticVariableReference {
+            public final String name;
+            public final int index;
+            StaticVariableReference(String name, int index){
+                this.name = name;
+                this.index = index;
+            }
+            public void setValue(Object value){variableList.set(index, value);}
+            public Object getValue() {return variableList.get(index);}
         }
     }
 }

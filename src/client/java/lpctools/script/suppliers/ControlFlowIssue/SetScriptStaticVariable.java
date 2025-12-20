@@ -17,16 +17,16 @@ import java.util.ArrayList;
 
 import static lpctools.lpcfymasaapi.LPCConfigUtils.warnFailedLoadingConfig;
 
-public class SetVariable extends AbstractSupplierWithTypeDeterminedSubSuppliers implements IControlFlowIssueSupplier {
+public class SetScriptStaticVariable extends AbstractSupplierWithTypeDeterminedSubSuppliers implements IControlFlowIssueSupplier {
 	private @NotNull String variableName = "var";
 	protected @Nullable WidthAutoAdjustTextField textField;
 	protected final SupplierStorage<Object> value = ofStorage(Object.class,
-		Text.translatable("lpctools.script.suppliers.controlFlowIssue.setVariable.subSuppliers.value.name"), valueJsonKey);
+		Text.translatable("lpctools.script.suppliers.controlFlowIssue.setScriptStaticVariable.subSuppliers.value.name"), valueJsonKey);
 	protected final SupplierStorage<?>[] subSuppliers = ofStorages(value);
 	public static final String variableNameJsonKey = "variableName";
 	public static final String valueJsonKey = "value";
 	
-	public SetVariable(IScriptWithSubScript parent) {super(parent);}
+	public SetScriptStaticVariable(IScriptWithSubScript parent) {super(parent);}
 	
 	public void setVariableName(@NotNull String variableName) {
 		if(!this.variableName.equals(variableName)){
@@ -52,10 +52,10 @@ public class SetVariable extends AbstractSupplierWithTypeDeterminedSubSuppliers 
 	@Override public @NotNull ScriptNotNullSupplier<ControlFlowIssue>
 	compileNotNull(CompileEnvironment environment) {
 		var compiledValueSupplier = value.get().compile(environment);
-		var variableRef = environment.getVariableReference(variableName);
+		var variableRef = getScript().config.scriptStaticVariables.getVariableReference(variableName);
 		return map->{
 			Object object = compiledValueSupplier.scriptApply(map);
-			variableRef.setValue(map, object);
+			variableRef.setValue(object);
 			return ControlFlowIssue.NO_ISSUE;
 		};
 	}
@@ -69,13 +69,13 @@ public class SetVariable extends AbstractSupplierWithTypeDeterminedSubSuppliers 
 	@Override public void setValueFromJsonElement(@Nullable JsonElement element) {
 		if(element == null) return;
 		if(!(element instanceof JsonObject object)){
-			warnFailedLoadingConfig("SetVariable", element);
+			warnFailedLoadingConfig("SetScriptStaticVariable", element);
 			return;
 		}
 		if(object.get(variableNameJsonKey) instanceof JsonElement varNameElement){
 			if(varNameElement instanceof JsonPrimitive primitive)
 				variableName = primitive.getAsString();
-			else warnFailedLoadingConfig("SetVariable.variableName", varNameElement);
+			else warnFailedLoadingConfig("SetScriptStaticVariable.variableName", varNameElement);
 		}
 		value.setValueFromJsonElement(object.get(valueJsonKey));
 	}
