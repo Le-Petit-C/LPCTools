@@ -1,7 +1,7 @@
 package lpctools.mixin.client.propertiesMixin;
 
-import lpctools.script.suppliers.BlockStatePropertyGettersAsFunction;
-import lpctools.script.suppliers.Random.ConstantEnum;
+import lpctools.script.suppliers.BlockPropertyOperators;
+import lpctools.script.suppliers.Enum.ConstantEnum;
 import net.minecraft.state.property.EnumProperty;
 import net.minecraft.util.StringIdentifiable;
 import org.spongepowered.asm.mixin.Mixin;
@@ -16,6 +16,6 @@ public class EnumPropertyMixin<T extends Enum<T> & StringIdentifiable> {
 	@Inject(method = "<init>", at = @At("RETURN"))
 	private void onInit(String name, Class<T> type, List<T> values, CallbackInfo ci) {
 		ConstantEnum.enumInfo.registerEnum(type);
-		BlockStatePropertyGettersAsFunction.EnumPropertyGetter.propertyGetters.registerProperty((EnumProperty<?>) (Object) this);
+		BlockPropertyOperators.EnumPropertyOperator.propertyGetters.registerProperty((EnumProperty<?>) (Object) this);
 	}
 }

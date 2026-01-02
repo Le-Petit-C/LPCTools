@@ -1,6 +1,6 @@
 package lpctools.mixin.client.propertiesMixin;
 
-import lpctools.script.suppliers.BlockStatePropertyGettersAsFunction;
+import lpctools.script.suppliers.BlockPropertyOperators;
 import net.minecraft.state.property.BooleanProperty;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
@@ -11,6 +11,6 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 public class BooleanPropertyRegisterMixin {
 	@Inject(method = "<init>", at = @At("RETURN") )
 	private void onInit(String name, CallbackInfo ci){
-		BlockStatePropertyGettersAsFunction.BooleanPropertyGetter.propertyGetters.registerProperty((BooleanProperty)(Object)this);
+		BlockPropertyOperators.BooleanPropertyGetter.propertyGetters.registerProperty((BooleanProperty)(Object)this);
 	}
 }

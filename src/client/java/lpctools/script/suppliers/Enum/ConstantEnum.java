@@ -1,4 +1,4 @@
-package lpctools.script.suppliers.Random;
+package lpctools.script.suppliers.Enum;
 
 import com.google.common.collect.ImmutableMap;
 import fi.dy.masa.malilib.gui.button.ButtonBase;
@@ -6,9 +6,9 @@ import lpctools.lpcfymasaapi.screen.ChooseScreen;
 import lpctools.script.CompileEnvironment;
 import lpctools.script.IScriptWithSubScript;
 import lpctools.script.runtimeInterfaces.ScriptNotNullSupplier;
-import lpctools.script.suppliers.AbstractSignResultSupplier;
+import lpctools.script.suppliers.AbstractOperatorResultSupplier;
 import lpctools.util.DataUtils;
-import lpctools.util.Functions;
+import lpctools.util.Operators;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -19,40 +19,33 @@ import java.util.TreeSet;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
-public class ConstantEnum<T> extends AbstractSignResultSupplier<ConstantEnum.IEnumSupplier> implements IRandomSupplier<T> {
-	
-	public interface IEnumSupplier extends Functions.SignBase {
+public class ConstantEnum extends AbstractOperatorResultSupplier<ConstantEnum.IEnumSupplierOperator> implements IEnumSupplier {
+	public interface IEnumSupplierOperator extends Operators.SignBase {
 		@SuppressWarnings("unused")
 		Class<? extends Enum<?>> getEnumClass();
 		Enum<?> getEnum();
 	}
 	
-	public ConstantEnum(IScriptWithSubScript parent, Class<T> suppliedClass) {
+	public ConstantEnum(IScriptWithSubScript parent) {
 		super(parent, enumInfo.enumByClass.firstEntry().getValue().firstEntry().getValue().first(), enumInfo, 0);
-		this.suppliedClass = suppliedClass;
 	}
 	
 	protected final SupplierStorage<?>[] subSuppliers = ofStorages();
 	
 	@Override protected SupplierStorage<?>[] getSubSuppliers() {return subSuppliers;}
 	
-	@Override public Class<? extends T> getSuppliedClass() {
-		return suppliedClass;
-	}
-	
-	public final Class<T> suppliedClass;
-	
-	@Override public @NotNull ScriptNotNullSupplier<Object>
-	compileRandom(CompileEnvironment environment) {
+	@SuppressWarnings("rawtypes")
+	@Override public @NotNull ScriptNotNullSupplier<Enum>
+	compileNotNull(CompileEnvironment environment) {
 		Enum<?> val = compareSign.getEnum();
 		return map->val;
 	}
 	
-	public static class EnumInfo implements Functions.ISignInfo<IEnumSupplier> {
+	public static class EnumInfo implements Operators.ISignInfo<IEnumSupplierOperator> {
 		private final HashMap<String, EnumSupplier> enumByName = new HashMap<>();
 		private final TreeMap<String, TreeMap<Class<? extends Enum<?>>, TreeSet<EnumSupplier>>> enumByClass = new TreeMap<>();
 		private @Nullable ImmutableMap<String, ImmutableMap<String, String>> chooseTreeCache;
-		private static class EnumSupplier implements IEnumSupplier, ChooseScreen.OptionCallback<Consumer<IEnumSupplier>> {
+		private static class EnumSupplier implements IEnumSupplierOperator, ChooseScreen.OptionCallback<Consumer<IEnumSupplierOperator>> {
 			private final Enum<?> enumValue;
 			private final Class<? extends Enum<?>> enumClass;
 			private final String idString;
@@ -61,7 +54,7 @@ public class ConstantEnum<T> extends AbstractSignResultSupplier<ConstantEnum.IEn
 				this.enumClass = enumClass;
 				idString = enumValue.getClass().getName() + "." + enumValue.name();
 			}
-			@Override public void action(ButtonBase button, int mouseButton, Consumer<IEnumSupplier> userData) {userData.accept(this);}
+			@Override public void action(ButtonBase button, int mouseButton, Consumer<IEnumSupplierOperator> userData) {userData.accept(this);}
 			@Override public Class<? extends Enum<?>> getEnumClass() {return enumClass;}
 			@Override public Enum<?> getEnum() {return enumValue;}
 			@Override public String displayString() {
@@ -88,11 +81,11 @@ public class ConstantEnum<T> extends AbstractSignResultSupplier<ConstantEnum.IEn
 			});
 			return chooseTreeCache = builder.build();
 		}
-		@Override public void mouseButtonClicked(IEnumSupplier curr, boolean isLeftButton, Consumer<IEnumSupplier> callback) {
+		@Override public void mouseButtonClicked(IEnumSupplierOperator curr, boolean isLeftButton, Consumer<IEnumSupplierOperator> callback) {
 			ChooseScreen.openChooseScreen("", true, true, enumByName, getChooseTree(), callback);
 		}
-		@Override public @Nullable IEnumSupplier get(String idString) {
-			if(enumByName.get(idString) instanceof IEnumSupplier supplier) return supplier;
+		@Override public @Nullable ConstantEnum.IEnumSupplierOperator get(String idString) {
+			if(enumByName.get(idString) instanceof IEnumSupplierOperator supplier) return supplier;
 			else return DataUtils.findMostSimilar(enumByName, idString);
 		}
 		public void registerEnum(Class<? extends Enum<?>> enumClass){

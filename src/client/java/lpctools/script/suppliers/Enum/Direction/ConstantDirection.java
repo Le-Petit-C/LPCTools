@@ -1,4 +1,4 @@
-package lpctools.script.suppliers.Direction;
+package lpctools.script.suppliers.Enum.Direction;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonPrimitive;

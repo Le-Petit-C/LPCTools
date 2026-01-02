@@ -3,20 +3,20 @@ package lpctools.script.suppliers.Vec3d;
 import lpctools.script.CompileEnvironment;
 import lpctools.script.IScriptWithSubScript;
 import lpctools.script.runtimeInterfaces.ScriptNotNullSupplier;
-import lpctools.script.suppliers.AbstractSignResultSupplier;
-import lpctools.util.Functions;
+import lpctools.script.suppliers.AbstractOperatorResultSupplier;
+import lpctools.util.Operators;
 import net.minecraft.text.Text;
 import net.minecraft.util.math.Vec3d;
 import org.jetbrains.annotations.NotNull;
 
-public class CalculateVec3ds extends AbstractSignResultSupplier<Functions.Vec3dCalculateSign> implements IVec3dSupplier {
+public class CalculateVec3ds extends AbstractOperatorResultSupplier<Operators.Vec3dCalculateSign> implements IVec3dSupplier {
 	protected final SupplierStorage<Vec3d> vec1 = ofStorage(Vec3d.class,
 		Text.translatable("lpctools.script.suppliers.vec3d.calculateVec3ds.subSuppliers.vec1.name"), "vec1");
 	protected final SupplierStorage<Vec3d> vec2 = ofStorage(Vec3d.class,
 		Text.translatable("lpctools.script.suppliers.vec3d.calculateVec3ds.subSuppliers.vec2.name"), "vec2");
 	protected final SupplierStorage<?>[] subSuppliers = ofStorages(vec1, vec2);
 	
-	public CalculateVec3ds(IScriptWithSubScript parent) {super(parent, Functions.ADD, Functions.vec3dCalculateSignInfo, 1);}
+	public CalculateVec3ds(IScriptWithSubScript parent) {super(parent, Operators.ADD, Operators.vec3dCalculateSignInfo, 1);}
 	
 	@Override protected SupplierStorage<?>[] getSubSuppliers() {return subSuppliers;}
 	

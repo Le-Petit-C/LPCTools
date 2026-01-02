@@ -3,12 +3,12 @@ package lpctools.script.suppliers.Double;
 import lpctools.script.CompileEnvironment;
 import lpctools.script.IScriptWithSubScript;
 import lpctools.script.runtimeInterfaces.ScriptDoubleSupplier;
-import lpctools.script.suppliers.AbstractSignResultSupplier;
-import lpctools.util.Functions;
+import lpctools.script.suppliers.AbstractOperatorResultSupplier;
+import lpctools.util.Operators;
 import org.jetbrains.annotations.NotNull;
 
-public class DoubleConstant extends AbstractSignResultSupplier<Functions.DoubleConstant> implements IDoubleSupplier {
-	public DoubleConstant(IScriptWithSubScript parent) {super(parent, Functions.PHI, Functions.doubleConstantInfo, 0);}
+public class DoubleConstant extends AbstractOperatorResultSupplier<Operators.DoubleConstant> implements IDoubleSupplier {
+	public DoubleConstant(IScriptWithSubScript parent) {super(parent, Operators.PHI, Operators.doubleConstantInfo, 0);}
 	
 	protected final SupplierStorage<?>[] subSuppliers = ofStorages();
 	

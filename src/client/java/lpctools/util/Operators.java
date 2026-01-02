@@ -12,7 +12,7 @@ import java.util.Objects;
 import java.util.function.Consumer;
 
 @SuppressWarnings("unused")
-public class Functions {
+public class Operators {
 	public static final EqualsSign EQUALS = new EqualsSign();
 	public static final NEqualSign NEQUAL = new NEqualSign();
 	public static final LessSign LESS = new LessSign();
@@ -602,7 +602,7 @@ public class Functions {
 		private final ImmutableMap<String, Integer> indexMap;
 		private FunctionsDefaultSignInfo(Class<T> targetType){
 			ArrayList<T> list = new ArrayList<>();
-			for(var v : Functions.class.getFields()){
+			for(var v : Operators.class.getFields()){
 				if(Modifier.isStatic(v.getModifiers()) && targetType.isAssignableFrom(v.getType())) {
 					try {
 						//noinspection unchecked

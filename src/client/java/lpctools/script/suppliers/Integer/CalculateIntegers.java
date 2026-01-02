@@ -4,19 +4,19 @@ import lpctools.script.CompileEnvironment;
 import lpctools.script.IScriptWithSubScript;
 import lpctools.script.exceptions.ScriptRuntimeException;
 import lpctools.script.runtimeInterfaces.ScriptIntegerSupplier;
-import lpctools.script.suppliers.AbstractSignResultSupplier;
-import lpctools.util.Functions;
+import lpctools.script.suppliers.AbstractOperatorResultSupplier;
+import lpctools.util.Operators;
 import net.minecraft.text.Text;
 import org.jetbrains.annotations.NotNull;
 
-public class CalculateIntegers extends AbstractSignResultSupplier<Functions.IntegerCalculateSign> implements IIntegerSupplier {
+public class CalculateIntegers extends AbstractOperatorResultSupplier<Operators.IntegerCalculateSign> implements IIntegerSupplier {
 	protected final SupplierStorage<Integer> integer1 = ofStorage(Integer.class,
 		Text.translatable("lpctools.script.suppliers.integer.calculateIntegers.subSuppliers.integer1.name"), "integer1");
 	protected final SupplierStorage<Integer> integer2 = ofStorage(Integer.class,
 		Text.translatable("lpctools.script.suppliers.integer.calculateIntegers.subSuppliers.integer2.name"), "integer2");
 	protected final SupplierStorage<?>[] subSuppliers = ofStorages(integer1, integer2);
 	
-	public CalculateIntegers(IScriptWithSubScript parent) {super(parent, Functions.ADD, Functions.integerCalculateSignInfo, 1);}
+	public CalculateIntegers(IScriptWithSubScript parent) {super(parent, Operators.ADD, Operators.integerCalculateSignInfo, 1);}
 	
 	@Override protected SupplierStorage<?>[] getSubSuppliers() {return subSuppliers;}
 	

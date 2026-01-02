@@ -10,9 +10,15 @@ import lpctools.script.IScriptWithSubScript;
 import lpctools.script.suppliers.Array.*;
 import lpctools.script.suppliers.Block.*;
 import lpctools.script.suppliers.BlockPos.*;
+import lpctools.script.suppliers.BlockProperty.BooleanBlockProperty.EnumBlockProperty.ConstantBooleanBlockProperty;
+import lpctools.script.suppliers.BlockProperty.ConstantBlockProperty;
+import lpctools.script.suppliers.BlockProperty.EnumBlockProperty.ConstantEnumBlockProperty;
+import lpctools.script.suppliers.BlockProperty.IntegerBlockProperty.EnumBlockProperty.ConstantIntegerBlockProperty;
 import lpctools.script.suppliers.BlockState.*;
 import lpctools.script.suppliers.Boolean.*;
-import lpctools.script.suppliers.Direction.*;
+import lpctools.script.suppliers.Enum.BlockStateEnumProperty;
+import lpctools.script.suppliers.Enum.ConstantEnum;
+import lpctools.script.suppliers.Enum.Direction.*;
 import lpctools.script.suppliers.Double.*;
 import lpctools.script.suppliers.Entity.*;
 import lpctools.script.suppliers.Entity.PlayerEntity.*;
@@ -31,6 +37,10 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
+import net.minecraft.state.property.BooleanProperty;
+import net.minecraft.state.property.EnumProperty;
+import net.minecraft.state.property.IntProperty;
+import net.minecraft.state.property.Property;
 import net.minecraft.text.Text;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
@@ -60,41 +70,42 @@ public class ScriptSupplierLake {
 	private static final LinkedHashMap<Class<?>, ScriptType> typeMapTemp = new LinkedHashMap<>();
 	private static final LinkedHashMap<String, ScriptType> typeIdMapTemp = new LinkedHashMap<>();
 	
-	public static <T> void chooseSupplier(Class<T> targetClass, IScriptWithSubScript parent, Consumer<IScriptSupplier<? extends T>> callback){
-		Consumer<ScriptRegistration<?, ?>> consumer = reg->{
+	public static <T> void chooseSupplier(Class<T> targetClass, IScriptWithSubScript parent, Consumer<IScriptSupplier<? extends T>> callback) {
+		Consumer<ScriptRegistration<?, ?>> consumer = reg -> {
 			var allocator = reg.tryAllocate(targetClass);
-			if(allocator != null) callback.accept(allocator.allocate(parent));
+			if (allocator != null) callback.accept(allocator.allocate(parent));
 		};
 		ChooseScreen.openChooseScreen(getTypeName(targetClass).getString(), true, suppliers, buildChooseMap(targetClass, true), consumer);
 	}
 	
-	public static String getSupplierId(IScriptSupplier<?> supplier){
+	public static String getSupplierId(IScriptSupplier<?> supplier) {
 		return Objects.requireNonNull(suppliersInverseMap.get(supplier.getClass())).key;
 	}
 	
-	public static ScriptRegistration<?, ?> getSupplierRegistration(IScriptSupplier<?> supplier){return suppliersInverseMap.get(supplier.getClass());}
-	public static ScriptRegistration<?, ?> getSupplierRegistration(String key){return suppliers.get(key);}
+	public static ScriptRegistration<?, ?> getSupplierRegistration(IScriptSupplier<?> supplier) {return suppliersInverseMap.get(supplier.getClass());}
+	
+	public static ScriptRegistration<?, ?> getSupplierRegistration(String key) {return suppliers.get(key);}
 	
 	
-	public static Text getTypeName(Class<?> clazz){
-		if(typeMap.containsKey(clazz)) return Objects.requireNonNull(typeMap.get(clazz)).name();
+	public static Text getTypeName(Class<?> clazz) {
+		if (typeMap.containsKey(clazz)) return Objects.requireNonNull(typeMap.get(clazz)).name();
 		else return Text.literal(clazz.getName());
 	}
 	
-	public static JsonObject getJsonEntryFromSupplier(@NotNull IScriptSupplier<?> supplier){
+	public static JsonObject getJsonEntryFromSupplier(@NotNull IScriptSupplier<?> supplier) {
 		JsonObject res = new JsonObject();
 		res.addProperty("id", getSupplierId(supplier));
 		res.add("data", supplier.getAsJsonElement());
 		return res;
 	}
 	
-	public static @Nullable <T> IScriptSupplier<? extends T> loadSupplierFromJsonEntry(JsonElement element, Class<T> targetClass, IScriptWithSubScript parent){
-		if(!(element instanceof JsonObject object)) return null;
-		if(object.get("id") instanceof JsonPrimitive id){
+	public static @Nullable <T> IScriptSupplier<? extends T> loadSupplierFromJsonEntry(JsonElement element, Class<T> targetClass, IScriptWithSubScript parent) {
+		if (!(element instanceof JsonObject object)) return null;
+		if (object.get("id") instanceof JsonPrimitive id) {
 			var reg = ScriptSupplierLake.getSupplierRegistration(id.getAsString());
-			if(reg != null){
+			if (reg != null) {
 				var allocator = reg.tryAllocate(targetClass);
-				if(allocator != null){
+				if (allocator != null) {
 					var res = allocator.allocate(parent);
 					res.setValueFromJsonElement(object.get("data"));
 					return res;
@@ -104,37 +115,37 @@ public class ScriptSupplierLake {
 		return null;
 	}
 	
-	public static <T> void loadSupplierOrWarn(JsonElement element, Class<T> targetClass, IScriptWithSubScript parent, Consumer<IScriptSupplier<? extends T>> setter, String warnKey){
-		if(element == null) return;
+	public static <T> void loadSupplierOrWarn(JsonElement element, Class<T> targetClass, IScriptWithSubScript parent, Consumer<IScriptSupplier<? extends T>> setter, String warnKey) {
+		if (element == null) return;
 		var res = ScriptSupplierLake.loadSupplierFromJsonEntry(element, targetClass, parent);
-		if(res != null) setter.accept(res);
+		if (res != null) setter.accept(res);
 		else warnFailedLoadingConfig(warnKey, element);
 	}
 	
-	private static LinkedHashMap<String, Object> buildChooseMap(Class<?> clazz, boolean withRandomExtra){
+	private static LinkedHashMap<String, Object> buildChooseMap(Class<?> clazz, boolean withRandomExtra) {
 		LinkedHashMap<String, Object> res;
 		var targetSet = suppliersFromClass.get(clazz);
 		var supTypeSet = preciseSupplierTypeTree.get(clazz);
 		//当clazz没有任何子类供应器时，直接返回Object的选择列表，也就是只选择random suppliers
 		//clazz为Object.class时，targetSet和supTypeSet不应该为空，不会触发无限递归。但为了保险起见，还是加上判断
-		if((targetSet == null || targetSet.isEmpty()) && (supTypeSet == null || supTypeSet.isEmpty()) && clazz != Object.class)
+		if ((targetSet == null || targetSet.isEmpty()) && (supTypeSet == null || supTypeSet.isEmpty()) && clazz != Object.class)
 			res = buildChooseMap(Object.class, false);
-		else{
+		else {
 			res = new LinkedHashMap<>();
-			if(withRandomExtra && clazz != ControlFlowIssue.class && clazz != Object.class)
-				res.put(getTypeName(Object.class).getString(), (Supplier<?>)()->buildChooseMap(Object.class, false));
-			if(targetSet != null)
-				for(var target : targetSet)
+			if (withRandomExtra && clazz != ControlFlowIssue.class && clazz != Object.class)
+				res.put(getTypeName(Object.class).getString(), (Supplier<?>) () -> buildChooseMap(Object.class, false));
+			if (targetSet != null)
+				for (var target : targetSet)
 					res.put(target.displayName.getString(), target.key);
-			if(clazz == Object.class && !withRandomExtra){
+			if (clazz == Object.class && !withRandomExtra) {
 				//由于Object是所有类型的基类，不可能由其他类继承而来，那么来到这里就只能是选择random suppliers了
 				//那么就不再选择Object的子类，直接返回
 				return res;
 			}
-			if(supTypeSet != null){
-				for(var target : supTypeSet){
-					if(target == ControlFlowIssue.class) continue;
-					res.put(getTypeName(target).getString(), (Supplier<?>)()->buildChooseMap(target, false));
+			if (supTypeSet != null) {
+				for (var target : supTypeSet) {
+					if (target == ControlFlowIssue.class) continue;
+					res.put(getTypeName(target).getString(), (Supplier<?>) () -> buildChooseMap(target, false));
 				}
 			}
 		}
@@ -146,25 +157,30 @@ public class ScriptSupplierLake {
 	}
 	
 	//注册类型
-	static{
-		registerType(Object.class, 			parent->new Null<>(parent, Object.class), 			"object");
-		registerType(ControlFlowIssue.class,DoNothing::new, 									"controlFlowIssue");
-		registerType(Boolean.class, 		ConstantBoolean::new, 								"boolean");
-		registerType(Integer.class, 		ConstantInteger::new, 								"integer");
-		registerType(Double.class, 			ConstantDouble::new, 								"double");
-		registerType(String.class, 			ConstantString::new, 								"string");
-		registerType(Object[].class, 		parent->new Null<>(parent, Object[].class), 		"array");
-		registerType(ScriptType.class, 		ConstantType::new, 									"scriptType");
-		registerType(ObjectIterable.class, 	parent->new Null<>(parent, ObjectIterable.class), 	"iterable");
-		registerType(BlockPos.class, 		ConstantBlockPos::new, 								"blockPos");
-		registerType(Vec3d.class, 			ConstantVec3d::new, 								"vec3d");
-		registerType(Direction.class, 		ConstantDirection::new, 							"direction");
-		registerType(BlockState.class, 		BlockDefaultState::new, 							"blockState");
-		registerType(Block.class, 			ConstantBlock::new, 								"block");
-		registerType(Item.class, 			ConstantItem::new, 									"item");
-		registerType(ItemStack.class, 		EmptyStack::new, 									"itemStack");
-		registerType(Entity.class, 			MainPlayerEntity::new, 								"entity");
-		registerType(PlayerEntity.class, 	MainPlayerEntity::new, 								"playerEntity");
+	static {
+		registerType(Object.class, parent -> new Null<>(parent, Object.class), "object");
+		registerType(ControlFlowIssue.class, DoNothing::new, "controlFlowIssue");
+		registerType(Boolean.class, ConstantBoolean::new, "boolean");
+		registerType(Integer.class, ConstantInteger::new, "integer");
+		registerType(Double.class, ConstantDouble::new, "double");
+		registerType(String.class, ConstantString::new, "string");
+		registerType(Object[].class, parent -> new Null<>(parent, Object[].class), "array");
+		registerType(ScriptType.class, ConstantType::new, "scriptType");
+		registerType(ObjectIterable.class, parent -> new Null<>(parent, ObjectIterable.class), "iterable");
+		registerType(BlockPos.class, ConstantBlockPos::new, "blockPos");
+		registerType(Vec3d.class, ConstantVec3d::new, "vec3d");
+		registerType(Enum.class, ConstantEnum::new, "enum");
+		registerType(Direction.class, ConstantDirection::new, "direction");
+		registerType(BlockState.class, BlockDefaultState::new, "blockState");
+		registerType(Block.class, ConstantBlock::new, "block");
+		registerType(Item.class, ConstantItem::new, "item");
+		registerType(ItemStack.class, EmptyStack::new, "itemStack");
+		registerType(Entity.class, MainPlayerEntity::new, "entity");
+		registerType(PlayerEntity.class, MainPlayerEntity::new, "playerEntity");
+		registerType(Property.class, ConstantBlockProperty::new, "blockProperty");
+		registerType(BooleanProperty.class, ConstantBooleanBlockProperty::new, "booleanBlockProperty");
+		registerType(IntProperty.class, ConstantIntegerBlockProperty::new, "integerBlockProperty");
+		registerType(EnumProperty.class, ConstantEnumBlockProperty::new, "enumBlockProperty");
 	}
 	
 	//注册suppliers
@@ -175,13 +191,11 @@ public class ScriptSupplierLake {
 		registerRandom("fromScriptStaticVariable", FromScriptStaticVariable.class, FromScriptStaticVariable::new);
 		registerRandom("fromGlobalStaticVariable", FromGlobalStaticVariable.class, FromGlobalStaticVariable::new);
 		registerRandom("fromArray", FromArray.class, FromArray::new);
-		registerRandom("constantEnum", ConstantEnum.class, ConstantEnum::new);
-		registerRandom("blockStateEnumProperty", BlockStateEnumProperty.class, BlockStateEnumProperty::new);
 		//注册control flow issue suppliers，也就是执行操作
 		registerPrecise("doNothing", ControlFlowIssue.class, DoNothing.class, DoNothing::new);
 		registerPrecise("runMultiple", ControlFlowIssue.class, RunMultiple.class, RunMultiple::new);
 		registerPrecise("runIfElse", ControlFlowIssue.class, RunIfElse.class, RunIfElse::new);
-		registerPrecise("whileLoop",ControlFlowIssue.class, WhileLoop.class, WhileLoop::new);
+		registerPrecise("whileLoop", ControlFlowIssue.class, WhileLoop.class, WhileLoop::new);
 		registerPrecise("doWhileLoop", ControlFlowIssue.class, DoWhileLoop.class, DoWhileLoop::new);
 		registerPrecise("forLoop", ControlFlowIssue.class, ForLoop.class, ForLoop::new);
 		registerPrecise("break", ControlFlowIssue.class, Break.class, Break::new);
@@ -251,6 +265,9 @@ public class ScriptSupplierLake {
 		registerPrecise("clientPlayers", ObjectIterable.class, ClientPlayers.class, ClientPlayers::new);
 		registerPrecise("clientEntities", ObjectIterable.class, ClientEntities.class, ClientEntities::new);
 		registerPrecise("blockPosInDistance", ObjectIterable.class, BlockPosInDistance.class, BlockPosInDistance::new);
+		//注册enum suppliers
+		registerPrecise("constantEnum", Enum.class, ConstantEnum.class, ConstantEnum::new);
+		registerPrecise("blockStateEnumProperty", Enum.class, BlockStateEnumProperty.class, BlockStateEnumProperty::new);
 		//注册direction suppliers
 		registerPrecise("constantDirection", Direction.class, ConstantDirection.class, ConstantDirection::new);
 		//注册blockPos suppliers
@@ -288,6 +305,15 @@ public class ScriptSupplierLake {
 		registerPrecise("vehicleEntity", Entity.class, VehicleEntity.class, VehicleEntity::new);
 		//注册player entity suppliers
 		registerPrecise("mainPlayerEntity", PlayerEntity.class, MainPlayerEntity.class, MainPlayerEntity::new);
+		//注册blockProperty suppliers
+		registerPrecise("constantBlockProperty", Property.class, ConstantBlockProperty.class, ConstantBlockProperty::new);
+		//注册booleanBlockProperty suppliers
+		registerPrecise("constantBooleanBlockProperty", BooleanProperty.class, ConstantBooleanBlockProperty.class, ConstantBooleanBlockProperty::new);
+		//注册integerBlockProperty suppliers
+		registerPrecise("constantIntegerBlockProperty", IntProperty.class, ConstantIntegerBlockProperty.class, ConstantIntegerBlockProperty::new);
+		//注册enumBlockProperty suppliers
+		registerPrecise("constantEnumBlockProperty", EnumProperty.class, ConstantEnumBlockProperty.class, ConstantEnumBlockProperty::new);
+		//Copilot不愧是世界上最好用的编程工具
 	}
 	
 	//固定temp数据到不可变映射
@@ -300,13 +326,13 @@ public class ScriptSupplierLake {
 		suppliersInverseMapTemp.clear();
 		//suppliersFromClass
 		LinkedHashMap<Class<?>, ImmutableSet<ScriptRegistration<?, ?>>> _suppliersFromClassTemp = new LinkedHashMap<>();
-		for(var entry : suppliersFromClassTemp.entrySet())
+		for (var entry : suppliersFromClassTemp.entrySet())
 			_suppliersFromClassTemp.put(entry.getKey(), ImmutableSet.copyOf(entry.getValue()));
 		suppliersFromClass = ImmutableMap.copyOf(_suppliersFromClassTemp);
 		suppliersFromClassTemp.clear();
 		//preciseSupplierTypeTree
 		LinkedHashMap<Class<?>, ImmutableSet<Class<?>>> _preciseSupplierTypeTreeTemp = new LinkedHashMap<>();
-		for(var entry : preciseSupplierTypeTreeTemp.entrySet())
+		for (var entry : preciseSupplierTypeTreeTemp.entrySet())
 			_preciseSupplierTypeTreeTemp.put(entry.getKey(), ImmutableSet.copyOf(entry.getValue()));
 		preciseSupplierTypeTree = ImmutableMap.copyOf(_preciseSupplierTypeTreeTemp);
 		preciseSupplierTypeTreeTemp.clear();
@@ -318,44 +344,44 @@ public class ScriptSupplierLake {
 		typeIdMapTemp.clear();
 	}
 	
-	private static boolean putType(Class<?> currentClass, Class<?> targetClass, LinkedHashSet<Class<?>> targetSet, HashSet<Class<?>> visitedClasses){
-		if(!currentClass.isAssignableFrom(targetClass)) return false;
-		if(visitedClasses.contains(currentClass)) return true;
+	private static boolean putType(Class<?> currentClass, Class<?> targetClass, LinkedHashSet<Class<?>> targetSet, HashSet<Class<?>> visitedClasses) {
+		if (!currentClass.isAssignableFrom(targetClass)) return false;
+		if (visitedClasses.contains(currentClass)) return true;
 		visitedClasses.add(currentClass);
 		var currSet = preciseSupplierTypeTreeTemp.get(currentClass);
 		boolean isDirect = true;
 		ArrayList<Class<?>> removed = new ArrayList<>();
-		for(var clazz : currSet){
-			if(putType(clazz, targetClass, targetSet, visitedClasses))
+		for (var clazz : currSet) {
+			if (putType(clazz, targetClass, targetSet, visitedClasses))
 				isDirect = false;
-			else if(targetClass.isAssignableFrom(clazz)){
+			else if (targetClass.isAssignableFrom(clazz)) {
 				targetSet.add(clazz);
 				removed.add(clazz);
 			}
 		}
 		removed.forEach(currSet::remove);
-		if(isDirect) currSet.add(targetClass);
+		if (isDirect) currSet.add(targetClass);
 		return true;
 	}
 	
-	private static <T, U extends IScriptSupplier<? extends T>> boolean register(String key, Class<? super T> clazz, ScriptRegistration<T, U> registration){
-		if(!typeMapTemp.containsKey(clazz)){
+	private static <T, U extends IScriptSupplier<? extends T>> boolean register(String key, Class<? super T> clazz, ScriptRegistration<T, U> registration) {
+		if (!typeMapTemp.containsKey(clazz)) {
 			Class<? super T> superClass = Object.class;
-			for(var type : typeMapTemp.keySet()){
-				if(type.isAssignableFrom(clazz) && superClass.isAssignableFrom(type))
+			for (var type : typeMapTemp.keySet()) {
+				if (type.isAssignableFrom(clazz) && superClass.isAssignableFrom(type))
 					//noinspection unchecked
-					superClass = (Class<? super T>)type;
+					superClass = (Class<? super T>) type;
 			}
 			clazz = superClass;
 		}
-		if(suppliersTemp.containsKey(key)) return false;
+		if (suppliersTemp.containsKey(key)) return false;
 		suppliersTemp.put(key, registration);
 		suppliersInverseMapTemp.put(registration.supplierClass, registration);
-		suppliersFromClassTemp.computeIfAbsent(clazz, v->new LinkedHashSet<>()).add(registration);
+		suppliersFromClassTemp.computeIfAbsent(clazz, v -> new LinkedHashSet<>()).add(registration);
 		return true;
 	}
 	
-	private static <T> void registerType(Class<T> basicClass, Function<IScriptWithSubScript, IScriptSupplier<? extends T>> defaultValue, String id){
+	private static <T> void registerType(Class<T> basicClass, Function<IScriptWithSubScript, IScriptSupplier<? extends T>> defaultValue, String id) {
 		var type = new ScriptType.BasicType<>(basicClass, defaultValue, Text.translatable("lpctools.script.typeName." + id), id);
 		typeMapTemp.put(basicClass, type);
 		typeIdMapTemp.put(id, type);
@@ -365,7 +391,7 @@ public class ScriptSupplierLake {
 	}
 	
 	@SuppressWarnings("UnusedReturnValue")
-	public static <T, U extends IScriptSupplier<T>> boolean registerPrecise(String key, Class<T> clazz, Class<U> supplierClass, IScriptSupplierAllocator<U> allocator){
+	public static <T, U extends IScriptSupplier<T>> boolean registerPrecise(String key, Class<T> clazz, Class<U> supplierClass, IScriptSupplierAllocator<U> allocator) {
 		return register(key, clazz, ScriptRegistration.ofPrecise(key,
 			Text.translatable("lpctools.script.suppliers." + typeMapTemp.get(clazz).id() + '.' + key + ".name"),
 			Text.translatable("lpctools.script.suppliers." + typeMapTemp.get(clazz).id() + '.' + key + ".comment"),
@@ -373,7 +399,7 @@ public class ScriptSupplierLake {
 	}
 	
 	@SuppressWarnings("UnusedReturnValue")
-	public static <U extends IScriptSupplier<?>> boolean registerRandom(String key, Class<U> supplierClass, IRandomSupplierAllocator allocator){
+	public static <U extends IScriptSupplier<?>> boolean registerRandom(String key, Class<U> supplierClass, IRandomSupplierAllocator allocator) {
 		return register(key, Object.class, ScriptRegistration.ofRandom(key,
 			Text.translatable("lpctools.script.suppliers.random." + key + ".name"),
 			Text.translatable("lpctools.script.suppliers.random." + key + ".comment"),

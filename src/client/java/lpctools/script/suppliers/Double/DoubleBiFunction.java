@@ -3,19 +3,19 @@ package lpctools.script.suppliers.Double;
 import lpctools.script.CompileEnvironment;
 import lpctools.script.IScriptWithSubScript;
 import lpctools.script.runtimeInterfaces.ScriptDoubleSupplier;
-import lpctools.script.suppliers.AbstractSignResultSupplier;
-import lpctools.util.Functions;
+import lpctools.script.suppliers.AbstractOperatorResultSupplier;
+import lpctools.util.Operators;
 import net.minecraft.text.Text;
 import org.jetbrains.annotations.NotNull;
 
-public class DoubleBiFunction extends AbstractSignResultSupplier<Functions.DoubleBiFunction> implements IDoubleSupplier {
+public class DoubleBiFunction extends AbstractOperatorResultSupplier<Operators.DoubleBiFunction> implements IDoubleSupplier {
 	protected final SupplierStorage<Double> double1 = ofStorage(Double.class,
 		Text.translatable("lpctools.script.suppliers.double.doubleBiFunction.subSuppliers.double1.name"), "double1");
 	protected final SupplierStorage<Double> double2 = ofStorage(Double.class,
 		Text.translatable("lpctools.script.suppliers.double.doubleBiFunction.subSuppliers.double2.name"), "double2");
 	protected final SupplierStorage<?>[] subSuppliers = ofStorages(double1, double2);
 	
-	public DoubleBiFunction(IScriptWithSubScript parent) {super(parent, Functions.POW, Functions.doubleBiFunctionInfo, 0);}
+	public DoubleBiFunction(IScriptWithSubScript parent) {super(parent, Operators.POW, Operators.doubleBiFunctionInfo, 0);}
 	
 	@Override protected SupplierStorage<?>[] getSubSuppliers() {return subSuppliers;}
 	

@@ -3,12 +3,12 @@ package lpctools.script.suppliers.Integer;
 import lpctools.script.CompileEnvironment;
 import lpctools.script.IScriptWithSubScript;
 import lpctools.script.runtimeInterfaces.ScriptIntegerSupplier;
-import lpctools.script.suppliers.AbstractSignResultSupplier;
-import lpctools.util.Functions;
+import lpctools.script.suppliers.AbstractOperatorResultSupplier;
+import lpctools.util.Operators;
 import net.minecraft.text.Text;
 import org.jetbrains.annotations.NotNull;
 
-public class IntegerTriFunction extends AbstractSignResultSupplier<Functions.IntegerTriFunction> implements IIntegerSupplier {
+public class IntegerTriFunction extends AbstractOperatorResultSupplier<Operators.IntegerTriFunction> implements IIntegerSupplier {
 	protected final SupplierStorage<Integer> integer1 = ofStorage(Integer.class,
 		Text.translatable("lpctools.script.suppliers.integer.integerTriFunction.subSuppliers.integer1.name"), "integer1");
 	protected final SupplierStorage<Integer> integer2 = ofStorage(Integer.class,
@@ -17,7 +17,7 @@ public class IntegerTriFunction extends AbstractSignResultSupplier<Functions.Int
 		Text.translatable("lpctools.script.suppliers.integer.integerTriFunction.subSuppliers.integer3.name"), "integer3");
 	protected final SupplierStorage<?>[] subSuppliers = ofStorages(integer1, integer2);
 	
-	public IntegerTriFunction(IScriptWithSubScript parent) {super(parent, Functions.MOD_POW, Functions.integerTriFunctionInfo, 0);}
+	public IntegerTriFunction(IScriptWithSubScript parent) {super(parent, Operators.MOD_POW, Operators.integerTriFunctionInfo, 0);}
 	
 	@Override protected SupplierStorage<?>[] getSubSuppliers() {return subSuppliers;}
 	

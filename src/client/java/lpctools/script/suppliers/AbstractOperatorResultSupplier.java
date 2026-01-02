@@ -5,21 +5,21 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 import lpctools.script.IScriptWithSubScript;
 import lpctools.script.editScreen.WidthAutoAdjustButtonGeneric;
-import lpctools.util.Functions;
+import lpctools.util.Operators;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 
 import static lpctools.lpcfymasaapi.LPCConfigUtils.warnFailedLoadingConfig;
 
-public abstract class AbstractSignResultSupplier<T extends Functions.SignBase> extends AbstractSupplierWithTypeDeterminedSubSuppliers {
+public abstract class AbstractOperatorResultSupplier<T extends Operators.SignBase> extends AbstractSupplierWithTypeDeterminedSubSuppliers {
 	protected T compareSign;
-	protected final Functions.ISignInfo<T> signInfo;
+	protected final Operators.ISignInfo<T> signInfo;
 	protected final int signPosition;
 	
 	public static final String compareSignJsonKey = "compareSign";
 	
-	public AbstractSignResultSupplier(IScriptWithSubScript parent, T defaultSign, Functions.ISignInfo<T> signInfo, int signPosition) {
+	public AbstractOperatorResultSupplier(IScriptWithSubScript parent, T defaultSign, Operators.ISignInfo<T> signInfo, int signPosition) {
 		super(parent);
 		compareSign = defaultSign;
 		this.signInfo = signInfo;

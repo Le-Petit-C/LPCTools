@@ -1,4 +1,4 @@
-package lpctools.script.suppliers.Direction;
+package lpctools.script.suppliers.Enum.Direction;
 
 import lpctools.script.suppliers.IScriptSupplierNotNull;
 import net.minecraft.util.math.Direction;

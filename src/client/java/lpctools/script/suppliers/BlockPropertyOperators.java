@@ -4,9 +4,9 @@ import com.google.common.collect.ImmutableMap;
 import fi.dy.masa.malilib.gui.button.ButtonBase;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import lpctools.lpcfymasaapi.screen.ChooseScreen;
-import lpctools.util.Functions.ISignInfo;
-import lpctools.util.Functions.SignBase;
-import net.minecraft.block.BlockState;
+import lpctools.util.Operators.ISignInfo;
+import lpctools.util.Operators.SignBase;
+import net.minecraft.state.property.BooleanProperty;
 import net.minecraft.state.property.EnumProperty;
 import net.minecraft.state.property.IntProperty;
 import net.minecraft.state.property.Property;
@@ -19,64 +19,74 @@ import java.util.function.Consumer;
 import static lpctools.util.DataUtils.*;
 
 // 用于获取BlockState的某个Property值的函数式接口集合
-public class BlockStatePropertyGettersAsFunction {
-	public interface DoHasProperty extends SignBase{
-		PropertyGetters<DoHasProperty, Property<?>> propertyGetters = new PropertyGetters<>(
-			(idString, displayString, property) -> new DoHasProperty(){
-				@Override public String displayString() {return displayString;}
-				@Override public String idString() {return idString;}
-				@Override public boolean hasProperty(BlockState state) {return state.contains(property);}
-		});
-		boolean hasProperty(BlockState state);
-	}
-	public interface BooleanPropertyGetter extends SignBase{
-		PropertyGetters<BooleanPropertyGetter, Property<Boolean>> propertyGetters = new PropertyGetters<>(
-			(idString, displayString, property) -> new BooleanPropertyGetter(){
-				@Override public String displayString() {return displayString;}
-				@Override public String idString() {return idString;}
-				@Override public boolean getBoolean(BlockState state) {return state.get(property);}
-		});
-		boolean getBoolean(BlockState state);
-	}
-	public interface IntegerPropertyGetter extends SignBase{
-		PropertyGetters<IntegerPropertyGetter, Property<Integer>> propertyGetters = new PropertyGetters<>(
-			(idString, displayString, property) -> new IntegerPropertyGetter(){
-				@Override public String displayString() {return displayString;}
-				@Override public String idString() {return idString;}
-				@Override public int getInteger(BlockState state) {return state.get(property);}
-		});
-		int getInteger(BlockState state);
-	}
-	public interface EnumPropertyGetter extends SignBase{
-		class EnumPropertyGetters extends PropertyGetters<EnumPropertyGetter, EnumProperty<?>>{
-			public EnumPropertyGetters() {
-				super((idString, displayString, property) -> new EnumPropertyGetter(){
+public class BlockPropertyOperators {
+	public interface GenericPropertyOperator<T extends Property<?>> extends SignBase{
+		class GenericPropertyOperators extends PropertyOperators<GenericPropertyOperator<?>, Property<?>> {
+			public GenericPropertyOperators() {
+				super((idString, displayString, property) -> new GenericPropertyOperator<>(){
 					@Override public String displayString() {return displayString;}
 					@Override public String idString() {return idString;}
-					@Override public Enum<?> getEnum(BlockState state) {return state.get(property);}
-				});
+					@Override public Property<?> getProperty() {return property;}
+				}, null);
 			}
 		}
-		PropertyGetters<EnumPropertyGetter, EnumProperty<?>> propertyGetters = new EnumPropertyGetters();
-		Enum<?> getEnum(BlockState state);
+		GenericPropertyOperators propertyGetters = new GenericPropertyOperators();
+		T getProperty();
+	}
+	public interface BooleanPropertyGetter extends GenericPropertyOperator<BooleanProperty>{
+		PropertyOperators<BooleanPropertyGetter, BooleanProperty> propertyGetters = new PropertyOperators<>(
+			(idString, displayString, property) -> new BooleanPropertyGetter() {
+				@Override public String displayString() {return displayString;}
+				
+				@Override public String idString() {return idString;}
+				
+				@Override public BooleanProperty getProperty() {return property;}
+			}, GenericPropertyOperator.propertyGetters);
+	}
+	public interface IntegerPropertyOperator extends GenericPropertyOperator<IntProperty> {
+		PropertyOperators<IntegerPropertyOperator, IntProperty> propertyGetters = new PropertyOperators<>(
+			(idString, displayString, property) -> new IntegerPropertyOperator() {
+				@Override public String displayString() {return displayString;}
+				
+				@Override public String idString() {return idString;}
+				
+				@Override public IntProperty getProperty() {return property;}
+			}, GenericPropertyOperator.propertyGetters);
+	}
+	public interface EnumPropertyOperator extends GenericPropertyOperator<EnumProperty<?>> {
+		class EnumPropertyGetters extends PropertyOperators<EnumPropertyOperator, EnumProperty<?>> {
+			public EnumPropertyGetters() {
+				super((idString, displayString, property) -> new EnumPropertyOperator(){
+					@Override public String displayString() {return displayString;}
+					@Override public String idString() {return idString;}
+					@Override public EnumProperty<?> getProperty() {return property;}
+				}, GenericPropertyOperator.propertyGetters);
+			}
+		}
+		PropertyOperators<EnumPropertyOperator, EnumProperty<?>> propertyGetters = new EnumPropertyGetters();
 	}
 	
-	public interface ISignGenerator<SignType extends SignBase, PropertyType extends Property<?>> {
+	public interface ISignGenerator<SignType extends GenericPropertyOperator<?>, PropertyType extends Property<?>> {
 		SignType generate(String idString, String displayString, PropertyType property);
 	}
 	
 	
-	public static class PropertyGetters<SignType extends SignBase, PropertyType extends Property<?>> implements ISignInfo<SignType> {
-		public final ISignGenerator<SignType, PropertyType> signGenerator;
+	public static class PropertyOperators<OperatorType extends GenericPropertyOperator<?>, PropertyType extends Property<?>> implements ISignInfo<OperatorType> {
+		public final ISignGenerator<OperatorType, PropertyType> signGenerator;
+		public final @Nullable PropertyOperators<? super OperatorType, ? super PropertyType> parent;
 		private @Nullable ArrayList<PropertyType> delayedRegistrations;
+		private final ArrayList<PropertyOperators<? extends OperatorType, ? extends PropertyType>> childOperators = new ArrayList<>();
+		private boolean needUpdateFromChildren = false;
 		private final HashSet<PropertyType> properties = new HashSet<>();
-		private @Nullable ImmutableMap<String, PropertyData<SignType, PropertyType>> propertyIdMap;
+		private @Nullable ImmutableMap<String, PropertyData<OperatorType, PropertyType>> propertyIdMap;
 		private @Nullable ImmutableMap<String, String> chooseTreeCache;
 		// 构造函数，传入一个根据displayString和Property生成对应Sign的函数
-		public PropertyGetters(ISignGenerator<SignType, PropertyType> signGenerator) {
+		public PropertyOperators(ISignGenerator<OperatorType, PropertyType> signGenerator, @Nullable BlockPropertyOperators.PropertyOperators<? super OperatorType, ? super PropertyType> parent) {
 			this.signGenerator = signGenerator;
+			this.parent = parent;
+			if (parent != null) parent.childOperators.add(this);
 		}
-		private record PropertyData<T extends SignBase, U extends Property<?>>(String detailedIdString, String displayString, U property, T getter)
+		private record PropertyData<T extends SignBase, U extends Property<?>>(String detailedIdString, String displayString, U property, T operator)
 			implements ChooseScreen.OptionCallback<Consumer<T>>, Comparable<PropertyData<T, U>> {
 			// 生成详细描述字符串
 			// 不带哈希值了，因为哈希值或许会变化，程序无法正确保存和加载同一个属性
@@ -104,25 +114,30 @@ public class BlockStatePropertyGettersAsFunction {
 				if(comp != 0) return comp;
 				else throw new IllegalArgumentException("Duplicate property detected: " + this.detailedIdString);
 			}
-			@Override public void action(ButtonBase button, int mouseButton, Consumer<T> callback) {callback.accept(getter);}
+			@Override public void action(ButtonBase button, int mouseButton, Consumer<T> callback) {callback.accept(operator);}
 		}
 		private HashSet<PropertyType> getProperties(){
 			if(delayedRegistrations != null){
 				properties.addAll(delayedRegistrations);
 				delayedRegistrations = null;
 			}
+			if(needUpdateFromChildren){
+				childOperators.forEach(child->properties.addAll(child.getProperties()));
+				needUpdateFromChildren = false;
+			}
 			return properties;
 		}
+		
 		// 可能出现的问题：两个不同的类型具有相同的simpleName，从而导致displayString冲突
 		// 暂时不考虑这种情况，不过或许可以设为TODO
-		private @NotNull ImmutableMap<String, PropertyData<SignType, PropertyType>> getPropertyIdMap(){
+		private @NotNull ImmutableMap<String, PropertyData<OperatorType, PropertyType>> getPropertyIdMap(){
 			if(propertyIdMap != null) return propertyIdMap;
 			TreeMap<String, List<PropertyType>> tempMap = new TreeMap<>();
 			getProperties().forEach(prop->tempMap.computeIfAbsent(prop.getName(), k->new ArrayList<>()).add(prop));
-			ImmutableMap.Builder<String, PropertyData<SignType, PropertyType>> optionCallbacksBuilder = ImmutableMap.builder();
+			ImmutableMap.Builder<String, PropertyData<OperatorType, PropertyType>> optionCallbacksBuilder = ImmutableMap.builder();
 			tempMap.forEach((cleanName, propList)->{
 				if(propList.size() > 1){
-					ArrayList<PropertyData<SignType, PropertyType>> dataList = new ArrayList<>();
+					ArrayList<PropertyData<OperatorType, PropertyType>> dataList = new ArrayList<>();
 					Object2IntOpenHashMap<Class<?>> occurrenceMap = new Object2IntOpenHashMap<>();
 					// 计算每种类型的出现次数
 					propList.forEach(prop->occurrenceMap.put(prop.getType(), occurrenceMap.getOrDefault(prop.getType(), 0) + 1));
@@ -132,7 +147,7 @@ public class BlockStatePropertyGettersAsFunction {
 						String displayString;
 						if(occurrenceMap.getInt(prop.getType()) > 1) displayString = detailedIdString;
 						else displayString = PropertyData.buildDetailedString(prop, false);
-						SignType sign = signGenerator.generate(detailedIdString, displayString, prop);
+						OperatorType sign = signGenerator.generate(detailedIdString, displayString, prop);
 						dataList.add(new PropertyData<>(detailedIdString, displayString, prop, sign));
 					});
 					dataList.sort(Comparator.naturalOrder());
@@ -141,8 +156,8 @@ public class BlockStatePropertyGettersAsFunction {
 				else {
 					PropertyType prop = propList.getFirst();
 					String detailedIdString = PropertyData.buildDetailedString(prop, true);
-					SignType sign = signGenerator.generate(detailedIdString, prop.getName(), prop);
-					PropertyData<SignType, PropertyType> data = new PropertyData<>(detailedIdString, prop.getName(), prop, sign);
+					OperatorType sign = signGenerator.generate(detailedIdString, prop.getName(), prop);
+					PropertyData<OperatorType, PropertyType> data = new PropertyData<>(detailedIdString, prop.getName(), prop, sign);
 					optionCallbacksBuilder.put(data.detailedIdString, data);
 				}
 			});
@@ -156,27 +171,35 @@ public class BlockStatePropertyGettersAsFunction {
 			return chooseTreeCache = chooseTreeBuilder.build();
 		}
 		
-		@Override public void mouseButtonClicked(SignType curr, boolean isLeftButton, Consumer<SignType> callback) {
+		@Override public void mouseButtonClicked(OperatorType curr, boolean isLeftButton, Consumer<OperatorType> callback) {
 			ChooseScreen.openChooseScreen("", true, true, getPropertyIdMap(), getChooseTreeCache(), callback);
 		}
 		
 		// 根据idString获取对应的SignType
 		// 方块状态属性也许容易跟着Minecraft版本变化而变化？所以这里做了模糊匹配
-		@Override public @Nullable SignType get(String idString) {
-			return findMostSimilar(getPropertyIdMap(), idString).getter;
+		@Override public @Nullable OperatorType get(String idString) {
+			return findMostSimilar(getPropertyIdMap(), idString).operator;
+		}
+		
+		private void invalidateCache(){
+			PropertyOperators<?, ?> operators = this;
+			while(operators != null && !operators.needUpdateFromChildren){
+				operators.needUpdateFromChildren = true;
+				operators.propertyIdMap = null;
+				operators.chooseTreeCache = null;
+				operators = operators.parent;
+			}
 		}
 		
 		public void registerProperty(PropertyType property){
 			if(delayedRegistrations == null)
 				delayedRegistrations = new ArrayList<>();
 			delayedRegistrations.add(property);
-			// invalidate cache
-			propertyIdMap = null;
-			chooseTreeCache = null;
+			invalidateCache();
 		}
 		
-		public SignType getFirstProperty(){
-			return getPropertyIdMap().values().iterator().next().getter;
+		public OperatorType getFirstProperty(){
+			return getPropertyIdMap().values().iterator().next().operator;
 		}
 	}
 }
