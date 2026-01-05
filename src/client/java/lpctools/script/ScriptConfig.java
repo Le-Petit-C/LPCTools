@@ -14,6 +14,8 @@ import org.jetbrains.annotations.NotNull;
 
 // 显示在malilib配置界面中的脚本配置项
 public class ScriptConfig extends WrappedThirdListConfig implements AutoCloseable{
+	//为了解决不保留展开状态的bug的临时做法
+	boolean needResaveScript = false;
 	public final Script script;
 	public final UniqueBooleanConfig isEnabled = new UniqueBooleanConfig(this, "enabled", false, null){
 		@Override public void getButtonOptions(ButtonOptionArrayList res) {
@@ -90,6 +92,12 @@ public class ScriptConfig extends WrappedThirdListConfig implements AutoCloseabl
 		if(data instanceof JsonObject object && object.get(expandedKey) instanceof JsonPrimitive primitive)
 			setExpanded(primitive.getAsBoolean());
 		return new UpdateTodo().valueChanged();
+	}
+	
+	@Override public void setExpanded(boolean expanded) {
+		super.setExpanded(expanded);
+		needResaveScript = true;
+		getPage().get().markConfigsModified();
 	}
 	
 	@Override public void close() {script.close();}

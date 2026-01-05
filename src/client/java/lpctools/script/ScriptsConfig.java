@@ -71,8 +71,13 @@ public class ScriptsConfig extends ConfigListConfig<ScriptConfig> {
 	
 	@Override public @NotNull JsonElement getAsJsonElement() {
 		JsonArray res = new JsonArray();
-		for(var sub : iterateConfigs())
+		for(var sub : iterateConfigs()){
 			res.add(sub.script.getId());
+			if(sub.needResaveScript){
+				saveScript(sub);
+				sub.needResaveScript = false;
+			}
+		}
 		return res;
 	}
 	
