@@ -1,7 +1,10 @@
 package lpctools.generic;
 
+import fi.dy.masa.malilib.hotkeys.KeyAction;
+import fi.dy.masa.malilib.hotkeys.KeybindSettings;
 import lpctools.lpcfymasaapi.LPCConfigList;
 import lpctools.lpcfymasaapi.configButtons.derivedConfigs.ConfigOpenGuiConfig;
+import lpctools.lpcfymasaapi.configButtons.transferredConfigs.HotkeyConfig;
 import lpctools.lpcfymasaapi.configButtons.uniqueConfigs.BlockListConfig;
 import lpctools.lpcfymasaapi.configButtons.uniqueConfigs.BooleanThirdListConfig;
 import lpctools.lpcfymasaapi.configButtons.transferredConfigs.BooleanConfig;
@@ -44,6 +47,8 @@ public class GenericConfigs {
     public static final BlockListConfig extraNoSpawnBlocks = addBlockListConfig("extraNoSpawnBlocks", defaultExtraNoSpawnBlocks);
     public static final BooleanConfig reachDistanceAlwaysUnlimited = addBooleanConfig("reachDistanceAlwaysUnlimited", false);
     public static final BooleanConfig playClickSoundFromModMenu = addBooleanConfig("playClickSoundFromModMenu", false);
+    public static final HotkeyConfig horizontalScrollButton = addHotkeyConfig("horizontalScrollKey",
+        KeybindSettings.create(KeybindSettings.Context.ANY, KeyAction.BOTH, true, false, false, false), null, null);
     static {threadCountConfig.onValueChanged();}
     static {listStack.pop();}
     

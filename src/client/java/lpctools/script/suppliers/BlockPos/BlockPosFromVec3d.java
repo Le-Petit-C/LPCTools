@@ -4,7 +4,7 @@ import lpctools.script.CompileEnvironment;
 import lpctools.script.IScriptWithSubScript;
 import lpctools.script.runtimeInterfaces.ScriptNotNullSupplier;
 import lpctools.script.suppliers.AbstractOperatorResultSupplier;
-import lpctools.util.Operators;
+import lpctools.util.operatorUtils.Operators;
 import net.minecraft.text.Text;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
@@ -21,7 +21,7 @@ public class BlockPosFromVec3d extends AbstractOperatorResultSupplier<Operators.
 	
 	@Override public @NotNull ScriptNotNullSupplier<BlockPos>
 	compileNotNull(CompileEnvironment environment) {
-		var sign = compareSign;
+		var sign = operatorSign;
 		var vecSupplier = vec.get().compileCheckedNotNull(environment);
 		return map->sign.blockPosFromVec3d(vecSupplier.scriptApply(map));
 	}

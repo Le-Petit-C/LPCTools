@@ -4,7 +4,7 @@ import lpctools.script.CompileEnvironment;
 import lpctools.script.IScriptWithSubScript;
 import lpctools.script.runtimeInterfaces.ScriptDoubleSupplier;
 import lpctools.script.suppliers.AbstractOperatorResultSupplier;
-import lpctools.util.Operators;
+import lpctools.util.operatorUtils.Operators;
 import org.jetbrains.annotations.NotNull;
 
 public class DoubleConstant extends AbstractOperatorResultSupplier<Operators.DoubleConstant> implements IDoubleSupplier {
@@ -16,7 +16,7 @@ public class DoubleConstant extends AbstractOperatorResultSupplier<Operators.Dou
 	
 	@Override public @NotNull ScriptDoubleSupplier
 	compileDouble(CompileEnvironment environment) {
-		double val = compareSign.getDouble();
+		double val = operatorSign.getDouble();
 		return map->val;
 	}
 }

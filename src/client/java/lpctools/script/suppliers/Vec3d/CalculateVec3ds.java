@@ -4,7 +4,7 @@ import lpctools.script.CompileEnvironment;
 import lpctools.script.IScriptWithSubScript;
 import lpctools.script.runtimeInterfaces.ScriptNotNullSupplier;
 import lpctools.script.suppliers.AbstractOperatorResultSupplier;
-import lpctools.util.Operators;
+import lpctools.util.operatorUtils.Operators;
 import net.minecraft.text.Text;
 import net.minecraft.util.math.Vec3d;
 import org.jetbrains.annotations.NotNull;
@@ -23,7 +23,7 @@ public class CalculateVec3ds extends AbstractOperatorResultSupplier<Operators.Ve
 	@Override public @NotNull ScriptNotNullSupplier<Vec3d>
 	compileNotNull(CompileEnvironment environment) {
 		var vec1Supplier = vec1.get().compileCheckedNotNull(environment);
-		var sign = compareSign;
+		var sign = operatorSign;
 		var vec2Supplier = vec2.get().compileCheckedNotNull(environment);
 		return map->sign.calculateVec3ds(vec1Supplier.scriptApply(map), vec2Supplier.scriptApply(map));
 	}

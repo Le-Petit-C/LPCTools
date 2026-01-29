@@ -4,7 +4,7 @@ import lpctools.script.CompileEnvironment;
 import lpctools.script.IScriptWithSubScript;
 import lpctools.script.runtimeInterfaces.ScriptIntegerSupplier;
 import lpctools.script.suppliers.AbstractOperatorResultSupplier;
-import lpctools.util.Operators;
+import lpctools.util.operatorUtils.Operators;
 import net.minecraft.text.Text;
 import net.minecraft.util.math.BlockPos;
 import org.jetbrains.annotations.NotNull;
@@ -20,7 +20,7 @@ public class IntegerFromBlockPos extends AbstractOperatorResultSupplier<Operator
 	
 	@Override public @NotNull ScriptIntegerSupplier
 	compileInteger(CompileEnvironment environment) {
-		var sign = compareSign;
+		var sign = operatorSign;
 		var posSupplier = pos.get().compileCheckedNotNull(environment);
 		return map->sign.integerFromBlockPos(posSupplier.scriptApply(map));
 	}

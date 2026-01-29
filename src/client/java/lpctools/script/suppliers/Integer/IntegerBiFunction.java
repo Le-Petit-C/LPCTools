@@ -4,7 +4,7 @@ import lpctools.script.CompileEnvironment;
 import lpctools.script.IScriptWithSubScript;
 import lpctools.script.runtimeInterfaces.ScriptIntegerSupplier;
 import lpctools.script.suppliers.AbstractOperatorResultSupplier;
-import lpctools.util.Operators;
+import lpctools.util.operatorUtils.Operators;
 import net.minecraft.text.Text;
 import org.jetbrains.annotations.NotNull;
 
@@ -21,7 +21,7 @@ public class IntegerBiFunction extends AbstractOperatorResultSupplier<Operators.
 	
 	@Override public @NotNull ScriptIntegerSupplier
 	compileInteger(CompileEnvironment environment) {
-		var sign = compareSign;
+		var sign = operatorSign;
 		var integer1Supplier = compileCheckedInteger(integer1.get(), environment);
 		var integer2Supplier = compileCheckedInteger(integer2.get(), environment);
 		return map->sign.apply2Integers(integer1Supplier.scriptApplyAsInt(map), integer2Supplier.scriptApplyAsInt(map));

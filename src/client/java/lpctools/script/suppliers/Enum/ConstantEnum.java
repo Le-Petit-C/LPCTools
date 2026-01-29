@@ -8,7 +8,8 @@ import lpctools.script.IScriptWithSubScript;
 import lpctools.script.runtimeInterfaces.ScriptNotNullSupplier;
 import lpctools.script.suppliers.AbstractOperatorResultSupplier;
 import lpctools.util.DataUtils;
-import lpctools.util.Operators;
+import lpctools.util.operatorUtils.DefaultedSignInfo;
+import lpctools.util.operatorUtils.Operators;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -37,9 +38,12 @@ public class ConstantEnum extends AbstractOperatorResultSupplier<ConstantEnum.IE
 	@SuppressWarnings("rawtypes")
 	@Override public @NotNull ScriptNotNullSupplier<Enum>
 	compileNotNull(CompileEnvironment environment) {
-		Enum<?> val = compareSign.getEnum();
+		Enum<?> val = operatorSign.getEnum();
 		return map->val;
 	}
+	
+	/*public static DefaultedSignInfo<IEnumSupplierOperator> enumInfo
+		= new DefaultedSignInfo<>();*/
 	
 	public static class EnumInfo implements Operators.ISignInfo<IEnumSupplierOperator> {
 		private final HashMap<String, EnumSupplier> enumByName = new HashMap<>();
@@ -57,9 +61,6 @@ public class ConstantEnum extends AbstractOperatorResultSupplier<ConstantEnum.IE
 			@Override public void action(ButtonBase button, int mouseButton, Consumer<IEnumSupplierOperator> userData) {userData.accept(this);}
 			@Override public Class<? extends Enum<?>> getEnumClass() {return enumClass;}
 			@Override public Enum<?> getEnum() {return enumValue;}
-			@Override public String displayString() {
-				return enumClass.getSimpleName() + "." + enumValue.name();
-			}
 			@Override public String idString() {return idString;}
 		}
 		private @NotNull ImmutableMap<String, ImmutableMap<String, String>> getChooseTree(){
@@ -69,12 +70,12 @@ public class ConstantEnum extends AbstractOperatorResultSupplier<ConstantEnum.IE
 				// 如果只有一个枚举类使用此名称，显示此枚举类的名称，否则显示枚举类全路径
 				if(enumMap.size() == 1){
 					ImmutableMap.Builder<String, String> enumBuilder = ImmutableMap.builder();
-					enumMap.firstEntry().getValue().forEach(supplier->enumBuilder.put(supplier.displayString(), supplier.idString()));
+					enumMap.firstEntry().getValue().forEach(supplier->enumBuilder.put(getDisplayString(supplier), supplier.idString()));
 					builder.put(enumClassName, enumBuilder.build());
 				} else {
 					enumMap.forEach((enumClass, supplierSet)->{
 						ImmutableMap.Builder<String, String> enumBuilder = ImmutableMap.builder();
-						supplierSet.forEach(supplier->enumBuilder.put(supplier.displayString(), supplier.idString()));
+						supplierSet.forEach(supplier->enumBuilder.put(getDisplayString(supplier), supplier.idString()));
 						builder.put(enumClass.getName(), enumBuilder.build());
 					});
 				}
@@ -88,6 +89,13 @@ public class ConstantEnum extends AbstractOperatorResultSupplier<ConstantEnum.IE
 			if(enumByName.get(idString) instanceof IEnumSupplierOperator supplier) return supplier;
 			else return DataUtils.findMostSimilar(enumByName, idString);
 		}
+		@Override public String getDisplayString(IEnumSupplierOperator sign) {
+			return sign.getEnumClass().getSimpleName() + "." + sign.getEnum().name();
+		}
+		@Override public IEnumSupplierOperator getDefault() {
+			return enumByClass.firstEntry().getValue().firstEntry().getValue().first();
+		}
+		
 		public void registerEnum(Class<? extends Enum<?>> enumClass){
 			Function<String, TreeMap<Class<? extends Enum<?>>, TreeSet<EnumSupplier>>> classMapFactory =
 				k-> new TreeMap<>(Comparator.<Class<? extends Enum<?>>, String>comparing(Class::getName));

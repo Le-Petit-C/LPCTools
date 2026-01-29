@@ -58,7 +58,7 @@ public class SlightXRay{
     
     private static int getColorByTextureColor(Block block) {
         int alphaMask = defaultAlpha.getAsInt() << 24;
-        try{
+        try{ // TODO: 延迟获取颜色（应该等到材质包加载完成之后。。。），否则会引发一大堆NullPointerException
             BlockStateModel model = MinecraftClient.getInstance().getBlockRenderManager()
                 .getModel(block.getDefaultState());
             Sprite particleSprite = model.particleSprite();

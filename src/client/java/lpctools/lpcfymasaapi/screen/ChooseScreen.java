@@ -13,7 +13,9 @@ import net.minecraft.text.Text;
 import org.apache.commons.lang3.mutable.MutableInt;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 import static lpctools.lpcfymasaapi.LPCConfigUtils.calculateTextButtonWidth;
@@ -21,6 +23,13 @@ import static lpctools.lpcfymasaapi.LPCConfigUtils.calculateTextButtonWidth;
 public class ChooseScreen extends GuiBase {
 	
 	private static final String cancelKey = "lpcfymasaapi.screen.chooseScreen.cancel";
+	
+	public static class ChooseTreeNode implements Consumer<ChooseScreen> {
+		Supplier<? extends List<ChooseScreen>> nextLayer;
+		@Override public void accept(ChooseScreen chooseScreen) {
+		
+		}
+	}
 	
 	public static <T> ChooseScreen openChooseScreen(Screen parent, String title, boolean hasCancelButton, boolean hasSearchBar, Map<String, ? extends OptionCallback<? super T>> options, Map<?, ?> chooseTree, T userData){
 		ChooseScreen screen = new ChooseScreen(parent, null, title, hasCancelButton, hasSearchBar, options, chooseTree, userData);

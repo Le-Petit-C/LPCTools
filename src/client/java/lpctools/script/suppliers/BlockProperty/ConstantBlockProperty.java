@@ -13,14 +13,14 @@ public class ConstantBlockProperty extends AbstractOperatorResultSupplier<Generi
 	protected final SupplierStorage<?>[] subSuppliers = ofStorages();
 	
 	public ConstantBlockProperty(IScriptWithSubScript parent) {
-		super(parent, GenericPropertyOperator.propertyGetters.getFirstProperty(), GenericPropertyOperator.propertyGetters, 0);
+		super(parent, GenericPropertyOperator.propertyGetters.getDefault(), GenericPropertyOperator.propertyGetters, 0);
 	}
 	
 	@Override protected SupplierStorage<?>[] getSubSuppliers() {return subSuppliers;}
 	
 	@SuppressWarnings("rawtypes")
 	@Override public @NotNull ScriptNotNullSupplier<Property> compileNotNull(CompileEnvironment environment) {
-		var sign = compareSign;
+		var sign = operatorSign;
 		return map -> sign.getProperty();
 	}
 }

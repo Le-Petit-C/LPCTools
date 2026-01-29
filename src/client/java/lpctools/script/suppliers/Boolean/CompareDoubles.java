@@ -4,7 +4,7 @@ import lpctools.script.CompileEnvironment;
 import lpctools.script.IScriptWithSubScript;
 import lpctools.script.runtimeInterfaces.ScriptBooleanSupplier;
 import lpctools.script.suppliers.AbstractOperatorResultSupplier;
-import lpctools.util.Operators;
+import lpctools.util.operatorUtils.Operators;
 import net.minecraft.text.Text;
 
 public class CompareDoubles extends AbstractOperatorResultSupplier<Operators.DoubleCompareSign> implements IBooleanSupplier {
@@ -21,7 +21,7 @@ public class CompareDoubles extends AbstractOperatorResultSupplier<Operators.Dou
 	@Override public @org.jetbrains.annotations.NotNull ScriptBooleanSupplier
 	compileBoolean(CompileEnvironment environment) {
 		var double1Supplier = compileCheckedDouble(double1.get(), environment);
-		var sign = compareSign;
+		var sign = operatorSign;
 		var double2Supplier = compileCheckedDouble(double2.get(), environment);
 		return map->sign.compareDoubles(double1Supplier.scriptApplyAsDouble(map), double2Supplier.scriptApplyAsDouble(map));
 	}

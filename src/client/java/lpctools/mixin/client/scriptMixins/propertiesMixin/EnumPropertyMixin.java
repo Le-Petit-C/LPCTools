@@ -1,4 +1,4 @@
-package lpctools.mixin.client.propertiesMixin;
+package lpctools.mixin.client.scriptMixins.propertiesMixin;
 
 import lpctools.script.suppliers.BlockPropertyOperators;
 import lpctools.script.suppliers.Enum.ConstantEnum;

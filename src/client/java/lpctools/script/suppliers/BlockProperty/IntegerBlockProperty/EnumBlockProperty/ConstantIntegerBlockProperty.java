@@ -13,14 +13,14 @@ public class ConstantIntegerBlockProperty extends AbstractOperatorResultSupplier
 	protected final SupplierStorage<?>[] subSuppliers = ofStorages();
 	
 	public ConstantIntegerBlockProperty(IScriptWithSubScript parent) {
-		super(parent, IntegerPropertyOperator.propertyGetters.getFirstProperty(), IntegerPropertyOperator.propertyGetters, 0);
+		super(parent, IntegerPropertyOperator.propertyGetters.getDefault(), IntegerPropertyOperator.propertyGetters, 0);
 	}
 	
 	@Override protected SupplierStorage<?>[] getSubSuppliers() {return subSuppliers;}
 	
 	@Override public @NotNull ScriptNotNullSupplier<IntProperty>
 	compileNotNull(CompileEnvironment environment) {
-		var sign = compareSign;
+		var sign = operatorSign;
 		return map->sign.getProperty();
 	}
 }

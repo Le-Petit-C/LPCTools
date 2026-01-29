@@ -4,7 +4,7 @@ import lpctools.script.CompileEnvironment;
 import lpctools.script.IScriptWithSubScript;
 import lpctools.script.runtimeInterfaces.ScriptBooleanSupplier;
 import lpctools.script.suppliers.AbstractOperatorResultSupplier;
-import lpctools.util.Operators;
+import lpctools.util.operatorUtils.Operators;
 import net.minecraft.text.Text;
 
 public class CompareObjects extends AbstractOperatorResultSupplier<Operators.ObjectCompareSign> implements IBooleanSupplier {
@@ -21,7 +21,7 @@ public class CompareObjects extends AbstractOperatorResultSupplier<Operators.Obj
 	@Override public @org.jetbrains.annotations.NotNull ScriptBooleanSupplier
 	compileBoolean(CompileEnvironment environment) {
 		var object1Supplier = object1.get().compile(environment);
-		var sign = compareSign;
+		var sign = operatorSign;
 		var object2Supplier = object2.get().compile(environment);
 		return map->sign.compareObjects(object1Supplier.scriptApply(map), object2Supplier.scriptApply(map));
 	}

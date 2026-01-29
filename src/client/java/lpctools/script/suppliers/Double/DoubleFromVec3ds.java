@@ -4,7 +4,7 @@ import lpctools.script.CompileEnvironment;
 import lpctools.script.IScriptWithSubScript;
 import lpctools.script.runtimeInterfaces.ScriptDoubleSupplier;
 import lpctools.script.suppliers.AbstractOperatorResultSupplier;
-import lpctools.util.Operators;
+import lpctools.util.operatorUtils.Operators;
 import net.minecraft.text.Text;
 import net.minecraft.util.math.Vec3d;
 import org.jetbrains.annotations.NotNull;
@@ -23,7 +23,7 @@ public class DoubleFromVec3ds extends AbstractOperatorResultSupplier<Operators.D
 	@Override public @NotNull ScriptDoubleSupplier
 	compileDouble(CompileEnvironment environment) {
 		var vec1Supplier = vec1.get().compileCheckedNotNull(environment);
-		var sign = compareSign;
+		var sign = operatorSign;
 		var vec2Supplier = vec2.get().compileCheckedNotNull(environment);
 		return map->sign.doubleFromVec3ds(vec1Supplier.scriptApply(map), vec2Supplier.scriptApply(map));
 	}

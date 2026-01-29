@@ -5,7 +5,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 import lpctools.script.IScriptWithSubScript;
 import lpctools.script.editScreen.WidthAutoAdjustButtonGeneric;
-import lpctools.util.Operators;
+import lpctools.util.operatorUtils.Operators;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -13,7 +13,7 @@ import java.util.ArrayList;
 import static lpctools.lpcfymasaapi.LPCConfigUtils.warnFailedLoadingConfig;
 
 public abstract class AbstractOperatorResultSupplier<T extends Operators.SignBase> extends AbstractSupplierWithTypeDeterminedSubSuppliers {
-	protected T compareSign;
+	protected T operatorSign;
 	protected final Operators.ISignInfo<T> signInfo;
 	protected final int signPosition;
 	
@@ -21,18 +21,22 @@ public abstract class AbstractOperatorResultSupplier<T extends Operators.SignBas
 	
 	public AbstractOperatorResultSupplier(IScriptWithSubScript parent, T defaultSign, Operators.ISignInfo<T> signInfo, int signPosition) {
 		super(parent);
-		compareSign = defaultSign;
+		operatorSign = defaultSign;
 		this.signInfo = signInfo;
 		this.signPosition = signPosition;
 	}
 	
+	public AbstractOperatorResultSupplier(IScriptWithSubScript parent, Operators.ISignInfo<T> signInfo, int signPosition) {
+		this(parent, signInfo.getDefault(), signInfo, signPosition);
+	}
+	
 	@Override protected ArrayList<Object> buildWidgets(ArrayList<Object> res) {
 		super.buildWidgets(res);
-		var button = new WidthAutoAdjustButtonGeneric(getDisplayWidget(), 0, 0, 20, compareSign.displayString(), null);
+		var button = new WidthAutoAdjustButtonGeneric(getDisplayWidget(), 0, 0, 20, signInfo.getDisplayString(operatorSign), null);
 		button.setActionListener(
-			(bt, mouseButton)->signInfo.mouseButtonClicked(compareSign, mouseButton == 0, val -> {
-				compareSign = val;
-				button.setDisplayString(compareSign.displayString());
+			(bt, mouseButton)->signInfo.mouseButtonClicked(operatorSign, mouseButton == 0, val -> {
+				operatorSign = val;
+				button.setDisplayString(signInfo.getDisplayString(operatorSign));
 			})
 		);
 		res.add(signPosition, button);
@@ -41,7 +45,7 @@ public abstract class AbstractOperatorResultSupplier<T extends Operators.SignBas
 	
 	@Override public @Nullable JsonElement getAsJsonElement() {
 		JsonObject res = getASWTDSSAsJsonElement(this);
-		res.addProperty(compareSignJsonKey, compareSign.idString());
+		res.addProperty(compareSignJsonKey, operatorSign.idString());
 		return res;
 	}
 	
@@ -55,7 +59,7 @@ public abstract class AbstractOperatorResultSupplier<T extends Operators.SignBas
 		if(object.get(compareSignJsonKey) instanceof JsonElement compareSignElement){
 			if(compareSignElement instanceof JsonPrimitive compareSignPrimitive &&
 				signInfo.get(compareSignPrimitive.getAsString()) instanceof T _compareSign){
-				this.compareSign = _compareSign;
+				this.operatorSign = _compareSign;
 			}
 			else warnFailedLoadingConfig(className + '.' + compareSignJsonKey, element);
 		}

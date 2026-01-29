@@ -13,14 +13,14 @@ public class ConstantBooleanBlockProperty extends AbstractOperatorResultSupplier
 	protected final SupplierStorage<?>[] subSuppliers = ofStorages();
 	
 	public ConstantBooleanBlockProperty(IScriptWithSubScript parent) {
-		super(parent, BooleanPropertyGetter.propertyGetters.getFirstProperty(), BooleanPropertyGetter.propertyGetters, 0);
+		super(parent, BooleanPropertyGetter.propertyGetters.getDefault(), BooleanPropertyGetter.propertyGetters, 0);
 	}
 	
 	@Override protected SupplierStorage<?>[] getSubSuppliers() {return subSuppliers;}
 	
 	@Override public @NotNull ScriptNotNullSupplier<BooleanProperty>
 	compileNotNull(CompileEnvironment environment) {
-		var sign = compareSign;
+		var sign = operatorSign;
 		return map->sign.getProperty();
 	}
 }

@@ -28,6 +28,7 @@ import lpctools.script.suppliers.ItemStack.*;
 import lpctools.script.suppliers.Iterable.*;
 import lpctools.script.suppliers.Random.*;
 import lpctools.script.suppliers.String.*;
+import lpctools.script.suppliers.TagKey.ConstantTagKey;
 import lpctools.script.suppliers.Type.*;
 import lpctools.script.suppliers.Vec3d.*;
 import lpctools.script.suppliers.ControlFlowIssue.*;
@@ -37,6 +38,7 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
+import net.minecraft.registry.tag.TagKey;
 import net.minecraft.state.property.BooleanProperty;
 import net.minecraft.state.property.EnumProperty;
 import net.minecraft.state.property.IntProperty;
@@ -181,6 +183,7 @@ public class ScriptSupplierLake {
 		registerType(BooleanProperty.class, ConstantBooleanBlockProperty::new, "booleanBlockProperty");
 		registerType(IntProperty.class, ConstantIntegerBlockProperty::new, "integerBlockProperty");
 		registerType(EnumProperty.class, ConstantEnumBlockProperty::new, "enumBlockProperty");
+		registerType(TagKey.class, ConstantTagKey::new, "tagKey");
 	}
 	
 	//注册suppliers
@@ -313,6 +316,8 @@ public class ScriptSupplierLake {
 		registerPrecise("constantIntegerBlockProperty", IntProperty.class, ConstantIntegerBlockProperty.class, ConstantIntegerBlockProperty::new);
 		//注册enumBlockProperty suppliers
 		registerPrecise("constantEnumBlockProperty", EnumProperty.class, ConstantEnumBlockProperty.class, ConstantEnumBlockProperty::new);
+		//注册tagKey suppliers
+		registerPrecise("constantTagKey", TagKey.class, ConstantTagKey.class, ConstantTagKey::new);
 		//Copilot不愧是世界上最好用的编程工具
 	}
 	

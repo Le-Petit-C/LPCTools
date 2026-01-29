@@ -4,7 +4,7 @@ import lpctools.script.CompileEnvironment;
 import lpctools.script.IScriptWithSubScript;
 import lpctools.script.runtimeInterfaces.ScriptDoubleSupplier;
 import lpctools.script.suppliers.AbstractOperatorResultSupplier;
-import lpctools.util.Operators;
+import lpctools.util.operatorUtils.Operators;
 import net.minecraft.text.Text;
 import org.jetbrains.annotations.NotNull;
 
@@ -21,7 +21,7 @@ public class DoubleBiFunction extends AbstractOperatorResultSupplier<Operators.D
 	
 	@Override public @NotNull ScriptDoubleSupplier
 	compileDouble(CompileEnvironment environment) {
-		var sign = compareSign;
+		var sign = operatorSign;
 		var double1Supplier = compileCheckedDouble(double1.get(), environment);
 		var double2Supplier = compileCheckedDouble(double2.get(), environment);
 		return map->sign.apply2Doubles(double1Supplier.scriptApplyAsDouble(map), double2Supplier.scriptApplyAsDouble(map));

@@ -13,7 +13,7 @@ public class ConstantEnumBlockProperty extends AbstractOperatorResultSupplier<En
 	protected final SupplierStorage<?>[] subSuppliers = ofStorages();
 	
 	public ConstantEnumBlockProperty(IScriptWithSubScript parent) {
-		super(parent, EnumPropertyOperator.propertyGetters.getFirstProperty(), EnumPropertyOperator.propertyGetters, 0);
+		super(parent, EnumPropertyOperator.propertyGetters.getDefault(), EnumPropertyOperator.propertyGetters, 0);
 	}
 	
 	@Override protected SupplierStorage<?>[] getSubSuppliers() {return subSuppliers;}
@@ -21,7 +21,7 @@ public class ConstantEnumBlockProperty extends AbstractOperatorResultSupplier<En
 	@SuppressWarnings("rawtypes")
 	@Override public @NotNull ScriptNotNullSupplier<EnumProperty>
 	compileNotNull(CompileEnvironment environment) {
-		var sign = compareSign;
+		var sign = operatorSign;
 		return map->sign.getProperty();
 	}
 }

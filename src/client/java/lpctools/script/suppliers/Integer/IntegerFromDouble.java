@@ -4,7 +4,7 @@ import lpctools.script.CompileEnvironment;
 import lpctools.script.IScriptWithSubScript;
 import lpctools.script.runtimeInterfaces.ScriptIntegerSupplier;
 import lpctools.script.suppliers.AbstractOperatorResultSupplier;
-import lpctools.util.Operators;
+import lpctools.util.operatorUtils.Operators;
 import net.minecraft.text.Text;
 import org.jetbrains.annotations.NotNull;
 
@@ -19,7 +19,7 @@ public class IntegerFromDouble extends AbstractOperatorResultSupplier<Operators.
 	
 	@Override public @NotNull ScriptIntegerSupplier
 	compileInteger(CompileEnvironment environment) {
-		var sign = compareSign;
+		var sign = operatorSign;
 		var doubleSupplier = compileCheckedDouble(_double.get(), environment);
 		return map->sign.intFromDouble(doubleSupplier.scriptApplyAsDouble(map));
 	}

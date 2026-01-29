@@ -4,7 +4,7 @@ import lpctools.script.CompileEnvironment;
 import lpctools.script.IScriptWithSubScript;
 import lpctools.script.runtimeInterfaces.ScriptIntegerSupplier;
 import lpctools.script.suppliers.AbstractOperatorResultSupplier;
-import lpctools.util.Operators;
+import lpctools.util.operatorUtils.Operators;
 import net.minecraft.text.Text;
 import org.jetbrains.annotations.NotNull;
 
@@ -19,7 +19,7 @@ public class IntegerFunction extends AbstractOperatorResultSupplier<Operators.In
 	
 	@Override public @NotNull ScriptIntegerSupplier
 	compileInteger(CompileEnvironment environment) {
-		var sign = compareSign;
+		var sign = operatorSign;
 		var integerSupplier = compileCheckedInteger(integer.get(), environment);
 		return map->sign.applyInteger(integerSupplier.scriptApplyAsInt(map));
 	}

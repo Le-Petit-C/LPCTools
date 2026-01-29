@@ -4,7 +4,7 @@ import lpctools.script.CompileEnvironment;
 import lpctools.script.IScriptWithSubScript;
 import lpctools.script.runtimeInterfaces.ScriptNotNullSupplier;
 import lpctools.script.suppliers.AbstractOperatorResultSupplier;
-import lpctools.util.Operators;
+import lpctools.util.operatorUtils.Operators;
 import net.minecraft.text.Text;
 import net.minecraft.util.math.BlockPos;
 import org.jetbrains.annotations.NotNull;
@@ -23,7 +23,7 @@ public class CalculateBlockPoses extends AbstractOperatorResultSupplier<Operator
 	@Override public @NotNull ScriptNotNullSupplier<BlockPos>
 	compileNotNull(CompileEnvironment environment) {
 		var pos1Supplier = pos1.get().compileCheckedNotNull(environment);
-		var sign = compareSign;
+		var sign = operatorSign;
 		var pos2Supplier = pos2.get().compileCheckedNotNull(environment);
 		return map->sign.calculateBlockPoses(pos1Supplier.scriptApply(map), pos2Supplier.scriptApply(map));
 	}
