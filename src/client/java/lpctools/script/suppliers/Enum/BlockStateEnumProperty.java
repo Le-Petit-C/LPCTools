@@ -12,10 +12,10 @@ import org.jetbrains.annotations.NotNull;
 
 public class BlockStateEnumProperty extends AbstractSupplierWithTypeDeterminedSubSuppliers implements IEnumSupplier {
 	protected final SupplierStorage<BlockState> blockState = ofStorage(BlockState.class,
-		Text.translatable("lpctools.script.suppliers.random.blockStateEnumProperty.subSuppliers.blockState.name"), "blockState");
+		Text.translatable("lpctools.script.suppliers.enum.blockStateEnumProperty.subSuppliers.blockState.name"), "blockState");
 	@SuppressWarnings("rawtypes")
 	protected final SupplierStorage<EnumProperty> property = ofStorage(EnumProperty.class,
-		Text.translatable("lpctools.script.suppliers.random.blockStateEnumProperty.subSuppliers.property.name"), "property");
+		Text.translatable("lpctools.script.suppliers.enum.blockStateEnumProperty.subSuppliers.property.name"), "property");
 	protected final SupplierStorage<?>[] subSuppliers = ofStorages(blockState, property);
 	
 	public BlockStateEnumProperty(IScriptWithSubScript parent) {super(parent);}

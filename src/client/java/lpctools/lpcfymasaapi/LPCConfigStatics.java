@@ -231,6 +231,7 @@ public interface LPCConfigStatics {
         }
     }
     static <T extends ILPCConfig> T addConfig(T config){return listStack.peek().addConfig(config);}
+    static <T extends ILPCConfig> T addConfigEx(Function<ILPCConfigList, T> allocator){return listStack.peek().addConfig(allocator.apply(listStack.peek()));}
     static BooleanConfig addBooleanConfig(@NotNull String nameKey, boolean defaultBoolean){
         return addBooleanConfig(peekConfigList(), nameKey, defaultBoolean);
     }

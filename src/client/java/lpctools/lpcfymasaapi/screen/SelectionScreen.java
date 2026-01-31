@@ -15,15 +15,16 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
+import static lpctools.generic.SelectionScreenConfigs.*;
 import static lpctools.lpcfymasaapi.LPCConfigUtils.calculateTextButtonWidth;
 
 // 先前的ChooseScreen感觉不够好用，重写一个
 // 此界面开启时不会响应窗口大小变化事件，也就是说开启后若窗口大小发生变化有可能会排版异常
-public class NewChooseScreen<T> extends GuiBase {
+public class SelectionScreen<T> extends GuiBase {
 	public interface IOption<T> {
 		@NotNull Text getName();
 		@Nullable Text getComment();
-		void onSelected(int yourDepth, NewChooseScreen<T> screen);
+		void onSelected(int yourDepth, SelectionScreen<T> screen);
 	}
 	@SuppressWarnings("unused")
 	public static class OptionNode<T> implements IOption<T> {
@@ -54,7 +55,7 @@ public class NewChooseScreen<T> extends GuiBase {
 		}
 		@Override public @NotNull Text getName() { return name; }
 		@Override public @Nullable Text getComment() { return comment; }
-		@Override public void onSelected(int yourDepth, NewChooseScreen<T> screen) {
+		@Override public void onSelected(int yourDepth, SelectionScreen<T> screen) {
 			screen.setOptionList(yourDepth + 1, subOptionSupplier.get());
 		}
 	}
@@ -70,7 +71,7 @@ public class NewChooseScreen<T> extends GuiBase {
 		public OptionLeaf(T callbackVal, @NotNull Text name) { this(callbackVal, name, null); }
 		@Override public @NotNull Text getName() { return name; }
 		@Override public @Nullable Text getComment() { return comment; }
-		@Override public void onSelected(int yourDepth, NewChooseScreen<T> screen) {
+		@Override public void onSelected(int yourDepth, SelectionScreen<T> screen) {
 			screen.applyCallback(callbackVal);
 			screen.closeGui(true);
 		}
@@ -85,10 +86,9 @@ public class NewChooseScreen<T> extends GuiBase {
 	private final Consumer<T> callback;
 	private int selectedList = 0;
 	// true时表示正在拖动滚动条，正在拖动的滚动条由selectedList指定。
-	// 有效值（0~optionList.size()-1）时表示正在拖动对应OptionList的竖向滚动条，其他表示正在拖动NewChooseScreen的横向滚动条
+	// 有效值（0~optionList.size()-1）时表示正在拖动对应OptionList的竖向滚动条，其他表示正在拖动SelectionScreen的横向滚动条
 	private boolean isHoldingScrollBar = false;
 	private static class ScrollBarInfo {
-		static final double approachSpeed = 8 * 0.001; // 0.001是毫秒的乘数
 		double targetPosition = 0, currentPosition = 0;
 		double holdingRatio;
 		final double contentSize, viewSize, maxPosition;
@@ -110,7 +110,7 @@ public class NewChooseScreen<T> extends GuiBase {
 			return res;
 		}
 		void tick(long millisPassed){
-			currentPosition = targetPosition + (currentPosition - targetPosition) * Math.exp(-millisPassed * approachSpeed);
+			currentPosition = targetPosition + (currentPosition - targetPosition) * Math.exp(-millisPassed * approachSpeed.getDoubleValue() * 0.001);
 			if(currentPosition > maxPosition) currentPosition = targetPosition = maxPosition;
 			if(currentPosition < 0) currentPosition = targetPosition = 0;
 		}
@@ -147,8 +147,8 @@ public class NewChooseScreen<T> extends GuiBase {
 	private final MillisTimer millisTimer = new MillisTimer();
 	private ScrollBarInfo scrollBarInfo = null;
 	
-	public static <T> NewChooseScreen<T> openChooseScreen(@Nullable Text title, OptionNode<T> tree, @Nullable Screen parent, Consumer<T> callback){
-		var res = new NewChooseScreen<>(title, parent, callback);
+	public static <T> SelectionScreen<T> openSelectionScreen(@Nullable Text title, OptionNode<T> tree, @Nullable Screen parent, Consumer<T> callback){
+		var res = new SelectionScreen<>(title, parent, callback);
 		var mc = MinecraftClient.getInstance();
 		if(mc.currentScreen == parent) mc.currentScreen = null;
 		mc.setScreen(res);
@@ -156,27 +156,30 @@ public class NewChooseScreen<T> extends GuiBase {
 		return res;
 	}
 	
-	public static <T> NewChooseScreen<T> openChooseScreen(OptionNode<T> tree, @Nullable Screen parent, Consumer<T> callback){
-		return openChooseScreen(null, tree, parent, callback);
+	@SuppressWarnings("unused")
+	public static <T> SelectionScreen<T> openSelectionScreen(OptionNode<T> tree, @Nullable Screen parent, Consumer<T> callback){
+		return openSelectionScreen(null, tree, parent, callback);
 	}
 	
-	public static <T> NewChooseScreen<T> openChooseScreen(@Nullable Text title, OptionNode<T> tree, Consumer<T> callback){
-		return openChooseScreen(title, tree, MinecraftClient.getInstance().currentScreen, callback);
+	public static <T> SelectionScreen<T> openSelectionScreen(@Nullable Text title, OptionNode<T> tree, Consumer<T> callback){
+		return openSelectionScreen(title, tree, MinecraftClient.getInstance().currentScreen, callback);
 	}
 	
-	public static <T> NewChooseScreen<T> openChooseScreen(OptionNode<T> tree, Consumer<T> callback){
-		return openChooseScreen(null, tree, MinecraftClient.getInstance().currentScreen, callback);
+	@SuppressWarnings("UnusedReturnValue")
+	public static <T> SelectionScreen<T> openSelectionScreen(OptionNode<T> tree, Consumer<T> callback){
+		return openSelectionScreen(null, tree, MinecraftClient.getInstance().currentScreen, callback);
 	}
 	
-	public static <T> NewChooseScreen<T> openChooseScreen(@Nullable Text title, Map<String, T> sources, Map<String, ?> tree, Consumer<T> callback){
-		return openChooseScreen(title, generateOptionNodeFromMap(sources, tree, title == null ? Text.of("") : title), callback);
+	public static <T> SelectionScreen<T> openSelectionScreen(@Nullable Text title, Map<String, T> sources, Map<String, ?> tree, Consumer<T> callback){
+		return openSelectionScreen(title, generateOptionNodeFromMap(sources, tree, title == null ? Text.of("") : title), callback);
 	}
 	
-	public static <T> NewChooseScreen<T> openChooseScreen(Map<String, T> sources, Map<String, ?> tree, Consumer<T> callback){
-		return openChooseScreen(null, sources, tree, callback);
+	@SuppressWarnings("unused")
+	public static <T> SelectionScreen<T> openSelectionScreen(Map<String, T> sources, Map<String, ?> tree, Consumer<T> callback){
+		return openSelectionScreen(null, sources, tree, callback);
 	}
 	
-	private NewChooseScreen(@Nullable Text title, @Nullable Screen parent, Consumer<T> callback){
+	private SelectionScreen(@Nullable Text title, @Nullable Screen parent, Consumer<T> callback){
 		setParent(parent);
 		setTitle(title == null ? "" : title.getString());
 		this.callback = callback;
@@ -193,15 +196,12 @@ public class NewChooseScreen<T> extends GuiBase {
 		double position = ScrollBarInfo.getPosition(scrollBarInfo);
 		int startIndex = getListIndexAtX(position, 0), endIndex = getListIndexAtX(position + getScreenWidth(), optionList.size() - 1);
 		context.getMatrices().pushMatrix().translate((float) -position, 0);
-		int splitLineBottom = scrollBarInfo == null ? getScreenHeight() : getScreenHeight() - 1 - scrollBarThickness;
+		int dividerBottom = scrollBarInfo == null ? getScreenHeight() : getScreenHeight() - (scrollBarThickness + 2);
 		for(int i = startIndex; i <= endIndex; ++i){
 			var list = optionList.get(i);
 			// 绘制分割线
-			if(i != 0){
-				// TODO: 自定义分割线颜色
-				int color = i == selectedList || i == selectedList + 1 ? 0xffffffff : 0x7fffffff;
-				context.fill(list.x - 1, titleHeight, list.x, splitLineBottom, color);
-			}
+			if(i != 0) context.fill(list.x - 1, titleHeight, list.x, dividerBottom,
+				getDividerColor(i == selectedList || i == selectedList + 1));
 			context.getMatrices().pushMatrix().translate(list.x, titleHeight);
 			context.enableScissor(0, 0, list.getScreenWidth(), list.getScreenHeight());
 			list.renderEx(context, dMouseX + position - list.x, dMouseY - titleHeight);
@@ -212,10 +212,8 @@ public class NewChooseScreen<T> extends GuiBase {
 		// 绘制横向滚动条
 		if(scrollBarInfo != null) {
 			boolean highlighted = (selectedList < 0 || selectedList >= optionList.size()) && isHoldingScrollBar;
-			int scrollBarBackgroundColor = highlighted ? 0x3fffffff : 0x3f7f7f7f;
-			int scrollBarColor = highlighted ? 0xafffffff : 0x7faaaaaa;
 			// 绘制滚动条背景
-			context.fill(0, getScreenHeight() - 1 - scrollBarThickness, getScreenWidth(), getScreenHeight() - 1, scrollBarBackgroundColor);
+			context.fill(0, getScreenHeight() - 1 - scrollBarThickness, getScreenWidth(), getScreenHeight() - 1, getScrollBarBackgroundColor(highlighted));
 			// 绘制滚动条
 			double k = (double)getScreenWidth() / scrollBarInfo.contentSize;
 			double scrollBarLeft = scrollBarInfo.currentPosition * k;
@@ -224,7 +222,7 @@ public class NewChooseScreen<T> extends GuiBase {
 			context.getMatrices().pushMatrix()
 				.translate((float) scrollBarLeft, getScreenHeight() - 1 - scrollBarThickness)
 				.scale((float) scrollBarWidth, 1.0f);
-			context.fill(0, 0, 1, scrollBarThickness, scrollBarColor);
+			context.fill(0, 0, 1, scrollBarThickness, getScrollBarColor(highlighted));
 			context.getMatrices().popMatrix();
 		}
 	}
@@ -282,16 +280,15 @@ public class NewChooseScreen<T> extends GuiBase {
 	@Override public boolean mouseScrolled(double mouseX, double mouseY, double horizontalAmount, double verticalAmount) {
 		if(super.mouseScrolled(mouseX, mouseY, horizontalAmount, verticalAmount)) return true;
 		int index = mouseY >= titleHeight ? getListIndexAtX(mouseX + ScrollBarInfo.getPosition(scrollBarInfo), selectedList) : selectedList;
-		// TODO: 自定义滚动速度
 		if(index >= 0 && index < optionList.size()){
 			var bar = optionList.get(index).scrollBarInfo;
 			if(bar != null) {
-				bar.targetPosition -= verticalAmount * 3 * buttonStride;
+				bar.targetPosition -= verticalAmount * verticalScrollSpeed.getDoubleValue() * buttonStride;
 				if (isHoldingScrollBar) bar.instant();
 			}
 		}
 		if(scrollBarInfo != null){
-			scrollBarInfo.targetPosition += horizontalAmount * 3 * buttonStride;
+			scrollBarInfo.targetPosition += horizontalAmount * horizontalScrollSpeed.getDoubleValue() * buttonStride;
 			if(isHoldingScrollBar) scrollBarInfo.instant();
 		}
 		return false;
@@ -348,7 +345,7 @@ public class NewChooseScreen<T> extends GuiBase {
 			int y = 0;
 			// 按钮和左边间隔2，按钮之间间隔2，按钮到滚动条间隔2，滚动条到右侧间隔1
 			for(var option : options){
-				var button = new OptionButton(2, y + 1, buttonHeight, option, index, NewChooseScreen.this);
+				var button = new OptionButton(2, y + 1, buttonHeight, option, index, SelectionScreen.this);
 				tempList.add(button);
 				maxButtonWidth = Math.max(maxButtonWidth, button.getWidth());
 				y += buttonStride;
@@ -363,13 +360,10 @@ public class NewChooseScreen<T> extends GuiBase {
 		public void renderEx(DrawContext context, double mouseX, double mouseY) {
 			tickScrollBarInfo(scrollBarInfo, millisTimer);
 			boolean highlighted = index == selectedList;
-			// TODO: 自定义NewChooseScreen高亮颜色
-			if(highlighted) context.fill(0, 0, getScreenWidth(), getScreenHeight(), 0x1fffffff);
+			if(highlighted) context.fill(0, 0, getScreenWidth(), getScreenHeight(), backgroundHighlightColor.getIntegerValue());
 			if(scrollBarInfo != null){
-				int scrollBarBackgroundColor = highlighted ? 0x3fffffff : 0x3f7f7f7f;
-				int scrollBarColor = highlighted ? 0xafffffff : 0x7faaaaaa;
 				// 绘制滚动条背景
-				context.fill(getScreenWidth() - 1 - scrollBarThickness, 0, getScreenWidth() - 1, getScreenHeight(), scrollBarBackgroundColor);
+				context.fill(getScreenWidth() - 1 - scrollBarThickness, 0, getScreenWidth() - 1, getScreenHeight(), getScrollBarBackgroundColor(highlighted));
 				// 绘制滚动条
 				double k = (double)getScreenHeight() / scrollBarInfo.contentSize;
 				double scrollBarTop = scrollBarInfo.currentPosition * k;
@@ -378,7 +372,7 @@ public class NewChooseScreen<T> extends GuiBase {
 				context.getMatrices().pushMatrix()
 					.translate(getScreenWidth() - 1 - scrollBarThickness, (float) scrollBarTop)
 					.scale(1.0f, (float) scrollBarHeight);
-				context.fill(0, 0, scrollBarThickness, 1, scrollBarColor);
+				context.fill(0, 0, scrollBarThickness, 1, getScrollBarColor(highlighted));
 				context.getMatrices().popMatrix();
 			}
 			double position = ScrollBarInfo.getPosition(scrollBarInfo);
@@ -386,17 +380,29 @@ public class NewChooseScreen<T> extends GuiBase {
 			double translatedMouseY = mouseY + position;
 			int startIndex = (int) Math.floor(position / buttonStride);
 			int endIndex = Math.min((int) Math.ceil((position + getScreenHeight()) / buttonStride), optionButtons.length);
-			boolean canHighlight = mouseY >= 0;
-			for(int i = Math.max(startIndex, 0); i < endIndex && i < optionButtons.length; ++i)
-				optionButtons[i].render(context, (int) mouseX, (int) translatedMouseY,
-					i == selectedIndex || (canHighlight && optionButtons[i].isMouseOver((int) mouseX, (int) translatedMouseY)));
+			boolean canHighlight = mouseY >= 0 && mouseY < getScreenHeight();
+			for(int i = Math.max(startIndex, 0); i < endIndex && i < optionButtons.length; ++i){
+				var button = optionButtons[i];
+				boolean highlight = i == selectedIndex || (canHighlight && optionButtons[i].isMouseOver((int) mouseX, (int) translatedMouseY));
+				int tx, ty;
+				if(highlight) {
+					tx = button.getX() + button.getWidth() / 2;
+					ty = button.getY() + button.getHeight() / 2;
+				}
+				else {
+					tx = (int) mouseX;
+					ty = (int) translatedMouseY;
+				}
+				button.render(context, tx, ty, highlight);
+			}
 		}
 		
 		@Override public boolean mouseClicked(double mouseX, double mouseY, int mouseButton) {
 			double translatedMouseX = mouseX - x, translatedMouseY = mouseY - titleHeight + ScrollBarInfo.getPosition(scrollBarInfo);
 			int index = (int) Math.floor(translatedMouseY/ buttonStride);
 			if(index >= 0 && index < optionButtons.length){
-				if(optionButtons[index].onMouseClicked((int)translatedMouseX, (int)translatedMouseY, mouseButton)){
+				var button = optionButtons[index];
+				if(button.onMouseClicked((int)translatedMouseX, (int)translatedMouseY, mouseButton)){
 					selectedIndex = index;
 					return true;
 				}
@@ -407,14 +413,14 @@ public class NewChooseScreen<T> extends GuiBase {
 		void updateData(){
 			x = index == 0 ? 0 : optionList.get(index - 1).getRight() + 1;
 			int extraWidth = scrollBarInfo == null ? 4 : scrollBarThickness + 5;
-			int extraHeight = NewChooseScreen.this.scrollBarInfo == null ? 0 : -(scrollBarThickness + 1);
-			resize(MinecraftClient.getInstance(), maxButtonWidth + extraWidth, NewChooseScreen.this.getScreenHeight() - titleHeight + extraHeight);
+			int extraHeight = SelectionScreen.this.scrollBarInfo == null ? 0 : -(scrollBarThickness + 2);
+			resize(MinecraftClient.getInstance(), maxButtonWidth + extraWidth, SelectionScreen.this.getScreenHeight() - titleHeight + extraHeight);
 			scrollBarInfo = ScrollBarInfo.recreate(scrollBarInfo, optionButtons.length * buttonStride, getScreenHeight());
 		}
 	}
 	
 	private static class OptionButton extends ButtonGeneric {
-		public <T> OptionButton(int x, int y, int height, IOption<T> option, int yourDepth, NewChooseScreen<T> screen) {
+		public <T> OptionButton(int x, int y, int height, IOption<T> option, int yourDepth, SelectionScreen<T> screen) {
 			super(x, y, 20, height, option.getName().getString());
 			setWidth(calculateTextButtonWidth(displayString, textRenderer, buttonHeight));
 			if(option.getComment() instanceof Text comment) setHoverStrings(comment.getString());

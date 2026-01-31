@@ -2,7 +2,7 @@ package lpctools.util.operatorUtils;
 
 import com.google.common.collect.ImmutableMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
-import lpctools.lpcfymasaapi.screen.NewChooseScreen;
+import lpctools.lpcfymasaapi.screen.SelectionScreen;
 import lpctools.util.CachedSupplier;
 import net.minecraft.text.Text;
 import org.apache.commons.text.similarity.LevenshteinDistance;
@@ -45,25 +45,25 @@ public class DefaultedSignInfo<T extends Operators.SignBase> implements Operator
 	public DefaultedSignInfo(){}
 	
 	/** 设置展示字符串生成器，默认是生成与id相同的展示字符串 */
-	@Contract("_->this") public DefaultedSignInfo<T> displayGen(@Nullable Function<? super List<? extends T>, ? extends Function<? super T, String>> generator)
+	@SuppressWarnings("UnusedReturnValue") @Contract("_->this") public DefaultedSignInfo<T> displayGen(@Nullable Function<? super List<? extends T>, ? extends Function<? super T, String>> generator)
 	{ displayStringGenerator = generator == null ? defaultDisplayStringGenerator : generator; return this; }
 	/** 控制get()时的一个行为，未找到完全匹配的key时默认会找与key最接近的key对应的sign，fuzzy关闭后则是直接输出null */
-	@Contract("_->this") public DefaultedSignInfo<T> fuzzyMode(boolean b) { fuzzy = b; return this; }
+	@SuppressWarnings("unused") @Contract("_->this") public DefaultedSignInfo<T> fuzzyMode(boolean b) { fuzzy = b; return this; }
 	/** 设置显示时的顺序比较实例，用于设置选择界面的显示顺序或者cycle mode的cycle顺序。比较时允许通过getDisplayString获取显示字符串 */
 	@Contract("_->this") public DefaultedSignInfo<T> comparator(Comparator<? super T> comparator) { sortComparator = comparator; return this; }
 	/** 设置显示时的顺序比较实例，的另一个版本，传入参数为当前实例 */
-	@Contract("_->this") public DefaultedSignInfo<T> comparator(Function<DefaultedSignInfo<T>, Comparator<? super T>> comparator) { return comparator(comparator.apply(this)); }
+	@SuppressWarnings("unused") @Contract("_->this") public DefaultedSignInfo<T> comparator(Function<DefaultedSignInfo<T>, Comparator<? super T>> comparator) { return comparator(comparator.apply(this)); }
 	/** 批量设置signs，同时会清空原有的signs。可以iterate到null，返回null的遍历项会被忽略 */
-	@Contract("_->this") public DefaultedSignInfo<T> setSigns(Iterable<? extends T> signs) { _setSigns(signs); return this; }
+	@SuppressWarnings("unused") @Contract("_->this") public DefaultedSignInfo<T> setSigns(Iterable<? extends T> signs) { _setSigns(signs); return this; }
 	/** setSigns的延迟版 */
-	@Contract("_->this") public DefaultedSignInfo<T> delayedSetSigns(Iterable<? extends Supplier<? extends T>> signs) { _delayedSetSigns(signs); return this; }
+	@SuppressWarnings("unused") @Contract("_->this") public DefaultedSignInfo<T> delayedSetSigns(Iterable<? extends Supplier<? extends T>> signs) { _delayedSetSigns(signs); return this; }
 	/** 设置chooseTree的生成函数，null表示使用cycle，即不开启选择界面进行选择而是根据按下的是左右键轮换到下一个或上一个。 */
-	@Contract("_->this") public DefaultedSignInfo<T> chooseTree(@Nullable Function<? super DefaultedSignInfo<? extends T>, ImmutableMap<?, ?>> generator)
+	@SuppressWarnings("unused") @Contract("_->this") public DefaultedSignInfo<T> chooseTree(@Nullable Function<? super DefaultedSignInfo<? extends T>, ImmutableMap<?, ?>> generator)
 	{ chooseTreeGenerator = generator; return this; }
 	/** 将chooseTree的生成函数设回默认，即按顺序从displayString到idString的一一映射 */
-	@Contract("->this") public DefaultedSignInfo<T> chooseTree() { chooseTreeGenerator = defaultChooseTreeGenerator; return this; }
+	@SuppressWarnings("unused") @Contract("->this") public DefaultedSignInfo<T> chooseTree() { chooseTreeGenerator = defaultChooseTreeGenerator; return this; }
 	
-	public Iterable<T> getSigns() { return sortedList.get(); }
+	@SuppressWarnings("unused") public Iterable<T> getSigns() { return sortedList.get(); }
 	public int size() { return sortedList.get().size(); }
 	public String getIdString(T sign) {
 		var sign2indexMap = this.sign2indexMap.get();
@@ -112,10 +112,10 @@ public class DefaultedSignInfo<T extends Operators.SignBase> implements Operator
 			}
 		}
 		else {
-			NewChooseScreen.openChooseScreen(NewChooseScreen.OptionNode.ofOptions(
+			SelectionScreen.openSelectionScreen(SelectionScreen.OptionNode.ofOptions(
 				sortedList.get(), sign->Text.of(getDisplayString(sign)), Text.of("")
 			), callback);
-			//ChooseScreen.openChooseScreen("Choose an option", true, true, chooseTree.get())
+			//ChooseScreen.openSelectionScreen("Choose an option", true, true, chooseTree.get())
 		}
 	}
 	
@@ -123,7 +123,7 @@ public class DefaultedSignInfo<T extends Operators.SignBase> implements Operator
 	
 	@Override public T getDefault() { return sortedList.get().getFirst(); }
 	
-	public void addSign(T sign){
+	@SuppressWarnings("unused") public void addSign(T sign){
 		signs.add(sign);
 		invalidateCache();
 	}

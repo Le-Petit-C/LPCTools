@@ -246,10 +246,10 @@ public class AvlTreeList<E> extends AbstractList<E> {
 			Node<E> result = this;
 			if (bal == -2) {
 				assert Math.abs(left.getBalance()) <= 1;
-				if (left.getBalance() == +1)
+				if (left.getBalance() == 1)
 					left = left.rotateLeft();
 				result = rotateRight();
-			} else if (bal == +2) {
+			} else if (bal == 2) {
 				assert Math.abs(right.getBalance()) <= 1;
 				if (right.getBalance() == -1)
 					right = right.rotateRight();

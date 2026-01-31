@@ -8,7 +8,6 @@ import lpctools.script.IScriptWithSubScript;
 import lpctools.script.runtimeInterfaces.ScriptNotNullSupplier;
 import lpctools.script.suppliers.AbstractOperatorResultSupplier;
 import lpctools.util.DataUtils;
-import lpctools.util.operatorUtils.DefaultedSignInfo;
 import lpctools.util.operatorUtils.Operators;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;

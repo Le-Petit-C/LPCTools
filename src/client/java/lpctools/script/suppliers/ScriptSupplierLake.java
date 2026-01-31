@@ -5,7 +5,7 @@ import com.google.common.collect.ImmutableSet;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
-import lpctools.lpcfymasaapi.screen.NewChooseScreen;
+import lpctools.lpcfymasaapi.screen.SelectionScreen;
 import lpctools.script.IScriptWithSubScript;
 import lpctools.script.suppliers.Array.*;
 import lpctools.script.suppliers.Block.*;
@@ -77,8 +77,8 @@ public class ScriptSupplierLake {
 			var allocator = reg.tryAllocate(targetClass);
 			if (allocator != null) callback.accept(allocator.allocate(parent));
 		};
-		/*ChooseScreen.openChooseScreen(getTypeName(targetClass).getString(), true, suppliers, buildChooseMap(targetClass, true), consumer);*/
-		NewChooseScreen.openChooseScreen(getTypeName(targetClass), suppliers, buildChooseMap(targetClass, true), consumer);
+		/*ChooseScreen.openSelectionScreen(getTypeName(targetClass).getString(), true, suppliers, buildChooseMap(targetClass, true), consumer);*/
+		SelectionScreen.openSelectionScreen(getTypeName(targetClass), suppliers, buildChooseMap(targetClass, true), consumer);
 	}
 	
 	public static String getSupplierId(IScriptSupplier<?> supplier) {

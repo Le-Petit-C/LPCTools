@@ -23,7 +23,10 @@ public interface ILPCUniqueConfigBase extends ILPCUniqueConfig{
         ButtonGeneric resetButton;
         if(this instanceof IConfigResettable resettable){
             resetButton = consumer.createResetButton(x + configWidth + 2, y, resettable);
-            consumer.addButton(resetButton, (button, mouseButton)->resettable.resetToDefault());
+            consumer.addButton(resetButton, (button, mouseButton)->{
+                resettable.resetToDefault();
+                button.setEnabled(false);
+            });
         }
         else resetButton = null;
         ButtonOptionArrayList options = new ButtonOptionArrayList();

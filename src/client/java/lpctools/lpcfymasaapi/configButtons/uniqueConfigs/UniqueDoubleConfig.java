@@ -10,6 +10,7 @@ import lpctools.lpcfymasaapi.configButtons.UpdateTodo;
 import lpctools.lpcfymasaapi.interfaces.ILPCConfigReadable;
 import lpctools.lpcfymasaapi.interfaces.ILPCUniqueConfigBase;
 import lpctools.lpcfymasaapi.interfaces.ILPCValueChangeCallback;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -19,13 +20,19 @@ public class UniqueDoubleConfig extends LPCUniqueConfigBase implements IConfigDo
     public double doubleValue, minDouble, maxDouble;
     public final double defaultDouble;
     public boolean useSlider = false;
+    public boolean logMode = false;
+    @Contract("_ -> this") public UniqueDoubleConfig useSlider(boolean useSlider){this.useSlider = useSlider; return this;}
+    @Contract("-> this") public UniqueDoubleConfig useSlider(){return useSlider(true);}
+    @Contract("_ -> this") public UniqueDoubleConfig logMode(boolean logMode){this.logMode = logMode; return this;}
+    @Contract("-> this") public UniqueDoubleConfig logMode(){return logMode(true);}
     public UniqueDoubleConfig(@NotNull ILPCConfigReadable parent, @NotNull String nameKey, double defaultDouble, double minDouble, double maxDouble, @Nullable ILPCValueChangeCallback callback) {
         super(parent, nameKey, callback);
         doubleValue = this.defaultDouble = defaultDouble;
         this.minDouble = minDouble;
         this.maxDouble = maxDouble;
     }
-    public UniqueDoubleConfig(@NotNull ILPCConfigReadable parent, @NotNull String nameKey, int defaultDouble) {
+    @SuppressWarnings("unused")
+	public UniqueDoubleConfig(@NotNull ILPCConfigReadable parent, @NotNull String nameKey, int defaultDouble) {
         this(parent, nameKey, defaultDouble, -Double.MAX_VALUE, Double.MAX_VALUE, null);
     }
     @Override public double getDoubleValue() {return doubleValue;}
@@ -57,13 +64,32 @@ public class UniqueDoubleConfig extends LPCUniqueConfigBase implements IConfigDo
     @Override public void getButtonOptions(ButtonOptionArrayList res) {
         if(useSlider){
             res.add(new ButtonOption(1, null, null, (x, y, w, h, str, listener, consumer, resetButton)->{
+                Runnable resetButtonUpdater = ()->{
+                    if(resetButton != null)
+                        resetButton.setEnabled(isModified());
+                };
                 ISliderCallback callback = new ISliderCallback() {
                     @Override public int getMaxSteps() {return Integer.MAX_VALUE;}
                     @Override public double getValueRelative() {
-                        return (doubleValue / 2 - minDouble / 2) / (maxDouble / 2 - minDouble / 2);
+                        if(logMode) {
+                            if(doubleValue >= maxDouble) return 1;
+                            else if(doubleValue <= minDouble) return 0;
+                            else {
+                                double loggedMin = Math.log(minDouble);
+                                return (Math.log(doubleValue) - loggedMin) / (Math.log(maxDouble) - loggedMin);
+                            }
+                        }
+                        else return (doubleValue / 2 - minDouble / 2) / (maxDouble / 2 - minDouble / 2);
                     }
                     @Override public void setValueRelative(double v) {
-                        setDoubleValue(maxDouble * v + minDouble * (1 - v));
+                        if(logMode) {
+                            // 全用取对数会产生一点点误差，看着不舒服，特别是在min和max位置，所以加入特殊处理
+                            if(v <= 0) setDoubleValue(minDouble);
+                            else if(v >= 1) setDoubleValue(maxDouble);
+                            else setDoubleValue(Math.exp(Math.log(maxDouble) * v + Math.log(minDouble) * (1 - v)));
+						}
+                        else setDoubleValue(maxDouble * v + minDouble * (1 - v));
+                        resetButtonUpdater.run();
                     }
                     @Override public String getFormattedDisplayValue() {return String.valueOf(doubleValue);}
                 };

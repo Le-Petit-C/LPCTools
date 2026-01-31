@@ -49,7 +49,7 @@ public class GenericConfigs {
     public static final BooleanConfig playClickSoundFromModMenu = addBooleanConfig("playClickSoundFromModMenu", false);
     public static final HotkeyConfig horizontalScrollButton = addHotkeyConfig("horizontalScrollKey",
         KeybindSettings.create(KeybindSettings.Context.ANY, KeyAction.BOTH, true, false, false, false), null, null);
-    static {addConfig(ChooseScreenConfigs.chooseScreenConfigs);}
+    static {addConfig(SelectionScreenConfigs.selectionScreenConfigs);}
     static {threadCountConfig.onValueChanged();}
     static {listStack.pop();}
     
