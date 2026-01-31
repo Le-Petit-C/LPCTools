@@ -6,6 +6,7 @@ import lpctools.util.GuiUtils;
 import lpctools.util.HandRestock;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.input.MouseInput;
 import net.minecraft.client.network.ClientPlayerInteractionManager;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
@@ -88,8 +89,8 @@ public class PlaceBlockTick implements ClientTickEvents.EndTick, Registries.InGa
              return NO_OPERATION;
         });
     }
-    @Override public void onInGameEndMouse(int button, int action, int mods) {
-        if(disableOnLeftDownConfig.getAsBoolean() && button == 0 && action == 1)
+    @Override public void onInGameEndMouse(MouseInput input, int action) {
+        if(disableOnLeftDownConfig.getAsBoolean() && input.button() == 0 && action == 1)
             disableTool("mouseLeftDown");
     }
 

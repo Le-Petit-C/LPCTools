@@ -42,7 +42,7 @@ public class DataInstance implements AutoCloseable, Registries.ClientWorldChunkL
         this.client = client;
         registerAll(true);
         if(client.world == null || client.player == null) return;
-        Vec3d playerPos = client.player.getPos();
+        Vec3d playerPos = client.player.getEntityPos();
         retestData(client.world, playerPos);
     }
     public void clearData(){
@@ -81,7 +81,7 @@ public class DataInstance implements AutoCloseable, Registries.ClientWorldChunkL
     }
     @Override public void onSpawnConditionChanged() {
         if(client.world != null && client.player != null)
-            retestData(client.world, client.player.getPos());
+            retestData(client.world, client.player.getEntityPos());
     }
     @Override public void afterWorldChange(MinecraftClient minecraftClient, ClientWorld clientWorld) {clearData();}
     

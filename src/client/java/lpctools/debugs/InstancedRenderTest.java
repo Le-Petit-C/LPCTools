@@ -8,8 +8,6 @@ import lpctools.shader.FragmentShaders;
 import lpctools.shader.ShaderPrograms;
 import lpctools.shader.VertexShaders;
 import lpctools.util.MathUtils;
-import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext;
-import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents;
 import net.minecraft.util.math.random.Random;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -48,7 +46,7 @@ public class InstancedRenderTest extends BooleanConfig{
         public void setTimeAngle(float timeAngle){this.timeAngle.setValue(timeAngle);}
     }
     private @Nullable RenderInstance renderInstance;
-    private static class RenderInstance implements AutoCloseable, WorldRenderEvents.Last{
+    private static class RenderInstance implements AutoCloseable, Registries.WorldLastRender{
         public static final int triangleCount = 100;
         public final VertexArray vertexArray = new VertexArray();
         public final Buffer triangleInstanceBuffer = new Buffer();
@@ -81,7 +79,7 @@ public class InstancedRenderTest extends BooleanConfig{
             MemoryUtil.memFree(buffer);
             initialized = true;
         }
-        @Override public void onLast(WorldRenderContext context) {
+        @Override public void onLast(Registries.WorldRenderContext context) {
             try(MaskLayer layer = new MaskLayer()){
                 init(layer);
                 layer.disableCullFace().enableDepthTest().disableBlend();

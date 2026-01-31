@@ -6,6 +6,7 @@ import fi.dy.masa.malilib.gui.button.ButtonGeneric;
 import fi.dy.masa.malilib.gui.widgets.WidgetBase;
 import fi.dy.masa.malilib.gui.wrappers.TextFieldWrapper;
 import lpctools.script.IScript;
+import net.minecraft.client.gui.Click;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.narration.NarrationMessageBuilder;
 import net.minecraft.client.gui.widget.ClickableWidget;
@@ -52,30 +53,30 @@ public class ScriptDisplayWidget extends ClickableWidget{
 	}
 	
 	/* 成员方法 */
-	@Override public boolean mouseClicked(double mouseX, double mouseY, int button) {
+	@Override public boolean mouseClicked(Click click, boolean doubleClick) {
 		for(var widget : getAllWidgets()){
-			if(widget.isMouseOver(mouseX, mouseY)){
-				var res = widget.mouseClicked(mouseX, mouseY, button);
+			if(widget.isMouseOver(click.x(), click.y())){
+				var res = widget.mouseClicked(click, doubleClick);
 				if(res) return true;
 			}
 		}
 		return false;
 	}
 	
-	@Override public boolean mouseReleased(double mouseX, double mouseY, int button) {
+	@Override public boolean mouseReleased(Click click) {
 		for(var widget : getAllWidgets()){
-			if(widget.isMouseOver(mouseX, mouseY)){
-				var res = widget.mouseReleased(mouseX, mouseY, button);
+			if(widget.isMouseOver(click.x(), click.y())){
+				var res = widget.mouseReleased(click);
 				if(res) return true;
 			}
 		}
 		return false;
 	}
 	
-	@Override public boolean mouseDragged(double mouseX, double mouseY, int button, double deltaX, double deltaY) {
+	@Override public boolean mouseDragged(Click click, double offsetX, double offsetY) {
 		for(var widget : getAllWidgets()){
-			if(widget.isMouseOver(mouseX, mouseY)){
-				var res = widget.mouseDragged(mouseX, mouseY, button, deltaX, deltaY);
+			if(widget.isMouseOver(click.x(), click.y())){
+				var res = widget.mouseDragged(click, offsetX, offsetY);
 				if(res) return true;
 			}
 		}

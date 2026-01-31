@@ -24,7 +24,7 @@ import static lpctools.lpcfymasaapi.LPCConfigUtils.warnFailedLoadingConfig;
 import static lpctools.lpcfymasaapi.interfaces.ILPCUniqueConfigBase.iconButtonAllocator;
 import static lpctools.util.AlgorithmUtils.convertIterable;
 
-public class ConfigListConfig<T extends ILPCUniqueConfigBase> extends LPCUniqueConfigBase implements ILPCConfigReadable, IMutableConfig, IConfigResettable{
+public class ConfigListConfig<T extends ILPCUniqueConfigBase> extends LPCUniqueConfigBase implements ILPCConfigReadable, IMutableConfig, IConfigResettable, SimpleDirtyImpl {
     public final @NotNull Function<? super ConfigListConfig<T>, ? extends T> configSupplier;
     protected @Nullable Consumer<T> removeCallback;
     protected boolean condenseOperationButton = true;
@@ -35,6 +35,8 @@ public class ConfigListConfig<T extends ILPCUniqueConfigBase> extends LPCUniqueC
     public boolean expanded;
     private boolean isModified = false;
     private boolean needUpdateModified = true;
+    DirtyState dirty = new DirtyState();
+    @Override public DirtyState getDirty() { return dirty; }
     
     public void setExpanded(boolean b){
         if(b != expanded){

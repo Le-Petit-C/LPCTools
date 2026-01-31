@@ -18,6 +18,7 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.GameMode;
+import net.minecraft.world.World;
 import org.jetbrains.annotations.NotNull;
 
 import static lpctools.lpcfymasaapi.configButtons.derivedConfigs.LimitOperationSpeedConfig.OperationResult.NO_OPERATION;
@@ -89,7 +90,7 @@ public class LiquidCleanerRunner implements ClientTickEvents.EndTick {
     }
 
     private static boolean shouldAttackBlock(@NotNull ShapeList shapeList ,@NotNull ClientPlayerEntity player, @NotNull BlockPos pos){
-        ClientWorld world = player.clientWorld;
+        World world = player.getEntityWorld();
         BlockState state = world.getBlockState(pos);
         if(!shapeList.testPos(pos)){
             if(!expandRange.getAsBoolean()) return false;

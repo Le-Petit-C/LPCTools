@@ -17,7 +17,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.ArrayList;
 import java.util.function.Supplier;
 
-public interface ILPCUniqueConfigBase extends ILPCUniqueConfig{
+public interface ILPCUniqueConfigBase extends ILPCUniqueConfig, SimpleDirtyImpl{
     @Override
     default void addButtons(int x, int y, float zLevel, int labelWidth, int configWidth, ButtonConsumer consumer) {
         ButtonGeneric resetButton;

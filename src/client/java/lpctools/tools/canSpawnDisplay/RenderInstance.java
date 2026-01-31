@@ -10,8 +10,6 @@ import lpctools.util.AlgorithmUtils;
 import lpctools.util.DataUtils;
 import lpctools.util.MathUtils;
 import lpctools.util.javaex.SharedPtr;
-import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext;
-import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.util.math.BlockPos;
@@ -32,7 +30,7 @@ import java.util.concurrent.CompletableFuture;
 
 import static lpctools.tools.canSpawnDisplay.CanSpawnDisplay.*;
 
-public class RenderInstance extends DataInstance implements WorldRenderEvents.Last, WorldRenderEvents.DebugRender{
+public class RenderInstance extends DataInstance implements Registries.WorldLastRender, Registries.WorldPreWeatherRender{
     public RenderInstance(MinecraftClient client) {
         super(client);
         renderMethod = CanSpawnDisplay.renderMethod.get();
@@ -68,7 +66,7 @@ public class RenderInstance extends DataInstance implements WorldRenderEvents.La
     @Override protected void registerAll(boolean b){
         super.registerAll(b);
         Registries.WORLD_RENDER_LAST.register(this, b);
-        Registries.WORLD_RENDER_BEFORE_DEBUG_RENDER.register(this, b);
+        Registries.RENDER_WORLD_PRE_WEATHER.register(this, b);
     }
     @Override public void close(){
         super.close();
@@ -81,8 +79,8 @@ public class RenderInstance extends DataInstance implements WorldRenderEvents.La
         AlgorithmUtils.closeNoExcept(bufferCache.remove(pos));
     }
     
-    @Override public void onLast(WorldRenderContext context) {if(renderXRays.getAsBoolean()) render(context);}
-    @Override public void beforeDebugRender(WorldRenderContext context) {if(!renderXRays.getAsBoolean()) render(context);}
+    @Override public void onLast(Registries.WorldRenderContext context) {if(renderXRays.getAsBoolean()) render(context);}
+    @Override public void onRenderWorldPreWeather(Registries.WorldRenderContext context) {if(!renderXRays.getAsBoolean()) render(context);}
     @Override protected void onChunkDataLoaded(ChunkPos pos, double distanceSquared) {buildBufferAsync(pos, distanceSquared);}
     @Override public void onStartTick(MinecraftClient mc) {
         super.onStartTick(mc);
@@ -115,11 +113,13 @@ public class RenderInstance extends DataInstance implements WorldRenderEvents.La
     private final HashMap<ChunkPos, CompletableFuture<AsyncBuiltResult>> renderBufferBuilders = new HashMap<>();
     private @NotNull IRenderMethod renderMethod;
     private final HashMap<ChunkPos, RenderBuffer> bufferCache = new HashMap<>();
-    private void render(WorldRenderContext context){
+    private void render(Registries.WorldRenderContext context){
+        var world = MinecraftClient.getInstance().world;
+        if(world == null) return;
         double distanceSquared = MathUtils.square(renderDistance.getAsDouble());
         double distanceLimit = MathUtils.square(renderDistance.getAsDouble() + Math.sqrt(2) * 8);
         Vec3d camPos = context.camera().getPos();
-        Iterable<Chunk> poses = AlgorithmUtils.iterateLoadedChunksFromClosest(context.world(), camPos);
+        Iterable<Chunk> poses = AlgorithmUtils.iterateLoadedChunksFromClosest(world, camPos);
         ArrayList<RenderBuffer> buffersToRender = new ArrayList<>();
         ArrayList<Matrix4f> modelMatrixList = new ArrayList<>();
         ArrayList<Matrix4f> finalMatrixList = new ArrayList<>();

@@ -1,11 +1,11 @@
 package lpctools.debugs;
 
+import lpctools.lpcfymasaapi.Registries;
 import lpctools.lpcfymasaapi.gl.Buffer;
 import lpctools.lpcfymasaapi.gl.Constants;
 import lpctools.lpcfymasaapi.gl.MaskLayer;
 import lpctools.lpcfymasaapi.gl.VertexArray;
 import lpctools.util.MathUtils;
-import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext;
 import net.minecraft.util.math.MathHelper;
 import org.joml.Matrix4f;
 import org.lwjgl.system.MemoryUtil;
@@ -15,7 +15,7 @@ import java.nio.ByteBuffer;
 import static lpctools.shader.ShaderPrograms.*;
 
 public class RenderTest1 {
-    public static void render(WorldRenderContext context, MaskLayer layer){
+    public static void render(Registries.WorldRenderContext context, MaskLayer layer){
         init(layer);
         Matrix4f finalMatrix = MathUtils.inverseOffsetMatrix4f(context.camera().getPos().toVector3f());
         context.positionMatrix().mul(finalMatrix, finalMatrix);

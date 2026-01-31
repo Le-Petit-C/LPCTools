@@ -49,7 +49,7 @@ public class FurnaceMaintainer {
         ClientWorld world = mc.world;
         if(player == null || world == null) return;
         for(Chunk chunk : AlgorithmUtils.iterateLoadedChunksFromClosest(world, player.getEyePos()))
-            asyncDetectFurnace(chunk, MathUtils.squaredDistance(player.getPos(), chunk.getPos()));
+            asyncDetectFurnace(chunk, MathUtils.squaredDistance(player.getEntityPos(), chunk.getPos()));
     }
     private static void asyncDetectFurnace(Chunk chunk, double distanceSquared){
         detectTasks.add(GenericUtils.supplyAsync(()->detectFurnace(chunk), distanceSquared));

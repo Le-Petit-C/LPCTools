@@ -129,7 +129,7 @@ public class ChooseScreen extends GuiBase {
 		}
 	}
 	
-	@Override public boolean onMouseScrolled(int mouseX, int mouseY, double horizontalAmount, double verticalAmount) {
+	@Override public boolean onMouseScrolled(double mouseX, double mouseY, double horizontalAmount, double verticalAmount) {
 		startY += (int) Math.round(verticalAmount * buttonHeightStride);
 		startY = Math.clamp(startY, minY, maxY);
 		initGui();

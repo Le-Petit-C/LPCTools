@@ -49,7 +49,7 @@ public class AvlTreeList<E> extends AbstractList<E> {
 	}
 	
 	
-	public AvlTreeList(Collection<? extends E> coll) {
+	@SuppressWarnings("unused") public AvlTreeList(Collection<? extends E> coll) {
 		this();
 		Objects.requireNonNull(coll);
 		addAll(coll);
@@ -100,7 +100,7 @@ public class AvlTreeList<E> extends AbstractList<E> {
 			throw new IndexOutOfBoundsException();
 		MutableObject<E> result = new MutableObject<>();
 		root = root.removeAt(index, v->result.setValue(v.value));
-		return result.getValue();
+		return result.get();
 	}
 	
 	
@@ -115,7 +115,7 @@ public class AvlTreeList<E> extends AbstractList<E> {
 	
 	
 	// For unit tests.
-	public void checkStructure() {
+	@SuppressWarnings("unused") public void checkStructure() {
 		root.checkStructure(new HashSet<>());
 	}
 	
@@ -213,7 +213,7 @@ public class AvlTreeList<E> extends AbstractList<E> {
 				else {
 					MutableObject<Node<E>> res = new MutableObject<>();
 					right = right.removeAt(0, res::setValue);
-					var node = res.getValue();
+					var node = res.get();
 					replaceByNode(node);
 					node.recalculate();
 					return node.balance();

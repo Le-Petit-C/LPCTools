@@ -63,6 +63,6 @@ public class BlockUtils {
         return isFluid(state.getBlock());
     }
     public static boolean canBreakInstantly(ClientPlayerEntity player, BlockPos pos){
-        return player.getWorld().getBlockState(pos).calcBlockBreakingDelta(player, player.getWorld(), pos) >= 1.0F;
+        return player.getEntityWorld().getBlockState(pos).calcBlockBreakingDelta(player, player.getEntityWorld(), pos) >= 1.0F;
     }
 }

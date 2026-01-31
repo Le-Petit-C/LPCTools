@@ -12,8 +12,6 @@ import lpctools.lpcfymasaapi.configButtons.transferredConfigs.HotkeyConfig;
 import lpctools.lpcfymasaapi.configButtons.uniqueConfigs.*;
 import lpctools.lpcfymasaapi.gl.MaskLayer;
 import lpctools.lpcfymasaapi.interfaces.ILPCUniqueConfigBase;
-import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext;
-import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents;
 import net.minecraft.block.BlockState;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ClientPlayerEntity;
@@ -76,14 +74,14 @@ public class DebugConfigs {
         player.setYaw(0);
         return true;
     }
-    private static void renderDebugShapes(WorldRenderContext context){
+    private static void renderDebugShapes(Registries.WorldRenderContext context){
         try(MaskLayer layer = new MaskLayer()){
             layer.enableBlend().disableCullFace().enableDepthTest();
             RenderTest1.render(context, layer);
             RenderTest2.render(context, layer);
         }
     }
-    private static final WorldRenderEvents.Last debugShapesRenderer = DebugConfigs::renderDebugShapes;
+    private static final Registries.WorldLastRender debugShapesRenderer = DebugConfigs::renderDebugShapes;
     private static void renderDebugShapesValueRefreshCallback(){
         Registries.WORLD_RENDER_LAST.register(debugShapesRenderer, renderDebugShapes.getAsBoolean());
     }

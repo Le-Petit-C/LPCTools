@@ -2,16 +2,13 @@ package lpctools.lpcfymasaapi;
 
 import com.google.gson.JsonObject;
 import fi.dy.masa.malilib.config.ConfigType;
-import lpctools.lpcfymasaapi.interfaces.ILPCConfig;
-import lpctools.lpcfymasaapi.interfaces.ILPCConfigList;
-import lpctools.lpcfymasaapi.interfaces.ILPCConfigReadable;
-import lpctools.lpcfymasaapi.interfaces.ILPCValueChangeCallback;
+import lpctools.lpcfymasaapi.interfaces.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 
-public class LPCConfigList implements ILPCConfig, ILPCConfigList {
+public class LPCConfigList implements ILPCConfig, ILPCConfigList, SimpleDirtyImpl {
 	private final String nameKey;
 	private final ILPCConfigReadable parent;
 	private final ArrayList<ILPCConfig> subConfigs = new ArrayList<>();
@@ -36,6 +33,10 @@ public class LPCConfigList implements ILPCConfig, ILPCConfigList {
 	@Override public void setAlignedIndent(int indent) {this.indent = indent;}
 	@Override public int getAlignedIndent() {return indent;}
 	@Override public boolean hasHotkey() {return false;}
+	
+	DirtyState dirty = new DirtyState();
+	@Override public DirtyState getDirty() { return dirty; }
+	
 	@Override public ConfigType getType() {return null;}
 	@Override public String getName() {return getNameKey();}
 	@Override public String getComment() {return comment;}
@@ -44,6 +45,7 @@ public class LPCConfigList implements ILPCConfig, ILPCConfigList {
 	@Override public void setPrettyName(String prettyName) {this.prettyName = prettyName;}
 	@Override public void setTranslatedName(String translatedName) {this.translatedName = translatedName;}
 	@Override public void setComment(String comment) {this.comment = comment;}
+	
 	@Override public void onValueChanged() {if(callback != null) callback.onValueChanged();}
 	@Override public void setValueChangeCallback(@Nullable ILPCValueChangeCallback callback) {this.callback = callback;}
 	@Override public @Nullable JsonObject getAsJsonElement() {return ILPCConfigList.super.getAsJsonElement();}

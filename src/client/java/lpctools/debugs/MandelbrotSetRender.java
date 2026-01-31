@@ -8,8 +8,6 @@ import lpctools.lpcfymasaapi.gl.*;
 import lpctools.lpcfymasaapi.gl.furtherWarpped.ArrayListCachedRenderBuffer;
 import lpctools.lpcfymasaapi.interfaces.ILPCConfigReadable;
 import lpctools.shader.ShaderPrograms;
-import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext;
-import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.util.math.Vec3d;
 import org.joml.*;
@@ -21,7 +19,7 @@ import static lpctools.lpcfymasaapi.gl.furtherWarpped.VertexAttribElements.*;
 import static lpctools.shader.FragmentShaders.*;
 import static lpctools.shader.VertexShaders.*;
 
-public class MandelbrotSetRender extends BooleanThirdListConfig implements WorldRenderEvents.AfterTranslucent {
+public class MandelbrotSetRender extends BooleanThirdListConfig implements Registries.WorldLastRender {
     public final IntegerConfig maxDepth;
     public final DoubleConfig stretch;
     public MandelbrotSetRender(ILPCConfigReadable parent) {
@@ -34,10 +32,10 @@ public class MandelbrotSetRender extends BooleanThirdListConfig implements World
     
     @Override public void onValueChanged() {
         super.onValueChanged();
-        Registries.WORLD_RENDER_AFTER_TRANSLUCENT.register(this, getBooleanValue());
+        Registries.WORLD_RENDER_LAST.register(this, getBooleanValue());
     }
     
-    @Override public void afterTranslucent(WorldRenderContext context) {
+    @Override public void onLast(Registries.WorldRenderContext context) {
         try(MaskLayer layer = new MaskLayer(MinecraftClient.getInstance().worldRenderer.getTranslucentFramebuffer())){
             layer.enableBlend().disableCullFace().enableDepthTest();
             double y = 1;

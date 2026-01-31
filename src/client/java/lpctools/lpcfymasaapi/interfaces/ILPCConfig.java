@@ -9,7 +9,7 @@ import org.jetbrains.annotations.NotNull;
 import static lpctools.generic.GenericConfigs.*;
 
 public interface ILPCConfig extends ILPCConfigBase, IConfigBase, ILPCConfigNotifiable {
-    //当前配置是否有关热键，决定是否启用热键查找
+    // 当前配置是否有关热键，决定是否启用热键查找
     boolean hasHotkey();
 
     @Override default @NotNull String getNameKey(){return getName();}

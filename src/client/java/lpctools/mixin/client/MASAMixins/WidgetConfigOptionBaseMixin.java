@@ -6,7 +6,10 @@ import fi.dy.masa.malilib.gui.widgets.WidgetConfigOptionBase;
 import fi.dy.masa.malilib.gui.widgets.WidgetListConfigOptionsBase;
 import fi.dy.masa.malilib.gui.wrappers.TextFieldWrapper;
 import lpctools.mixinInterfaces.MASAMixins.IWidgetConfigOptionBaseEx;
+import net.minecraft.client.gui.Click;
 import net.minecraft.client.gui.DrawContext;
+import net.minecraft.client.input.CharInput;
+import net.minecraft.client.input.KeyInput;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -33,30 +36,30 @@ public class WidgetConfigOptionBaseMixin implements IWidgetConfigOptionBaseEx {
             textFieldWrapper.getTextField().render(drawContext, mouseX, mouseY, 0f);
     }
     @Inject(method = "onMouseClickedImpl", at = @At("RETURN"), cancellable = true)
-    void onMouseClickedImpl(int mouseX, int mouseY, int mouseButton, CallbackInfoReturnable<Boolean> cir){
+    void onMouseClickedImpl(Click click, boolean doubleClick, CallbackInfoReturnable<Boolean> cir){
         if(cir.getReturnValue()) return;
         for(TextFieldWrapper<? extends GuiTextFieldGeneric> textFieldWrapper : extraTextFieldWrappers){
-            if(textFieldWrapper.mouseClicked(mouseX, mouseY, mouseButton)) {
+            if(textFieldWrapper.mouseClicked(click, doubleClick)) {
                 cir.setReturnValue(true);
                 return;
             }
         }
     }
     @Inject(method = "onKeyTypedImpl", at = @At("RETURN"), cancellable = true)
-    void onKeyTypedImpl(int keyCode, int scanCode, int modifiers, CallbackInfoReturnable<Boolean> cir){
+    void onKeyTypedImpl(KeyInput input, CallbackInfoReturnable<Boolean> cir){
         if(cir.getReturnValue()) return;
         for(TextFieldWrapper<? extends GuiTextFieldGeneric> textFieldWrapper : extraTextFieldWrappers){
-            if(textFieldWrapper.onKeyTyped(keyCode, scanCode, modifiers)) {
+            if(textFieldWrapper.onKeyTyped(input)) {
                 cir.setReturnValue(true);
                 return;
             }
         }
     }
     @Inject(method = "onCharTypedImpl", at = @At("RETURN"), cancellable = true)
-    void onCharTypedImpl(char charIn, int modifiers, CallbackInfoReturnable<Boolean> cir){
+    void onCharTypedImpl(CharInput input, CallbackInfoReturnable<Boolean> cir){
         if(cir.getReturnValue()) return;
         for(TextFieldWrapper<? extends GuiTextFieldGeneric> textFieldWrapper : extraTextFieldWrappers){
-            if(textFieldWrapper.onCharTyped(charIn, modifiers)) {
+            if(textFieldWrapper.onCharTyped(input)) {
                 cir.setReturnValue(true);
                 return;
             }

@@ -9,8 +9,6 @@ import lpctools.lpcfymasaapi.gl.*;
 import lpctools.shader.ShaderPrograms;
 import lpctools.util.AlgorithmUtils;
 import lpctools.util.MathUtils;
-import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext;
-import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents;
 import net.minecraft.block.BlockState;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.world.ClientWorld;
@@ -38,7 +36,7 @@ import static lpctools.tools.slightXRay.SlightXRay.*;
 
 //TODO:不使用形状索引而是合并重合顶点的索引（比如相邻矩形）以节省空间
 
-public class RenderInstance extends DataInstance implements WorldRenderEvents.End, WorldRenderEvents.Start, Registries.ResourceReloadCallback {
+public class RenderInstance extends DataInstance implements Registries.WorldLastRender, Registries.WorldPreWeatherRender, Registries.ResourceReloadCallback {
     RenderInstance(MinecraftClient client){
         super(client);
         registerAll(true);
@@ -54,8 +52,8 @@ public class RenderInstance extends DataInstance implements WorldRenderEvents.En
     }
     private void registerAll(boolean b){
         CLIENT_RESOURCE_RELOAD.register(this, b);
-        Registries.WORLD_RENDER_START.register(this, b);
-        Registries.WORLD_RENDER_END.register(this, b);
+        Registries.WORLD_RENDER_LAST.register(this, b);
+        Registries.RENDER_WORLD_PRE_WEATHER.register(this, b);
     }
     public void onRenderRangeChanged(RangeLimitConfig rangeLimit){
         ShapeList newList = rangeLimit.buildShapeList();
@@ -190,15 +188,16 @@ public class RenderInstance extends DataInstance implements WorldRenderEvents.En
     private record RenderPrepareResult(ArrayList<CompletableFuture<ChunkRenderPrepareResult>> futures, int maxShapeCount){}
     //返回值是最大形状数量
     CompletableFuture<RenderPrepareResult> renderTask;
-    @Override public void onStart(WorldRenderContext context){
+    @Override public void onRenderWorldPreWeather(Registries.WorldRenderContext context){
+        World world = MinecraftClient.getInstance().world;
+        if(world == null) return;
         tryRefreshXRayBlocks();
         Vec3d camPos = context.camera().getPos();
         Matrix4f matrix = new Matrix4f(context.positionMatrix());
         context.projectionMatrix().mul(matrix, matrix);
-        World world = context.world();
         renderTask = CompletableFuture.supplyAsync(()->asyncPrepareRenderMain(world, camPos, matrix));
     }
-    @Override public void onEnd(WorldRenderContext context) {
+    @Override public void onLast(Registries.WorldRenderContext context) {
         tryRefreshXRayBlocks();
         RenderPrepareResult result = renderTask.join();
         ensureIndexBufferSize(result.maxShapeCount);

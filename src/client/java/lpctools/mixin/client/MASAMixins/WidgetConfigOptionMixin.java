@@ -38,7 +38,7 @@ public abstract class WidgetConfigOptionMixin extends WidgetConfigOptionBase<Gui
     }
     @Unique WidgetConfigOption getThis(){return (WidgetConfigOption)(Object)this;}
     @Inject(method = "addConfigOption", at = @At(value = "TAIL"), remap = false, cancellable = true)
-    void test(int x, int y, float zLevel, int labelWidth, int configWidth, IConfigBase config, CallbackInfo ci){
+    void test(int x, int y, int labelWidth, int configWidth, IConfigBase config, CallbackInfo ci){
         if(config instanceof ButtonBaseProvider buttonConsumer){
             buttonConsumer.addButtons(x, y, zLevel, labelWidth, configWidth, new ButtonConsumer() {
                 @Override public <T extends ButtonBase> T addButton(T button, IButtonActionListener listener) {

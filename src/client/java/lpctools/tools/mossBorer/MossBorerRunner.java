@@ -9,13 +9,13 @@ import net.minecraft.block.Blocks;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.client.network.ClientPlayerInteractionManager;
-import net.minecraft.client.world.ClientWorld;
 import net.minecraft.item.Items;
 import net.minecraft.util.Hand;
 import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.Vec3d;
+import net.minecraft.world.World;
 
 import java.util.Comparator;
 import java.util.PriorityQueue;
@@ -42,7 +42,7 @@ public class MossBorerRunner implements AutoCloseable, ClientTickEvents.EndTick{
             return;
         }
         operationSpeed.resetOperationTimes();
-        ClientWorld world = player.clientWorld;
+        World world = player.getEntityWorld();
         Vec3d eyePos = player.getEyePos();
         Comparator<BlockPos> comparator = (pos1, pos2)-> pos2.getY() != pos1.getY() ?
             pos2.getY() - pos1.getY() :
