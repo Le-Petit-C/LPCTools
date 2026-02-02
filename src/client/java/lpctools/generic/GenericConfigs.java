@@ -9,7 +9,9 @@ import lpctools.lpcfymasaapi.configButtons.uniqueConfigs.BlockListConfig;
 import lpctools.lpcfymasaapi.configButtons.uniqueConfigs.BooleanThirdListConfig;
 import lpctools.lpcfymasaapi.configButtons.transferredConfigs.BooleanConfig;
 import lpctools.lpcfymasaapi.configButtons.transferredConfigs.IntegerConfig;
+import lpctools.lpcfymasaapi.configButtons.uniqueConfigs.ButtonConfig;
 import lpctools.lpcfymasaapi.interfaces.ILPCValueChangeCallback;
+import lpctools.util.CachedSupplier;
 import lpctools.util.javaex.PriorityThreadPoolExecutor;
 
 import java.util.concurrent.ThreadPoolExecutor;
@@ -50,6 +52,8 @@ public class GenericConfigs {
     public static final HotkeyConfig horizontalScrollButton = addHotkeyConfig("horizontalScrollKey",
         KeybindSettings.create(KeybindSettings.Context.ANY, KeyAction.BOTH, true, false, false, false), null, null);
     static {addConfig(SelectionScreenConfigs.selectionScreenConfigs);}
+    @SuppressWarnings("unused")
+    public static final ButtonConfig clearLPCToolsCache = addButtonConfig("clearLPCToolsCache", (b, m)->CachedSupplier.clearAllCache());
     static {threadCountConfig.onValueChanged();}
     static {listStack.pop();}
     
