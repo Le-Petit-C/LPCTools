@@ -1,11 +1,10 @@
 package lpctools.util;
 
 import com.google.common.collect.ImmutableList;
+import it.unimi.dsi.fastutil.longs.LongIterable;
+import it.unimi.dsi.fastutil.longs.LongIterator;
 import lpctools.util.javaex.Object2BooleanFunction;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.ChunkPos;
-import net.minecraft.util.math.Direction;
-import net.minecraft.util.math.Vec3d;
+import net.minecraft.util.math.*;
 import net.minecraft.world.World;
 import net.minecraft.world.chunk.Chunk;
 import net.minecraft.world.chunk.ChunkStatus;
@@ -388,5 +387,67 @@ public class AlgorithmUtils {
                 };
             }
         };
+    }
+    
+    // 遍历的是packed ChunkSectionPos，使用时注意解包
+    public static LongIterable renderIterate(Vec3d cameraPos, int bottomY, int topY, int renderDistance){
+        return new RenderIterable(cameraPos, bottomY, topY, renderDistance);
+    }
+    public static class RenderIterable implements LongIterable {
+        private final double chunkedCamX, chunkedCamZ, squaredRenderDistance;
+        private final ChunkSectionPos startPos;
+        private final int bottomY, topY, renderDistance;
+        private final int bottomZ, topZ;
+        public RenderIterable(Vec3d cameraPos, int bottomY, int topY, int renderDistance) {
+            if(bottomY >= topY || renderDistance <= 0) throw new IllegalArgumentException();
+            this.chunkedCamX = cameraPos.x / 16;
+            this.chunkedCamZ = cameraPos.z / 16;
+            this.squaredRenderDistance = (double)renderDistance * renderDistance;
+            this.bottomY = bottomY;
+            this.topY = topY;
+            this.renderDistance = renderDistance;
+            this.startPos = ChunkSectionPos.from(MathHelper.floor(chunkedCamX),
+                Math.clamp(MathHelper.floor(cameraPos.y / 16), bottomY, topY - 1), MathHelper.floor(chunkedCamZ));
+            this.bottomZ = MathHelper.floor(chunkedCamZ - renderDistance);
+            this.topZ = MathHelper.ceil(chunkedCamZ + renderDistance);
+        }
+        @Override public @NotNull LongIterator iterator() { return new RenderIterator(); }
+        
+        private class RenderIterator implements LongIterator {
+            int x = startPos.getX(), y = startPos.getY(), z = startPos.getZ();
+            int bottomX = MathHelper.floor(chunkedCamX - renderDistance);
+            int topX = MathHelper.ceil(chunkedCamX + renderDistance);
+            @Override public boolean hasNext() { return z >= bottomZ; }
+            @Override public long nextLong() {
+                var res = ChunkSectionPos.asLong(x, y, z);
+                if(y < startPos.getY()) --y;
+                else {
+                    ++y;
+                    if(y >= topY) y = startPos.getY() - 1;
+                }
+                if(y < bottomY){
+                    y = startPos.getY();
+                    if(x < startPos.getX()) --x;
+                    else {
+                        ++x;
+                        if(x >= topX) x = startPos.getX() - 1;
+                    }
+                    if(x < bottomX){
+                        x = startPos.getX();
+                        if(z < startPos.getZ()) --z;
+                        else {
+                            ++z;
+                            if(z >= topZ) z = startPos.getZ() - 1;
+                        }
+						double dz = z < startPos.getZ() ? chunkedCamZ - z - 1 : z - chunkedCamZ;
+                        double v = squaredRenderDistance - dz * dz;
+                        double dx = v > 0 ? Math.sqrt(v) : 0;
+                        bottomX = MathHelper.floor(chunkedCamX - dx);
+                        topX = MathHelper.ceil(chunkedCamX + dx);
+                    }
+                }
+                return res;
+            }
+        }
     }
 }

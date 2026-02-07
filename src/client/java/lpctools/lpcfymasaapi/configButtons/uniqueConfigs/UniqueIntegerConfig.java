@@ -15,6 +15,7 @@ import org.jetbrains.annotations.Nullable;
 
 import static lpctools.lpcfymasaapi.LPCConfigUtils.warnFailedLoadingConfig;
 
+// TODO 修复reset后text不更新的bug
 public class UniqueIntegerConfig extends LPCUniqueConfigBase implements IConfigInteger {
     public int intValue, minInteger, maxInteger;
     public final int defaultInteger;

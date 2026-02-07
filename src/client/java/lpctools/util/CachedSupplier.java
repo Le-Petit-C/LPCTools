@@ -1,5 +1,6 @@
 package lpctools.util;
 
+import lpctools.util.javaex.QuietAutoCloseable;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -31,10 +32,14 @@ public class CachedSupplier<T> implements AutoCloseable {
 			if(furtherInvalidator != null)
 				furtherInvalidator.accept(cachedValue);
 			else if(cachedValue instanceof AutoCloseable closeable){
-				try {
-					closeable.close();
-				} catch (Exception e) {
-					throw new RuntimeException(e);
+				if(closeable instanceof QuietAutoCloseable quietCloseable)
+					quietCloseable.close();
+				else {
+					try {
+						closeable.close();
+					} catch (Exception e) {
+						throw new RuntimeException(e);
+					}
 				}
 			}
 			cachedValue = null;

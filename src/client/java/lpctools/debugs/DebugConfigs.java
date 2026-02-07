@@ -51,10 +51,10 @@ public class DebugConfigs {
     public static final MutableConfig<ILPCUniqueConfigBase> MUTABLE_CONFIG_TEST = booleanHotkeyThirdListTest.addConfig(new MutableConfig<>(booleanHotkeyThirdListTest, "mutable", booleanHotkeyThirdListTest.getFullTranslationKey() + ".mutable", configSuppliers, null));
     private static ImmutableMap<String, BiFunction<MutableConfig<ILPCUniqueConfigBase>, String, ILPCUniqueConfigBase>> getConfigSuppliers(){return configSuppliers;}
     static {Registries.ON_SCREEN_CHANGED.register(newScreen -> buttonConfigTest.buttonName = null);}
+    static {addConfig(TimeTest.timeTest);}
+    static {addConfig(GpuCacheMissTest.gpuCacheMissTest);}
+    static {addConfig(TranslucentQuadsTest.translucentQuadsTest);}
     static {listStack.pop();}
-    static {
-        debugs.addConfig(TimeTest.timeTest);
-    }
     
     private static void booleanHotkeyThirdListTestCallback(){
         if(booleanHotkeyThirdListTest.isExpanded())
