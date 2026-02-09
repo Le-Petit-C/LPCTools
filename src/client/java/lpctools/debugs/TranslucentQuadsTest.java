@@ -29,7 +29,7 @@ public class TranslucentQuadsTest {
 		Random rand = new Random();
 		Quad quad = new Quad(pos.add(-0.5, 0, -0.5, new Vector3d()), new Vector3d(1.0, 0.0, 0.0), new Vector3d(0.0, 0.0, 1.0), rand.nextInt());
 		if(quads == null) quads = new TranslucentQuads();
-		quads.addQuad(quad);
+		quads.addQuad(quad, false);
 	}
 	private static void clearQuads(){
 		if(quads == null) return;

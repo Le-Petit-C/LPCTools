@@ -18,11 +18,15 @@ import net.minecraft.resource.ResourceManager;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.ChunkSectionPos;
+import net.minecraft.util.math.Vec3d;
 import net.minecraft.util.math.Vec3i;
 import org.apache.commons.text.similarity.LevenshteinDistance;
 import org.apache.logging.log4j.Logger;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.joml.Vector3d;
 import org.joml.Vector3i;
 import org.joml.Vector4f;
 import org.lwjgl.opengl.GL30;
@@ -181,7 +185,7 @@ public class DataUtils {
             default -> def;
         };
     }
-    @SuppressWarnings("SpellCheckingInspection")
+    
     public static int argb2agbr(int color){
         int s = color & 0x00ff00ff;
         return (color & 0xff00ff00) | (s >> 16) | (s << 16);
@@ -225,5 +229,23 @@ public class DataUtils {
     public static <T> T findMostSimilar(Map<String, T> map, String target) {
         if (map.get(target) instanceof T directMatch) return directMatch;
         return map.get(findMostSimilar(map.keySet(), target));
+    }
+    
+    @Contract(pure = true)
+    public static long toPackedChunkSectionPos(Vector3d pos){
+        return ChunkSectionPos.asLong(
+            ChunkSectionPos.getSectionCoord(pos.x),
+            ChunkSectionPos.getSectionCoord(pos.y),
+            ChunkSectionPos.getSectionCoord(pos.z)
+        );
+    }
+    
+    @Contract(pure = true)
+    public static long toPackedChunkSectionPos(Vec3d pos){
+        return ChunkSectionPos.asLong(
+            ChunkSectionPos.getSectionCoord(pos.x),
+            ChunkSectionPos.getSectionCoord(pos.y),
+            ChunkSectionPos.getSectionCoord(pos.z)
+        );
     }
 }

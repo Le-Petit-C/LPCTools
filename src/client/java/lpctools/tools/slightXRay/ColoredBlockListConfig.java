@@ -140,4 +140,9 @@ public class ColoredBlockListConfig extends ConfigListConfig<ColoredBlockListCon
 			}
 		}
 	}
+	
+	@Override public void onValueChanged() {
+		markNeedRefreshXRayBlocks();
+		super.onValueChanged();
+	}
 }

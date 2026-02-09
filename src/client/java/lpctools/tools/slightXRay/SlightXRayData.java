@@ -10,7 +10,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.HashMap;
 
 public class SlightXRayData {
-    static @Nullable RenderInstance renderInstance;
+    static @Nullable DataInstance dataInstance;
     public static final @NotNull ImmutableList<Block> defaultXRayBlocks = ImmutableList.of(
         Blocks.DIAMOND_ORE, Blocks.DEEPSLATE_DIAMOND_ORE,
         Blocks.DEEPSLATE_COAL_ORE, Blocks.EMERALD_ORE, Blocks.DEEPSLATE_EMERALD_ORE,

@@ -5,7 +5,6 @@ import lpctools.lpcfymasaapi.configButtons.derivedConfigs.ConfigListOptionListCo
 import lpctools.lpcfymasaapi.configButtons.transferredConfigs.*;
 import lpctools.lpcfymasaapi.configButtons.uniqueConfigs.BooleanHotkeyThirdListConfig;
 import lpctools.lpcfymasaapi.interfaces.ILPCConfigList;
-import lpctools.lpcfymasaapi.configButtons.derivedConfigs.RangeLimitConfig;
 import lpctools.mixin.client.SpriteContentsMixin;
 import lpctools.tools.ToolConfigs;
 import lpctools.util.DataUtils;
@@ -38,9 +37,9 @@ public class SlightXRay{
     public static final ILPCConfigList byDefaultColor = defaultColorMethod.addList("byDefaultColor", SlightXRay::getColorByDefaultColor);
     public static final ColorConfig defaultColor = addColorConfig(byDefaultColor, "defaultColor", new Color4f(0.5f, 0.5f, 1.0f, 0.5f), XRayBlocksConfig::updateDefaultColor);
     static {addConfig(XRayBlocksConfig);}
-    public static final BooleanConfig useCullFace = addBooleanConfig("useCullFace", true);
-    public static final RangeLimitConfig displayRange = addRangeLimitConfig();
-    static {displayRange.setValueChangeCallback(()->{if(renderInstance != null) renderInstance.onRenderRangeChanged(displayRange);});}
+    // public static final BooleanConfig useCullFace = addBooleanConfig("useCullFace", true);
+    // public static final RangeLimitConfig displayRange = addRangeLimitConfig();
+    // static {displayRange.setValueChangeCallback(()->{if(dataInstance != null) dataInstance.onRenderRangeChanged(displayRange);});}
     static {listStack.pop();}
     static {
         defaultXRayBlocks.forEach(block->XRayBlocksConfig.allocateAndAddConfig().setBlock(block));
@@ -49,7 +48,7 @@ public class SlightXRay{
     
     private static boolean needRefreshXRayBlocks = true;
     
-    public static void markNeedRefreshXRayBlocks(){needRefreshXRayBlocks = true;}
+    public static void markNeedRefreshXRayBlocks(){ needRefreshXRayBlocks = true; }
     
     public static double atanh(double x) {
         if (Math.abs(x) > 1) throw new IllegalArgumentException("atanh: input value out of bound [-1, 1]");
@@ -99,23 +98,27 @@ public class SlightXRay{
             if(XRayBlocks.keySet().equals(newBlocks.keySet())) {
                 for(Map.Entry<Block, MutableInt> block : newBlocks.entrySet())
                     XRayBlocks.get(block.getKey()).setValue(block.getValue());
-            }
+				if (dataInstance != null) dataInstance.resetData();
+			}
             else {
                 XRayBlocks.clear();
                 XRayBlocks.putAll(newBlocks);
+                if(dataInstance != null) {
+                    dataInstance.clearData();
+                    dataInstance.resetData();
+                }
             }
-            if(renderInstance != null) renderInstance.resetData();
         }
     }
     private static void switchChanged() {
         if(SXConfig.getBooleanValue()){
-            if(renderInstance == null)
-                renderInstance = new RenderInstance(MinecraftClient.getInstance());
+            if(dataInstance == null)
+                dataInstance = new DataInstance(MinecraftClient.getInstance());
         }
         else {
-            if(renderInstance != null) {
-                renderInstance.close();
-                renderInstance = null;
+            if(dataInstance != null) {
+                dataInstance.close();
+                dataInstance = null;
             }
         }
     }
