@@ -53,6 +53,10 @@ public class GpuCacheMissTest {
 	public enum VertexShuffleMethod {
 		NONE(Integer.MAX_VALUE),
 		PER_SHAPE(12),
+		TWO_PARTS(6),
+		THREE_PARTS(4),
+		FOUR_PARTS(3),
+		SIX_PARTS(2),
 		FULL_RANDOM(1);
 		final int unitLength;
 		VertexShuffleMethod(int unitLength){
@@ -62,6 +66,10 @@ public class GpuCacheMissTest {
 	public enum IndexShuffleMethod {
 		NONE(Integer.MAX_VALUE),
 		PER_SHAPE(60),
+		TWO_PARTS(30),
+		FOUR_PARTS(15),
+		FIVE_PARTS(12),
+		TEN_PARTS(6),
 		FULL_RANDOM(3);
 		final int unitLength;
 		IndexShuffleMethod(int unitLength){
