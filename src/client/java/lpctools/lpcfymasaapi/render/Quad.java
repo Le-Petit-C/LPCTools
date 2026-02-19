@@ -31,6 +31,10 @@ public class Quad extends Shape<PositionColorVertex> {
 		vertices[3].setPositionColor(base.x + u.x + v.x, base.y + u.y + v.y, base.z + u.z + v.z, color);
 	}
 	
+	public Quad(double baseX, double baseY, double baseZ, double uX, double uY, double uZ, double vX, double vY, double vZ, int color, boolean cull) {
+		this(new Vector3d(baseX, baseY, baseZ), new Vector3d(uX, uY, uZ), new Vector3d(vX, vY, vZ), color, cull);
+	}
+	
 	public Quad(double baseX, double baseY, double baseZ, double uX, double uY, double uZ, double vX, double vY, double vZ, int color) {
 		this(new Vector3d(baseX, baseY, baseZ), new Vector3d(uX, uY, uZ), new Vector3d(vX, vY, vZ), color);
 	}
