@@ -10,7 +10,6 @@ import lpctools.lpcfymasaapi.Registries;
 import lpctools.lpcfymasaapi.configButtons.transferredConfigs.BooleanConfig;
 import lpctools.lpcfymasaapi.configButtons.transferredConfigs.HotkeyConfig;
 import lpctools.lpcfymasaapi.configButtons.uniqueConfigs.*;
-import lpctools.lpcfymasaapi.gl.MaskLayer;
 import lpctools.lpcfymasaapi.interfaces.ILPCUniqueConfigBase;
 import net.minecraft.block.BlockState;
 import net.minecraft.client.MinecraftClient;
@@ -30,10 +29,7 @@ import static lpctools.util.DataUtils.*;
 public class DebugConfigs {
     public static final LPCConfigList debugs = new LPCConfigList(LPCTools.page, "debugs");
     static {listStack.push(debugs);}
-    public static final BooleanConfig renderDebugShapes = addBooleanConfig(
-        "renderDebugShapes", false, DebugConfigs::renderDebugShapesValueRefreshCallback);
     public static final BooleanConfig displayClickSlotArguments = addBooleanConfig("displayClickSlotArguments", false);
-    public static final InstancedRenderTest instancedRenderTest = addConfig(new InstancedRenderTest(debugs));
     public static final HotkeyConfig keyActDebug = addHotkeyConfig("keyActDebug", "", DebugConfigs::keyActDebugCallback);
     public static final BooleanConfig showExecuteTime = addBooleanConfig("showExecuteTime", false);
     public static final HotkeyConfig getBlockStateHotkey = addHotkeyConfig("getBlockStateHotkey", "", DebugConfigs::getBlockStateHotkeyCallback);
@@ -73,17 +69,6 @@ public class DebugConfigs {
         player.setPitch(0);
         player.setYaw(0);
         return true;
-    }
-    private static void renderDebugShapes(Registries.WorldRenderContext context){
-        try(MaskLayer layer = new MaskLayer()){
-            layer.enableBlend().disableCullFace().enableDepthTest();
-            RenderTest1.render(context, layer);
-            RenderTest2.render(context, layer);
-        }
-    }
-    private static final Registries.WorldLastRender debugShapesRenderer = DebugConfigs::renderDebugShapes;
-    private static void renderDebugShapesValueRefreshCallback(){
-        Registries.WORLD_RENDER_LAST.register(debugShapesRenderer, renderDebugShapes.getAsBoolean());
     }
     private static boolean getBlockStateHotkeyCallback(KeyAction action, IKeybind keybind){
         MinecraftClient client = MinecraftClient.getInstance();
