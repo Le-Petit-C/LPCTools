@@ -68,6 +68,8 @@
 	"lpctools.configs.generic.clearLPCToolsCache.name": "Clear LPCTools Cache",
 	"lpctools.configs.generic.clearLPCToolsCache.comment": "Clears all cached data used by LPCTools",
 	"lpctools.configs.generic.clearLPCToolsCache.title": "clear",
+	"lpctools.configs.generic.updateLimitPerFrame.name": "Max Updates Per Frame",
+	"lpctools.configs.generic.updateLimitPerFrame.comment": "Limits maximum updates per frame on the main thread to prevent lag\nApplies to tools like 'Slight X-Ray' and 'Can Spawn Display' for limiting shape updates per frame",
 	"lpctools.configs.tools.title": "Tools",
 	"lpctools.tools.enableNotification": "Tool %s §aON§f",
 	"lpctools.tools.disableNotification": "Tool %s §cOFF§f",

@@ -35,6 +35,7 @@ import java.io.IOException;
 import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.function.Supplier;
 
 @SuppressWarnings("unused")
 public class DataUtils {
@@ -248,4 +249,16 @@ public class DataUtils {
             ChunkSectionPos.getSectionCoord(pos.z)
         );
     }
+    
+    // 仿照computeIfAbsent的static方法
+    public static <T> T computeIfNull(T val, Supplier<T> supplier){ return val == null ? supplier.get() : val; }
+    
+    @SuppressWarnings("unchecked")
+    public static <T> T[] newArrayLike(T[] template, int length) {
+        return (T[]) java.lang.reflect.Array.newInstance(
+            template.getClass().getComponentType(),
+            length
+        );
+    }
+    
 }

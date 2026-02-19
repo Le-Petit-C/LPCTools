@@ -8,13 +8,11 @@ import com.mojang.blaze3d.systems.RenderPass;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.textures.GpuTextureView;
 import com.mojang.blaze3d.vertex.VertexFormat;
-import it.unimi.dsi.fastutil.doubles.DoubleComparators;
 import it.unimi.dsi.fastutil.ints.*;
 import it.unimi.dsi.fastutil.longs.Long2IntOpenHashMap;
 import lpctools.lpcfymasaapi.Registries;
 import lpctools.util.CachedSupplier;
 import lpctools.util.javaex.QuietAutoCloseable;
-import net.minecraft.client.gl.RenderPipelines;
 import net.minecraft.client.render.Frustum;
 import net.minecraft.util.Util;
 import net.minecraft.util.math.Box;
@@ -32,37 +30,28 @@ import org.lwjgl.system.MemoryUtil;
 import java.nio.ByteBuffer;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executor;
 import java.util.function.Consumer;
+import java.util.function.IntConsumer;
 import java.util.function.Supplier;
 
-// TODO trim清理
-class TranslucentQuadsRenderInstance implements QuietAutoCloseable, Registries.WorldPreWeatherRender, Registries.WorldLastRender {
-	static final TranslucentQuadsRenderInstance instance = new TranslucentQuadsRenderInstance();
+// TODO:
+//  trim清理
+//  渲染选项（透视，渲染时机）
+public class TranslucentShapesRenderInstance implements QuietAutoCloseable, Registries.WorldPreWeatherRender, Registries.WorldLastRender {
+	private static final ConcurrentHashMap<RenderPipeline, TranslucentShapesRenderInstance> renderInstances = new ConcurrentHashMap<>();
+	
 	// 进行重排的最小tan值，值越小重排越频繁，也就越卡，但是对应地出现深度错误的情况越少
 	private static final double resortTan = 0.25;
 	private static final double resortTanSquare = resortTan * resortTan;
 	
 	private static final String baseLabel = "LPCTools TranslucentQuadsRenderInstance";
-	private static final RenderPipeline pipeline = RenderPipelines.DEBUG_QUADS;
 	private static final Supplier<String> indexBufferLabel = () -> appendLabel("IndexBuffer");
 	private static final Supplier<String> vertexBufferLabel = () -> appendLabel("VertexBuffer");
 	private static final Supplier<String> renderPassLabel = () -> appendLabel("RenderPass");
 	
 	private static String appendLabel(String tail) { return baseLabel + ' ' + tail; }
-	
-	// 变换基点，所有vertex以此为基点进行变换
-	private final Vector3d basePoint = new Vector3d();
-	private final ArrayList<SubChunk> subChunks = new ArrayList<>();
-	private final Long2IntOpenHashMap pos2IndexMap = new Long2IntOpenHashMap();
-	private final IntHeapPriorityQueue emptySubChunks = new IntHeapPriorityQueue();
-	private final ArrayList<SubChunk> sortedRenderSubChunks = new ArrayList<>();
-	private final HashSet<SubChunk> subChunksNeedUpload = new HashSet<>();
-	private final CachedSupplier<ArrayList<ArrayList<SubChunk>>> subChunkSortingCache = new CachedSupplier<>(ArrayList::new);
-	
-	private static long packQuadId(int quadIndex, int subChunkIndex) { return quadIndex | ((long)subChunkIndex << 32); }
-	private static int unpackQuadIndex(long quadId) { return (int)quadId; }
-	private static int unpackSubChunkIndex(long quadId) { return (int)(quadId >>> 32); }
 	
 	// 比ChunkSection大一圈的Section，叫做Greater Section没什么不妥吧？
 	private static final int greaterExponent = 1;
@@ -80,17 +69,33 @@ class TranslucentQuadsRenderInstance implements QuietAutoCloseable, Registries.W
 	private static int getBlockCoordZGreater(long packed){ return getBlockCoordGreater(unpackGreaterSectionZ(packed)); }
 	private static long toPackedGreaterSectionPos(Vector3d pos){ return getPackedGreaterSectionPos(pos.x, pos.y, pos.z); }
 	
-	private CompletableFuture<Void> prepareTasks;
+	private final RenderPipeline pipeline;
+	// 变换基点，所有vertex以此为基点进行变换
+	private final Vector3d basePoint = new Vector3d();
+	private final ArrayList<SubChunk> subChunks = new ArrayList<>();
+	private final Long2IntOpenHashMap pos2IndexMap = new Long2IntOpenHashMap();
+	private final IntHeapPriorityQueue emptySubChunks = new IntHeapPriorityQueue();
+	private final ArrayList<SubChunk> sortedRenderSubChunks = new ArrayList<>();
+	private final HashSet<SubChunk> subChunksNeedUpload = new HashSet<>();
+	private final CachedSupplier<ArrayList<ArrayList<SubChunk>>> subChunkSortingCache = new CachedSupplier<>(ArrayList::new);
 	
-	TranslucentQuadsRenderInstance() {
+	private CompletableFuture<Void> prepareTasks;
+	private CompletableFuture<CompletableFuture<Void>> dispatchTask;
+	
+	private int sizePerVertex(){ return pipeline.getVertexFormat().getVertexSize(); }
+	
+	private TranslucentShapesRenderInstance(RenderPipeline renderPipeline) {
+		this.pipeline = renderPipeline;
 		Registries.RENDER_WORLD_PRE_WEATHER.register(this);
 		Registries.WORLD_RENDER_LAST.register(this);
 	}
 	
-	public long addQuad(Quad quad) {
-		waitForTasks();
-		var center = quad.getCenterPos(new Vector3d());
-		long packedGreaterSectionPos = toPackedGreaterSectionPos(center);
+	public static TranslucentShapesRenderInstance getRenderInstance(RenderPipeline renderPipeline) {
+		return renderInstances.computeIfAbsent(renderPipeline, TranslucentShapesRenderInstance::new);
+	}
+	
+	public ShapeReference addShape(Shape<? extends IPositionVertex> shape) {
+		long packedGreaterSectionPos = toPackedGreaterSectionPos(shape.center);
 		int index;
 		if(pos2IndexMap.containsKey(packedGreaterSectionPos))
 			index = pos2IndexMap.get(packedGreaterSectionPos);
@@ -103,17 +108,7 @@ class TranslucentQuadsRenderInstance implements QuietAutoCloseable, Registries.W
 			pos2IndexMap.put(packedGreaterSectionPos, index);
 			subChunks.get(index).setSectionPos(packedGreaterSectionPos);
 		}
-		return packQuadId(subChunks.get(index).addQuad(quad), index);
-	}
-	
-	public void removeQuad(long id) {
-		waitForTasks();
-		var subChunk = subChunks.get(unpackSubChunkIndex(id));
-		subChunk.removeQuad(unpackQuadIndex(id));
-		if(subChunk.isEmpty()) {
-			pos2IndexMap.remove(subChunk.packedGreaterSectionPos);
-			emptySubChunks.enqueue(unpackSubChunkIndex(id));
-		}
+		return subChunks.get(index).addShape(shape);
 	}
 	
 	@Override public void onLast(Registries.WorldRenderContext context) {
@@ -146,10 +141,11 @@ class TranslucentQuadsRenderInstance implements QuietAutoCloseable, Registries.W
 	}
 	
 	public void prepareRenderDataAsync(Registries.WorldRenderContext context, Executor executor, boolean recordData) {
+		RenderSystem.assertOnRenderThread();
 		waitForTasks();
 		final Frustum frustum = recordData ? new Frustum(context.frustum()) : context.frustum();
-		prepareTasks = CompletableFuture.supplyAsync(() -> dispatchPrepareTasks(frustum, context.camera().getCameraPos(), executor), executor)
-			.thenCompose(tasks -> tasks);
+		dispatchTask = CompletableFuture.supplyAsync(() -> dispatchPrepareTasks(frustum, context.camera().getCameraPos(), executor), executor);
+		prepareTasks = dispatchTask.thenCompose(tasks -> tasks);
 	}
 	
 	@Override public void close() {
@@ -170,6 +166,12 @@ class TranslucentQuadsRenderInstance implements QuietAutoCloseable, Registries.W
 		if (prepareTasks == null) return;
 		prepareTasks.join();
 		prepareTasks = null;
+	}
+	
+	private void waitForDispatchTask() {
+		if (dispatchTask == null) return;
+		dispatchTask.join();
+		dispatchTask = null;
 	}
 	
 	private CompletableFuture<Void> dispatchPrepareTasks(Frustum frustum, Vec3d camPos, Executor executor) {
@@ -202,17 +204,8 @@ class TranslucentQuadsRenderInstance implements QuietAutoCloseable, Registries.W
 		return CompletableFuture.allOf(tasks.toArray(new CompletableFuture[0]));
 	}
 	
-	private static class SubChunk implements QuietAutoCloseable {
-		static final int vertexPerQuad = 4;
-		static final int sizePerQuad = vertexPerQuad * pipeline.getVertexFormat().getVertexSize();
-		static final byte[] paddingBytes = new byte[sizePerQuad];
-		static final int[] baseIndex = {0, 1, 2, 2, 1, 3};
-		static final int indexPerQuad = baseIndex.length;
-		
+	private class SubChunk implements QuietAutoCloseable {
 		final Vector3d markerPos = new Vector3d();
-		final Vector3d cacheVec = new Vector3d();
-		final IntHeapPriorityQueue unusedQuadIndex = new IntHeapPriorityQueue();
-		final IntComparator sortComparator = (i1, i2) -> DoubleComparators.OPPOSITE_COMPARATOR.compare(this.distanceCache[i1], this.distanceCache[i2]);
 		final Vector3d basePoint = new Vector3d();
 		
 		long packedGreaterSectionPos;
@@ -223,21 +216,75 @@ class TranslucentQuadsRenderInstance implements QuietAutoCloseable, Registries.W
 		ByteBuffer vertexBufferToUpload = null;
 		ByteBuffer indexBufferToUpload = null;
 		
-		Quad[] quads = new Quad[0];
-		double[] distanceCache = new double[0];
-		int[] indexes = new int[0];
-		int[] inversedIndexes = new int[0];
-		int size = 0;
+		final ArrayList<ShapeInfo> shapes = new ArrayList<>();
+		final ArrayList<ElementReference> elements = new ArrayList<>();
+		int vertices_size = 0, elements_size = 0;
+		
 		int uploadedSize = 0;
-		boolean vertexesChanged = false;
-		int capacity(){ return quads.length; }
-		boolean isEmpty(){ return size == 0; }
+		boolean verticesChanged = false;
+		@SuppressWarnings("unused") boolean isEmpty(){ return shapes.isEmpty(); }
 		boolean veryInitialized = false;
+		
+		CompletableFuture<Void> subChunkPrepareTask = null;
+		
+		void waitForSubChunkTask() {
+			waitForDispatchTask();
+			if (subChunkPrepareTask == null) return;
+			subChunkPrepareTask.join();
+			subChunkPrepareTask = null;
+		}
+		
+		void removeElement(ElementReference element){
+			var last = elements.removeLast();
+			if(last != element) elements.set(last.index = element.index, last);
+		}
+		
+		class ShapeInfo implements ShapeReference {
+			final Shape<? extends IPositionVertex> shape;
+			final ElementReference[] elementReferences;
+			int vertexGpuIndex;
+			int index;
+			ShapeInfo(Shape<? extends IPositionVertex> shape, int index) {
+				this.shape = shape;
+				this.index = index;
+				elementReferences = new ElementReference[shape.baseIndices.length];
+				for(int i = 0; i < shape.baseIndices.length; ++i)
+					elementReferences[i] = new ElementReference(this, i, shape.centers[i]);
+			}
+			
+			@Override public void removeShape() {
+				RenderSystem.assertOnRenderThread();
+				if(index < 0) return;
+				waitForSubChunkTask();
+				var last = shapes.removeLast();
+				if(last != this) shapes.set(last.index = index, last);
+				index = -1;
+				vertices_size -= shape.vertices.length;
+				for(var elementRef : elementReferences){
+					removeElement(elementRef);
+					elements_size -= shape.baseIndices[elementRef.elementIndex].length;
+				}
+				markVerticesChanged();
+			}
+		}
+		
+		static class ElementReference {
+			final ShapeInfo shapeInfo;
+			final Vector3d pos;
+			final int elementIndex;
+			int index = 0;
+			float distanceSquared = 0; // 排序时的距离缓存
+			ElementReference(ShapeInfo shapeInfo, int elementIndex, Vector3d pos) {
+				this.shapeInfo = shapeInfo;
+				this.elementIndex = elementIndex;
+				this.pos = pos;
+			}
+		}
 		
 		SubChunk() {}
 		
-		void markVertexesChanged(){
-			vertexesChanged = true;
+		void markVerticesChanged(){
+			verticesChanged = true;
 			vertexBufferToUpload = closeIfExist(vertexBufferToUpload, MemoryUtil::memFree);
 			indexBufferToUpload = closeIfExist(indexBufferToUpload, MemoryUtil::memFree);
 		}
@@ -253,55 +300,40 @@ class TranslucentQuadsRenderInstance implements QuietAutoCloseable, Registries.W
 				getBlockCoordZGreater(packedGreaterSectionPos) + greaterSectionSideLength);
 		}
 		
-		int addQuad(Quad quad) {
-			int index; // quad位置的索引，不是索引的索引，addQuad情况下索引的索引是size
-			if(unusedQuadIndex.isEmpty()){
-				if (size >= capacity()) {
-					quads = Arrays.copyOf(quads, Math.max(quads.length * 2, 16));
-					indexes = Arrays.copyOf(indexes, capacity());
-					inversedIndexes = Arrays.copyOf(inversedIndexes, capacity());
-					distanceCache = new double[capacity()];
-					if(vertexBuffer != null) vertexBuffer.close();
-					if(indexBuffer != null) indexBuffer.close();
-					vertexBuffer = RenderSystem.getDevice().createBuffer(vertexBufferLabel, GpuBuffer.USAGE_VERTEX | GpuBuffer.USAGE_COPY_DST, capacity() * sizePerQuad);
-					int indexCount = capacity() * indexPerQuad;
-					indexType = indexCount <= 65536 ? VertexFormat.IndexType.SHORT : VertexFormat.IndexType.INT;
-					indexBuffer = RenderSystem.getDevice().createBuffer(indexBufferLabel, GpuBuffer.USAGE_INDEX | GpuBuffer.USAGE_COPY_DST, indexCount * indexType.size);
-					veryInitialized = false;
-				}
-				index = size;
+		ShapeReference addShape(Shape<? extends IPositionVertex> shape) {
+			RenderSystem.assertOnRenderThread();
+			var res = new ShapeInfo(shape, shapes.size());
+			waitForSubChunkTask();
+			shapes.add(res);
+			vertices_size += shape.vertices.length;
+			for(var element : res.elementReferences) {
+				element.index = elements.size();
+				elements.add(element);
+				elements_size += shape.baseIndices[element.elementIndex].length;
 			}
-			else index = unusedQuadIndex.dequeueInt();
-			quads[index] = quad;
-			indexes[size] = index;
-			inversedIndexes[index] = size++;
-			markVertexesChanged();
-			return index;
+			markVerticesChanged();
+			return res;
 		}
 		
-		void removeQuad(int index){
-			if(index < 0 || index >= capacity() || quads[index] == null) throw new IllegalArgumentException("Index not exist!");
-			int i = inversedIndexes[index];
-			quads[index] = null;
-			if(i != --size){
-				inversedIndexes[indexes[i] = indexes[size]] = i;
-				markVertexesChanged();
-			}
-			unusedQuadIndex.enqueue(index);
-		}
-		
-		void updateIfVisible(ArrayList<CompletableFuture<Void>> taskOutput, TranslucentQuadsRenderInstance caller, Frustum frustum, Vec3d camPos, Executor executor) {
-			if(size == 0 || !frustum.isVisible(sectionBox)) return;
+		void updateIfVisible(ArrayList<CompletableFuture<Void>> taskOutput, TranslucentShapesRenderInstance caller, Frustum frustum, Vec3d camPos, Executor executor) {
+			if(shapes.isEmpty() || !frustum.isVisible(sectionBox)) return;
 			caller.sortedRenderSubChunks.add(this);
 			if(!basePoint.equals(caller.basePoint)){
 				basePoint.set(caller.basePoint);
-				markVertexesChanged();
+				markVerticesChanged();
 			}
 			boolean markerChanged = updateMarkerPos(camPos);
-			if(vertexesChanged) taskOutput.add(CompletableFuture.runAsync(this::buildVertexByteBuffer, executor));
-			if(vertexesChanged || markerChanged){
+			CompletableFuture<Void> task = null;
+			if(verticesChanged) task = CompletableFuture.runAsync(this::buildVertexByteBuffer, executor);
+			if(verticesChanged || markerChanged){
 				caller.subChunksNeedUpload.add(this);
-				taskOutput.add(CompletableFuture.runAsync(() -> resort(camPos), executor));
+				Runnable resortRunnable = ()->resort(camPos);
+				if(task != null) task = task.thenRunAsync(resortRunnable, executor);
+				else task = CompletableFuture.runAsync(resortRunnable, executor);
+			}
+			if(task != null) {
+				subChunkPrepareTask = task;
+				taskOutput.add(task);
 			}
 		}
 		
@@ -327,90 +359,99 @@ class TranslucentQuadsRenderInstance implements QuietAutoCloseable, Registries.W
 		
 		void buildVertexByteBuffer(){
 			if(vertexBufferToUpload != null) MemoryUtil.memFree(vertexBufferToUpload);
-			vertexBufferToUpload = MemoryUtil.memAlloc(quads.length * sizePerQuad);
-			Vector3d vecCache = new Vector3d();
-			for (Quad quad : quads) {
-				if(quad == null) vertexBufferToUpload.put(paddingBytes);
-				else appendQuadToVertexByteBuffer(quad, vecCache);
+			int vertexSize = sizePerVertex();
+			vertexBufferToUpload = MemoryUtil.memAlloc(vertices_size * vertexSize);
+			indexType = vertices_size > 65536 ? VertexFormat.IndexType.INT : VertexFormat.IndexType.SHORT;
+			int gpuIndex = 0;
+			int position = 0;
+			for(var shape : shapes){
+				shape.vertexGpuIndex = gpuIndex;
+				gpuIndex += shape.shape.vertices.length;
+				for(var vertex : shape.shape.vertices) {
+					vertex.putBytesRelatively(vertexBufferToUpload, basePoint);
+					if(vertexBufferToUpload.position() != (position += vertexSize))
+						throw new RuntimeException("Invalid vertex, expected " + vertexSize + " bytes but put "
+							+ (vertexBufferToUpload.position() - position + vertexSize) + " bytes");
+				}
 			}
 			vertexBufferToUpload.flip();
 		}
 		
-		private void appendQuadToVertexByteBuffer(Quad quad, Vector3d vecCache) {
-			appendPositionToVertexByteBuffer(quad.base);
-			vertexBufferToUpload.putInt(quad.color);
-			appendPositionToVertexByteBuffer(quad.base.add(quad.u, vecCache));
-			vertexBufferToUpload.putInt(quad.color);
-			appendPositionToVertexByteBuffer(quad.base.add(quad.v, vecCache));
-			vertexBufferToUpload.putInt(quad.color);
-			appendPositionToVertexByteBuffer(quad.base.add(quad.u, vecCache).add(quad.v));
-			vertexBufferToUpload.putInt(quad.color);
-		}
-		
-		private void appendPositionToVertexByteBuffer(Vector3d pos) {
-			vertexBufferToUpload.putFloat((float) (pos.x - basePoint.x)).putFloat((float) (pos.y - basePoint.y)).putFloat((float) (pos.z - basePoint.z));
-		}
-		
 		void resort(Vec3d camPos) {
 			// 更新摄像机距离
-			for (int i = 0; i < size; ++i) {
-				int index = indexes[i];
-				var quad = quads[index];
-				double distanceSquared;
-				var center = quad.getCenterPos(cacheVec);
-				distanceSquared =
-					MathHelper.square(camPos.x - center.x) +
-						MathHelper.square(camPos.y - center.y) +
-						MathHelper.square(camPos.z - center.z);
-				distanceCache[index] = distanceSquared;
+			for(var shape : shapes){
+				for(int i = 0; i < shape.elementReferences.length; ++i){
+					var elementRef = shape.elementReferences[i];
+					var center = shape.shape.centers[i];
+					elementRef.distanceSquared
+						= MathHelper.square((float)(center.x - camPos.x))
+						+ MathHelper.square((float)(center.y - camPos.y))
+						+ MathHelper.square((float)(center.z - camPos.z));
+					// 排序默认是从小到大排序，但是我们需要从远到近绘制，乘以-1以适配二者
+					elementRef.distanceSquared *= -1;
+				}
 			}
 			// 排序
-			IntArrays.unstableSort(indexes, 0, size, sortComparator);
+			elements.sort(Comparator.comparingDouble(elementRef -> elementRef.distanceSquared));
+			// 更新索引
+			for(int i = 0; i < elements.size(); ++i) elements.get(i).index = i;
 			// 更新缓冲
 			buildIndexByteBuffer();
-			// 更新映射
-			for(int i = 0; i < size; ++i) inversedIndexes[indexes[i]] = i;
 		}
 		
 		void buildIndexByteBuffer(){
 			if(indexBufferToUpload != null) MemoryUtil.memFree(indexBufferToUpload);
-			indexBufferToUpload = MemoryUtil.memAlloc(size * indexPerQuad * indexType.size);
-			if(indexType == VertexFormat.IndexType.INT) {
-				for (int i = 0; i < size; ++i) {
-					int startIndex = indexes[i] * vertexPerQuad;
-					for (int j : baseIndex) indexBufferToUpload.putInt(startIndex + j);
-				}
-			}
-			else {
-				for (int i = 0; i < size; ++i) {
-					int startIndex = indexes[i] * vertexPerQuad;
-					for (int j : baseIndex) indexBufferToUpload.putShort((short) (startIndex + j));
-				}
+			indexBufferToUpload = MemoryUtil.memAlloc(elements_size * indexType.size);
+			IntConsumer indexConsumer = switch(indexType){
+				case SHORT -> i->indexBufferToUpload.putShort((short)i);
+				case INT -> i->indexBufferToUpload.putInt(i);
+			};
+			for(var element : elements) {
+				int[] baseIndices = element.shapeInfo.shape.baseIndices[element.elementIndex];
+				int vertexGpuIndex = element.shapeInfo.vertexGpuIndex;
+				for(int i : baseIndices) indexConsumer.accept(i + vertexGpuIndex);
 			}
 			indexBufferToUpload.flip();
 		}
 		
 		void upload(CommandEncoder encoder){
 			if(indexBufferToUpload == null) return;
-			if(size * indexPerQuad * indexType.size != indexBufferToUpload.limit()) return;
-			encoder.writeToBuffer(indexBuffer.slice(0, indexBufferToUpload.limit()), indexBufferToUpload);
+			
+			int requiredIndexSize = indexBufferToUpload.limit();
+			if(indexBuffer == null || indexBuffer.size() < requiredIndexSize){
+				int oldSize = indexBuffer == null ? 0 : indexBuffer.size();
+				if(indexBuffer != null) indexBuffer.close();
+				indexBuffer = RenderSystem.getDevice().createBuffer(
+					indexBufferLabel, GpuBuffer.USAGE_INDEX | GpuBuffer.USAGE_COPY_DST,
+					Math.max(oldSize * 2, requiredIndexSize));
+			}
+			encoder.writeToBuffer(indexBuffer.slice(0, requiredIndexSize), indexBufferToUpload);
 			MemoryUtil.memFree(indexBufferToUpload);
 			indexBufferToUpload = null;
+			
 			if(vertexBufferToUpload != null) {
-				encoder.writeToBuffer(vertexBuffer.slice(), vertexBufferToUpload);
+				int requiredVertexSize = vertexBufferToUpload.limit();
+				if(vertexBuffer == null || vertexBuffer.size() < requiredVertexSize){
+					int oldSize = vertexBuffer == null ? 0 : vertexBuffer.size();
+					if(vertexBuffer != null) vertexBuffer.close();
+					vertexBuffer = RenderSystem.getDevice().createBuffer(
+						vertexBufferLabel, GpuBuffer.USAGE_VERTEX | GpuBuffer.USAGE_COPY_DST,
+						Math.max(oldSize * 2, requiredVertexSize));
+				}
+				encoder.writeToBuffer(vertexBuffer.slice(0, requiredVertexSize), vertexBufferToUpload);
 				MemoryUtil.memFree(vertexBufferToUpload);
 				vertexBufferToUpload = null;
 			}
-			vertexesChanged = false;
+			verticesChanged = false;
 			veryInitialized = true;
-			uploadedSize = size;
+			uploadedSize = requiredIndexSize / indexType.size;
 		}
 		
 		void render(RenderPass renderPass) {
 			if(!veryInitialized) return;
 			renderPass.setVertexBuffer(0, vertexBuffer);
 			renderPass.setIndexBuffer(indexBuffer, indexType);
-			renderPass.drawIndexed(0, 0, uploadedSize * indexPerQuad, 1);
+			renderPass.drawIndexed(0, 0, uploadedSize, 1);
 		}
 		
 		@Contract("_,_->null")
@@ -420,6 +461,7 @@ class TranslucentQuadsRenderInstance implements QuietAutoCloseable, Registries.W
 		}
 		
 		@Override public void close() {
+			waitForSubChunkTask();
 			vertexBuffer = closeIfExist(vertexBuffer, GpuBuffer::close);
 			indexBuffer = closeIfExist(indexBuffer, GpuBuffer::close);
 			vertexBufferToUpload = closeIfExist(vertexBufferToUpload, MemoryUtil::memFree);

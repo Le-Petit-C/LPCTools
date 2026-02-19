@@ -54,6 +54,7 @@ public class GenericConfigs {
     static {addConfig(SelectionScreenConfigs.selectionScreenConfigs);}
     @SuppressWarnings("unused")
     public static final ButtonConfig clearLPCToolsCache = addButtonConfig("clearLPCToolsCache", (b, m)->CachedSupplier.clearAllCache());
+    public static final IntegerConfig updateLimitPerFrame = addIntegerConfig("updateLimitPerFrame", 8192);
     static {threadCountConfig.onValueChanged();}
     static {listStack.pop();}
     

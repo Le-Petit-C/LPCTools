@@ -1,15 +1,13 @@
 package lpctools.tools.canSpawnDisplay;
 
-import lpctools.lpcfymasaapi.gl.Constants;
-
-import java.nio.ByteBuffer;
+import com.mojang.blaze3d.pipeline.RenderPipeline;
+import lpctools.lpcfymasaapi.render.PositionColorVertex;
+import lpctools.lpcfymasaapi.render.Shape;
+import net.minecraft.util.math.BlockPos;
 
 //索引使用GL_UNSIGNED_BYTE
 public interface IRenderMethod {
-    int getVertexBufferSize();
-    int getIndexCount();
     String getNameKey();
-    Constants.DrawMode getDrawMode();
-    //vertex但是不flip
-    void vertex(ByteBuffer vertexBuffer, ByteBuffer indexBuffer);
+    Shape<PositionColorVertex> getShape(BlockPos pos, int color);
+    RenderPipeline getPipeline();
 }

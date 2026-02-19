@@ -6,7 +6,7 @@ import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
 import lpctools.generic.GenericUtils;
 import lpctools.lpcfymasaapi.Registries;
 import lpctools.lpcfymasaapi.render.Quad;
-import lpctools.lpcfymasaapi.render.TranslucentQuads;
+import lpctools.lpcfymasaapi.render.TranslucentShapes;
 import lpctools.util.AlgorithmUtils;
 import lpctools.util.MathUtils;
 import lpctools.util.Packed;
@@ -33,6 +33,7 @@ import java.util.HashMap;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Supplier;
 
+import static lpctools.generic.GenericConfigs.updateLimitPerFrame;
 import static lpctools.tools.slightXRay.SlightXRayData.*;
 import static lpctools.util.AlgorithmUtils.iterateInManhattanDistance;
 import static lpctools.util.BlockUtils.isFluid;
@@ -42,12 +43,9 @@ class DataInstance implements AutoCloseable, ClientChunkEvents.Load, ClientWorld
     private final ArrayList<Pair<ChunkPos, Supplier<UpdateData>>> delayedTasks = new ArrayList<>();
     // 为方便清理操作，给markedPoses分块，区块坐标->区块local坐标->颜色
     private final Long2ObjectOpenHashMap<Int2ObjectOpenHashMap<MutableInt>> markedPoses = new Long2ObjectOpenHashMap<>();
-    private final Long2ObjectOpenHashMap<TranslucentQuads> posQuads = new Long2ObjectOpenHashMap<>();
+    private final Long2ObjectOpenHashMap<TranslucentShapes> posQuads = new Long2ObjectOpenHashMap<>();
     private final LongOpenHashSet posesNeedToUpdateRender = new LongOpenHashSet();
-    @SuppressWarnings("FieldCanBeLocal")
-	private final int updateLimitPerFrame = 8192;
-    @SuppressWarnings("FieldCanBeLocal")
-	private final int runningTasksLimit = 20;
+	private final int runningTasksLimit = Runtime.getRuntime().availableProcessors();
     
     private int updateCounter = 0;
     
@@ -114,7 +112,7 @@ class DataInstance implements AutoCloseable, ClientChunkEvents.Load, ClientWorld
     
     // 更新某pos的渲染面状态
     private void updatePosRender(long packedBlockPos){
-        ++updateCounter;
+        --updateCounter;
         var colorSource = getMarkedPos(packedBlockPos);
         if(colorSource == null) {
             var old = posQuads.remove(packedBlockPos);
@@ -127,7 +125,7 @@ class DataInstance implements AutoCloseable, ClientChunkEvents.Load, ClientWorld
         int z = BlockPos.unpackLongZ(packedBlockPos);
         int color = colorSource.intValue();
         var q = posQuads.remove(packedBlockPos);
-        TranslucentQuads quads = q == null ? new TranslucentQuads() : q;
+        TranslucentShapes quads = q == null ? new TranslucentShapes(false) : q;
         quads.clear();
         if(!containsMarkedPos(x - 1, y, z)) quads.addQuad(x    , y, z, 0, 0, 1, 0, 1, 0, color);
         if(!containsMarkedPos(x + 1, y, z)) quads.addQuad(x + 1, y, z, 0, 1, 0, 0, 0, 1, color);
@@ -183,11 +181,11 @@ class DataInstance implements AutoCloseable, ClientChunkEvents.Load, ClientWorld
                     var q = posQuads.remove(Packed.BlockPos.packedFromChunkLocal(packedChunkPos, e.getIntKey()));
                     if(q != null) {
                         q.close();
-                        ++updateCounter;
+                        --updateCounter;
                     }
                 }
-                updateCounter += marked.size() / 16;
-                if(updateCounter >= updateLimitPerFrame) break;
+                updateCounter -= marked.size() / 16;
+                if(updateCounter <= 0) break;
             }
         }
     }
@@ -198,19 +196,19 @@ class DataInstance implements AutoCloseable, ClientChunkEvents.Load, ClientWorld
             while (it.hasNext()) {
                 updatePosRender(it.nextLong());
                 it.remove();
-                if (updateCounter >= updateLimitPerFrame) break;
+                if (updateCounter <= 0) break;
             }
         }
     }
     
     @Override public void onRenderWorldPreWeather(Registries.WorldRenderContext context) {
-        updateCounter = 0;
+        updateCounter = updateLimitPerFrame.getAsInt() + Math.min(updateCounter, 0);
         SlightXRay.tryRefreshXRayBlocks();
         var camPos = context.camera().getPos();
         clearChunksOutOfRange(camPos.x, camPos.z);
-        if(updateCounter >= updateLimitPerFrame) return;
+        if(updateCounter <= 0) return;
         updatePosesNeedToUpdate();
-        if(updateCounter >= updateLimitPerFrame) return;
+        if(updateCounter <= 0) return;
         LongOpenHashSet completedFutures = null;
         if(!delayedTasks.isEmpty()){
             delayedTasks.sort(Comparator.<Pair<ChunkPos, Supplier<UpdateData>>>comparingDouble(v->squaredDistanceByClient(v.getLeft())).reversed());
@@ -224,9 +222,9 @@ class DataInstance implements AutoCloseable, ClientChunkEvents.Load, ClientWorld
             var result = data.future.join();
             for(var v : result.markedPoses.long2ObjectEntrySet())
                 putMarkedPos(v.getLongKey(), v.getValue());
-            updateCounter += result.markedPoses.size() / 16;
+            updateCounter -= result.markedPoses.size() / 16;
             result.markedPoses.clear();
-            if(updateCounter >= updateLimitPerFrame) break;
+            if(updateCounter <= 0) break;
             var it = result.posesNeedToUpdate.long2ObjectEntrySet().iterator();
             while(it.hasNext()) {
                 var entry = it.next();
@@ -245,14 +243,14 @@ class DataInstance implements AutoCloseable, ClientChunkEvents.Load, ClientWorld
                     }
                     else cache.quads.addQuad(e.quad, false);
                 }
-                TranslucentQuads old;
+                TranslucentShapes old;
                 if(cache.quads.isEmpty()) {
                     old = posQuads.remove(packedPos);
                     cache.quads.close();
                 }
                 else old = posQuads.put(packedPos, cache.quads);
                 if(old != null) old.close();
-                if(++updateCounter >= updateLimitPerFrame) break;
+                if(--updateCounter <= 0) break;
             }
             if(result.posesNeedToUpdate.isEmpty()) completedFutures.add(data.pos.toLong());
             else break;
@@ -319,7 +317,7 @@ class DataInstance implements AutoCloseable, ClientChunkEvents.Load, ClientWorld
     protected void clearData(){
         AlgorithmUtils.cancelTasks(runningTasks, v->v.future);
         delayedTasks.clear();
-        posQuads.values().forEach(TranslucentQuads::close);
+        posQuads.values().forEach(TranslucentShapes::close);
         posQuads.clear();
         posesNeedToUpdateRender.clear();
         markedPoses.clear();
@@ -353,7 +351,7 @@ class DataInstance implements AutoCloseable, ClientChunkEvents.Load, ClientWorld
     
     // 能由子线程处理的尽量给子线程处理，此处尝试将Quad的new操作也交给子线程
     record DirectionQuadPair(Direction direction, Quad quad) {}
-    record UpdatedCache(ArrayList<DirectionQuadPair> preparedPairs, TranslucentQuads quads) {}
+    record UpdatedCache(ArrayList<DirectionQuadPair> preparedPairs, TranslucentShapes quads) {}
     record TaskResult(Long2ObjectOpenHashMap<MutableInt> markedPoses, Long2ObjectOpenHashMap<UpdatedCache> posesNeedToUpdate){}
     private record UpdateData(ChunkPos pos, CompletableFuture<TaskResult> future, double distanceSquare){}
     private void testChunkAsync(ClientWorld world, ChunkPos pos, double distanceSquare){
@@ -419,7 +417,7 @@ class DataInstance implements AutoCloseable, ClientChunkEvents.Load, ClientWorld
                     int color = colorContainer.intValue();
                     for(var d : Direction.values()){
                         if(!testMap.containsKey(BlockPos.asLong(x + d.getOffsetX(), y + d.getOffsetY(), z + d.getOffsetZ()))){
-                            var cache = res.computeIfAbsent(packedPos, v->new UpdatedCache(new ArrayList<>(), new TranslucentQuads()));
+                            var cache = res.computeIfAbsent(packedPos, v->new UpdatedCache(new ArrayList<>(), new TranslucentShapes(false)));
                             cache.preparedPairs.add(new DirectionQuadPair(d, switch(d) {
                                 case DOWN -> new Quad(x, y    , z, 1, 0, 0, 0, 0, 1, color);
                                 case UP   -> new Quad(x, y + 1, z, 0, 0, 1, 1, 0, 0, color);

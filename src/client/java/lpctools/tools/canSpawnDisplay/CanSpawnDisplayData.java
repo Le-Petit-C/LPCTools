@@ -6,5 +6,5 @@ public class CanSpawnDisplayData {
         new FullSurfaceRenderMethod(),
         new LineCubeRenderMethod()
     };
-    static RenderInstance renderInstance;
+    static DataInstance dataInstance;
 }

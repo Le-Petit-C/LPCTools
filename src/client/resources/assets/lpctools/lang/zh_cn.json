@@ -68,6 +68,8 @@
 	"lpctools.configs.generic.clearLPCToolsCache.name": "清除LPCTools缓存",
 	"lpctools.configs.generic.clearLPCToolsCache.comment": "点击按钮以清除LPCTools的所有缓存数据",
 	"lpctools.configs.generic.clearLPCToolsCache.title": "清理",
+	"lpctools.configs.generic.updateLimitPerFrame.name": "每帧最大更新数",
+	"lpctools.configs.generic.updateLimitPerFrame.comment": "控制部分项目在主线程的每帧最大更新数以防止卡顿\n如“轻微矿透”和“刷怪信息显示工具”中会限制每帧最大更新形状数",
 	"lpctools.configs.tools.title": "工具",
 	"lpctools.tools.enableNotification": "工具 %s §a开启§f",
 	"lpctools.tools.disableNotification": "工具 %s §c关闭§f",
