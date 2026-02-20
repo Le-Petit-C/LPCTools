@@ -87,11 +87,11 @@ public class DataInstance implements AutoCloseable, Registries.ClientWorldChunkL
     DataInstance(@NotNull MinecraftClient client){
         this.client = client;
         registerAll(true);
-        if(client.world == null || client.player == null) return;
-        Vec3d playerPos = client.player.getEntityPos();
         updateRenderMethod();
         updateRenderColor();
         updateRenderRange();
+        if(client.world == null || client.player == null) return;
+        Vec3d playerPos = client.player.getEntityPos();
         resetData(client.world, playerPos);
     }
     
