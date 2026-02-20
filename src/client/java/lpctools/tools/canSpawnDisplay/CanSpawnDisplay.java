@@ -3,6 +3,7 @@ package lpctools.tools.canSpawnDisplay;
 import fi.dy.masa.malilib.util.data.Color4f;
 import lpctools.lpcfymasaapi.configButtons.derivedConfigs.ArrayOptionListConfig;
 import lpctools.lpcfymasaapi.configButtons.derivedConfigs.RangeLimitConfig;
+import lpctools.lpcfymasaapi.configButtons.transferredConfigs.BooleanConfig;
 import lpctools.lpcfymasaapi.configButtons.transferredConfigs.ColorConfig;
 import lpctools.lpcfymasaapi.configButtons.uniqueConfigs.BooleanHotkeyThirdListConfig;
 import lpctools.tools.ToolConfigs;
@@ -21,11 +22,12 @@ public class CanSpawnDisplay{
     static {rangeLimit.setValueChangeCallback(CanSpawnDisplay::onRenderRangeChanged);}
     // public static final DoubleConfig renderDistance = addDoubleConfig("renderDistance", 32, 16, 512);
     public static final RenderMethodConfig renderMethod = addConfig(new RenderMethodConfig());
-    // public static final BooleanConfig renderXRays = addBooleanConfig("renderXRays", true);
+    public static final BooleanConfig renderXRays = addBooleanConfig("renderXRays", true, CanSpawnDisplay::onRenderXRaysChanged);
     static {listStack.pop();}
     
     private static void onColorChanged() { if(dataInstance != null) dataInstance.updateRenderColor(); }
     private static void onRenderRangeChanged(){ if(dataInstance != null) dataInstance.updateRenderRange(); }
+    private static void onRenderXRaysChanged(){ if(dataInstance != null) dataInstance.updateRenderXRays(); }
     
     public static class RenderMethodConfig extends ArrayOptionListConfig<IRenderMethod>{
         public RenderMethodConfig() {

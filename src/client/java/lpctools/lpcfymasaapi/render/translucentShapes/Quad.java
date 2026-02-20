@@ -1,5 +1,6 @@
-package lpctools.lpcfymasaapi.render;
+package lpctools.lpcfymasaapi.render.translucentShapes;
 
+import lpctools.lpcfymasaapi.render.PositionColorVertex;
 import org.joml.Vector3d;
 
 // 平行四边形，逆时针方向定为base->base+u->base+u+v->base+v

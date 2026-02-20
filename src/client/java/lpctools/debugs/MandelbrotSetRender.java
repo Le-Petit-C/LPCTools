@@ -102,10 +102,10 @@ public class MandelbrotSetRender extends BooleanThirdListConfig implements Regis
     
     @Override public void onValueChanged() {
         super.onValueChanged();
-        Registries.WORLD_RENDER_LAST.register(this, getBooleanValue());
+        Registries.MASA_WORLD_RENDER_LAST.register(this, getBooleanValue());
     }
     
-    @Override public void onLast(Registries.WorldRenderContext context) {
+    @Override public void onLast(Registries.MASAWorldRenderContext context) {
         var fb = context.fb();
         GpuTextureView colorAttachmentView = fb.getColorAttachmentView();
         GpuTextureView depthAttachmentView = fb.useDepthAttachment ? fb.getDepthAttachmentView() : null;

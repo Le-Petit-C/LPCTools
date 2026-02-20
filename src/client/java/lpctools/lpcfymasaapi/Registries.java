@@ -7,6 +7,7 @@ import fi.dy.masa.malilib.interfaces.IRenderer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientChunkEvents;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientWorldEvents;
+import net.fabricmc.fabric.api.client.rendering.v1.world.WorldRenderEvents;
 import net.fabricmc.fabric.api.resource.v1.ResourceLoader;
 import net.minecraft.block.BlockState;
 import net.minecraft.client.MinecraftClient;
@@ -52,23 +53,43 @@ public class Registries {
         callbacks->(world, chunk)->callbacks.forEach(screen->screen.onChunkLoad(world, chunk)));
     public static final UnregistrableRegistry<ClientChunkEvents.Unload> CLIENT_CHUNK_UNLOAD = new UnregistrableRegistry<>(
         callbacks->(world, chunk)->callbacks.forEach(screen->screen.onChunkUnload(world, chunk)));
+    public static final UnregistrableRegistry<WorldPreMainRender> PRE_MAIN = new UnregistrableRegistry<>(
+        callbacks->context->callbacks.forEach(callback->callback.onRenderWorldPreMain(context)));
+    public static final UnregistrableRegistry<WorldRenderEvents.AfterBlockOutlineExtraction> AFTER_BLOCK_OUTLINE_EXTRACTION = new UnregistrableRegistry<>(
+        callbacks->(context, result)->callbacks.forEach(callback->callback.afterBlockOutlineExtraction(context, result)));
+    public static final UnregistrableRegistry<WorldRenderEvents.EndExtraction> END_EXTRACTION = new UnregistrableRegistry<>(
+        callbacks->(context)->callbacks.forEach(callback->callback.endExtraction(context)));
+    public static final UnregistrableRegistry<WorldRenderEvents.StartMain> START_MAIN = new UnregistrableRegistry<>(
+        callbacks->(context)->callbacks.forEach(callback->callback.startMain(context)));
+    public static final UnregistrableRegistry<WorldRenderEvents.BeforeEntities> BEFORE_ENTITIES = new UnregistrableRegistry<>(
+        callbacks->(context)->callbacks.forEach(callback->callback.beforeEntities(context)));
+    public static final UnregistrableRegistry<WorldRenderEvents.AfterEntities> AFTER_ENTITIES = new UnregistrableRegistry<>(
+        callbacks->(context)->callbacks.forEach(callback->callback.afterEntities(context)));
+    public static final UnregistrableRegistry<WorldRenderEvents.DebugRender> BEFORE_DEBUG_RENDER = new UnregistrableRegistry<>(
+        callbacks->(context)->callbacks.forEach(callback->callback.beforeDebugRender(context)));
+    public static final UnregistrableRegistry<WorldRenderEvents.BeforeTranslucent> BEFORE_TRANSLUCENT = new UnregistrableRegistry<>(
+        callbacks->(context)->callbacks.forEach(callback->callback.beforeTranslucent(context)));
+    public static final UnregistrableRegistry<WorldRenderEvents.BeforeBlockOutline> BEFORE_BLOCK_OUTLINE = new UnregistrableRegistry<>(
+        callbacks->(context, outlineRenderState)->{for(var callback : callbacks) if(callback.beforeBlockOutline(context, outlineRenderState)) return true; return false;});
+    public static final UnregistrableRegistry<WorldRenderEvents.EndMain> END_MAIN = new UnregistrableRegistry<>(
+        callbacks->(context)->callbacks.forEach(callback->callback.endMain(context)));
     public static final UnregistrableRegistry<ClientWorldChunkSetBlockState> CLIENT_WORLD_CHUNK_SET_BLOCK_STATE = new UnregistrableRegistry<>(
         callbacks->(chunk, pos, lastState, newState)->callbacks.forEach(screen->screen.onClientWorldChunkSetBlockState(chunk, pos, lastState, newState)));
-    public static final UnregistrableRegistry<GameOverlayRender> RENDER_GAME_OVERLAY = new UnregistrableRegistry<>(
+    public static final UnregistrableRegistry<GameOverlayRender> MASA_RENDER_GAME_OVERLAY = new UnregistrableRegistry<>(
         callbacks->(c, t, p, m)->callbacks.forEach(renderer->renderer.renderGameOverlay(c, t, p, m)));
-    public static final UnregistrableRegistry<WorldPostDebugRender> RENDER_WORLD_POST_DEBUG = new UnregistrableRegistry<>(
+    public static final UnregistrableRegistry<WorldPostDebugRender> MASA_RENDER_WORLD_POST_DEBUG = new UnregistrableRegistry<>(
         callbacks->c->callbacks.forEach(renderer->renderer.beforeDebugRender(c)));
-    public static final UnregistrableRegistry<WorldPreWeatherRender> RENDER_WORLD_PRE_WEATHER = new UnregistrableRegistry<>(
+    public static final UnregistrableRegistry<WorldPreWeatherRender> MASA_RENDER_WORLD_PRE_WEATHER = new UnregistrableRegistry<>(
         callbacks->c->callbacks.forEach(renderer->renderer.onRenderWorldPreWeather(c)));
-    public static final UnregistrableRegistry<WorldLastRender> WORLD_RENDER_LAST = new UnregistrableRegistry<>(
+    public static final UnregistrableRegistry<WorldLastRender> MASA_WORLD_RENDER_LAST = new UnregistrableRegistry<>(
         callbacks->c->callbacks.forEach(renderer->renderer.onLast(c)));
-    public static final UnregistrableRegistry<TooltipComponentInsertFirstRender> RENDER_TOOLTIP_COMPONENT_INSERTION_FIRST = new UnregistrableRegistry<>(
+    public static final UnregistrableRegistry<TooltipComponentInsertFirstRender> MASA_RENDER_TOOLTIP_COMPONENT_INSERTION_FIRST = new UnregistrableRegistry<>(
         callbacks->(c, s, l)->callbacks.forEach(renderer->renderer.onRenderTooltipComponentInsertFirst(c, s, l)));
-    public static final UnregistrableRegistry<TooltipComponentInsertMiddleRender> RENDER_TOOLTIP_COMPONENT_INSERTION_MIDDLE = new UnregistrableRegistry<>(
+    public static final UnregistrableRegistry<TooltipComponentInsertMiddleRender> MASA_RENDER_TOOLTIP_COMPONENT_INSERTION_MIDDLE = new UnregistrableRegistry<>(
         callbacks->(c, s, l)->callbacks.forEach(renderer->renderer.onRenderTooltipComponentInsertMiddle(c, s, l)));
-    public static final UnregistrableRegistry<TooltipComponentInsertLastRender> RENDER_TOOLTIP_COMPONENT_INSERTION_LAST = new UnregistrableRegistry<>(
+    public static final UnregistrableRegistry<TooltipComponentInsertLastRender> MASA_RENDER_TOOLTIP_COMPONENT_INSERTION_LAST = new UnregistrableRegistry<>(
         callbacks->(c, s, l)->callbacks.forEach(renderer->renderer.onRenderTooltipComponentInsertLast(c, s, l)));
-    public static final UnregistrableRegistry<TooltipLastRender> RENDER_TOOLTIP_LAST = new UnregistrableRegistry<>(
+    public static final UnregistrableRegistry<TooltipLastRender> MASA_RENDER_TOOLTIP_LAST = new UnregistrableRegistry<>(
         callbacks->(c, s, x, y)->callbacks.forEach(renderer->renderer.onRenderTooltipLast(c, s, x, y)));
     public static final UnregistrableRegistry<ClientWorldChunkLightUpdated> CLIENT_CHUNK_LIGHT_LOAD = new UnregistrableRegistry<>(
         callbacks->(world, chunk)->callbacks.forEach(callback->callback.onClientWorldChunkLightUpdated(world, chunk)));
@@ -94,26 +115,35 @@ public class Registries {
         ClientTickEvents.END_CLIENT_TICK.register(END_CLIENT_TICK.run());
         ClientChunkEvents.CHUNK_LOAD.register(CLIENT_CHUNK_LOAD.run());
         ClientChunkEvents.CHUNK_UNLOAD.register(CLIENT_CHUNK_UNLOAD.run());
-        var overlayRenderer = RENDER_GAME_OVERLAY.run();
-        var worldPostDebugRenderer = RENDER_WORLD_POST_DEBUG.run();
-        var worldPreWeatherRenderer = RENDER_WORLD_PRE_WEATHER.run();
-        var worldLastRenderer = WORLD_RENDER_LAST.run();
-        var toolTipComponentInsertFirstRenderer = RENDER_TOOLTIP_COMPONENT_INSERTION_FIRST.run();
-        var toolTipComponentInsertMiddleRenderer = RENDER_TOOLTIP_COMPONENT_INSERTION_MIDDLE.run();
-        var toolTipComponentInsertLastRenderer = RENDER_TOOLTIP_COMPONENT_INSERTION_LAST.run();
-        var toolTipLastRenderer = RENDER_TOOLTIP_LAST.run();
+        WorldRenderEvents.AFTER_BLOCK_OUTLINE_EXTRACTION.register(AFTER_BLOCK_OUTLINE_EXTRACTION.run());
+        WorldRenderEvents.END_EXTRACTION.register(END_EXTRACTION.run());
+        WorldRenderEvents.START_MAIN.register(START_MAIN.run());
+        WorldRenderEvents.BEFORE_ENTITIES.register(BEFORE_ENTITIES.run());
+        WorldRenderEvents.AFTER_ENTITIES.register(AFTER_ENTITIES.run());
+        WorldRenderEvents.BEFORE_DEBUG_RENDER.register(BEFORE_DEBUG_RENDER.run());
+        WorldRenderEvents.BEFORE_TRANSLUCENT.register(BEFORE_TRANSLUCENT.run());
+        WorldRenderEvents.BEFORE_BLOCK_OUTLINE.register(BEFORE_BLOCK_OUTLINE.run());
+        WorldRenderEvents.END_MAIN.register(END_MAIN.run());
+        var overlayRenderer = MASA_RENDER_GAME_OVERLAY.run();
+        var worldPostDebugRenderer = MASA_RENDER_WORLD_POST_DEBUG.run();
+        var worldPreWeatherRenderer = MASA_RENDER_WORLD_PRE_WEATHER.run();
+        var worldLastRenderer = MASA_WORLD_RENDER_LAST.run();
+        var toolTipComponentInsertFirstRenderer = MASA_RENDER_TOOLTIP_COMPONENT_INSERTION_FIRST.run();
+        var toolTipComponentInsertMiddleRenderer = MASA_RENDER_TOOLTIP_COMPONENT_INSERTION_MIDDLE.run();
+        var toolTipComponentInsertLastRenderer = MASA_RENDER_TOOLTIP_COMPONENT_INSERTION_LAST.run();
+        var toolTipLastRenderer = MASA_RENDER_TOOLTIP_LAST.run();
         IRenderer malilibRenderer = new IRenderer() {
             @Override public void onRenderGameOverlayPostAdvanced(DrawContext drawContext, float partialTicks, Profiler profiler, MinecraftClient mc) {
                 overlayRenderer.renderGameOverlay(drawContext, partialTicks, profiler, mc);
             }
             @Override public void onRenderWorldPostDebugRender(MatrixStack matrices, Frustum frustum, VertexConsumerProvider.Immediate immediate, Vec3d camera, Profiler profiler) {
-                worldPostDebugRenderer.beforeDebugRender(new DebugRenderContext(matrices, frustum, immediate, camera, profiler));
+                worldPostDebugRenderer.beforeDebugRender(new MASADebugRenderContext(matrices, frustum, immediate, camera, profiler));
             }
             @Override public void onRenderWorldPreWeather(Framebuffer fb, Matrix4f posMatrix, Matrix4f projMatrix, Frustum frustum, Camera camera, BufferBuilderStorage buffers, Profiler profiler) {
-                worldPreWeatherRenderer.onRenderWorldPreWeather(new WorldRenderContext(fb, posMatrix, projMatrix, frustum, camera, buffers, profiler));
+                worldPreWeatherRenderer.onRenderWorldPreWeather(new MASAWorldRenderContext(fb, posMatrix, projMatrix, frustum, camera, buffers, profiler));
             }
             @Override public void onRenderWorldLastAdvanced(Framebuffer fb, Matrix4f posMatrix, Matrix4f projMatrix, Frustum frustum, Camera camera, BufferBuilderStorage buffers, Profiler profiler) {
-                worldLastRenderer.onLast(new WorldRenderContext(fb, posMatrix, projMatrix, frustum, camera, buffers, profiler));
+                worldLastRenderer.onLast(new MASAWorldRenderContext(fb, posMatrix, projMatrix, frustum, camera, buffers, profiler));
             }
             @Override public void onRenderTooltipComponentInsertFirst(Item.TooltipContext context, ItemStack stack, Consumer<Text> list) {
                 toolTipComponentInsertFirstRenderer.onRenderTooltipComponentInsertFirst(context, stack, list);
@@ -148,16 +178,19 @@ public class Registries {
     public interface GameOverlayRender {
         void renderGameOverlay(DrawContext drawContext, float partialTicks, Profiler profiler, MinecraftClient mc);
     }
-    public record DebugRenderContext(MatrixStack matrices, Frustum frustum, VertexConsumerProvider.Immediate immediate, Vec3d camera, Profiler profiler) {}
+    public record MASADebugRenderContext(MatrixStack matrices, Frustum frustum, VertexConsumerProvider.Immediate immediate, Vec3d camera, Profiler profiler) {}
     public interface WorldPostDebugRender{
-        void beforeDebugRender(DebugRenderContext context);
+        void beforeDebugRender(MASADebugRenderContext context);
     }
-    public record WorldRenderContext(Framebuffer fb, Matrix4f positionMatrix, Matrix4f projectionMatrix, Frustum frustum, Camera camera, BufferBuilderStorage buffers, Profiler profiler) {}
+    public record MASAWorldRenderContext(Framebuffer fb, Matrix4f positionMatrix, Matrix4f projectionMatrix, Frustum frustum, Camera camera, BufferBuilderStorage buffers, Profiler profiler) {}
+    public interface WorldPreMainRender {
+        void onRenderWorldPreMain(MASAWorldRenderContext context);
+    }
     public interface WorldPreWeatherRender {
-        void onRenderWorldPreWeather(WorldRenderContext context);
+        void onRenderWorldPreWeather(MASAWorldRenderContext context);
     }
     public interface WorldLastRender {
-        void onLast(WorldRenderContext context);
+        void onLast(MASAWorldRenderContext context);
     }
     public interface TooltipComponentInsertFirstRender {
         void onRenderTooltipComponentInsertFirst(Item.TooltipContext context, ItemStack stack, Consumer<Text> list);

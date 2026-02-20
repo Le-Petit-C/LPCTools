@@ -1,16 +1,13 @@
 package lpctools.tools.canSpawnDisplay;
 
-import com.mojang.blaze3d.pipeline.RenderPipeline;
 import lpctools.lpcfymasaapi.render.PositionColorVertex;
-import lpctools.lpcfymasaapi.render.Quad;
-import lpctools.lpcfymasaapi.render.Shape;
-import lpctools.lpcfymasaapi.render.TranslucentShapes;
+import lpctools.lpcfymasaapi.render.translucentShapes.*;
 import net.minecraft.util.math.BlockPos;
 
 public class FullSurfaceRenderMethod implements IRenderMethod{
     @Override public String getNameKey() {return "fullSurface";}
-    @Override public Shape<PositionColorVertex> getShape(BlockPos pos, int color) {
-        return new Quad(pos.getX(), pos.getY() + 0.005, pos.getZ(), 0.0, 0.0, 1.0, 1.0, 0.0, 0.0, color, false);
+    @Override public Shape<PositionColorVertex> getShape(BlockPos pos, int color, boolean xrays) {
+        return new Quad(pos.getX(), pos.getY() + (xrays ? 0.0 : 0.005), pos.getZ(), 0.0, 0.0, 1.0, 1.0, 0.0, 0.0, color, false);
     }
-    @Override public RenderPipeline getPipeline() {return TranslucentShapes.shapePipeline();}
+    @Override public RenderInstance getRenderInstance(boolean xrays) {return RenderInstance.defaultRenderInstance(false, xrays);}
 }

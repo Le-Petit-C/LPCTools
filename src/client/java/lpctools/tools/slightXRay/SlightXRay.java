@@ -37,6 +37,7 @@ public class SlightXRay{
     public static final ILPCConfigList byDefaultColor = defaultColorMethod.addList("byDefaultColor", SlightXRay::getColorByDefaultColor);
     public static final ColorConfig defaultColor = addColorConfig(byDefaultColor, "defaultColor", new Color4f(0.5f, 0.5f, 1.0f, 0.5f), XRayBlocksConfig::updateDefaultColor);
     static {addConfig(XRayBlocksConfig);}
+    // TODO: 重新实现下面这些选项
     // public static final BooleanConfig useCullFace = addBooleanConfig("useCullFace", true);
     // public static final RangeLimitConfig displayRange = addRangeLimitConfig();
     // static {displayRange.setValueChangeCallback(()->{if(dataInstance != null) dataInstance.onRenderRangeChanged(displayRange);});}

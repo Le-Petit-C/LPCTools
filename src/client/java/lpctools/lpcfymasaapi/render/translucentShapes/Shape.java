@@ -1,5 +1,7 @@
-package lpctools.lpcfymasaapi.render;
+package lpctools.lpcfymasaapi.render.translucentShapes;
 
+import lpctools.lpcfymasaapi.render.IPositionVertex;
+import lpctools.lpcfymasaapi.render.IVertex;
 import lpctools.util.DataUtils;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Vector3d;

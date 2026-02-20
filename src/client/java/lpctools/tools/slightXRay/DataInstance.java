@@ -5,8 +5,8 @@ import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
 import lpctools.generic.GenericUtils;
 import lpctools.lpcfymasaapi.Registries;
-import lpctools.lpcfymasaapi.render.Quad;
-import lpctools.lpcfymasaapi.render.TranslucentShapes;
+import lpctools.lpcfymasaapi.render.translucentShapes.Quad;
+import lpctools.lpcfymasaapi.render.translucentShapes.TranslucentShapes;
 import lpctools.util.AlgorithmUtils;
 import lpctools.util.MathUtils;
 import lpctools.util.Packed;
@@ -38,7 +38,7 @@ import static lpctools.tools.slightXRay.SlightXRayData.*;
 import static lpctools.util.AlgorithmUtils.iterateInManhattanDistance;
 import static lpctools.util.BlockUtils.isFluid;
 
-class DataInstance implements AutoCloseable, ClientChunkEvents.Load, ClientWorldEvents.AfterClientWorldChange, Registries.ClientWorldChunkSetBlockState, Registries.WorldPreWeatherRender {
+class DataInstance implements AutoCloseable, ClientChunkEvents.Load, ClientWorldEvents.AfterClientWorldChange, Registries.ClientWorldChunkSetBlockState, Registries.WorldLastRender {
     private final ArrayList<UpdateData> runningTasks = new ArrayList<>();
     private final ArrayList<Pair<ChunkPos, Supplier<UpdateData>>> delayedTasks = new ArrayList<>();
     // 为方便清理操作，给markedPoses分块，区块坐标->区块local坐标->颜色
@@ -125,7 +125,7 @@ class DataInstance implements AutoCloseable, ClientChunkEvents.Load, ClientWorld
         int z = BlockPos.unpackLongZ(packedBlockPos);
         int color = colorSource.intValue();
         var q = posQuads.remove(packedBlockPos);
-        TranslucentShapes quads = q == null ? new TranslucentShapes(false) : q;
+        TranslucentShapes quads = q == null ? new TranslucentShapes(false, true) : q;
         quads.clear();
         if(!containsMarkedPos(x - 1, y, z)) quads.addQuad(x    , y, z, 0, 0, 1, 0, 1, 0, color);
         if(!containsMarkedPos(x + 1, y, z)) quads.addQuad(x + 1, y, z, 0, 1, 0, 0, 0, 1, color);
@@ -201,7 +201,7 @@ class DataInstance implements AutoCloseable, ClientChunkEvents.Load, ClientWorld
         }
     }
     
-    @Override public void onRenderWorldPreWeather(Registries.WorldRenderContext context) {
+    @Override public void onLast(Registries.MASAWorldRenderContext context) {
         updateCounter = updateLimitPerFrame.getAsInt() + Math.min(updateCounter, 0);
         SlightXRay.tryRefreshXRayBlocks();
         var camPos = context.camera().getPos();
@@ -268,7 +268,7 @@ class DataInstance implements AutoCloseable, ClientChunkEvents.Load, ClientWorld
     }
     void registerAll(boolean b){
         Registries.AFTER_CLIENT_WORLD_CHANGE.register(this, b);
-        Registries.RENDER_WORLD_PRE_WEATHER.register(this, b);
+        Registries.MASA_WORLD_RENDER_LAST.register(this, b);
         Registries.CLIENT_CHUNK_LOAD.register(this, b);
         Registries.CLIENT_WORLD_CHUNK_SET_BLOCK_STATE.register(this, b);
     }
@@ -417,7 +417,7 @@ class DataInstance implements AutoCloseable, ClientChunkEvents.Load, ClientWorld
                     int color = colorContainer.intValue();
                     for(var d : Direction.values()){
                         if(!testMap.containsKey(BlockPos.asLong(x + d.getOffsetX(), y + d.getOffsetY(), z + d.getOffsetZ()))){
-                            var cache = res.computeIfAbsent(packedPos, v->new UpdatedCache(new ArrayList<>(), new TranslucentShapes(false)));
+                            var cache = res.computeIfAbsent(packedPos, v->new UpdatedCache(new ArrayList<>(), new TranslucentShapes(false, true)));
                             cache.preparedPairs.add(new DirectionQuadPair(d, switch(d) {
                                 case DOWN -> new Quad(x, y    , z, 1, 0, 0, 0, 0, 1, color);
                                 case UP   -> new Quad(x, y + 1, z, 0, 0, 1, 1, 0, 0, color);

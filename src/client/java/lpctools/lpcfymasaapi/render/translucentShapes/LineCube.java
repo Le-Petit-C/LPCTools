@@ -1,5 +1,6 @@
-package lpctools.lpcfymasaapi.render;
+package lpctools.lpcfymasaapi.render.translucentShapes;
 
+import lpctools.lpcfymasaapi.render.PositionColorVertex;
 import net.minecraft.util.math.BlockPos;
 import org.joml.Vector3d;
 

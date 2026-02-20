@@ -1,4 +1,4 @@
-package lpctools.lpcfymasaapi.render;
+package lpctools.lpcfymasaapi.render.translucentShapes;
 
 import lpctools.util.javaex.QuietAutoCloseable;
 

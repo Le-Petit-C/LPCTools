@@ -201,16 +201,16 @@ public class GpuCacheMissTest {
 				()->"GpuCacheMissTest IndexBuffer", GpuBuffer.USAGE_INDEX | GpuBuffer.USAGE_COPY_DST,
 				indexByteBuffer);
 			MemoryUtil.memFree(indexByteBuffer);
-			Registries.WORLD_RENDER_LAST.register(this);
+			Registries.MASA_WORLD_RENDER_LAST.register(this);
 		}
 		
 		@Override public void close() {
 			vertexBuffer.close();
 			indexBuffer.close();
-			Registries.WORLD_RENDER_LAST.unregister(this);
+			Registries.MASA_WORLD_RENDER_LAST.unregister(this);
 		}
 		
-		@Override public void onLast(Registries.WorldRenderContext context) {
+		@Override public void onLast(Registries.MASAWorldRenderContext context) {
 			var fb = context.fb();
 			GpuTextureView colorAttachmentView = fb.getColorAttachmentView();
 			GpuTextureView depthAttachmentView = fb.useDepthAttachment ? fb.getDepthAttachmentView() : null;

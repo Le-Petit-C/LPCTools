@@ -10,6 +10,7 @@
 		"FurnaceMaintainer",
 		"MinecraftWindowMixin",
 		"MinecraftWindowMixin$GLFWVersionRecord",
+		"MixinWorldRenderer",
 		"OnMouseButtonReturnMixin",
 		"SplashTextResourceSupplierMixin",
 		"SpriteContentsMixin",

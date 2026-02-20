@@ -14,8 +14,9 @@ public class LPCTools {
 	public static final long startTimeMillis = System.currentTimeMillis();
 	public static void init(){}
 	public static final Logger LOGGER = LogManager.getLogger("LPCTools");
+	public static final Reference modReference = new Reference("LPCTools");
 	static {LOGGER.info("Initializing");}
-	public static final LPCConfigPage page = new LPCConfigPage(new Reference("LPCTools"));
+	public static final LPCConfigPage page = new LPCConfigPage(modReference);
 	static {
 		page.addList(GenericConfigs.generic);
 		page.addList(ToolConfigs.toolConfigs);

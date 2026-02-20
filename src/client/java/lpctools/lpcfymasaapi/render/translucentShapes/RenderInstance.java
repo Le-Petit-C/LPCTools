@@ -1,4 +1,4 @@
-package lpctools.lpcfymasaapi.render;
+package lpctools.lpcfymasaapi.render.translucentShapes;
 
 import com.mojang.blaze3d.buffers.GpuBuffer;
 import com.mojang.blaze3d.buffers.GpuBufferSlice;
@@ -8,9 +8,11 @@ import com.mojang.blaze3d.systems.RenderPass;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.textures.GpuTextureView;
 import com.mojang.blaze3d.vertex.VertexFormat;
+import fi.dy.masa.malilib.render.MaLiLibPipelines;
 import it.unimi.dsi.fastutil.ints.*;
 import it.unimi.dsi.fastutil.longs.Long2IntOpenHashMap;
 import lpctools.lpcfymasaapi.Registries;
+import lpctools.lpcfymasaapi.render.IPositionVertex;
 import lpctools.util.CachedSupplier;
 import lpctools.util.javaex.QuietAutoCloseable;
 import net.minecraft.client.render.Frustum;
@@ -38,9 +40,9 @@ import java.util.function.Supplier;
 
 // TODO:
 //  trim清理
-//  渲染选项（透视，渲染时机）
-public class TranslucentShapesRenderInstance implements QuietAutoCloseable, Registries.WorldPreWeatherRender, Registries.WorldLastRender {
-	private static final ConcurrentHashMap<RenderPipeline, TranslucentShapesRenderInstance> renderInstances = new ConcurrentHashMap<>();
+//  渲染优先级（或许可以在渲染选项中指定）
+public class RenderInstance implements QuietAutoCloseable, Registries.WorldPreMainRender, IRenderCallback {
+	private static final ConcurrentHashMap<RenderOption, RenderInstance> renderInstances = new ConcurrentHashMap<>();
 	
 	// 进行重排的最小tan值，值越小重排越频繁，也就越卡，但是对应地出现深度错误的情况越少
 	private static final double resortTan = 0.25;
@@ -69,7 +71,7 @@ public class TranslucentShapesRenderInstance implements QuietAutoCloseable, Regi
 	private static int getBlockCoordZGreater(long packed){ return getBlockCoordGreater(unpackGreaterSectionZ(packed)); }
 	private static long toPackedGreaterSectionPos(Vector3d pos){ return getPackedGreaterSectionPos(pos.x, pos.y, pos.z); }
 	
-	private final RenderPipeline pipeline;
+	private final RenderOption renderOption;
 	// 变换基点，所有vertex以此为基点进行变换
 	private final Vector3d basePoint = new Vector3d();
 	private final ArrayList<SubChunk> subChunks = new ArrayList<>();
@@ -82,16 +84,44 @@ public class TranslucentShapesRenderInstance implements QuietAutoCloseable, Regi
 	private CompletableFuture<Void> prepareTasks;
 	private CompletableFuture<CompletableFuture<Void>> dispatchTask;
 	
-	private int sizePerVertex(){ return pipeline.getVertexFormat().getVertexSize(); }
+	private Registries.MASAWorldRenderContext recordedWorldRenderContext;
 	
-	private TranslucentShapesRenderInstance(RenderPipeline renderPipeline) {
-		this.pipeline = renderPipeline;
-		Registries.RENDER_WORLD_PRE_WEATHER.register(this);
-		Registries.WORLD_RENDER_LAST.register(this);
+	private int sizePerVertex(){ return renderOption.pipeline().getVertexFormat().getVertexSize(); }
+	
+	private RenderInstance(RenderOption renderOption) {
+		this.renderOption = renderOption;
+		Registries.PRE_MAIN.register(this);
+		renderOption.timing().register(this, true);
 	}
 	
-	public static TranslucentShapesRenderInstance getRenderInstance(RenderPipeline renderPipeline) {
-		return renderInstances.computeIfAbsent(renderPipeline, TranslucentShapesRenderInstance::new);
+	public static RenderInstance getRenderInstance(RenderOption renderOption) {
+		return renderInstances.computeIfAbsent(renderOption, RenderInstance::new);
+	}
+	
+	public static RenderPipeline shapePipeline =
+		MaLiLibPipelines.POSITION_COLOR_MASA;
+		// MaLiLibPipelines.POSITION_COLOR_MASA_DEPTH_MASK;
+	
+	public static RenderPipeline linePipeline = MaLiLibPipelines.DEBUG_LINES_MASA_SIMPLE;
+	
+	public static RenderOption shapeOptionWithDepth = new RenderOption(shapePipeline, true, true, RenderTiming.BEFORE_TRANSLUCENT);
+	public static RenderOption shapeOptionDepthless = new RenderOption(shapePipeline, true, false, RenderTiming.END_MAIN);
+	public static RenderOption lineOptionWithDepth = new RenderOption(linePipeline, true, true, RenderTiming.BEFORE_TRANSLUCENT);
+	public static RenderOption lineOptionDepthless = new RenderOption(linePipeline, true, false, RenderTiming.END_MAIN);
+	
+	public static RenderInstance shapeInstanceWithDepth() { return getRenderInstance(shapeOptionWithDepth); }
+	public static RenderInstance shapeInstanceDepthless() { return getRenderInstance(shapeOptionDepthless); }
+	public static RenderInstance lineInstanceWithDepth() { return getRenderInstance(lineOptionWithDepth); }
+	public static RenderInstance lineInstanceDepthless() { return getRenderInstance(lineOptionDepthless); }
+	public static RenderInstance defaultRenderInstance(boolean isLine, boolean depthless) {
+		if(isLine){
+			if(depthless) return lineInstanceDepthless();
+			else return lineInstanceWithDepth();
+		}
+		else {
+			if(depthless) return shapeInstanceDepthless();
+			else return shapeInstanceWithDepth();
+		}
 	}
 	
 	public ShapeReference addShape(Shape<? extends IPositionVertex> shape) {
@@ -111,7 +141,8 @@ public class TranslucentShapesRenderInstance implements QuietAutoCloseable, Regi
 		return subChunks.get(index).addShape(shape);
 	}
 	
-	@Override public void onLast(Registries.WorldRenderContext context) {
+	@Override public void render() {
+		var context = recordedWorldRenderContext;
 		waitForTasks();
 		var commandEncoder = RenderSystem.getDevice().createCommandEncoder();
 		if(!subChunksNeedUpload.isEmpty()) {
@@ -119,16 +150,16 @@ public class TranslucentShapesRenderInstance implements QuietAutoCloseable, Regi
 			subChunksNeedUpload.clear();
 		}
 		var fb = context.fb();
-		GpuTextureView colorAttachmentView = fb.getColorAttachmentView();
-		//GpuTextureView depthAttachmentView = fb.useDepthAttachment ? fb.getDepthAttachmentView() : null;
+		GpuTextureView colorAttachmentView = renderOption.useColorBuffer() ? fb.getColorAttachmentView() : null;
+		GpuTextureView depthAttachmentView = renderOption.useDepthBuffer() ? (fb.useDepthAttachment ? fb.getDepthAttachmentView() : null) : null;
 		var camPos = context.camera().getCameraPos();
 		GpuBufferSlice dynamicTransforms = RenderSystem.getDynamicUniforms()
 			.write(RenderSystem.getModelViewMatrix().translate(new Vector3f((float) (basePoint.x - camPos.x), (float) (basePoint.y - camPos.y), (float) (basePoint.z - camPos.z)), new Matrix4f()),
 				new Vector4f(1.0F, 1.0F, 1.0F, 1.0F), new Vector3f(), new Matrix4f(), 0.0F);
 		GpuBufferSlice projection = RenderSystem.getProjectionMatrixBuffer();
 		try (RenderPass renderPass = commandEncoder
-			.createRenderPass(renderPassLabel, colorAttachmentView, OptionalInt.empty(), null, OptionalDouble.empty())) {
-			renderPass.setPipeline(pipeline);
+			.createRenderPass(renderPassLabel, colorAttachmentView, OptionalInt.empty(), depthAttachmentView, OptionalDouble.empty())) {
+			renderPass.setPipeline(renderOption.pipeline());
 			renderPass.setUniform("DynamicTransforms", dynamicTransforms);
 			renderPass.setUniform("Projection", projection);
 			for (var subChunk : sortedRenderSubChunks)
@@ -136,11 +167,13 @@ public class TranslucentShapesRenderInstance implements QuietAutoCloseable, Regi
 		}
 	}
 	
-	@Override public void onRenderWorldPreWeather(Registries.WorldRenderContext context) {
-		prepareRenderDataAsync(context, Util.getMainWorkerExecutor(), true);
+	@Override public void onRenderWorldPreMain(Registries.MASAWorldRenderContext context) {
+		recordedWorldRenderContext = context;
+		prepareRenderDataAsync(Util.getMainWorkerExecutor(), true);
 	}
 	
-	public void prepareRenderDataAsync(Registries.WorldRenderContext context, Executor executor, boolean recordData) {
+	public void prepareRenderDataAsync(Executor executor, boolean recordData) {
+		var context = recordedWorldRenderContext;
 		RenderSystem.assertOnRenderThread();
 		waitForTasks();
 		final Frustum frustum = recordData ? new Frustum(context.frustum()) : context.frustum();
@@ -158,8 +191,8 @@ public class TranslucentShapesRenderInstance implements QuietAutoCloseable, Regi
 		subChunksNeedUpload.clear();
 		subChunkSortingCache.close();
 		
-		Registries.RENDER_WORLD_PRE_WEATHER.unregister(this);
-		Registries.WORLD_RENDER_LAST.unregister(this);
+		Registries.PRE_MAIN.unregister(this);
+		renderOption.timing().unregister(this);
 	}
 	
 	private void waitForTasks() {
@@ -315,7 +348,7 @@ public class TranslucentShapesRenderInstance implements QuietAutoCloseable, Regi
 			return res;
 		}
 		
-		void updateIfVisible(ArrayList<CompletableFuture<Void>> taskOutput, TranslucentShapesRenderInstance caller, Frustum frustum, Vec3d camPos, Executor executor) {
+		void updateIfVisible(ArrayList<CompletableFuture<Void>> taskOutput, RenderInstance caller, Frustum frustum, Vec3d camPos, Executor executor) {
 			if(shapes.isEmpty() || !frustum.isVisible(sectionBox)) return;
 			caller.sortedRenderSubChunks.add(this);
 			if(!basePoint.equals(caller.basePoint)){

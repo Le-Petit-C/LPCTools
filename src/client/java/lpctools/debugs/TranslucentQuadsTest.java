@@ -2,8 +2,8 @@ package lpctools.debugs;
 
 import lpctools.lpcfymasaapi.configButtons.uniqueConfigs.ButtonConfig;
 import lpctools.lpcfymasaapi.configButtons.uniqueConfigs.ThirdListConfig;
-import lpctools.lpcfymasaapi.render.Quad;
-import lpctools.lpcfymasaapi.render.TranslucentShapes;
+import lpctools.lpcfymasaapi.render.translucentShapes.Quad;
+import lpctools.lpcfymasaapi.render.translucentShapes.TranslucentShapes;
 import net.minecraft.client.MinecraftClient;
 import org.joml.Vector3d;
 
@@ -28,7 +28,7 @@ public class TranslucentQuadsTest {
 		Vector3d pos = new Vector3d(player.getX(), player.getY(), player.getZ());
 		Random rand = new Random();
 		Quad quad = new Quad(pos.add(-0.5, 0, -0.5, new Vector3d()), new Vector3d(1.0, 0.0, 0.0), new Vector3d(0.0, 0.0, 1.0), rand.nextInt());
-		if(quads == null) quads = new TranslucentShapes(false);
+		if(quads == null) quads = new TranslucentShapes(false, false);
 		quads.addQuad(quad, false);
 	}
 	private static void clearQuads(){
