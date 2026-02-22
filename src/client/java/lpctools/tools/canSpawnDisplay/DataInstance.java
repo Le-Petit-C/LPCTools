@@ -99,6 +99,7 @@ public class DataInstance implements AutoCloseable, Registries.ClientWorldChunkL
         updateRenderMethod();
         updateRenderColor();
         updateRenderRange();
+        updateRenderXRays();
         if(client.world == null || client.player == null) return;
         Vec3d playerPos = client.player.getEntityPos();
         resetData(client.world, playerPos);
