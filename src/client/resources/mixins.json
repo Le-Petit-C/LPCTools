@@ -8,8 +8,6 @@
 		"ClientPlayNetworkHandlerMixin",
 		"DisplayClickSlotArguments",
 		"FurnaceMaintainer",
-		"MinecraftWindowMixin",
-		"MinecraftWindowMixin$GLFWVersionRecord",
 		"MixinWorldRenderer",
 		"OnMouseButtonReturnMixin",
 		"SplashTextResourceSupplierMixin",
@@ -41,12 +39,7 @@
 		"MASAMixins.MuteMASAConfigMinMaxMixin.ConfigDoubleMixin",
 		"MASAMixins.MuteMASAConfigMinMaxMixin.ConfigIntegerMixin",
 		"ModMenuMixin.ModsScreenMixin",
-		"TweakerooMixin.GuiConfigsMixin"
-	],
-	"injectors": {
-		"defaultRequire": 1
-	},
-	"mixins": [
+		"TweakerooMixin.GuiConfigsMixin",
 		"scriptMixins.TagKeyMixin",
 		"scriptMixins.propertiesMixin.BooleanPropertyRegisterMixin",
 		"scriptMixins.propertiesMixin.EnumPropertyMixin",
@@ -54,5 +47,10 @@
 		"scriptMixins.propertiesMixin.PropertyRegisterMixin",
 		"TweakerooMixin.ConfigsListsMixin",
 		"TweakerooMixin.ConfigsMixin"
+	],
+	"injectors": {
+		"defaultRequire": 1
+	},
+	"mixins": [
 	]
 }
