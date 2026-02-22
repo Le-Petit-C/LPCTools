@@ -20,6 +20,7 @@ import java.util.Collection;
 import java.util.Map;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.function.IntConsumer;
 
 @SuppressWarnings({"UnusedReturnValue", "unused"})
 public class ToolUtils {
@@ -58,6 +59,22 @@ public class ToolUtils {
     public static <T, U, V extends Map<T, U>> V recordMap(V result, @Nullable Map<? extends T, ? extends U> source){
         if(source != null) result.putAll(source);
         return result;
+    }
+    
+    public static <T, U extends Collection<T>> U combineCollections(@NotNull U collection1, @Nullable U collection2, IntConsumer operatedSizeConsumer) {
+        if(collection2 == null) return collection1;
+        if(collection1.size() >= collection2.size()) {
+            collection1.addAll(collection2);
+            if(operatedSizeConsumer != null)
+                operatedSizeConsumer.accept(collection2.size());
+            return collection1;
+        }
+        else {
+            collection2.addAll(collection1);
+            if(operatedSizeConsumer != null)
+                operatedSizeConsumer.accept(collection1.size());
+            return collection2;
+        }
     }
     
     public static <T> T chunkedGet(Long2ObjectMap<? extends Int2ObjectMap<T>> map, int x, int y, int z) {

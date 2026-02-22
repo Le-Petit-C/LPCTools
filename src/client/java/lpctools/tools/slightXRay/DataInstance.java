@@ -30,7 +30,6 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.HashMap;
 import java.util.concurrent.CompletableFuture;
-import java.util.function.Supplier;
 
 import static lpctools.generic.GenericConfigs.updateLimitPerFrame;
 import static lpctools.tools.ToolUtils.*;
@@ -41,7 +40,9 @@ import static lpctools.util.BlockUtils.isFluid;
 class DataInstance implements AutoCloseable, ClientChunkEvents.Load, ClientWorldEvents.AfterClientWorldChange, Registries.ClientWorldChunkSetBlockState, Registries.WorldLastRender {
     private static final RenderInstance renderInstance = RenderInstance.shapeInstanceDepthless();
     
-    private record DelayedTask(long packedChunkPos, Supplier<RunningTask> taskGenerator){}
+    private interface TaskGenerator { RunningTask generate(ShapeList shapeList); }
+    
+    private record DelayedTask(long packedChunkPos, TaskGenerator taskGenerator){}
     private record RunningTask(long packedChunkPos, CompletableFuture<TaskResult> future){}
     private record TaskResult(long packedChunkPos, @NotNull Int2ObjectOpenHashMap<MutableInt> markedPoses, IntOpenHashSet shownPoses, IntOpenHashSet posesNeedToUpdate){}
     
@@ -63,13 +64,12 @@ class DataInstance implements AutoCloseable, ClientChunkEvents.Load, ClientWorld
         dataChunks.removeAll(delayedTasks.keySet());
         for(long packedChunkPos : dataChunks) {
             delayedTasks.put(packedChunkPos, new DelayedTask(
-                packedChunkPos, ()->{
+                packedChunkPos, rangeLimit->{
                     var recordedPosQuadKeys = recordCollection(new IntOpenHashSet(), posQuads.get(packedChunkPos), Int2ObjectOpenHashMap::keySet);
                     var recordedMarkedPoses = recordMap(new Int2ObjectOpenHashMap<>(), markedPoses.get(packedChunkPos));
                     updateCounter -= (recordedPosQuadKeys.size() + recordedMarkedPoses.size()) / 16;
-                    final var rangeLimit = shapeList;
 					return new RunningTask(packedChunkPos,
-						CompletableFuture.supplyAsync(()->{
+						GenericUtils.supplyAsync(()->{
 							var taskResult = new TaskResult(packedChunkPos, recordedMarkedPoses, new IntOpenHashSet(), recordedPosQuadKeys);
 							buildShownPoses(taskResult.shownPoses, rangeLimit, taskResult.markedPoses.keySet(), packedChunkPos);
 							markEdgePoses(taskResult.shownPoses, taskResult.shownPoses, taskResult.posesNeedToUpdate);
@@ -211,23 +211,9 @@ class DataInstance implements AutoCloseable, ClientChunkEvents.Load, ClientWorld
                 var result = data.future.join();
                 markedPoses.put(result.packedChunkPos, result.markedPoses);
                 renderingPoses.put(result.packedChunkPos, result.shownPoses);
-                if(!result.posesNeedToUpdate.isEmpty()) {
-                    if(posesNeedToUpdateRender.containsKey(result.packedChunkPos)) {
-                        var old = posesNeedToUpdateRender.get(result.packedChunkPos);
-                        if(old.size() >= result.posesNeedToUpdate.size()) {
-                            old.addAll(result.posesNeedToUpdate);
-                            updateCounter -= result.posesNeedToUpdate.size() / 16;
-                            result.posesNeedToUpdate.clear();
-                        }
-                        else {
-                            result.posesNeedToUpdate.addAll(old);
-                            updateCounter -= old.size() / 16;
-                            posesNeedToUpdateRender.put(result.packedChunkPos, result.posesNeedToUpdate);
-                            old.clear();
-                        }
-                    }
-                    else posesNeedToUpdateRender.put(result.packedChunkPos, result.posesNeedToUpdate);
-                }
+                posesNeedToUpdateRender.put(result.packedChunkPos,
+                    combineCollections(result.posesNeedToUpdate, posesNeedToUpdateRender.get(result.packedChunkPos), size->updateCounter -= size / 16));
+                
                 if(updateCounter <= 0) break;
                 if(completedFutures == null) completedFutures = new LongArrayList();
                 completedFutures.add(result.packedChunkPos);
@@ -243,7 +229,7 @@ class DataInstance implements AutoCloseable, ClientChunkEvents.Load, ClientWorld
                 long key = delayedTaskKeys.dequeueLong();
                 if(runningTasks.containsKey(key)) continue;
                 var delayedTask = delayedTasks.remove(key);
-                runningTasks.put(delayedTask.packedChunkPos, delayedTask.taskGenerator.get());
+                runningTasks.put(delayedTask.packedChunkPos, delayedTask.taskGenerator.generate(shapeList));
             }
         }
     }
@@ -365,26 +351,18 @@ class DataInstance implements AutoCloseable, ClientChunkEvents.Load, ClientWorld
     
     private static boolean doShowAround(BlockState state){ return !state.isOpaque() || state.isTransparent(); }
     
-    private RunningTask buildRunningTask(ChunkTask task, long packedChunkPos){
-        HashMap<Block, MutableInt> copy;
-        Int2ObjectOpenHashMap<MutableInt> recordedOldMarkedPoses = new Int2ObjectOpenHashMap<>();
-        IntOpenHashSet recordedOldShownPoses = new IntOpenHashSet();
-        synchronized (XRayBlocks){copy = new HashMap<>(XRayBlocks);}
-        if(markedPoses.get(packedChunkPos) instanceof Int2ObjectOpenHashMap<MutableInt> oldPoses){
-            recordedOldMarkedPoses.putAll(oldPoses);
-            updateCounter -= oldPoses.size() / 16;
-        }
-        if(renderingPoses.get(packedChunkPos) instanceof IntOpenHashSet oldPoses) {
-            recordedOldShownPoses.addAll(oldPoses);
-            updateCounter -= oldPoses.size() / 16;
-        }
-        return new RunningTask(packedChunkPos, GenericUtils.supplyAsync(()->task.testCurrentChunk(copy, shapeList, recordedOldMarkedPoses, recordedOldShownPoses)));
+    private RunningTask buildRunningTask(ChunkData chunkData, ShapeList rangeLimit, long packedChunkPos){
+        Int2ObjectOpenHashMap<MutableInt> recordedOldMarkedPoses = recordMap(new Int2ObjectOpenHashMap<>(), markedPoses.get(packedChunkPos));
+        IntOpenHashSet recordedOldShownPoses = recordCollection(new IntOpenHashSet(), renderingPoses.get(packedChunkPos));
+        HashMap<Block, MutableInt> copy; synchronized (XRayBlocks){ copy = new HashMap<>(XRayBlocks); }
+        updateCounter -= (recordedOldMarkedPoses.size() + recordedOldShownPoses.size()) / 16;
+        return new RunningTask(packedChunkPos, GenericUtils.supplyAsync(()->testChunkData(chunkData, copy, rangeLimit, recordedOldMarkedPoses, recordedOldShownPoses)));
     }
     
     private void testChunkAsync(int chunkX, int chunkZ, ClientWorld world){
         long packedChunkPos = Packed.ChunkPos.pack(chunkX, chunkZ);
-        ChunkTask task = ChunkTask.buildTask(packedChunkPos, world);
-        if(task != null) delayedTasks.put(packedChunkPos, new DelayedTask(packedChunkPos, ()->buildRunningTask(task, packedChunkPos)));
+        ChunkData task = ChunkData.buildData(chunkX, chunkZ, world);
+        if(task != null) delayedTasks.put(packedChunkPos, new DelayedTask(packedChunkPos, rangeLimit->buildRunningTask(task, rangeLimit, packedChunkPos)));
     }
     private static void buildShownPoses(IntOpenHashSet shownPoses, ShapeList rangeLimit, IntSet chunkLocalMarkedPoses, long packedChunkPos) {
         int chunkBlockX = Packed.getBlockCoord(Packed.ChunkPos.unpackX(packedChunkPos));
@@ -414,12 +392,55 @@ class DataInstance implements AutoCloseable, ClientChunkEvents.Load, ClientWorld
             }
         }
     }
-    private record ChunkTask(long packedChunkPos, Chunk current, Chunk west, Chunk east, Chunk north, Chunk south){
-        static @Nullable DataInstance.ChunkTask buildTask(
-            long packedChunkPos, ClientWorld world){
-            int chunkX = Packed.ChunkPos.unpackX(packedChunkPos);
-            int chunkZ = Packed.ChunkPos.unpackZ(packedChunkPos);
-            ChunkTask task = new ChunkTask(packedChunkPos,
+    private TaskResult testChunkData(ChunkData data, HashMap<Block, MutableInt> colorMap, ShapeList rangeLimit
+        , Int2ObjectOpenHashMap<MutableInt> recordedOldMarkedPoses, IntOpenHashSet recordedOldShownPoses){
+        long packedChunkPos = data.current.getPos().toLong();
+        TaskResult res = new TaskResult(packedChunkPos, recordedOldMarkedPoses, new IntOpenHashSet(), new IntOpenHashSet());
+        markEdgePoses(recordedOldShownPoses, recordedOldShownPoses, res.posesNeedToUpdate);
+        recordedOldShownPoses.clear();
+        IntArrayList newMarkedPoses = new IntArrayList();
+        int bottom = data.current.getBottomY(), height = data.current.getHeight(), top = bottom + height;
+        ChunkTestData displaysNear = new ChunkTestData(bottom, height);
+        for(BlockPos pos1 : AlgorithmUtils.iterateInBox(0, bottom, 0, 15, top - 1, 15))
+            displaysNear.set(pos1, doShowAround(data.current.getBlockState(pos1)));
+        for(BlockPos pos1 : AlgorithmUtils.iterateInBox(-1, bottom, 0, -1, top - 1, 15))
+            displaysNear.set(pos1, doShowAround(data.west.getBlockState(pos1)));
+        for(BlockPos pos1 : AlgorithmUtils.iterateInBox(16, bottom, 0, 16, top - 1, 15))
+            displaysNear.set(pos1, doShowAround(data.east.getBlockState(pos1)));
+        for(BlockPos pos1 : AlgorithmUtils.iterateInBox(0, bottom, -1, 15, top - 1, -1))
+            displaysNear.set(pos1, doShowAround(data.north.getBlockState(pos1)));
+        for(BlockPos pos1 : AlgorithmUtils.iterateInBox(0, bottom, 16, 15, top - 1, 16))
+            displaysNear.set(pos1, doShowAround(data.south.getBlockState(pos1)));
+        for(BlockPos pos1 : AlgorithmUtils.iterateInBox(0, bottom - 1, 0, 15, bottom - 1, 15))
+            displaysNear.set(pos1, true);
+        for(BlockPos pos1 : AlgorithmUtils.iterateInBox(0, top, 0, 15, top, 15))
+            displaysNear.set(pos1, true);
+        for(BlockPos pos1 : AlgorithmUtils.iterateInBox(0, bottom, 0, 15, top - 1, 15)){
+            BlockState state = data.current.getBlockState(pos1);
+            MutableInt color = colorMap.get(state.getBlock());
+            if(color == null) continue;
+            if(displaysNear.get(pos1)){
+                int chunkLocalPos = Packed.ChunkLocal.pack(pos1);
+                if(!res.markedPoses.containsKey(chunkLocalPos)) newMarkedPoses.add(chunkLocalPos);
+                res.markedPoses.put(chunkLocalPos, color);
+                continue;
+            }
+            for(Direction direction : Direction.values()){
+                if(displaysNear.get(pos1.getX() + direction.getOffsetX(), pos1.getY() + direction.getOffsetY(), pos1.getZ() + direction.getOffsetZ())){
+                    int chunkLocalPos = Packed.ChunkLocal.pack(pos1);
+                    if(!res.markedPoses.containsKey(chunkLocalPos)) newMarkedPoses.add(chunkLocalPos);
+                    res.markedPoses.put(chunkLocalPos, color);
+                    break;
+                }
+            }
+        }
+        buildShownPoses(res.shownPoses, rangeLimit, res.markedPoses.keySet(), packedChunkPos);
+        markEdgePoses(res.shownPoses, newMarkedPoses, res.posesNeedToUpdate);
+        return res;
+    }
+    private record ChunkData(Chunk current, Chunk west, Chunk east, Chunk north, Chunk south){
+        static @Nullable DataInstance.ChunkData buildData(int chunkX, int chunkZ, ClientWorld world){
+            ChunkData task = new ChunkData(
                 world.getChunk(chunkX, chunkZ, ChunkStatus.FULL, false),
                 world.getChunk(chunkX - 1, chunkZ, ChunkStatus.FULL, false),
                 world.getChunk(chunkX + 1, chunkZ, ChunkStatus.FULL, false),
@@ -429,62 +450,17 @@ class DataInstance implements AutoCloseable, ClientChunkEvents.Load, ClientWorld
                 return null;
             return task;
         }
-        public TaskResult testCurrentChunk(HashMap<Block, MutableInt> colorMap, ShapeList rangeLimit
-            , Int2ObjectOpenHashMap<MutableInt> recordedOldMarkedPoses, IntOpenHashSet recordedOldShownPoses){
-            TaskResult res = new TaskResult(packedChunkPos, recordedOldMarkedPoses, new IntOpenHashSet(), new IntOpenHashSet());
-            markEdgePoses(recordedOldShownPoses, recordedOldShownPoses, res.posesNeedToUpdate);
-            recordedOldShownPoses.clear();
-            IntArrayList newMarkedPoses = new IntArrayList();
-            int bottom = current.getBottomY(), height = current.getHeight(), top = bottom + height;
-            TestData displaysNear = new TestData(bottom, height);
-            for(BlockPos pos1 : AlgorithmUtils.iterateInBox(0, bottom, 0, 15, top - 1, 15))
-                displaysNear.set(pos1, doShowAround(current.getBlockState(pos1)));
-            for(BlockPos pos1 : AlgorithmUtils.iterateInBox(-1, bottom, 0, -1, top - 1, 15))
-                displaysNear.set(pos1, doShowAround(west.getBlockState(pos1)));
-            for(BlockPos pos1 : AlgorithmUtils.iterateInBox(16, bottom, 0, 16, top - 1, 15))
-                displaysNear.set(pos1, doShowAround(east.getBlockState(pos1)));
-            for(BlockPos pos1 : AlgorithmUtils.iterateInBox(0, bottom, -1, 15, top - 1, -1))
-                displaysNear.set(pos1, doShowAround(north.getBlockState(pos1)));
-            for(BlockPos pos1 : AlgorithmUtils.iterateInBox(0, bottom, 16, 15, top - 1, 16))
-                displaysNear.set(pos1, doShowAround(south.getBlockState(pos1)));
-            for(BlockPos pos1 : AlgorithmUtils.iterateInBox(0, bottom - 1, 0, 15, bottom - 1, 15))
-                displaysNear.set(pos1, true);
-            for(BlockPos pos1 : AlgorithmUtils.iterateInBox(0, top, 0, 15, top, 15))
-                displaysNear.set(pos1, true);
-            for(BlockPos pos1 : AlgorithmUtils.iterateInBox(0, bottom, 0, 15, top - 1, 15)){
-                BlockState state = current.getBlockState(pos1);
-                MutableInt color = colorMap.get(state.getBlock());
-                if(color == null) continue;
-                if(displaysNear.get(pos1)){
-                    int chunkLocalPos = Packed.ChunkLocal.pack(pos1);
-                    if(!res.markedPoses.containsKey(chunkLocalPos)) newMarkedPoses.add(chunkLocalPos);
-                    res.markedPoses.put(chunkLocalPos, color);
-                    continue;
-                }
-                for(Direction direction : Direction.values()){
-                    if(displaysNear.get(pos1.getX() + direction.getOffsetX(), pos1.getY() + direction.getOffsetY(), pos1.getZ() + direction.getOffsetZ())){
-                        int chunkLocalPos = Packed.ChunkLocal.pack(pos1);
-                        if(!res.markedPoses.containsKey(chunkLocalPos)) newMarkedPoses.add(chunkLocalPos);
-                        res.markedPoses.put(chunkLocalPos, color);
-                        break;
-                    }
-                }
-            }
-            buildShownPoses(res.shownPoses, rangeLimit, res.markedPoses.keySet(), packedChunkPos);
-            markEdgePoses(res.shownPoses, newMarkedPoses, res.posesNeedToUpdate);
-            return res;
+    }
+    private static class ChunkTestData {
+        public final boolean[][][] data;
+        public final int bottomY, worldHeight;
+        ChunkTestData(int bottomY, int worldHeight){
+            this.bottomY = bottomY; this.worldHeight = worldHeight;
+            data = new boolean[18][worldHeight + 2][18];
         }
-        private static class TestData{
-            public final boolean[][][] data;
-            public final int bottomY, worldHeight;
-            TestData(int bottomY, int worldHeight){
-                this.bottomY = bottomY; this.worldHeight = worldHeight;
-                data = new boolean[18][worldHeight + 2][18];
-            }
-            boolean get(int x, int y, int z){ return data[x + 1][y - bottomY + 1][z + 1]; }
-            boolean get(BlockPos pos){ return get(pos.getX(), pos.getY(), pos.getZ()); }
-            void set(int x, int y, int z, boolean value){ data[x + 1][y - bottomY + 1][z + 1] = value; }
-            void set(BlockPos pos, boolean value){ set(pos.getX(), pos.getY(), pos.getZ(), value); }
-        }
+        boolean get(int x, int y, int z){ return data[x + 1][y - bottomY + 1][z + 1]; }
+        boolean get(BlockPos pos){ return get(pos.getX(), pos.getY(), pos.getZ()); }
+        void set(int x, int y, int z, boolean value){ data[x + 1][y - bottomY + 1][z + 1] = value; }
+        void set(BlockPos pos, boolean value){ set(pos.getX(), pos.getY(), pos.getZ(), value); }
     }
 }
