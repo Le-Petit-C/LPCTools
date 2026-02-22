@@ -2,6 +2,7 @@ package lpctools.script.editScreen;
 
 import fi.dy.masa.malilib.gui.button.ButtonGeneric;
 import fi.dy.masa.malilib.gui.widgets.WidgetBase;
+import fi.dy.masa.malilib.render.GuiContext;
 import net.minecraft.client.gui.Click;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.narration.NarrationMessageBuilder;
@@ -31,7 +32,7 @@ public class WidgetWrapper extends HoveredClickableWidget{
 	}
 	
 	@Override public void postRenderHovered(DrawContext drawContext, int mouseX, int mouseY, boolean selected){
-		widget.postRenderHovered(drawContext, mouseX, mouseY, selected);
+		widget.postRenderHovered(GuiContext.fromGuiGraphics(drawContext), mouseX, mouseY, selected);
 	}
 	@Override public void setX(int x) {
 		super.setX(x);
@@ -47,7 +48,7 @@ public class WidgetWrapper extends HoveredClickableWidget{
 	@Override public int getHeight() {return widget.getHeight();}
 	@Override protected void appendClickableNarrations(NarrationMessageBuilder builder) {}
 	@Override protected void renderWidget(DrawContext context, int mouseX, int mouseY, float deltaTicks) {
-		widget.render(context, mouseX, mouseY, widget.isMouseOver(mouseX, mouseY) || this == screen.getFocused() || this == screen.getScriptFocused());
+		widget.render(GuiContext.fromGuiGraphics(context), mouseX, mouseY, widget.isMouseOver(mouseX, mouseY) || this == screen.getFocused() || this == screen.getScriptFocused());
 	}
 	@Override public boolean mouseClicked(Click click, boolean doubleClick) {
 		return widget.onMouseClicked(click, doubleClick);

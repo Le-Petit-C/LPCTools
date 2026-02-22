@@ -17,6 +17,6 @@ public class ModsScreenMixin {
 	@Inject(method = "safelyOpenConfigScreen", at = @At("HEAD"), remap = false)
 	void injectSafelyOpenConfigScreenHead(String modId, CallbackInfo ci){
 		if(modMenuPlayClickSound.getAsBoolean())
-			MinecraftClient.getInstance().getSoundManager().play(PositionedSoundInstance.master(SoundEvents.UI_BUTTON_CLICK, 1.0F));
+			MinecraftClient.getInstance().getSoundManager().play(PositionedSoundInstance.ui(SoundEvents.UI_BUTTON_CLICK, 1.0F));
 	}
 }

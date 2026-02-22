@@ -155,7 +155,7 @@ public class RenderInstance implements QuietAutoCloseable, Registries.WorldPreMa
 		var camPos = context.camera().getCameraPos();
 		GpuBufferSlice dynamicTransforms = RenderSystem.getDynamicUniforms()
 			.write(RenderSystem.getModelViewMatrix().translate(new Vector3f((float) (basePoint.x - camPos.x), (float) (basePoint.y - camPos.y), (float) (basePoint.z - camPos.z)), new Matrix4f()),
-				new Vector4f(1.0F, 1.0F, 1.0F, 1.0F), new Vector3f(), new Matrix4f(), 0.0F);
+				new Vector4f(1.0F, 1.0F, 1.0F, 1.0F), new Vector3f(), new Matrix4f());
 		GpuBufferSlice projection = RenderSystem.getProjectionMatrixBuffer();
 		try (RenderPass renderPass = commandEncoder
 			.createRenderPass(renderPassLabel, colorAttachmentView, OptionalInt.empty(), depthAttachmentView, OptionalDouble.empty())) {
@@ -452,7 +452,7 @@ public class RenderInstance implements QuietAutoCloseable, Registries.WorldPreMa
 			
 			int requiredIndexSize = indexBufferToUpload.limit();
 			if(indexBuffer == null || indexBuffer.size() < requiredIndexSize){
-				int oldSize = indexBuffer == null ? 0 : indexBuffer.size();
+				long oldSize = indexBuffer == null ? 0 : indexBuffer.size();
 				if(indexBuffer != null) indexBuffer.close();
 				indexBuffer = RenderSystem.getDevice().createBuffer(
 					indexBufferLabel, GpuBuffer.USAGE_INDEX | GpuBuffer.USAGE_COPY_DST,
@@ -465,7 +465,7 @@ public class RenderInstance implements QuietAutoCloseable, Registries.WorldPreMa
 			if(vertexBufferToUpload != null) {
 				int requiredVertexSize = vertexBufferToUpload.limit();
 				if(vertexBuffer == null || vertexBuffer.size() < requiredVertexSize){
-					int oldSize = vertexBuffer == null ? 0 : vertexBuffer.size();
+					long oldSize = vertexBuffer == null ? 0 : vertexBuffer.size();
 					if(vertexBuffer != null) vertexBuffer.close();
 					vertexBuffer = RenderSystem.getDevice().createBuffer(
 						vertexBufferLabel, GpuBuffer.USAGE_VERTEX | GpuBuffer.USAGE_COPY_DST,

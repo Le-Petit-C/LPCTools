@@ -27,6 +27,7 @@ import net.minecraft.world.chunk.ChunkStatus;
 import net.minecraft.world.chunk.WorldChunk;
 import net.minecraft.world.chunk.light.LightingProvider;
 import org.jetbrains.annotations.NotNull;
+import org.jspecify.annotations.NonNull;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -130,7 +131,7 @@ public class DataInstance implements AutoCloseable, Registries.ClientWorldChunkL
         updateCounter = GenericConfigs.updateLimitPerFrame.getAsInt() + Math.min(updateCounter, 0);
         
         double squaredDistanceLimit = MathHelper.square((double)MinecraftClient.getInstance().options.getViewDistance().getValue() * 2);
-        var camPos = context.camera().getPos();
+        var camPos = context.camera().getCameraPos();
         double chunkedCamX = camPos.x / 16 - 0.5, chunkedCamZ = camPos.z / 16 - 0.5;
         
         // 先清理超出范围的delayedTask
@@ -184,7 +185,7 @@ public class DataInstance implements AutoCloseable, Registries.ClientWorldChunkL
         if(client.world != null && client.player != null)
             resetData(client.world, client.player.getEntityPos());
     }
-    @Override public void afterWorldChange(MinecraftClient minecraftClient, ClientWorld clientWorld) {clearData();}
+    @Override public void afterWorldChange(@NonNull MinecraftClient minecraftClient, @NonNull ClientWorld clientWorld) {clearData();}
     
     private void tryPutDelayed(World world, int x, int z){
         for(int dz = -1; dz <= 1; ++dz)

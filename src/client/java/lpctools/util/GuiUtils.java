@@ -1,6 +1,7 @@
 package lpctools.util;
 
 import fi.dy.masa.malilib.gui.widgets.WidgetBase;
+import fi.dy.masa.malilib.render.GuiContext;
 import it.unimi.dsi.fastutil.objects.Object2LongOpenHashMap;
 import lpctools.lpcfymasaapi.widgets.WHAutoAdjustStringWidget;
 import net.minecraft.client.MinecraftClient;
@@ -23,7 +24,7 @@ public class GuiUtils {
                 if(removedWidgets == null) removedWidgets = new ArrayList<>();
                 removedWidgets.add(widget);
             }
-            else widget.render(drawContext, mouseX, mouseY, widget.isMouseOver(mouseX, mouseY));
+            else widget.render(GuiContext.fromGuiGraphics(drawContext), mouseX, mouseY, widget.isMouseOver(mouseX, mouseY));
         }
         if(removedWidgets != null) removedWidgets.forEach(infoWidgets::removeLong);
     }

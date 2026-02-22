@@ -15,7 +15,7 @@ public class MathUtils {
     }
     @Contract(pure = true)
     public static Matrix4f worldToCameraMatrix4f(Camera camera){
-        Vector3f vec = camera.getPos().toVector3f().mul(-1);
+        Vector3f vec = camera.getCameraPos().toVector3f().mul(-1);
         Matrix4f matrix =  new Matrix4f()
                 .rotate(camera.getPitch() / 180 * MathHelper.PI, new Vector3f(1, 0, 0))
                 .rotate((camera.getYaw() + 180) / 180 * MathHelper.PI, new Vector3f(0, 1, 0));
@@ -23,7 +23,7 @@ public class MathUtils {
     }
     @Contract(pure = true)
     public static Matrix4d worldToCameraMatrix4d(Camera camera){
-        Vec3d vec3d = camera.getPos();
+        Vec3d vec3d = camera.getCameraPos();
         Vector3d vec = new Vector3d(vec3d.getX(), vec3d.getY(), vec3d.getZ()).mul(-1);
         Matrix4d matrix =  new Matrix4d()
                 .rotate(camera.getPitch() / 180 * Math.PI, new Vector3d(1, 0, 0))

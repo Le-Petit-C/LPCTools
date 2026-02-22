@@ -17,7 +17,7 @@ public class ModMenu implements ModMenuApi {
             GuiBase gui = LPCTools.page.get();
             gui.setParent(screen);
             if(playClickSoundFromModMenu.getAsBoolean() && !modMenuPlayClickSound.getAsBoolean())
-                MinecraftClient.getInstance().getSoundManager().play(PositionedSoundInstance.master(SoundEvents.UI_BUTTON_CLICK, 1.0F));
+                MinecraftClient.getInstance().getSoundManager().play(PositionedSoundInstance.ui(SoundEvents.UI_BUTTON_CLICK, 1.0F));
             return gui;
         };
     }

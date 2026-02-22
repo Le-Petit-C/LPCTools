@@ -4,6 +4,7 @@ import com.google.common.collect.ImmutableMap;
 import fi.dy.masa.malilib.event.RenderEventHandler;
 import fi.dy.masa.malilib.interfaces.IRangeChangeListener;
 import fi.dy.masa.malilib.interfaces.IRenderer;
+import fi.dy.masa.malilib.render.GuiContext;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientChunkEvents;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientWorldEvents;
@@ -12,7 +13,6 @@ import net.fabricmc.fabric.api.resource.v1.ResourceLoader;
 import net.minecraft.block.BlockState;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gl.Framebuffer;
-import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.render.GuiRenderer;
 import net.minecraft.client.gui.render.SpecialGuiElementRenderer;
 import net.minecraft.client.gui.render.state.special.SpecialGuiElementRenderState;
@@ -22,7 +22,6 @@ import net.minecraft.client.render.BufferBuilderStorage;
 import net.minecraft.client.render.Camera;
 import net.minecraft.client.render.Frustum;
 import net.minecraft.client.render.VertexConsumerProvider;
-import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
@@ -32,7 +31,6 @@ import net.minecraft.resource.SynchronousResourceReloader;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Vec3d;
 import net.minecraft.util.profiler.Profiler;
 import net.minecraft.world.chunk.WorldChunk;
 import org.jetbrains.annotations.NotNull;
@@ -76,9 +74,7 @@ public class Registries {
     public static final UnregistrableRegistry<ClientWorldChunkSetBlockState> CLIENT_WORLD_CHUNK_SET_BLOCK_STATE = new UnregistrableRegistry<>(
         callbacks->(chunk, pos, lastState, newState)->callbacks.forEach(screen->screen.onClientWorldChunkSetBlockState(chunk, pos, lastState, newState)));
     public static final UnregistrableRegistry<GameOverlayRender> MASA_RENDER_GAME_OVERLAY = new UnregistrableRegistry<>(
-        callbacks->(c, t, p, m)->callbacks.forEach(renderer->renderer.renderGameOverlay(c, t, p, m)));
-    public static final UnregistrableRegistry<WorldPostDebugRender> MASA_RENDER_WORLD_POST_DEBUG = new UnregistrableRegistry<>(
-        callbacks->c->callbacks.forEach(renderer->renderer.beforeDebugRender(c)));
+        callbacks->(a, b, c)->callbacks.forEach(renderer->renderer.renderGameOverlay(a, b, c)));
     public static final UnregistrableRegistry<WorldPreWeatherRender> MASA_RENDER_WORLD_PRE_WEATHER = new UnregistrableRegistry<>(
         callbacks->c->callbacks.forEach(renderer->renderer.onRenderWorldPreWeather(c)));
     public static final UnregistrableRegistry<WorldLastRender> MASA_WORLD_RENDER_LAST = new UnregistrableRegistry<>(
@@ -125,7 +121,6 @@ public class Registries {
         WorldRenderEvents.BEFORE_BLOCK_OUTLINE.register(BEFORE_BLOCK_OUTLINE.run());
         WorldRenderEvents.END_MAIN.register(END_MAIN.run());
         var overlayRenderer = MASA_RENDER_GAME_OVERLAY.run();
-        var worldPostDebugRenderer = MASA_RENDER_WORLD_POST_DEBUG.run();
         var worldPreWeatherRenderer = MASA_RENDER_WORLD_PRE_WEATHER.run();
         var worldLastRenderer = MASA_WORLD_RENDER_LAST.run();
         var toolTipComponentInsertFirstRenderer = MASA_RENDER_TOOLTIP_COMPONENT_INSERTION_FIRST.run();
@@ -133,11 +128,8 @@ public class Registries {
         var toolTipComponentInsertLastRenderer = MASA_RENDER_TOOLTIP_COMPONENT_INSERTION_LAST.run();
         var toolTipLastRenderer = MASA_RENDER_TOOLTIP_LAST.run();
         IRenderer malilibRenderer = new IRenderer() {
-            @Override public void onRenderGameOverlayPostAdvanced(DrawContext drawContext, float partialTicks, Profiler profiler, MinecraftClient mc) {
-                overlayRenderer.renderGameOverlay(drawContext, partialTicks, profiler, mc);
-            }
-            @Override public void onRenderWorldPostDebugRender(MatrixStack matrices, Frustum frustum, VertexConsumerProvider.Immediate immediate, Vec3d camera, Profiler profiler) {
-                worldPostDebugRenderer.beforeDebugRender(new MASADebugRenderContext(matrices, frustum, immediate, camera, profiler));
+            @Override public void onRenderGameOverlayPostAdvanced(GuiContext ctx, float partialTicks, Profiler profiler) {
+                overlayRenderer.renderGameOverlay(ctx, partialTicks, profiler);
             }
             @Override public void onRenderWorldPreWeather(Framebuffer fb, Matrix4f posMatrix, Matrix4f projMatrix, Frustum frustum, Camera camera, BufferBuilderStorage buffers, Profiler profiler) {
                 worldPreWeatherRenderer.onRenderWorldPreWeather(new MASAWorldRenderContext(fb, posMatrix, projMatrix, frustum, camera, buffers, profiler));
@@ -154,8 +146,8 @@ public class Registries {
             @Override public void onRenderTooltipComponentInsertLast(Item.TooltipContext context, ItemStack stack, Consumer<Text> list) {
                 toolTipComponentInsertLastRenderer.onRenderTooltipComponentInsertLast(context, stack, list);
             }
-            @Override public void onRenderTooltipLast(DrawContext drawContext, ItemStack stack, int x, int y) {
-                toolTipLastRenderer.onRenderTooltipLast(drawContext, stack, x, y);
+            @Override public void onRenderTooltipLast(GuiContext ctx, ItemStack stack, int x, int y) {
+                toolTipLastRenderer.onRenderTooltipLast(ctx, stack, x, y);
             }
             @Override public void onRegisterSpecialGuiRenderer(GuiRenderer guiRenderer, VertexConsumerProvider.Immediate immediate, MinecraftClient mc, ImmutableMap.Builder<Class<? extends SpecialGuiElementRenderState>, SpecialGuiElementRenderer<?>> builder) {
                 IRenderer.super.onRegisterSpecialGuiRenderer(guiRenderer, immediate, mc, builder);
@@ -176,11 +168,7 @@ public class Registries {
     }
     
     public interface GameOverlayRender {
-        void renderGameOverlay(DrawContext drawContext, float partialTicks, Profiler profiler, MinecraftClient mc);
-    }
-    public record MASADebugRenderContext(MatrixStack matrices, Frustum frustum, VertexConsumerProvider.Immediate immediate, Vec3d camera, Profiler profiler) {}
-    public interface WorldPostDebugRender{
-        void beforeDebugRender(MASADebugRenderContext context);
+        void renderGameOverlay(GuiContext ctx, float partialTicks, Profiler profiler);
     }
     public record MASAWorldRenderContext(Framebuffer fb, Matrix4f positionMatrix, Matrix4f projectionMatrix, Frustum frustum, Camera camera, BufferBuilderStorage buffers, Profiler profiler) {}
     public interface WorldPreMainRender {
@@ -202,7 +190,7 @@ public class Registries {
         void onRenderTooltipComponentInsertLast(Item.TooltipContext context, ItemStack stack, Consumer<Text> list);
     }
     public interface TooltipLastRender {
-        void onRenderTooltipLast(DrawContext drawContext, ItemStack stack, int x, int y);
+        void onRenderTooltipLast(GuiContext ctx, ItemStack stack, int x, int y);
     }
     public interface ClientWorldChunkSetBlockState {//at RETURN
         void onClientWorldChunkSetBlockState(WorldChunk chunk, BlockPos pos, BlockState lastState, BlockState newState);

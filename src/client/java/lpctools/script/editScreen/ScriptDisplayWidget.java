@@ -5,6 +5,7 @@ import fi.dy.masa.malilib.gui.GuiTextFieldGeneric;
 import fi.dy.masa.malilib.gui.button.ButtonGeneric;
 import fi.dy.masa.malilib.gui.widgets.WidgetBase;
 import fi.dy.masa.malilib.gui.wrappers.TextFieldWrapper;
+import fi.dy.masa.malilib.render.GuiContext;
 import lpctools.script.IScript;
 import net.minecraft.client.gui.Click;
 import net.minecraft.client.gui.DrawContext;
@@ -46,7 +47,7 @@ public class ScriptDisplayWidget extends ClickableWidget{
 		Text prefix = parentScript != null ? parentScript.getSubScriptNamePrefix(script) : null;
 		String nameStr = (prefix == null ? "" : prefix.getString() + ": ") + (name == null ? "" : name.getString());
 		if(!nameStr.isEmpty())
-			nameButton = new ButtonGeneric(0, 0, calculateTextButtonWidth(nameStr, editScreen.textRenderer, 20),
+			nameButton = new ButtonGeneric(0, 0, calculateTextButtonWidth(nameStr, editScreen.getTextRenderer(), 20),
 				20, nameStr, comment == null ? null : comment.getString())
 				.setRenderDefaultBackground(false);
 		else nameButton = null;
@@ -162,7 +163,7 @@ public class ScriptDisplayWidget extends ClickableWidget{
 						newRight += buildWidget(newRight, midY, t);
 					}
 					case TextFieldWrapper<?> w -> {
-						var textField = w.getTextField();
+						var textField = w.textField();
 						widgets.add(textField);
 						newRight += buildWidget(newRight, midY, textField);
 					}
@@ -191,7 +192,7 @@ public class ScriptDisplayWidget extends ClickableWidget{
 		updateDisplayWidgets();
 		if (nameButton != null) {
 			boolean isOver = nameButton.isMouseOver(mouseX, mouseY);
-			nameButton.render(context, mouseX, mouseY, isOver);
+			nameButton.render(GuiContext.fromGuiGraphics(context), mouseX, mouseY, isOver);
 			if(nameButton.hasHoverText() && nameButton.isMouseOver(mouseX, mouseY))
 				editScreen.setHover(nameButton, mouseX, mouseY, context.getMatrices());
 		}

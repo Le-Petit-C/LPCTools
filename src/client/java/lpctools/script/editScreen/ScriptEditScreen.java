@@ -4,6 +4,7 @@ import fi.dy.masa.malilib.gui.*;
 import fi.dy.masa.malilib.gui.button.ButtonGeneric;
 import fi.dy.masa.malilib.gui.widgets.WidgetBase;
 import fi.dy.masa.malilib.gui.widgets.WidgetListConfigOptions;
+import fi.dy.masa.malilib.render.GuiContext;
 import fi.dy.masa.malilib.util.position.Vec2d;
 import it.unimi.dsi.fastutil.objects.Object2LongOpenHashMap;
 import lpctools.script.*;
@@ -19,6 +20,7 @@ import net.minecraft.text.Text;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Matrix3x2f;
+import org.jspecify.annotations.NonNull;
 
 import java.util.*;
 
@@ -87,7 +89,7 @@ public class ScriptEditScreen extends GuiConfigsBase {
 	
 	public @Nullable Element getScriptFocused(){return scriptFocused;}
 	
-	@Override public boolean mouseClicked(Click click, boolean doubleClick) {
+	@Override public boolean mouseClicked(@NonNull Click click, boolean doubleClick) {
 		if(super.mouseClicked(click, doubleClick)) {
 			setScriptFocused(null);
 			return true;
@@ -231,7 +233,7 @@ public class ScriptEditScreen extends GuiConfigsBase {
 		return super.mouseScrolled(mouseX, mouseY, horizontalAmount, verticalAmount);
 	}
 	
-	@Override public boolean keyPressed(KeyInput key) {
+	@Override public boolean keyPressed(@NonNull KeyInput key) {
 		if(scriptFocused != null && scriptFocused.keyPressed(key)) return true;
 		return super.keyPressed(key);
 	}
@@ -241,30 +243,30 @@ public class ScriptEditScreen extends GuiConfigsBase {
 		return super.keyReleased(key);
 	}
 	
-	@Override public boolean charTyped(CharInput input) {
+	@Override public boolean charTyped(@NonNull CharInput input) {
 		if(scriptFocused != null && scriptFocused.charTyped(input)) return true;
 		return super.charTyped(input);
 	}
 	
 	//以父screen为背景
-	@Override public void render(DrawContext drawContext, int mouseX, int mouseY, float partialTicks) {
+	@Override public void render(@NonNull DrawContext drawContext, int mouseX, int mouseY, float partialTicks) {
 		hoveredRenderer.clear();
 		if(getParent() != null)
 			getParent().render(drawContext, -1, -1, partialTicks);
 		super.render(drawContext, mouseX, mouseY, partialTicks);
 	}
 	//渲染内容，选择重载drawTitle只是因为渲染顺序
-	@Override public void drawTitle(DrawContext drawContext, int mouseX, int mouseY, float partialTicks) {
+	@Override public void drawTitle(GuiContext context, int mouseX, int mouseY, float partialTicks) {
 		adjustPosition();
 		//渲染内容
 		var root = getRootDisplayWidget();
-		var matrices = drawContext.getMatrices();
+		var matrices = context.getMatrices();
 		root.tryUpdate();
 		//位置修正
 		matrices.pushMatrix().translate((float)x, (float)y).scale((float)stretch);
 		int fixedMouseX = (int)Math.round(calcFixedX(mouseX)), fixedMouseY = (int)Math.round(calcFixedY(mouseY));
 		if(holdingScreenBackground != null)
-			drawContext.fill(-reservedDistance.left.getIntegerValue(), -reservedDistance.top.getIntegerValue(),
+			context.fill(-reservedDistance.left.getIntegerValue(), -reservedDistance.top.getIntegerValue(),
 				root.getRight() + reservedDistance.right.getIntegerValue(), root.getSize() * 22 + reservedDistance.bottom.getIntegerValue(),
 				moveHighlightColor.getIntegerValue());
 		int minLineIndex = Math.max((int)Math.floor(-y / stretch / 22), 0);
@@ -282,15 +284,15 @@ public class ScriptEditScreen extends GuiConfigsBase {
 			var w = root.getByLine(i);
 			if(w == null) break;
 			if(line >= hideMinLineIndex && line < hideMaxLineIndex)
-				drawContext.fill(w.getX() + 1, w.getY() + 1, w.getX() + w.getWidth() - 1, w.getY() + w.getHeight() - 1, moveHighlightColor.getIntegerValue());
-			else w.render(drawContext, fixedMouseX, fixedMouseY, partialTicks);
+				context.fill(w.getX() + 1, w.getY() + 1, w.getX() + w.getWidth() - 1, w.getY() + w.getHeight() - 1, moveHighlightColor.getIntegerValue());
+			else w.render(context, fixedMouseX, fixedMouseY, partialTicks);
 			++line;
 		}
 		//绘制左侧引导线
 		if(root.getByLine(minLineIndex) instanceof ScriptDisplayWidget w){
 			var widget = w.parent;
 			while (widget != null) {
-				widget.renderExpandGuidelines(drawContext);
+				widget.renderExpandGuidelines(context);
 				widget = widget.parent;
 			}
 		}
@@ -321,7 +323,7 @@ public class ScriptEditScreen extends GuiConfigsBase {
 			for(int i = 0; startY < getScreenHeight(); ++i){
 				var w = hoverWidget.getByLine(i);
 				if(w == null) break;
-				w.render(drawContext, fixedMouseX, fixedMouseY, partialTicks);
+				w.render(context, fixedMouseX, fixedMouseY, partialTicks);
 				startY += 22;
 			}
 		}
@@ -333,31 +335,31 @@ public class ScriptEditScreen extends GuiConfigsBase {
 			if(isCopyPastDisplayKeyPressed()){
 				copyButton.setPosition(x + shift, y);
 				pasteButton.setPosition(x + shift + 22, y);
-				renderAndTryHover(drawContext, copyButton, fixedMouseX, fixedMouseY);
-				renderAndTryHover(drawContext, pasteButton, fixedMouseX, fixedMouseY);
+				renderAndTryHover(context, copyButton, fixedMouseX, fixedMouseY);
+				renderAndTryHover(context, pasteButton, fixedMouseX, fixedMouseY);
 				shift += 44;
 			}
 			var parentScript = hoverWidget.script.getParent();
 			if(parentScript instanceof IScriptWithSubScriptMutable<?>){
 				if(isDragDisplayKeyPressed()) {
 					dragButton.setPosition(x + shift, y);
-					renderAndTryHover(drawContext, dragButton, fixedMouseX, fixedMouseY);
+					renderAndTryHover(context, dragButton, fixedMouseX, fixedMouseY);
 					shift += 22;
 				}
 				if(isInsertRemoveDisplayKeyPressed()){
 					insertButton.setPosition(x + shift, y);
 					removeButton.setPosition(x + shift + 22, y);
-					renderAndTryHover(drawContext, insertButton, fixedMouseX, fixedMouseY);
-					renderAndTryHover(drawContext, removeButton, fixedMouseX, fixedMouseY);
+					renderAndTryHover(context, insertButton, fixedMouseX, fixedMouseY);
+					renderAndTryHover(context, removeButton, fixedMouseX, fixedMouseY);
 					//shift += 44;
 				}
 			}
 		}
 		matrices.popMatrix();
 		
-		GuiUtils.renderInfoWidgets(infoWidgets, drawContext, mouseX, mouseY);
+		GuiUtils.renderInfoWidgets(infoWidgets, context, mouseX, mouseY);
 		
-		super.drawTitle(drawContext, mouseX, mouseY, partialTicks);
+		super.drawTitle(context, mouseX, mouseY, partialTicks);
 	}
 	
 	public void setHover(WidgetBase widget, int mouseX, int mouseY, Matrix3x2f matrix){
@@ -368,16 +370,16 @@ public class ScriptEditScreen extends GuiConfigsBase {
 		hoveredRenderer.setHover(widget, mouseX, mouseY, matrix);
 	}
 	
-	public void renderAndTryHover(DrawContext drawContext, ButtonGeneric buttonGeneric, int fixedMouseX, int fixedMouseY){
+	public void renderAndTryHover(GuiContext context, ButtonGeneric buttonGeneric, int fixedMouseX, int fixedMouseY){
 		boolean isOver = buttonGeneric.isMouseOver(fixedMouseX, fixedMouseY);
-		buttonGeneric.render(drawContext, fixedMouseX, fixedMouseY, isOver);
-		if(isOver) setHover(buttonGeneric, fixedMouseX, fixedMouseY, drawContext.getMatrices());
+		buttonGeneric.render(context, fixedMouseX, fixedMouseY, isOver);
+		if(isOver) setHover(buttonGeneric, fixedMouseX, fixedMouseY, context.getMatrices());
 	}
 	
-	@Override protected void drawHoveredWidget(DrawContext drawContext, int mouseX, int mouseY) {
-		super.drawHoveredWidget(drawContext, mouseX, mouseY);
+	@Override protected void drawHoveredWidget(GuiContext context, int mouseX, int mouseY) {
+		super.drawHoveredWidget(context, mouseX, mouseY);
 		if(!isHoverTextDisplayKeyPressed()) return;
-		hoveredRenderer.tryRender(drawContext);
+		hoveredRenderer.tryRender(context);
 	}
 	
 	@Override public List<ConfigOptionWrapper> getConfigs() {return List.of();}

@@ -2,7 +2,7 @@ package lpctools.script.editScreen;
 
 import fi.dy.masa.malilib.gui.button.ButtonGeneric;
 import fi.dy.masa.malilib.gui.interfaces.IGuiIcon;
-import net.minecraft.client.gui.DrawContext;
+import fi.dy.masa.malilib.render.GuiContext;
 import org.jetbrains.annotations.Nullable;
 
 import static lpctools.lpcfymasaapi.LPCConfigUtils.calculateTextButtonWidth;
@@ -25,12 +25,12 @@ public class WidthAutoAdjustButtonGeneric extends ButtonGeneric {
 		needUpdateWidth = true;
 	}
 	
-	@Override public void render(DrawContext drawContext, int mouseX, int mouseY, boolean selected) {
+	@Override public void render(GuiContext context, int mouseX, int mouseY, boolean selected) {
 		if(needUpdateWidth){
 			needUpdateWidth = false;
 			setWidth(calculateTextButtonWidth(displayString, textRenderer, getHeight()));
 			widget.markUpdateChain();
 		}
-		super.render(drawContext, mouseX, mouseY, selected);
+		super.render(context, mouseX, mouseY, selected);
 	}
 }

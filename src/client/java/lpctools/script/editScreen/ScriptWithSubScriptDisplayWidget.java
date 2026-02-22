@@ -4,6 +4,7 @@ import com.google.common.collect.Iterables;
 import fi.dy.masa.malilib.gui.LeftRight;
 import fi.dy.masa.malilib.gui.MaLiLibIcons;
 import fi.dy.masa.malilib.gui.button.ButtonGeneric;
+import fi.dy.masa.malilib.render.GuiContext;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import lpctools.mixinInterfaces.MASAMixins.IButtonGenericMixin;
@@ -61,7 +62,7 @@ public class ScriptWithSubScriptDisplayWidget extends ScriptDisplayWidget{
 		if(i >= 0) return lineList.getInt(i);
 		else return -1;
 	}
-	public int lineOf(int index){return lineList.getInt(index);}
+	@SuppressWarnings("unused") public int lineOf(int index){return lineList.getInt(index);}
 	public int indexOf(ScriptDisplayWidget widget){
 		tryUpdate();
 		return indexMap.getOrDefault(widget, -1);
@@ -122,7 +123,7 @@ public class ScriptWithSubScriptDisplayWidget extends ScriptDisplayWidget{
 	@Override public void renderWidget(DrawContext context, int mouseX, int mouseY, float deltaTicks) {
 		tryUpdate();
 		super.renderWidget(context, mouseX, mouseY, deltaTicks);
-		expandButton.render(context, mouseX, mouseY, expandButton.isMouseOver(mouseX, mouseY));
+		expandButton.render(GuiContext.fromGuiGraphics(context), mouseX, mouseY, expandButton.isMouseOver(mouseX, mouseY));
 		renderExpandGuidelines(context);
 	}
 	

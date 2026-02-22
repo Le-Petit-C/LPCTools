@@ -5,9 +5,9 @@ import fi.dy.masa.malilib.gui.GuiTextFieldGeneric;
 import fi.dy.masa.malilib.gui.widgets.WidgetConfigOptionBase;
 import fi.dy.masa.malilib.gui.widgets.WidgetListConfigOptionsBase;
 import fi.dy.masa.malilib.gui.wrappers.TextFieldWrapper;
+import fi.dy.masa.malilib.render.GuiContext;
 import lpctools.mixinInterfaces.MASAMixins.IWidgetConfigOptionBaseEx;
 import net.minecraft.client.gui.Click;
-import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.input.CharInput;
 import net.minecraft.client.input.KeyInput;
 import org.spongepowered.asm.mixin.Final;
@@ -31,9 +31,9 @@ public class WidgetConfigOptionBaseMixin implements IWidgetConfigOptionBaseEx {
         parent.addTextField(wrapper);
     }
     @Inject(method = "drawTextFields", at = @At("TAIL"))
-    void drawExtraTextFields(DrawContext drawContext, int mouseX, int mouseY, CallbackInfo ci){
+    void drawExtraTextFields(GuiContext context, int mouseX, int mouseY, CallbackInfo ci){
         for(TextFieldWrapper<? extends GuiTextFieldGeneric> textFieldWrapper : extraTextFieldWrappers)
-            textFieldWrapper.getTextField().render(drawContext, mouseX, mouseY, 0f);
+            textFieldWrapper.textField().render(context, mouseX, mouseY, 0f);
     }
     @Inject(method = "onMouseClickedImpl", at = @At("RETURN"), cancellable = true)
     void onMouseClickedImpl(Click click, boolean doubleClick, CallbackInfoReturnable<Boolean> cir){

@@ -27,6 +27,7 @@ import net.minecraft.world.chunk.WorldChunk;
 import org.apache.commons.lang3.mutable.MutableInt;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jspecify.annotations.NonNull;
 
 import java.util.HashMap;
 import java.util.concurrent.CompletableFuture;
@@ -237,7 +238,7 @@ class DataInstance implements AutoCloseable, ClientChunkEvents.Load, ClientWorld
     @Override public void onLast(Registries.MASAWorldRenderContext context) {
         updateCounter = updateLimitPerFrame.getAsInt() + Math.min(updateCounter, 0);
         SlightXRay.tryRefreshXRayBlocks();
-        var camPos = context.camera().getPos();
+        var camPos = context.camera().getCameraPos();
         double chunkedCamX = camPos.x / 16 - 0.5, chunkedCamZ = camPos.z / 16 - 0.5;
         clearChunksOutOfRange(chunkedCamX, chunkedCamZ);
         if(updateCounter <= 0) return;
@@ -287,7 +288,7 @@ class DataInstance implements AutoCloseable, ClientChunkEvents.Load, ClientWorld
         registerAll(false);
         clearData();
     }
-    @Override public void onChunkLoad(ClientWorld world, WorldChunk chunk) {
+    @Override public void onChunkLoad(@NonNull ClientWorld world, WorldChunk chunk) {
         ChunkPos pos = chunk.getPos();
         testChunkAsync(pos.x, pos.z, world);
         testChunkAsync(pos.x - 1, pos.z, world);
@@ -295,7 +296,7 @@ class DataInstance implements AutoCloseable, ClientChunkEvents.Load, ClientWorld
         testChunkAsync(pos.x, pos.z - 1, world);
         testChunkAsync(pos.x, pos.z + 1, world);
     }
-    @Override public void afterWorldChange(MinecraftClient mc, ClientWorld world) {clearData();}
+    @Override public void afterWorldChange(@NonNull MinecraftClient mc, @NonNull ClientWorld world) {clearData();}
     @Override public void onClientWorldChunkSetBlockState(WorldChunk chunk, BlockPos pos, BlockState lastState, BlockState newState) {
         if(newState == null) newState = Blocks.AIR.getDefaultState();
         if(isFluid(newState.getBlock())) return;

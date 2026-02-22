@@ -1,7 +1,7 @@
 package lpctools.lpcfymasaapi.widgets;
 
 import fi.dy.masa.malilib.gui.widgets.WidgetBase;
-import net.minecraft.client.gui.DrawContext;
+import fi.dy.masa.malilib.render.GuiContext;
 import net.minecraft.util.math.Vec2f;
 
 import java.util.ArrayList;
@@ -30,8 +30,8 @@ public class WHAutoAdjustStringWidget extends WidgetBase {
 		needUpdateSize = true;
 	}
 	
-	public void setFrameColor(int frameColor) {this.frameColor = frameColor;}
-	public void setFillColor(int fillColor) {this.fillColor = fillColor;}
+	@SuppressWarnings("unused") public void setFrameColor(int frameColor) {this.frameColor = frameColor;}
+	@SuppressWarnings("unused") public void setFillColor(int fillColor) {this.fillColor = fillColor;}
 	public void setTexts(String[] texts){
 		this.texts.clear();
 		for(var str : texts){
@@ -40,7 +40,7 @@ public class WHAutoAdjustStringWidget extends WidgetBase {
 		}
 		needUpdateSize = true;
 	}
-	public void setTexts(Iterable<String> texts){
+	@SuppressWarnings("unused") public void setTexts(Iterable<String> texts){
 		this.texts.clear();
 		for(var str : texts){
 			String[] separates = str.split("\n");
@@ -49,16 +49,16 @@ public class WHAutoAdjustStringWidget extends WidgetBase {
 		needUpdateSize = true;
 	}
 	
-	@Override public void render(DrawContext drawContext, int mouseX, int mouseY, boolean selected) {
+	@Override public void render(GuiContext context, int mouseX, int mouseY, boolean selected) {
 		tryUpdateSize();
-		super.render(drawContext, mouseX, mouseY, selected);
+		super.render(context, mouseX, mouseY, selected);
 		int x = getX(), y = getY(), w = getWidth(), h = getHeight();
-		drawContext.fill(x - 2, y - 2, x + w + 2, y, frameColor);
-		drawContext.fill(x - 2, y + h, x + w + 2, y + h + 2, frameColor);
-		drawContext.fill(x - 2, y, x, y + h, frameColor);
-		drawContext.fill(x + w, y, x + w + 2, y + h, frameColor);
-		drawContext.fill(x, y, x + w, y + h, fillColor);
-		for(int i = 0; i < texts.size(); ++i) this.drawStringWithShadow(drawContext,
+		context.fill(x - 2, y - 2, x + w + 2, y, frameColor);
+		context.fill(x - 2, y + h, x + w + 2, y + h + 2, frameColor);
+		context.fill(x - 2, y, x, y + h, frameColor);
+		context.fill(x + w, y, x + w + 2, y + h, frameColor);
+		context.fill(x, y, x + w, y + h, fillColor);
+		for(int i = 0; i < texts.size(); ++i) this.drawStringWithShadow(context,
 			textStartX, textStartY + (textRenderer.fontHeight + 2) * i, 0xffffffff, texts.get(i));
 	}
 	
