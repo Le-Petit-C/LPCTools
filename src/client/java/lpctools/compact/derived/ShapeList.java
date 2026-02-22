@@ -2,6 +2,7 @@ package lpctools.compact.derived;
 
 import lpctools.compact.CompactMain;
 import lpctools.compact.interfaces.ITestableShape;
+import lpctools.util.Packed;
 import net.minecraft.util.math.BlockPos;
 
 import java.util.ArrayList;
@@ -17,9 +18,14 @@ public class ShapeList extends ArrayList<ITestableShape> {
         if(CompactMain.getMinihudInstance() != null)
             CompactMain.getMinihudInstance().addShapes(this, namePrefix);
     }
-    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
+    public boolean testPos(int x, int y, int z) {
+        return ITestableShape.testShapes(this, x, y, z).getAsBoolean();
+    }
     public boolean testPos(BlockPos pos){
-        return ITestableShape.testShapes(this, pos).getAsBoolean();
+        return testPos(pos.getX(), pos.getY(), pos.getZ());
+    }
+    public boolean testPos(long packedBlockPos) {
+        return testPos(Packed.BlockPos.unpackX(packedBlockPos), Packed.BlockPos.unpackY(packedBlockPos), Packed.BlockPos.unpackZ(packedBlockPos));
     }
     public static ShapeList emptyList(){
         return new ShapeList();

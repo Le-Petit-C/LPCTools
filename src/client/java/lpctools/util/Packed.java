@@ -11,6 +11,7 @@ public class Packed {
 	
 	public static class ChunkLocal {
 		public static int pack(int x, int y, int z) { return (x & 15) | (y << 8 >>> 4) | (z << 28); }
+		public static int pack(net.minecraft.util.math.BlockPos blockPos) { return pack(blockPos.getX(), blockPos.getY(), blockPos.getZ()); }
 		public static int unpackX(int packed) { return packed & 15; }
 		public static int unpackY(int packed) { return packed << 4 >> 8; }
 		public static int unpackZ(int packed) { return packed >>> 28; }
@@ -32,6 +33,13 @@ public class Packed {
 				getBlockCoord(ChunkPos.unpackX(packedChunkPos)) | ChunkLocal.unpackX(packedChunkLocalPos),
 				ChunkLocal.unpackY(packedChunkLocalPos),
 				getBlockCoord(ChunkPos.unpackZ(packedChunkPos)) | ChunkLocal.unpackZ(packedChunkLocalPos)
+			);
+		}
+		public static long packedFromChunkLocal(int chunkX, int chunkZ, int packedChunkLocalPos){
+			return pack(
+				getBlockCoord(chunkX) | ChunkLocal.unpackX(packedChunkLocalPos),
+				ChunkLocal.unpackY(packedChunkLocalPos),
+				getBlockCoord(chunkZ) | ChunkLocal.unpackZ(packedChunkLocalPos)
 			);
 		}
 	}

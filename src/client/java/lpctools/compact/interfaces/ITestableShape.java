@@ -1,7 +1,6 @@
 package lpctools.compact.interfaces;
 
 import lpctools.compact.derived.SimpleTestableShape;
-import net.minecraft.util.math.BlockPos;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.function.BooleanSupplier;
@@ -26,11 +25,11 @@ public interface ITestableShape {
             this.level = level;
         }
     }
-    @NotNull ShapeTestResult shapeTestResult(BlockPos pos);
-    static ShapeTestResult testShapes(Iterable<ITestableShape> shapes, BlockPos pos){
+    @NotNull ShapeTestResult shapeTestResult(int x, int y, int z);
+    static ShapeTestResult testShapes(Iterable<ITestableShape> shapes, int x, int y, int z){
         ShapeTestResult result = ShapeTestResult.NO_OPERATION;
         for(ITestableShape shape : shapes)
-            result = result.apply(shape.shapeTestResult(pos));
+            result = result.apply(shape.shapeTestResult(x, y, z));
         return result;
     }
     static SimpleTestableShape byTester(SimpleTestableShape.ShapeTester tester, SimpleTestableShape.TestType testType){

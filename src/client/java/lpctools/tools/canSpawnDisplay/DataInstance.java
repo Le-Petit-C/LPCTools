@@ -10,6 +10,7 @@ import lpctools.lpcfymasaapi.Registries;
 import lpctools.lpcfymasaapi.render.translucentShapes.ShapeReference;
 import lpctools.lpcfymasaapi.render.translucentShapes.RenderInstance;
 import lpctools.util.AlgorithmUtils;
+import lpctools.util.LPCMathHelper;
 import lpctools.util.Packed;
 import lpctools.util.javaex.QuietAutoCloseable;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientWorldEvents;
@@ -33,15 +34,17 @@ import java.util.HashMap;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Supplier;
 
+import static lpctools.tools.ToolUtils.clearMapDataOutOfRange;
+
 public class DataInstance implements AutoCloseable, Registries.ClientWorldChunkLightUpdated, Registries.WorldLastRender, Registries.ClientWorldChunkSetBlockState, GenericRegistry.SpawnConditionChanged, ClientWorldEvents.AfterClientWorldChange {
-    private record DelayedTask(long packedChunkPos, Supplier<UpdateData> task){}
-    private record UpdateData(long packedChunkPos, CompletableFuture<AsyncTestResult> task){}
-    private record AsyncTestResult(long packedChunkPos, ArrayList<BlockPos> result){}
+    private record DelayedTask(long packedChunkPos, Supplier<RunningTask> task){}
+    private record RunningTask(long packedChunkPos, CompletableFuture<TaskResult> task){}
+    private record TaskResult(long packedChunkPos, ArrayList<BlockPos> result){}
     
     public final Long2ObjectOpenHashMap<HashMap<BlockPos, ShapeReference>> canSpawnPoses = new Long2ObjectOpenHashMap<>();
     public final @NotNull MinecraftClient client;
     
-    private final ArrayList<UpdateData> runningTasks = new ArrayList<>();
+    private final ArrayList<RunningTask> runningTasks = new ArrayList<>();
     private final ArrayList<DelayedTask> delayedTasks = new ArrayList<>();
     private final int runningTasksLimit = Runtime.getRuntime().availableProcessors();
     
@@ -65,7 +68,7 @@ public class DataInstance implements AutoCloseable, Registries.ClientWorldChunkL
         delayedTasks.forEach(task -> packedChunkPoses.remove(task.packedChunkPos));
         packedChunkPoses.forEach(pos ->{
             ArrayList<BlockPos> blockPoses = new ArrayList<>(canSpawnPoses.get(pos).keySet());
-            delayedTasks.add(new DelayedTask(pos, ()->new UpdateData(pos, CompletableFuture.completedFuture(new AsyncTestResult(pos, blockPoses)))));
+            delayedTasks.add(new DelayedTask(pos, ()->new RunningTask(pos, CompletableFuture.completedFuture(new TaskResult(pos, blockPoses)))));
         });
     }
     void setRenderXRays(boolean xrays){
@@ -125,23 +128,27 @@ public class DataInstance implements AutoCloseable, Registries.ClientWorldChunkL
     @Override public void onLast(Registries.MASAWorldRenderContext context) {
         updateCounter = GenericConfigs.updateLimitPerFrame.getAsInt() + Math.min(updateCounter, 0);
         
-        var it = canSpawnPoses.long2ObjectEntrySet().iterator();
         double squaredDistanceLimit = MathHelper.square((double)MinecraftClient.getInstance().options.getViewDistance().getValue() * 2);
         var camPos = context.camera().getPos();
         double chunkedCamX = camPos.x / 16 - 0.5, chunkedCamZ = camPos.z / 16 - 0.5;
-        while (it.hasNext()) {
-            var entry = it.next();
-            double squaredDistance =
-                MathHelper.square(Packed.ChunkPos.unpackX(entry.getLongKey()) - chunkedCamX)
-                + MathHelper.square(Packed.ChunkPos.unpackZ(entry.getLongKey()) - chunkedCamZ);
-            if(squaredDistance > squaredDistanceLimit) {
-                entry.getValue().values().forEach(QuietAutoCloseable::closeIfNotNull);
-                it.remove();
-            }
-        }
         
+        // 先清理超出范围的delayedTask
+        AlgorithmUtils.fastRemove(delayedTasks, task->{
+            double squaredDistance = LPCMathHelper.squaredLength(
+                Packed.ChunkPos.unpackX(task.packedChunkPos) - chunkedCamX
+                , Packed.ChunkPos.unpackZ(task.packedChunkPos) - chunkedCamZ);
+            return squaredDistance > squaredDistanceLimit;
+        });
+        
+        clearMapDataOutOfRange(chunkedCamX, chunkedCamZ, squaredDistanceLimit, canSpawnPoses, HashMap::isEmpty, data->data.values().forEach(QuietAutoCloseable::closeIfNotNull));
+        
+        runningTasks.sort(Comparator.comparingDouble(task->(
+            MathHelper.square(Packed.ChunkPos.unpackX(task.packedChunkPos) - chunkedCamX)
+                + MathHelper.square(Packed.ChunkPos.unpackZ(task.packedChunkPos) - chunkedCamZ)
+        )));
         LongOpenHashSet completedTasks = null;
-        for(var task : runningTasks){
+        if(updateCounter <= 0) return;
+        for(var task : runningTasks) {
             if(task.task.isDone()){
                 var res = task.task.join();
                 long packedChunkPos = res.packedChunkPos;
@@ -162,12 +169,9 @@ public class DataInstance implements AutoCloseable, Registries.ClientWorldChunkL
         }
         
         if(runningTasks.size() < runningTasksLimit){
-            var cam = context.camera();
-            var pos = cam.getPos();
-            double x = pos.x / 16, z = pos.z / 16;
             delayedTasks.sort(Comparator.comparingDouble(task->-(
-                MathHelper.square(Packed.ChunkPos.unpackX(task.packedChunkPos) - x)
-                + MathHelper.square(Packed.ChunkPos.unpackZ(task.packedChunkPos) - z)
+                MathHelper.square(Packed.ChunkPos.unpackX(task.packedChunkPos) - chunkedCamX)
+                + MathHelper.square(Packed.ChunkPos.unpackZ(task.packedChunkPos) - chunkedCamZ)
             )));
             while (runningTasks.size() < runningTasksLimit && !delayedTasks.isEmpty())
                 runningTasks.add(delayedTasks.removeLast().task.get());
@@ -206,12 +210,12 @@ public class DataInstance implements AutoCloseable, Registries.ClientWorldChunkL
                 tryPutDelayed(world, x + dx, z + dz);
     }
     
-    private UpdateData testChunkAsync(@NotNull Chunk chunk, @NotNull LightingProvider lightingProvider, long packedChunkPos){
-        return new UpdateData(packedChunkPos, GenericUtils.supplyAsync(()->AsyncChunkTest(chunk, lightingProvider, packedChunkPos)));
+    private RunningTask testChunkAsync(@NotNull Chunk chunk, @NotNull LightingProvider lightingProvider, long packedChunkPos){
+        return new RunningTask(packedChunkPos, GenericUtils.supplyAsync(()->AsyncChunkTest(chunk, lightingProvider, packedChunkPos)));
     }
     
-    private AsyncTestResult AsyncChunkTest(@NotNull Chunk chunk, @NotNull LightingProvider light, long packedChunkPos){
-        AsyncTestResult result = new AsyncTestResult(packedChunkPos, new ArrayList<>());
+    private TaskResult AsyncChunkTest(@NotNull Chunk chunk, @NotNull LightingProvider light, long packedChunkPos){
+        TaskResult result = new TaskResult(packedChunkPos, new ArrayList<>());
         int x = Packed.getBlockCoord(Packed.ChunkPos.unpackX(packedChunkPos));
         int z = Packed.getBlockCoord(Packed.ChunkPos.unpackZ(packedChunkPos));
         Iterable<BlockPos> blockPoses = AlgorithmUtils.iterateInBox(

@@ -1,14 +1,15 @@
 package lpctools.tools.slightXRay;
 
-import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
-import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
-import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
+import it.unimi.dsi.fastutil.ints.*;
+import it.unimi.dsi.fastutil.longs.*;
+import lpctools.compact.derived.ShapeList;
 import lpctools.generic.GenericUtils;
 import lpctools.lpcfymasaapi.Registries;
 import lpctools.lpcfymasaapi.render.translucentShapes.Quad;
-import lpctools.lpcfymasaapi.render.translucentShapes.TranslucentShapes;
+import lpctools.lpcfymasaapi.render.translucentShapes.RenderInstance;
+import lpctools.lpcfymasaapi.render.translucentShapes.ShapeReference;
 import lpctools.util.AlgorithmUtils;
-import lpctools.util.MathUtils;
+import lpctools.util.LPCMathHelper;
 import lpctools.util.Packed;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientChunkEvents;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientWorldEvents;
@@ -18,185 +19,231 @@ import net.minecraft.block.Blocks;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.client.world.ClientWorld;
-import net.minecraft.util.Pair;
 import net.minecraft.util.math.*;
 import net.minecraft.world.World;
 import net.minecraft.world.chunk.Chunk;
 import net.minecraft.world.chunk.ChunkStatus;
 import net.minecraft.world.chunk.WorldChunk;
 import org.apache.commons.lang3.mutable.MutableInt;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Supplier;
 
 import static lpctools.generic.GenericConfigs.updateLimitPerFrame;
+import static lpctools.tools.ToolUtils.*;
 import static lpctools.tools.slightXRay.SlightXRayData.*;
 import static lpctools.util.AlgorithmUtils.iterateInManhattanDistance;
 import static lpctools.util.BlockUtils.isFluid;
 
 class DataInstance implements AutoCloseable, ClientChunkEvents.Load, ClientWorldEvents.AfterClientWorldChange, Registries.ClientWorldChunkSetBlockState, Registries.WorldLastRender {
-    private final ArrayList<UpdateData> runningTasks = new ArrayList<>();
-    private final ArrayList<Pair<ChunkPos, Supplier<UpdateData>>> delayedTasks = new ArrayList<>();
+    private static final RenderInstance renderInstance = RenderInstance.shapeInstanceDepthless();
+    
+    private record DelayedTask(long packedChunkPos, Supplier<RunningTask> taskGenerator){}
+    private record RunningTask(long packedChunkPos, CompletableFuture<TaskResult> future){}
+    private record TaskResult(long packedChunkPos, @NotNull Int2ObjectOpenHashMap<MutableInt> markedPoses, IntOpenHashSet shownPoses, IntOpenHashSet posesNeedToUpdate){}
+    
+    private final Long2ObjectOpenHashMap<RunningTask> runningTasks = new Long2ObjectOpenHashMap<>();
+    private final Long2ObjectOpenHashMap<DelayedTask> delayedTasks = new Long2ObjectOpenHashMap<>();
     // 为方便清理操作，给markedPoses分块，区块坐标->区块local坐标->颜色
     private final Long2ObjectOpenHashMap<Int2ObjectOpenHashMap<MutableInt>> markedPoses = new Long2ObjectOpenHashMap<>();
-    private final Long2ObjectOpenHashMap<TranslucentShapes> posQuads = new Long2ObjectOpenHashMap<>();
-    private final LongOpenHashSet posesNeedToUpdateRender = new LongOpenHashSet();
+    private final Long2ObjectOpenHashMap<IntOpenHashSet> renderingPoses = new Long2ObjectOpenHashMap<>();
+    private final Long2ObjectOpenHashMap<Int2ObjectOpenHashMap<ShapeReference[]>> posQuads = new Long2ObjectOpenHashMap<>();
+    private final Long2ObjectOpenHashMap<IntOpenHashSet> posesNeedToUpdateRender = new Long2ObjectOpenHashMap<>();
 	private final int runningTasksLimit = Runtime.getRuntime().availableProcessors();
     
     private int updateCounter = 0;
+    private boolean useCullFace;
+    private ShapeList shapeList;
     
-    MutableInt getMarkedPos(long packedBlockPos){
-        long packedChunkPos = Packed.ChunkPos.packedFromBlockPos(packedBlockPos);
-        var markedPosesChunk = markedPoses.getOrDefault(packedChunkPos, null);
-        if(markedPosesChunk == null) return null;
-        int packedChunkLocal = Packed.ChunkLocal.packedFromBlockPos(packedBlockPos);
-        return markedPosesChunk.getOrDefault(packedChunkLocal, null);
-    }
-    
-    @SuppressWarnings("unused")
-    MutableInt getMarkedPos(int x, int y, int z){
-        long packedChunkPos = Packed.ChunkPos.packCoords(x, z);
-        var markedPosesChunk = markedPoses.getOrDefault(packedChunkPos, null);
-        if(markedPosesChunk == null) return null;
-        int packedChunkLocal = Packed.ChunkLocal.pack(x, y, z);
-        return markedPosesChunk.getOrDefault(packedChunkLocal, null);
-    }
-    
-    boolean containsMarkedPos(long packedBlockPos){
-        long packedChunkPos = Packed.ChunkPos.packedFromBlockPos(packedBlockPos);
-        var markedPosesChunk = markedPoses.getOrDefault(packedChunkPos, null);
-        if(markedPosesChunk == null) return false;
-        return markedPosesChunk.containsKey(Packed.ChunkLocal.packedFromBlockPos(packedBlockPos));
-    }
-    
-    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
-    boolean containsMarkedPos(int x, int y, int z){
-        long packedChunkPos = Packed.ChunkPos.packCoords(x, z);
-        var markedPosesChunk = markedPoses.getOrDefault(packedChunkPos, null);
-        if(markedPosesChunk == null) return false;
-        return markedPosesChunk.containsKey(Packed.ChunkLocal.pack(x, y, z));
-    }
-    
-    MutableInt putMarkedPos(long packedBlockPos, MutableInt colorMarker){
-        long packedChunkPos = Packed.ChunkPos.packedFromBlockPos(packedBlockPos);
-        var markedPosesChunk = markedPoses.computeIfAbsent(packedChunkPos, p->new Int2ObjectOpenHashMap<>());
-        return markedPosesChunk.put(Packed.ChunkLocal.packedFromBlockPos(packedBlockPos), colorMarker);
-    }
-    
-    @SuppressWarnings("unused")
-    MutableInt putMarkedPos(int x, int y, int z, MutableInt colorMarker){
-        long packedChunkPos = Packed.ChunkPos.packCoords(x, z);
-        var markedPosesChunk = markedPoses.computeIfAbsent(packedChunkPos, p->new Int2ObjectOpenHashMap<>());
-        return markedPosesChunk.put(Packed.ChunkLocal.pack(x, y, z), colorMarker);
-    }
-    
-    // 不进行空区块清理操作，统一清理时再做
-    MutableInt removeMarkedPos(long packedBlockPos){
-        long packedChunkPos = Packed.ChunkPos.packedFromBlockPos(packedBlockPos);
-        var markedPosesChunk = markedPoses.getOrDefault(packedChunkPos, null);
-        if(markedPosesChunk == null) return null;
-        return markedPosesChunk.remove(Packed.ChunkLocal.packedFromBlockPos(packedBlockPos));
-    }
-    
-    @SuppressWarnings("unused")
-    MutableInt removeMarkedPos(int x, int y, int z){
-        long packedChunkPos = Packed.ChunkPos.packCoords(x, z);
-        var markedPosesChunk = markedPoses.getOrDefault(packedChunkPos, null);
-        if(markedPosesChunk == null) return null;
-        return markedPosesChunk.remove(Packed.ChunkLocal.pack(x, y, z));
+    void reshapesAsync() {
+        LongOpenHashSet dataChunks = new LongOpenHashSet(markedPoses.keySet());
+        dataChunks.removeAll(delayedTasks.keySet());
+        for(long packedChunkPos : dataChunks) {
+            delayedTasks.put(packedChunkPos, new DelayedTask(
+                packedChunkPos, ()->{
+                    var recordedPosQuadKeys = recordCollection(new IntOpenHashSet(), posQuads.get(packedChunkPos), Int2ObjectOpenHashMap::keySet);
+                    var recordedMarkedPoses = recordMap(new Int2ObjectOpenHashMap<>(), markedPoses.get(packedChunkPos));
+                    updateCounter -= (recordedPosQuadKeys.size() + recordedMarkedPoses.size()) / 16;
+                    final var rangeLimit = shapeList;
+					return new RunningTask(packedChunkPos,
+						CompletableFuture.supplyAsync(()->{
+							var taskResult = new TaskResult(packedChunkPos, recordedMarkedPoses, new IntOpenHashSet(), recordedPosQuadKeys);
+							buildShownPoses(taskResult.shownPoses, rangeLimit, taskResult.markedPoses.keySet(), packedChunkPos);
+							markEdgePoses(taskResult.shownPoses, taskResult.shownPoses, taskResult.posesNeedToUpdate);
+							return taskResult;
+						}
+					));
+                }
+            ));
+        }
     }
     
     // 更新某pos的渲染面状态
     private void updatePosRender(long packedBlockPos){
         --updateCounter;
-        var colorSource = getMarkedPos(packedBlockPos);
-        if(colorSource == null) {
-            var old = posQuads.remove(packedBlockPos);
-            if(old != null) old.close();
-            return;
-        }
-        
         int x = BlockPos.unpackLongX(packedBlockPos);
         int y = BlockPos.unpackLongY(packedBlockPos);
         int z = BlockPos.unpackLongZ(packedBlockPos);
-        int color = colorSource.intValue();
-        var q = posQuads.remove(packedBlockPos);
-        TranslucentShapes quads = q == null ? new TranslucentShapes(false, true) : q;
-        quads.clear();
-        if(!containsMarkedPos(x - 1, y, z)) quads.addQuad(x    , y, z, 0, 0, 1, 0, 1, 0, color);
-        if(!containsMarkedPos(x + 1, y, z)) quads.addQuad(x + 1, y, z, 0, 1, 0, 0, 0, 1, color);
-        if(!containsMarkedPos(x, y - 1, z)) quads.addQuad(x, y    , z, 1, 0, 0, 0, 0, 1, color);
-        if(!containsMarkedPos(x, y + 1, z)) quads.addQuad(x, y + 1, z, 0, 0, 1, 1, 0, 0, color);
-        if(!containsMarkedPos(x, y, z - 1)) quads.addQuad(x, y, z    , 0, 1, 0, 1, 0, 0, color);
-        if(!containsMarkedPos(x, y, z + 1)) quads.addQuad(x, y, z + 1, 1, 0, 0, 0, 1, 0, color);
-        if(!quads.isEmpty()) {
-            quads.trim();
-            posQuads.put(packedBlockPos, quads);
+        ShapeReference[] old = chunkedRemoveKey(posQuads, x, y, z);
+        if(!chunkedContains(renderingPoses, x, y, z)) {
+            if(old != null) {
+                for(var ref : old)
+                    if(ref != null) ref.close();
+            }
+            return;
         }
-        else quads.close();
+        var colorSource = chunkedGet(markedPoses, packedBlockPos);
+        
+        int color = colorSource.intValue();
+        var quads = old == null ? new ShapeReference[Direction.values().length] : old;
+        for(int i = 0; i < quads.length; ++i){
+            if(quads[i] != null) {
+                quads[i].close();
+                quads[i] = null;
+            }
+        }
+        class Temp{
+            static final int[][] quadOffsets = new int[Direction.values().length][];
+            static {
+                quadOffsets[Direction.WEST .getIndex()] = new int[]{Direction.WEST .getIndex(),-1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0};
+                quadOffsets[Direction.EAST .getIndex()] = new int[]{Direction.EAST .getIndex(), 1, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1};
+                quadOffsets[Direction.DOWN .getIndex()] = new int[]{Direction.DOWN .getIndex(), 0,-1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1};
+                quadOffsets[Direction.UP   .getIndex()] = new int[]{Direction.UP   .getIndex(), 0, 1, 0, 0, 1, 0, 0, 0, 1, 1, 0, 0};
+                quadOffsets[Direction.NORTH.getIndex()] = new int[]{Direction.NORTH.getIndex(), 0, 0,-1, 0, 0, 0, 0, 1, 0, 1, 0, 0};
+                quadOffsets[Direction.SOUTH.getIndex()] = new int[]{Direction.SOUTH.getIndex(), 0, 0, 1, 0, 0, 1, 1, 0, 0, 0, 1, 0};
+            }
+        }
+        for(var o : Temp.quadOffsets){
+            if(!chunkedContains(renderingPoses, x + o[1], y + o[2], z + o[3]))
+                quads[o[0]] = renderInstance.addShape(new Quad(x + o[4], y + o[5], z + o[6], o[7], o[8], o[9], o[10], o[11], o[12], color, useCullFace));
+            else {
+                Direction attachedDirection = Direction.byIndex(o[0]);
+                Direction oppositeDirection = attachedDirection.getOpposite();
+                int oppositeIndex = oppositeDirection.getIndex();
+                long attachedBlockPos = BlockPos.offset(packedBlockPos, attachedDirection);
+                var attached = chunkedGet(posQuads, attachedBlockPos);
+                if(attached != null && attached[oppositeIndex] != null) {
+                    attached[oppositeIndex].close();
+                    attached[oppositeIndex] = null;
+                    boolean isEmpty = true;
+                    for(var v : attached) {
+                        if(v != null) {
+                            isEmpty = false;
+                            break;
+                        }
+                    }
+                    if(isEmpty) chunkedRemoveKey(posQuads, attachedBlockPos);
+                }
+            }
+        }
+		for (ShapeReference quad : quads) {
+			if (quad != null) {
+				chunkedPut(posQuads, x, y, z, quads);
+				break;
+			}
+		}
     }
     
-    // 将某pos标记为需要更新渲染面
-    // private void markNeedUpdateRender(long packedBlockPos){ posesNeedToUpdateRender.add(packedBlockPos); }
-    
-    // 将某pos及其相邻pos标记为需要更新渲染面
-    private void markPosAndNeighboursNeedUpdateRender(long packedBlockPos){
-        int x = Packed.BlockPos.unpackX(packedBlockPos);
-        int y = Packed.BlockPos.unpackY(packedBlockPos);
-        int z = Packed.BlockPos.unpackZ(packedBlockPos);
-        posesNeedToUpdateRender.add(packedBlockPos);
-        posesNeedToUpdateRender.add(Packed.BlockPos.pack(x - 1, y, z));
-        posesNeedToUpdateRender.add(Packed.BlockPos.pack(x + 1, y, z));
-        posesNeedToUpdateRender.add(Packed.BlockPos.pack(x, y - 1, z));
-        posesNeedToUpdateRender.add(Packed.BlockPos.pack(x, y + 1, z));
-        posesNeedToUpdateRender.add(Packed.BlockPos.pack(x, y, z - 1));
-        posesNeedToUpdateRender.add(Packed.BlockPos.pack(x, y, z + 1));
+    void clearQuads(Iterable<ShapeReference[]> quadSet) {
+        for(var quads : quadSet){
+            for(var quad : quads) {
+                if (quad != null) {
+                    quad.close();
+                    --updateCounter;
+                }
+            }
+        }
     }
     
     // 清理超出距离的区块
-    private void clearChunksOutOfRange(double camX, double camZ) {
+    public void clearChunksOutOfRange(double chunkedCamX, double chunkedCamZ) {
         double distanceLimitSquared = MathHelper.square(2.0 * MinecraftClient.getInstance().options.getViewDistance().getValue());
-        double px = camX / 16 - 0.5, pz = camZ / 16 - 0.5;
-        var it = markedPoses.long2ObjectEntrySet().fastIterator();
-        while(it.hasNext()){
-            var entry = it.next();
-            var marked = entry.getValue();
-            if(marked.isEmpty()){
-                it.remove();
-                continue;
-            }
-            long packedChunkPos = entry.getLongKey();
-            int x = Packed.ChunkPos.unpackX(packedChunkPos);
-            int z = Packed.ChunkPos.unpackZ(packedChunkPos);
-            double distanceSquared = (px - x) * (px - x) + (pz - z) * (pz - z);
-            if(distanceSquared >= distanceLimitSquared){
-                it.remove();
-                var _it = marked.int2ObjectEntrySet().fastIterator();
-                while(_it.hasNext()){
-                    var e = _it.next();
-                    var q = posQuads.remove(Packed.BlockPos.packedFromChunkLocal(packedChunkPos, e.getIntKey()));
-                    if(q != null) {
-                        q.close();
-                        --updateCounter;
-                    }
+        clearMapDataOutOfRange(chunkedCamX, chunkedCamZ, distanceLimitSquared, delayedTasks, null, null);
+        clearMapDataOutOfRange(chunkedCamX, chunkedCamZ, distanceLimitSquared, runningTasks, null, task->task.future.cancel(true));
+        clearMapDataOutOfRange(chunkedCamX, chunkedCamZ, distanceLimitSquared, markedPoses, Int2ObjectOpenHashMap::isEmpty, null);
+        clearMapDataOutOfRange(chunkedCamX, chunkedCamZ, distanceLimitSquared, renderingPoses, IntOpenHashSet::isEmpty, null);
+        clearMapDataOutOfRange(chunkedCamX, chunkedCamZ, distanceLimitSquared, posesNeedToUpdateRender, IntOpenHashSet::isEmpty, null);
+        clearMapDataOutOfRange(chunkedCamX, chunkedCamZ, distanceLimitSquared, posQuads, Int2ObjectOpenHashMap::isEmpty, quads->clearQuads(quads.values()));
+    }
+    
+    void updatePosesNeedToUpdate(double chunkedCamX, double chunkedCamZ) {
+        if(updateCounter <= 0) return;
+        if(!posesNeedToUpdateRender.isEmpty()) {
+            LongHeapPriorityQueue chunksNeedToUpdate = new LongHeapPriorityQueue(posesNeedToUpdateRender.keySet(),
+                LongComparator.comparingDouble(packedChunkPos->{
+                int x = Packed.ChunkPos.unpackX(packedChunkPos);
+                int z = Packed.ChunkPos.unpackZ(packedChunkPos);
+                return MathHelper.square(x - chunkedCamX) + MathHelper.square(z - chunkedCamZ);
+            }));
+            while(!chunksNeedToUpdate.isEmpty()){
+                long packedChunkPos = chunksNeedToUpdate.firstLong();
+                var chunkUpdates = posesNeedToUpdateRender.get(packedChunkPos);
+                var it = chunkUpdates.iterator();
+                while(it.hasNext()){
+                    updatePosRender(Packed.BlockPos.packedFromChunkLocal(packedChunkPos, it.nextInt()));
+                    it.remove();
+                    if(--updateCounter <= 0) return;
                 }
-                updateCounter -= marked.size() / 16;
-                if(updateCounter <= 0) break;
+                posesNeedToUpdateRender.remove(chunksNeedToUpdate.dequeueLong());
             }
         }
     }
     
-    void updatePosesNeedToUpdate() {
-        if(!posesNeedToUpdateRender.isEmpty()) {
-            var it = posesNeedToUpdateRender.iterator();
-            while (it.hasNext()) {
-                updatePosRender(it.nextLong());
-                it.remove();
-                if (updateCounter <= 0) break;
+    static LongHeapPriorityQueue nearFirstPackedChunkPos(LongCollection packedChunkPoses, double chunkedCamX, double chunkedCamZ) {
+        return new LongHeapPriorityQueue(packedChunkPoses,
+            LongComparator.comparingDouble(packedChunkPos -> LPCMathHelper.squaredLength(
+                Packed.ChunkPos.unpackX(packedChunkPos) - chunkedCamX,
+                Packed.ChunkPos.unpackZ(packedChunkPos) - chunkedCamZ
+            ))
+        );
+    }
+    
+    void consumeTasks(double chunkedCamX, double chunkedCamZ){
+        LongArrayList completedFutures = null;
+        if(!runningTasks.isEmpty()) {
+            var runningTaskKeys = nearFirstPackedChunkPos(runningTasks.keySet(), chunkedCamX, chunkedCamZ);
+            while(!runningTaskKeys.isEmpty()){
+                var data = runningTasks.get(runningTaskKeys.dequeueLong());
+                if(!data.future.isDone()) continue;
+                var result = data.future.join();
+                markedPoses.put(result.packedChunkPos, result.markedPoses);
+                renderingPoses.put(result.packedChunkPos, result.shownPoses);
+                if(!result.posesNeedToUpdate.isEmpty()) {
+                    if(posesNeedToUpdateRender.containsKey(result.packedChunkPos)) {
+                        var old = posesNeedToUpdateRender.get(result.packedChunkPos);
+                        if(old.size() >= result.posesNeedToUpdate.size()) {
+                            old.addAll(result.posesNeedToUpdate);
+                            updateCounter -= result.posesNeedToUpdate.size() / 16;
+                            result.posesNeedToUpdate.clear();
+                        }
+                        else {
+                            result.posesNeedToUpdate.addAll(old);
+                            updateCounter -= old.size() / 16;
+                            posesNeedToUpdateRender.put(result.packedChunkPos, result.posesNeedToUpdate);
+                            old.clear();
+                        }
+                    }
+                    else posesNeedToUpdateRender.put(result.packedChunkPos, result.posesNeedToUpdate);
+                }
+                if(updateCounter <= 0) break;
+                if(completedFutures == null) completedFutures = new LongArrayList();
+                completedFutures.add(result.packedChunkPos);
+            }
+            if(completedFutures != null && !completedFutures.isEmpty()) {
+                completedFutures.forEach(runningTasks::remove);
+                completedFutures.clear();
+            }
+        }
+        if(!delayedTasks.isEmpty() && runningTasks.size() < runningTasksLimit){
+            var delayedTaskKeys = nearFirstPackedChunkPos(delayedTasks.keySet(), chunkedCamX, chunkedCamZ);
+            while(!delayedTaskKeys.isEmpty() && runningTasks.size() < runningTasksLimit) {
+                long key = delayedTaskKeys.dequeueLong();
+                if(runningTasks.containsKey(key)) continue;
+                var delayedTask = delayedTasks.remove(key);
+                runningTasks.put(delayedTask.packedChunkPos, delayedTask.taskGenerator.get());
             }
         }
     }
@@ -205,87 +252,49 @@ class DataInstance implements AutoCloseable, ClientChunkEvents.Load, ClientWorld
         updateCounter = updateLimitPerFrame.getAsInt() + Math.min(updateCounter, 0);
         SlightXRay.tryRefreshXRayBlocks();
         var camPos = context.camera().getPos();
-        clearChunksOutOfRange(camPos.x, camPos.z);
+        double chunkedCamX = camPos.x / 16 - 0.5, chunkedCamZ = camPos.z / 16 - 0.5;
+        clearChunksOutOfRange(chunkedCamX, chunkedCamZ);
         if(updateCounter <= 0) return;
-        updatePosesNeedToUpdate();
+        consumeTasks(chunkedCamX, chunkedCamZ);
         if(updateCounter <= 0) return;
-        LongOpenHashSet completedFutures = null;
-        if(!delayedTasks.isEmpty()){
-            delayedTasks.sort(Comparator.<Pair<ChunkPos, Supplier<UpdateData>>>comparingDouble(v->squaredDistanceByClient(v.getLeft())).reversed());
-            while(!delayedTasks.isEmpty() && runningTasks.size() < runningTasksLimit)
-                runningTasks.add(delayedTasks.removeLast().getRight().get());
-        }
-        runningTasks.sort(Comparator.comparingDouble(v->squaredDistanceByClient(v.pos)));
-        for(UpdateData data : runningTasks){
-            if(!data.future.isDone()) continue;
-            if(completedFutures == null) completedFutures = new LongOpenHashSet();
-            var result = data.future.join();
-            for(var v : result.markedPoses.long2ObjectEntrySet())
-                putMarkedPos(v.getLongKey(), v.getValue());
-            updateCounter -= result.markedPoses.size() / 16;
-            result.markedPoses.clear();
-            if(updateCounter <= 0) break;
-            var it = result.posesNeedToUpdate.long2ObjectEntrySet().iterator();
-            while(it.hasNext()) {
-                var entry = it.next();
-                var cache = entry.getValue();
-                long packedPos = entry.getLongKey();
-                it.remove();
-                int x = BlockPos.unpackLongX(packedPos);
-                int y = BlockPos.unpackLongY(packedPos);
-                int z = BlockPos.unpackLongZ(packedPos);
-                for(var e : cache.preparedPairs){
-                    var d = e.direction;
-                    long oppositePos = BlockPos.asLong(x + d.getOffsetX(), y + d.getOffsetY(), z + d.getOffsetZ());
-                    if(containsMarkedPos(oppositePos)) {
-                        var opposite = posQuads.getOrDefault(oppositePos, null);
-                        if(opposite != null) updatePosRender(oppositePos);
-                    }
-                    else cache.quads.addQuad(e.quad, false);
-                }
-                TranslucentShapes old;
-                if(cache.quads.isEmpty()) {
-                    old = posQuads.remove(packedPos);
-                    cache.quads.close();
-                }
-                else old = posQuads.put(packedPos, cache.quads);
-                if(old != null) old.close();
-                if(--updateCounter <= 0) break;
-            }
-            if(result.posesNeedToUpdate.isEmpty()) completedFutures.add(data.pos.toLong());
-            else break;
-        }
-        if(completedFutures != null && !completedFutures.isEmpty()) {
-            LongOpenHashSet finalCompletedFutures = completedFutures;
-            AlgorithmUtils.fastRemove(runningTasks, v -> finalCompletedFutures.contains(v.pos.toLong()));
-            completedFutures.clear();
-        }
+        updatePosesNeedToUpdate(chunkedCamX, chunkedCamZ);
     }
-    public final MinecraftClient client;
-    public double squaredDistanceByClient(ChunkPos chunkPos){
-        if(client.player != null) return MathUtils.squaredDistance(client.player.getEyePos(), chunkPos);
-        else return MathUtils.square(client.options.getViewDistance().getValue() * 16);
-    }
+    
     void registerAll(boolean b){
         Registries.AFTER_CLIENT_WORLD_CHANGE.register(this, b);
         Registries.MASA_WORLD_RENDER_LAST.register(this, b);
         Registries.CLIENT_CHUNK_LOAD.register(this, b);
         Registries.CLIENT_WORLD_CHUNK_SET_BLOCK_STATE.register(this, b);
     }
-    DataInstance(MinecraftClient client){
-        this.client = client;
+    
+    void setUseCullFace(boolean useCullFace) {
+        this.useCullFace = useCullFace;
+        reshapesAsync();
+    }
+    void updateUseCullFace() { setUseCullFace(SlightXRay.useCullFace.getAsBoolean()); }
+    
+    void setRangeLimit(ShapeList shapeList) {
+        this.shapeList = shapeList;
+        reshapesAsync();
+    }
+    void updateRangeLimit() { setRangeLimit(SlightXRay.displayRange.buildShapeList()); }
+    
+    DataInstance() {
+        updateUseCullFace();
+        updateRangeLimit();
         registerAll(true);
         resetData();
     }
     
     public void resetData(){
+        var client = MinecraftClient.getInstance();
         ClientWorld world = client.world;
         ClientPlayerEntity player = client.player;
         if(player == null || world == null) return;
         Vec3d playerEyePos = player.getEyePos();
         for(Chunk chunk : AlgorithmUtils.iterateLoadedChunksFromClosest(world, playerEyePos)){
             ChunkPos chunkPos = chunk.getPos();
-            testChunkAsync(world, chunkPos, MathUtils.squaredDistance(playerEyePos, chunkPos));
+            testChunkAsync(chunkPos.x, chunkPos.z, world);
         }
     }
     @Override public void close(){
@@ -294,14 +303,11 @@ class DataInstance implements AutoCloseable, ClientChunkEvents.Load, ClientWorld
     }
     @Override public void onChunkLoad(ClientWorld world, WorldChunk chunk) {
         ChunkPos pos = chunk.getPos();
-        double distanceSquare;
-        if(client.player != null) distanceSquare = MathUtils.squaredDistance(client.player.getEyePos(), chunk.getPos());
-        else distanceSquare = MathUtils.square(client.options.getViewDistance().getValue() * 16);
-        testChunkAsync(world, pos, distanceSquare);
-        testChunkAsync(world, new ChunkPos(pos.x - 1, pos.z), distanceSquare);
-        testChunkAsync(world, new ChunkPos(pos.x + 1, pos.z), distanceSquare);
-        testChunkAsync(world, new ChunkPos(pos.x, pos.z - 1), distanceSquare);
-        testChunkAsync(world, new ChunkPos(pos.x, pos.z + 1), distanceSquare);
+        testChunkAsync(pos.x, pos.z, world);
+        testChunkAsync(pos.x - 1, pos.z, world);
+        testChunkAsync(pos.x + 1, pos.z, world);
+        testChunkAsync(pos.x, pos.z - 1, world);
+        testChunkAsync(pos.x, pos.z + 1, world);
     }
     @Override public void afterWorldChange(MinecraftClient mc, ClientWorld world) {clearData();}
     @Override public void onClientWorldChunkSetBlockState(WorldChunk chunk, BlockPos pos, BlockState lastState, BlockState newState) {
@@ -315,9 +321,13 @@ class DataInstance implements AutoCloseable, ClientChunkEvents.Load, ClientWorld
     }
     
     protected void clearData(){
-        AlgorithmUtils.cancelTasks(runningTasks, v->v.future);
+        runningTasks.values().forEach(v->v.future.cancel(true));
+        runningTasks.clear();
         delayedTasks.clear();
-        posQuads.values().forEach(TranslucentShapes::close);
+        for(var quadSet : posQuads.values())
+            for(var quads : quadSet.values())
+                for(var ref : quads)
+                    if(ref != null) ref.close();
         posQuads.clear();
         posesNeedToUpdateRender.clear();
         markedPoses.clear();
@@ -341,41 +351,90 @@ class DataInstance implements AutoCloseable, ClientChunkEvents.Load, ClientWorld
                 }
             }
         }
-        MutableInt old;
-        if(res == null) old = removeMarkedPos(packedBlockPos);
-        else old = putMarkedPos(packedBlockPos, res);
-		if(old != null || res != null) markPosAndNeighboursNeedUpdateRender(packedBlockPos);
+        boolean oldChanged;
+        if(res == null) {
+            oldChanged = chunkedRemove(renderingPoses, packedBlockPos);
+            chunkedRemoveKey(markedPoses, packedBlockPos);
+        }
+        else {
+            oldChanged = shapeList.testPos(packedBlockPos) && chunkedAdd(renderingPoses, packedBlockPos);
+            chunkedPut(markedPoses, packedBlockPos, res);
+        }
+		if(oldChanged || res != null) chunkedAdd(posesNeedToUpdateRender, packedBlockPos);
     }
     
     private static boolean doShowAround(BlockState state){ return !state.isOpaque() || state.isTransparent(); }
     
-    // 能由子线程处理的尽量给子线程处理，此处尝试将Quad的new操作也交给子线程
-    record DirectionQuadPair(Direction direction, Quad quad) {}
-    record UpdatedCache(ArrayList<DirectionQuadPair> preparedPairs, TranslucentShapes quads) {}
-    record TaskResult(Long2ObjectOpenHashMap<MutableInt> markedPoses, Long2ObjectOpenHashMap<UpdatedCache> posesNeedToUpdate){}
-    private record UpdateData(ChunkPos pos, CompletableFuture<TaskResult> future, double distanceSquare){}
-    private void testChunkAsync(ClientWorld world, ChunkPos pos, double distanceSquare){
-        ChunkTask task = ChunkTask.buildTask(world, pos);
-        if(task != null) {
-            HashMap<Block, MutableInt> copy;
-            synchronized (XRayBlocks){copy = new HashMap<>(XRayBlocks);}
-            delayedTasks.add(new Pair<>(pos, ()->new UpdateData(pos, GenericUtils.supplyAsync(()->task.testCurrentChunk(copy), distanceSquare), distanceSquare)));
+    private RunningTask buildRunningTask(ChunkTask task, long packedChunkPos){
+        HashMap<Block, MutableInt> copy;
+        Int2ObjectOpenHashMap<MutableInt> recordedOldMarkedPoses = new Int2ObjectOpenHashMap<>();
+        IntOpenHashSet recordedOldShownPoses = new IntOpenHashSet();
+        synchronized (XRayBlocks){copy = new HashMap<>(XRayBlocks);}
+        if(markedPoses.get(packedChunkPos) instanceof Int2ObjectOpenHashMap<MutableInt> oldPoses){
+            recordedOldMarkedPoses.putAll(oldPoses);
+            updateCounter -= oldPoses.size() / 16;
+        }
+        if(renderingPoses.get(packedChunkPos) instanceof IntOpenHashSet oldPoses) {
+            recordedOldShownPoses.addAll(oldPoses);
+            updateCounter -= oldPoses.size() / 16;
+        }
+        return new RunningTask(packedChunkPos, GenericUtils.supplyAsync(()->task.testCurrentChunk(copy, shapeList, recordedOldMarkedPoses, recordedOldShownPoses)));
+    }
+    
+    private void testChunkAsync(int chunkX, int chunkZ, ClientWorld world){
+        long packedChunkPos = Packed.ChunkPos.pack(chunkX, chunkZ);
+        ChunkTask task = ChunkTask.buildTask(packedChunkPos, world);
+        if(task != null) delayedTasks.put(packedChunkPos, new DelayedTask(packedChunkPos, ()->buildRunningTask(task, packedChunkPos)));
+    }
+    private static void buildShownPoses(IntOpenHashSet shownPoses, ShapeList rangeLimit, IntSet chunkLocalMarkedPoses, long packedChunkPos) {
+        int chunkBlockX = Packed.getBlockCoord(Packed.ChunkPos.unpackX(packedChunkPos));
+        int chunkBlockZ = Packed.getBlockCoord(Packed.ChunkPos.unpackZ(packedChunkPos));
+        var it = chunkLocalMarkedPoses.iterator();
+        while (it.hasNext()) {
+            int localPos = it.nextInt();
+            int x = chunkBlockX + Packed.ChunkLocal.unpackX(localPos);
+            int y = Packed.ChunkLocal.unpackY(localPos);
+            int z = chunkBlockZ + Packed.ChunkLocal.unpackZ(localPos);
+            if(rangeLimit.testPos(x, y, z))
+                shownPoses.add(localPos);
         }
     }
-    private record ChunkTask(ChunkPos pos, Chunk current, Chunk west, Chunk east, Chunk north, Chunk south){
-        static @Nullable DataInstance.ChunkTask buildTask(ClientWorld world, ChunkPos pos){
-            ChunkTask task = new ChunkTask(pos,
-                world.getChunk(pos.x, pos.z, ChunkStatus.FULL, false),
-                world.getChunk(pos.x - 1, pos.z, ChunkStatus.FULL, false),
-                world.getChunk(pos.x + 1, pos.z, ChunkStatus.FULL, false),
-                world.getChunk(pos.x, pos.z - 1, ChunkStatus.FULL, false),
-                world.getChunk(pos.x, pos.z + 1, ChunkStatus.FULL, false));
+    static void markEdgePoses(IntSet poses, IntIterable posesToTest, IntOpenHashSet markedPoses) {
+        var it = posesToTest.iterator();
+        while(it.hasNext()){
+            var pos = it.nextInt();
+            int x = Packed.ChunkLocal.unpackX(pos);
+            int y = Packed.ChunkLocal.unpackY(pos);
+            int z = Packed.ChunkLocal.unpackZ(pos);
+            for(var direction : Direction.values()){
+                if(!poses.contains(Packed.ChunkLocal.pack(x + direction.getOffsetX(), y + direction.getOffsetY(), z + direction.getOffsetZ()))){
+                    markedPoses.add(pos);
+                    break;
+                }
+            }
+        }
+    }
+    private record ChunkTask(long packedChunkPos, Chunk current, Chunk west, Chunk east, Chunk north, Chunk south){
+        static @Nullable DataInstance.ChunkTask buildTask(
+            long packedChunkPos, ClientWorld world){
+            int chunkX = Packed.ChunkPos.unpackX(packedChunkPos);
+            int chunkZ = Packed.ChunkPos.unpackZ(packedChunkPos);
+            ChunkTask task = new ChunkTask(packedChunkPos,
+                world.getChunk(chunkX, chunkZ, ChunkStatus.FULL, false),
+                world.getChunk(chunkX - 1, chunkZ, ChunkStatus.FULL, false),
+                world.getChunk(chunkX + 1, chunkZ, ChunkStatus.FULL, false),
+                world.getChunk(chunkX, chunkZ - 1, ChunkStatus.FULL, false),
+                world.getChunk(chunkX, chunkZ + 1, ChunkStatus.FULL, false));
             if(task.current == null || task.west == null || task.east == null || task.north == null || task.south == null)
                 return null;
             return task;
         }
-        public TaskResult testCurrentChunk(HashMap<Block, MutableInt> colorMap){
-            TaskResult res = new TaskResult(new Long2ObjectOpenHashMap<>(), new Long2ObjectOpenHashMap<>());
+        public TaskResult testCurrentChunk(HashMap<Block, MutableInt> colorMap, ShapeList rangeLimit
+            , Int2ObjectOpenHashMap<MutableInt> recordedOldMarkedPoses, IntOpenHashSet recordedOldShownPoses){
+            TaskResult res = new TaskResult(packedChunkPos, recordedOldMarkedPoses, new IntOpenHashSet(), new IntOpenHashSet());
+            markEdgePoses(recordedOldShownPoses, recordedOldShownPoses, res.posesNeedToUpdate);
+            recordedOldShownPoses.clear();
+            IntArrayList newMarkedPoses = new IntArrayList();
             int bottom = current.getBottomY(), height = current.getHeight(), top = bottom + height;
             TestData displaysNear = new TestData(bottom, height);
             for(BlockPos pos1 : AlgorithmUtils.iterateInBox(0, bottom, 0, 15, top - 1, 15))
@@ -397,46 +456,22 @@ class DataInstance implements AutoCloseable, ClientChunkEvents.Load, ClientWorld
                 MutableInt color = colorMap.get(state.getBlock());
                 if(color == null) continue;
                 if(displaysNear.get(pos1)){
-                    res.markedPoses.put(BlockPos.add(pos1.asLong(), ChunkSectionPos.getBlockCoord(pos.x), 0, ChunkSectionPos.getBlockCoord(pos.z)), color);
+                    int chunkLocalPos = Packed.ChunkLocal.pack(pos1);
+                    if(!res.markedPoses.containsKey(chunkLocalPos)) newMarkedPoses.add(chunkLocalPos);
+                    res.markedPoses.put(chunkLocalPos, color);
                     continue;
                 }
                 for(Direction direction : Direction.values()){
-                    if(displaysNear.get(pos1.offset(direction))){
-                        res.markedPoses.put(BlockPos.add(pos1.asLong(), ChunkSectionPos.getBlockCoord(pos.x), 0, ChunkSectionPos.getBlockCoord(pos.z)), color);
+                    if(displaysNear.get(pos1.getX() + direction.getOffsetX(), pos1.getY() + direction.getOffsetY(), pos1.getZ() + direction.getOffsetZ())){
+                        int chunkLocalPos = Packed.ChunkLocal.pack(pos1);
+                        if(!res.markedPoses.containsKey(chunkLocalPos)) newMarkedPoses.add(chunkLocalPos);
+                        res.markedPoses.put(chunkLocalPos, color);
                         break;
                     }
                 }
             }
-            class Temp{
-                static void tryAdd(Long2ObjectOpenHashMap<UpdatedCache> res, Long2ObjectOpenHashMap<MutableInt> testMap, long packedPos){
-                    int x = BlockPos.unpackLongX(packedPos);
-                    int y = BlockPos.unpackLongY(packedPos);
-                    int z = BlockPos.unpackLongZ(packedPos);
-                    var colorContainer = testMap.getOrDefault(packedPos, null);
-                    if(colorContainer == null) return;
-                    int color = colorContainer.intValue();
-                    for(var d : Direction.values()){
-                        if(!testMap.containsKey(BlockPos.asLong(x + d.getOffsetX(), y + d.getOffsetY(), z + d.getOffsetZ()))){
-                            var cache = res.computeIfAbsent(packedPos, v->new UpdatedCache(new ArrayList<>(), new TranslucentShapes(false, true)));
-                            cache.preparedPairs.add(new DirectionQuadPair(d, switch(d) {
-                                case DOWN -> new Quad(x, y    , z, 1, 0, 0, 0, 0, 1, color);
-                                case UP   -> new Quad(x, y + 1, z, 0, 0, 1, 1, 0, 0, color);
-                                case NORTH-> new Quad(x, y, z    , 0, 1, 0, 1, 0, 0, color);
-                                case SOUTH-> new Quad(x, y, z + 1, 1, 0, 0, 0, 1, 0, color);
-                                case WEST -> new Quad(x    , y, z, 0, 0, 1, 0, 1, 0, color);
-                                case EAST -> new Quad(x + 1, y, z, 0, 1, 0, 0, 0, 1, color);
-                            }));
-                        }
-                    }
-                    var cache = res.getOrDefault(packedPos, null);
-                    if(cache != null) {
-                        cache.preparedPairs.trimToSize();
-                        cache.quads.ensureCapacity(cache.preparedPairs.size());
-                    }
-                }
-            }
-            var resSet = res.posesNeedToUpdate;
-            res.markedPoses.keySet().forEach(p->Temp.tryAdd(resSet, res.markedPoses, p));
+            buildShownPoses(res.shownPoses, rangeLimit, res.markedPoses.keySet(), packedChunkPos);
+            markEdgePoses(res.shownPoses, newMarkedPoses, res.posesNeedToUpdate);
             return res;
         }
         private static class TestData{
@@ -446,8 +481,10 @@ class DataInstance implements AutoCloseable, ClientChunkEvents.Load, ClientWorld
                 this.bottomY = bottomY; this.worldHeight = worldHeight;
                 data = new boolean[18][worldHeight + 2][18];
             }
-            boolean get(BlockPos pos){return data[pos.getX() + 1][pos.getY() - bottomY + 1][pos.getZ() + 1];}
-            void set(BlockPos pos, boolean value){data[pos.getX() + 1][pos.getY() - bottomY + 1][pos.getZ() + 1] = value;}
+            boolean get(int x, int y, int z){ return data[x + 1][y - bottomY + 1][z + 1]; }
+            boolean get(BlockPos pos){ return get(pos.getX(), pos.getY(), pos.getZ()); }
+            void set(int x, int y, int z, boolean value){ data[x + 1][y - bottomY + 1][z + 1] = value; }
+            void set(BlockPos pos, boolean value){ set(pos.getX(), pos.getY(), pos.getZ(), value); }
         }
     }
 }

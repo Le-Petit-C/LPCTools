@@ -1,6 +1,7 @@
 package lpctools.tools.slightXRay;
 
 import com.google.common.collect.ImmutableList;
+import lpctools.lpcfymasaapi.interfaces.ILPCValueChangeCallback;
 import net.minecraft.block.Block;
 import net.minecraft.block.Blocks;
 import org.apache.commons.lang3.mutable.MutableInt;
@@ -8,9 +9,18 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.HashMap;
+import java.util.function.Consumer;
 
 public class SlightXRayData {
     static @Nullable DataInstance dataInstance;
+    public static final @NotNull HashMap<Block, MutableInt> XRayBlocks;
+    
+    static void applyToDataInstance(Consumer<DataInstance> consumer) {
+        if(dataInstance != null) consumer.accept(dataInstance);
+    }
+    static ILPCValueChangeCallback dataApplyCallback(Consumer<DataInstance> consumer) {
+        return ()->applyToDataInstance(consumer);
+    }
     public static final @NotNull ImmutableList<Block> defaultXRayBlocks = ImmutableList.of(
         Blocks.DIAMOND_ORE, Blocks.DEEPSLATE_DIAMOND_ORE,
         Blocks.DEEPSLATE_COAL_ORE, Blocks.EMERALD_ORE, Blocks.DEEPSLATE_EMERALD_ORE,
@@ -18,7 +28,6 @@ public class SlightXRayData {
         Blocks.BUDDING_AMETHYST, Blocks.CALCITE,
         Blocks.ANCIENT_DEBRIS
     );
-    public static final @NotNull HashMap<Block, MutableInt> XRayBlocks;
     static {
         XRayBlocks = new HashMap<>();
         for(Block block : defaultXRayBlocks)

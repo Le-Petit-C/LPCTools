@@ -17,17 +17,13 @@ public class CanSpawnDisplay{
     public static final BooleanHotkeyThirdListConfig CSConfig = new BooleanHotkeyThirdListConfig(ToolConfigs.toolConfigs, "CS", CanSpawnDisplay::switchCallback);
     static {setLPCToolsToggleText(CSConfig);}
     static {listStack.push(CSConfig);}
-    public static final ColorConfig displayColor = addColorConfig("displayColor", Color4f.fromColor(0x7fffffff), CanSpawnDisplay::onColorChanged);
+    public static final ColorConfig displayColor = addColorConfig("displayColor", Color4f.fromColor(0x7fffffff), dataApplyCallback(DataInstance::updateRenderColor));
     public static final RangeLimitConfig rangeLimit = addRangeLimitConfig();
-    static {rangeLimit.setValueChangeCallback(CanSpawnDisplay::onRenderRangeChanged);}
+    static {rangeLimit.setValueChangeCallback(dataApplyCallback(DataInstance::updateRenderRange));}
     // public static final DoubleConfig renderDistance = addDoubleConfig("renderDistance", 32, 16, 512);
     public static final RenderMethodConfig renderMethod = addConfig(new RenderMethodConfig());
-    public static final BooleanConfig renderXRays = addBooleanConfig("renderXRays", true, CanSpawnDisplay::onRenderXRaysChanged);
+    public static final BooleanConfig renderXRays = addBooleanConfig("renderXRays", true, dataApplyCallback(DataInstance::updateRenderXRays));
     static {listStack.pop();}
-    
-    private static void onColorChanged() { if(dataInstance != null) dataInstance.updateRenderColor(); }
-    private static void onRenderRangeChanged(){ if(dataInstance != null) dataInstance.updateRenderRange(); }
-    private static void onRenderXRaysChanged(){ if(dataInstance != null) dataInstance.updateRenderXRays(); }
     
     public static class RenderMethodConfig extends ArrayOptionListConfig<IRenderMethod>{
         public RenderMethodConfig() {
@@ -37,7 +33,7 @@ public class CanSpawnDisplay{
         }
         @Override public void onValueChanged() {
             super.onValueChanged();
-            if(dataInstance != null) dataInstance.updateRenderMethod();
+            applyToDataInstance(DataInstance::updateRenderMethod);
         }
     }
     public static void switchCallback() {

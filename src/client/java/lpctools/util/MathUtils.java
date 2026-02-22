@@ -36,14 +36,12 @@ public class MathUtils {
     }
     @Contract(pure = true)
     public static double squaredDistance(Vec3d pos, ChunkPos chunkPos){
-        return square(chunkPos.x * 16 + 8.0 - pos.x) + square(chunkPos.z * 16 + 8.0 - pos.z);
+        return MathHelper.square(chunkPos.x * 16 + 8.0 - pos.x) + MathHelper.square(chunkPos.z * 16 + 8.0 - pos.z);
     }
     @Contract(pure = true)
     public static Vector3i getSubChunkPos(BlockPos pos){
         return new Vector3i(pos.getX() >> 4, pos.getY() >> 4, pos.getZ() >> 4);
     }
-    @Contract(pure = true)
-    public static double square(double x){return x * x;}
     @Contract(pure = true)//请自行确保vec三个分量为正
     public static void clamp(BlockPos.Mutable src, Vec3i vec){
         src.setX(src.getX() % vec.getX());

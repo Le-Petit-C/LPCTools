@@ -1,7 +1,6 @@
 package lpctools.compact.derived;
 
 import lpctools.compact.interfaces.ITestableShape;
-import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Box;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -11,15 +10,15 @@ import java.util.ArrayList;
 import static lpctools.compact.interfaces.ITestableShape.ShapeTestResult.*;
 
 public class SimpleTestableShape implements ITestableShape {
-    public interface ShapeTester{ boolean isInsideShape(BlockPos pos);}
+    public interface ShapeTester{ boolean isInsideShape(int x, int y, int z);}
     public final @NotNull ShapeTester tester;
     public final TestType testType;
     public SimpleTestableShape(@NotNull ShapeTester tester, TestType testType){
         this.tester = tester;
         this.testType = testType;
     }
-    @Override public @NotNull ShapeTestResult shapeTestResult(BlockPos pos) {
-        return testType.combineResult(tester.isInsideShape(pos));
+    @Override public @NotNull ShapeTestResult shapeTestResult(int x, int y, int z) {
+        return testType.combineResult(tester.isInsideShape(x, y, z));
     }
     @Nullable public static TestType testTestType(String name, String namePrefix){
         for(TestType testType : TestType.values())
@@ -60,10 +59,10 @@ public class SimpleTestableShape implements ITestableShape {
         }
     }
     public record InsideBox(Box box) implements ShapeTester{
-        @Override public boolean isInsideShape(BlockPos pos) {return box.contains(pos.toCenterPos());}
+        @Override public boolean isInsideShape(int x, int y, int z) {return box.contains(x + 0.5, y + 0.5, z + 0.5);}
         @Override public boolean equals(Object object){
-            if(object instanceof InsideBox tester)
-                return box.equals(tester.box);
+            if(object instanceof InsideBox(Box box1))
+                return box.equals(box1);
             else return false;
         }
     }

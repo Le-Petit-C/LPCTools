@@ -1,6 +1,8 @@
 package lpctools.util;
 
 import com.google.common.collect.ImmutableList;
+import it.unimi.dsi.fastutil.longs.Long2BooleanFunction;
+import it.unimi.dsi.fastutil.longs.LongArrayList;
 import it.unimi.dsi.fastutil.longs.LongIterable;
 import it.unimi.dsi.fastutil.longs.LongIterator;
 import lpctools.util.javaex.Object2BooleanFunction;
@@ -292,6 +294,15 @@ public class AlgorithmUtils {
     public static <T> void fastRemove(ArrayList<T> source, Object2BooleanFunction<T> shouldRemove){
         for(int a = 0; a < source.size(); ++a){
             while (shouldRemove.getBoolean(source.get(a))){
+                Collections.swap(source, a, source.size() - 1);
+                source.removeLast();
+                if(a >= source.size()) break;
+            }
+        }
+    }
+    public static <T> void fastRemove(LongArrayList source, Long2BooleanFunction shouldRemove){
+        for(int a = 0; a < source.size(); ++a){
+            while (shouldRemove.get(source.getLong(a))){
                 Collections.swap(source, a, source.size() - 1);
                 source.removeLast();
                 if(a >= source.size()) break;

@@ -1,7 +1,9 @@
 package lpctools.tools.slightXRay;
 
 import fi.dy.masa.malilib.util.data.Color4f;
+import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import lpctools.lpcfymasaapi.configButtons.derivedConfigs.ConfigListOptionListConfigEx;
+import lpctools.lpcfymasaapi.configButtons.derivedConfigs.RangeLimitConfig;
 import lpctools.lpcfymasaapi.configButtons.transferredConfigs.*;
 import lpctools.lpcfymasaapi.configButtons.uniqueConfigs.BooleanHotkeyThirdListConfig;
 import lpctools.lpcfymasaapi.interfaces.ILPCConfigList;
@@ -37,10 +39,9 @@ public class SlightXRay{
     public static final ILPCConfigList byDefaultColor = defaultColorMethod.addList("byDefaultColor", SlightXRay::getColorByDefaultColor);
     public static final ColorConfig defaultColor = addColorConfig(byDefaultColor, "defaultColor", new Color4f(0.5f, 0.5f, 1.0f, 0.5f), XRayBlocksConfig::updateDefaultColor);
     static {addConfig(XRayBlocksConfig);}
-    // TODO: 重新实现下面这些选项
-    // public static final BooleanConfig useCullFace = addBooleanConfig("useCullFace", true);
-    // public static final RangeLimitConfig displayRange = addRangeLimitConfig();
-    // static {displayRange.setValueChangeCallback(()->{if(dataInstance != null) dataInstance.onRenderRangeChanged(displayRange);});}
+    public static final BooleanConfig useCullFace = addBooleanConfig("useCullFace", true, dataApplyCallback(DataInstance::updateUseCullFace));
+    public static final RangeLimitConfig displayRange = addRangeLimitConfig();
+    static {displayRange.setValueChangeCallback(dataApplyCallback(DataInstance::updateRangeLimit));}
     static {listStack.pop();}
     static {
         defaultXRayBlocks.forEach(block->XRayBlocksConfig.allocateAndAddConfig().setBlock(block));
@@ -89,21 +90,22 @@ public class SlightXRay{
     public static void tryRefreshXRayBlocks(){
         if(!needRefreshXRayBlocks) return;
         needRefreshXRayBlocks = false;
-        HashMap<Block, MutableInt> newBlocks = new HashMap<>();
+        Object2IntOpenHashMap<Block> newBlocks = new Object2IntOpenHashMap<>();
         XRayBlocksConfig.iterateConfigs().forEach(c->{
             var block = c.getBlock();
             if(newBlocks.containsKey(block)) clientMessage(String.format("§eWarning: Repeat block \"%s\"", block.getName()), false);
-            else newBlocks.put(block, new MutableInt(DataUtils.argb2agbr(c.getColor().getIntValue())));
+            else newBlocks.put(block, DataUtils.argb2agbr(c.getColor().getIntValue()));
         });
         synchronized (XRayBlocks){
             if(XRayBlocks.keySet().equals(newBlocks.keySet())) {
-                for(Map.Entry<Block, MutableInt> block : newBlocks.entrySet())
-                    XRayBlocks.get(block.getKey()).setValue(block.getValue());
+                for(var block : newBlocks.object2IntEntrySet())
+                    XRayBlocks.get(block.getKey()).setValue(block.getIntValue());
 				if (dataInstance != null) dataInstance.resetData();
 			}
             else {
                 XRayBlocks.clear();
-                XRayBlocks.putAll(newBlocks);
+                for(var entry : newBlocks.object2IntEntrySet())
+                    XRayBlocks.put(entry.getKey(), new MutableInt(entry.getIntValue()));
                 if(dataInstance != null) {
                     dataInstance.clearData();
                     dataInstance.resetData();
@@ -114,7 +116,7 @@ public class SlightXRay{
     private static void switchChanged() {
         if(SXConfig.getBooleanValue()){
             if(dataInstance == null)
-                dataInstance = new DataInstance(MinecraftClient.getInstance());
+                dataInstance = new DataInstance();
         }
         else {
             if(dataInstance != null) {

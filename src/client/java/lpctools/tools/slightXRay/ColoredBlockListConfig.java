@@ -99,7 +99,10 @@ public class ColoredBlockListConfig extends ConfigListConfig<ColoredBlockListCon
 			boolean followDefault = true;
 			public static final Text defaultButtonText = Text.translatable("lpctools.configs.tools.SX.XRayBlocks.block.color.default");
 			public static final Text customizeButtonText = Text.translatable("lpctools.configs.tools.SX.XRayBlocks.block.color.customize");
-			public ColorMethodConfig() {super(ColoredBlockConfig.this, "color", 0, null);}
+			public ColorMethodConfig() {
+				super(ColoredBlockConfig.this, "color", 0, null);
+				updateDefaultColor();
+			}
 			@Override public void getButtonOptions(ButtonOptionArrayList res) {
 				if(followDefault) res.add(1, (button, mouseButton)->toggleFollowMethod(), defaultButtonText::getString, buttonGenericAllocator);
 				else {
@@ -131,7 +134,10 @@ public class ColoredBlockListConfig extends ConfigListConfig<ColoredBlockListCon
 					}
 					else return new UpdateTodo();
 				}
-				else return super.setValueFromJsonElementEx(element);
+				else {
+					if(followDefault) toggleFollowMethod();
+					return super.setValueFromJsonElementEx(element);
+				}
 			}
 			
 			@Override public void onValueChanged() {

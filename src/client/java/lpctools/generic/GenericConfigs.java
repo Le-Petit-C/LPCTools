@@ -41,7 +41,7 @@ public class GenericConfigs {
     public static final BooleanConfig useLabelIndent = addBooleanConfig("useLabelIndent", false);
     static {useLabelIndent.setValueChangeCallback(()-> useLabelIndent.getPage().markNeedUpdate());}
     public static final BooleanThirdListConfig useIndependentThreadPool = addBooleanThirdListConfig("threadPool", true, null);
-    public static final IntegerConfig threadCountConfig = addIntegerConfig(useIndependentThreadPool, "threadCount", 4,
+    public static final IntegerConfig threadCountConfig = addIntegerConfig(useIndependentThreadPool, "threadCount", Runtime.getRuntime().availableProcessors(),
         1, Runtime.getRuntime().availableProcessors(), GenericConfigs::threadCountConfigCallback);
     public static final IntegerConfig spawnLightLevelLimit = addIntegerConfig("spawnLightLevelLimit", 0, 0, 15, runSpawnConditionChanged);
     public static final BooleanConfig liquidPlacesAsCanSpawn = addBooleanConfig("liquidPlacesAsCanSpawn", false,runSpawnConditionChanged);
@@ -50,10 +50,11 @@ public class GenericConfigs {
     public static final BooleanConfig reachDistanceAlwaysUnlimited = addBooleanConfig("reachDistanceAlwaysUnlimited", false);
     public static final BooleanConfig playClickSoundFromModMenu = addBooleanConfig("playClickSoundFromModMenu", false);
     public static final HotkeyConfig horizontalScrollButton = addHotkeyConfig("horizontalScrollKey",
-        KeybindSettings.create(KeybindSettings.Context.ANY, KeyAction.BOTH, true, false, false, false), null, null);
+        KeybindSettings.create(KeybindSettings.Context.GUI, KeyAction.BOTH, true, false, false, false), null, null);
     static {addConfig(SelectionScreenConfigs.selectionScreenConfigs);}
     @SuppressWarnings("unused")
     public static final ButtonConfig clearLPCToolsCache = addButtonConfig("clearLPCToolsCache", (b, m)->CachedSupplier.clearAllCache());
+    // TODO: 将此updateLimitPerFrame的功能实现放到ToolUtils中而不是每个DataInstance自己实现
     public static final IntegerConfig updateLimitPerFrame = addIntegerConfig("updateLimitPerFrame", 8192);
     static {threadCountConfig.onValueChanged();}
     static {listStack.pop();}

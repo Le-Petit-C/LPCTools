@@ -43,13 +43,13 @@ public class LitematicaMethods {
         return toBox3i(box);
     }
     private record LayerRangeTester(Direction.Axis axis, int layerMin, int layerMax) implements SimpleTestableShape.ShapeTester {
-        @Override public boolean isInsideShape(BlockPos pos) {
-            int component = axis.choose(pos.getX(), pos.getY(), pos.getZ());
+        @Override public boolean isInsideShape(int x, int y, int z) {
+            int component = axis.choose(x, y, z);
             return component >= layerMin && component <= layerMax;
         }
         @Override public boolean equals(Object object){
-            if(object instanceof LayerRangeTester tester)
-                return axis.equals(tester.axis) && layerMin == tester.layerMin && layerMax == tester.layerMax;
+            if(object instanceof LayerRangeTester(Direction.Axis axis1, int min, int max))
+                return axis.equals(axis1) && layerMin == min && layerMax == max;
             else return false;
         }
     }
