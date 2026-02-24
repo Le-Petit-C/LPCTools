@@ -68,7 +68,11 @@ public class Registries {
     public static final UnregistrableRegistry<WorldRenderEvents.BeforeTranslucent> BEFORE_TRANSLUCENT = new UnregistrableRegistry<>(
         callbacks->(context)->callbacks.forEach(callback->callback.beforeTranslucent(context)));
     public static final UnregistrableRegistry<WorldRenderEvents.BeforeBlockOutline> BEFORE_BLOCK_OUTLINE = new UnregistrableRegistry<>(
-        callbacks->(context, outlineRenderState)->{for(var callback : callbacks) if(callback.beforeBlockOutline(context, outlineRenderState)) return true; return false;});
+        callbacks->(context, outlineRenderState)->{
+            boolean shouldRender = true;
+            for(var callback : callbacks) if(!callback.beforeBlockOutline(context, outlineRenderState)) shouldRender = false;
+            return shouldRender;
+        });
     public static final UnregistrableRegistry<WorldRenderEvents.EndMain> END_MAIN = new UnregistrableRegistry<>(
         callbacks->(context)->callbacks.forEach(callback->callback.endMain(context)));
     public static final UnregistrableRegistry<ClientWorldChunkSetBlockState> CLIENT_WORLD_CHUNK_SET_BLOCK_STATE = new UnregistrableRegistry<>(

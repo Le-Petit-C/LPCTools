@@ -12,7 +12,7 @@ public enum RenderTiming implements IUnregistrableRegistry<IRenderCallback> {
 	AFTER_ENTITIES(Registries.AFTER_ENTITIES, callback->context->callback.render()),
 	BEFORE_DEBUG_RENDER(Registries.BEFORE_DEBUG_RENDER, callback->context->callback.render()),
 	BEFORE_TRANSLUCENT(Registries.BEFORE_TRANSLUCENT, callback->context->callback.render()),
-	BEFORE_BLOCK_OUTLINE(Registries.BEFORE_BLOCK_OUTLINE, callback->(context, outlineRenderState)->{callback.render(); return false;}),
+	BEFORE_BLOCK_OUTLINE(Registries.BEFORE_BLOCK_OUTLINE, callback->(context, outlineRenderState)->{callback.render(); return true;}),
 	END_MAIN(Registries.END_MAIN, callback->context->callback.render());
 	<T> RenderTiming(UnregistrableRegistry<T> registry, Function<IRenderCallback, T> mappingFunction) {
 		this.registry = new UnregistrableRegistry<>(callbacks->()->callbacks.forEach(IRenderCallback::render));
