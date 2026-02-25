@@ -33,15 +33,10 @@ public abstract class MixinWorldRenderer
 	
 	@SuppressWarnings("DiscouragedShift") @Inject(method = "render",
 		at = @At(value = "INVOKE",
-			target = "Lnet/minecraft/client/render/WorldRenderer;renderMain(Lnet/minecraft/client/render/FrameGraphBuilder;Lnet/minecraft/client/render/Frustum;Lorg/joml/Matrix4f;Lcom/mojang/blaze3d/buffers/GpuBufferSlice;ZLnet/minecraft/client/render/state/WorldRenderState;Lnet/minecraft/client/render/RenderTickCounter;Lnet/minecraft/util/profiler/Profiler;)V",
+			target = "Lnet/minecraft/client/render/WorldRenderer;renderMain(Lnet/minecraft/client/render/FrameGraphBuilder;Lnet/minecraft/client/render/Frustum;Lnet/minecraft/client/render/Camera;Lorg/joml/Matrix4f;Lcom/mojang/blaze3d/buffers/GpuBufferSlice;ZZLnet/minecraft/client/render/RenderTickCounter;Lnet/minecraft/util/profiler/Profiler;)V",
 			shift = At.Shift.BEFORE))
-	private void lpctools_onRenderWorldMain(ObjectAllocator allocator, RenderTickCounter tickCounter, boolean renderBlockOutline, Camera camera,
-												 Matrix4f positionMatrix, Matrix4f matrix4f, Matrix4f projectionMatrix,
-												 GpuBufferSlice fogBuffer, Vector4f fogColor, boolean renderSky, CallbackInfo ci,
-												 @Local Profiler profiler,
-												 @Local Frustum frustum,
-												 @Local FrameGraphBuilder frameGraphBuilder)
+	private void lpctools_onRenderWorldMain(ObjectAllocator allocator, RenderTickCounter tickCounter, boolean renderBlockOutline, Camera camera, Matrix4f positionMatrix, Matrix4f projectionMatrix, GpuBufferSlice fog, Vector4f fogColor, boolean shouldRenderSky, CallbackInfo ci, @Local Profiler profiler, @Local Frustum frustum, @Local FrameGraphBuilder frameGraphBuilder)
 	{
-		RenderEventHandler.runRenderWorldPreMain(matrix4f, projectionMatrix, this.client, frameGraphBuilder, this.framebufferSet, frustum, camera, this.bufferBuilders, profiler);
+		RenderEventHandler.runRenderWorldPreMain(positionMatrix, projectionMatrix, this.client, frameGraphBuilder, this.framebufferSet, frustum, camera, this.bufferBuilders, profiler);
 	}
 }

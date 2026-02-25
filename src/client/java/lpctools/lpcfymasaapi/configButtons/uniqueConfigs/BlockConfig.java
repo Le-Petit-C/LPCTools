@@ -2,11 +2,12 @@ package lpctools.lpcfymasaapi.configButtons.uniqueConfigs;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonPrimitive;
+import fi.dy.masa.malilib.config.IConfigBase;
 import fi.dy.masa.malilib.gui.button.IButtonActionListener;
 import lpctools.lpcfymasaapi.configButtons.UpdateTodo;
+import lpctools.lpcfymasaapi.interfaces.ILPCConfigNotifiable;
 import lpctools.lpcfymasaapi.interfaces.ILPCConfigReadable;
 import lpctools.lpcfymasaapi.interfaces.ILPCValueChangeCallback;
-import lpctools.lpcfymasaapi.interfaces.SimpleDirtyImpl;
 import lpctools.lpcfymasaapi.screen.ChooseItemScreen;
 import lpctools.lpcfymasaapi.screen.ItemButton;
 import lpctools.util.DataUtils;
@@ -17,11 +18,9 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
-public class BlockConfig extends LPCUniqueConfigBase implements SimpleDirtyImpl {
+public class BlockConfig extends LPCUniqueConfigBase implements IConfigBase, ILPCConfigNotifiable {
 	protected Block block;
 	public final @NotNull Block defaultValue;
-	DirtyState dirty = new DirtyState();
-	@Override public DirtyState getDirty() { return dirty; }
 	public BlockConfig(@NotNull ILPCConfigReadable parent, @NotNull String nameKey, @NotNull Block defaultValue, @Nullable ILPCValueChangeCallback callback) {
 		super(parent, nameKey, callback);
 		this.block = this.defaultValue = defaultValue;

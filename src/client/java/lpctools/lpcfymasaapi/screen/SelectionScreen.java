@@ -3,7 +3,6 @@ package lpctools.lpcfymasaapi.screen;
 import fi.dy.masa.malilib.gui.GuiBase;
 import fi.dy.masa.malilib.gui.button.ButtonGeneric;
 import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.gui.Click;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.text.Text;
@@ -228,18 +227,18 @@ public class SelectionScreen<T> extends GuiBase {
 		}
 	}
 	
-	@Override public boolean mouseClicked(Click click, boolean doubleClick) {
+	@Override public boolean mouseClicked(double mouseX, double mouseY, int mouseButton) {
 		if(scrollBarInfo != null){
-			if(getScreenHeight() - 1 - scrollBarThickness <= click.y() && click.y() < getScreenHeight() - 1){
+			if(getScreenHeight() - 1 - scrollBarThickness <= mouseY && mouseY < getScreenHeight() - 1){
 				// 点击了横向滚动条
 				isHoldingScrollBar = true;
 				selectedList = -1;
-				scrollBarInfo.prepareClicked(click.x() / getScreenWidth());
+				scrollBarInfo.prepareClicked(mouseX / getScreenWidth());
 				return true;
 			}
 		}
-		double translatedX = click.x() + ScrollBarInfo.getPosition(scrollBarInfo);
-		if(click.y() >= titleHeight){
+		double translatedX = mouseX + ScrollBarInfo.getPosition(scrollBarInfo);
+		if(mouseY >= titleHeight){
 			selectedList = getListIndexAtX(translatedX);
 			if(selectedList >= 0){
 				var list = optionList.get(selectedList);
@@ -247,23 +246,23 @@ public class SelectionScreen<T> extends GuiBase {
 					if(list.getRight() - 1 - scrollBarThickness <= translatedX && translatedX < list.getRight() - 1){
 						// 点击了纵向滚动条
 						isHoldingScrollBar = true;
-						list.scrollBarInfo.prepareClicked((click.y() - titleHeight) / list.getScreenHeight());
+						list.scrollBarInfo.prepareClicked((mouseY - titleHeight) / list.getScreenHeight());
 						return true;
 					}
 				}
-				if(list.mouseClicked(new Click(translatedX, click.y(), click.buttonInfo()), doubleClick))
+				if(list.mouseClicked(translatedX, mouseY, mouseButton))
 					return true;
 			}
 		}
-		return super.mouseClicked(click, doubleClick);
+		return super.mouseClicked(mouseX, mouseY, mouseButton);
 	}
 	
-	@Override public boolean mouseReleased(Click click) {
+	@Override public boolean mouseReleased(double mouseX, double mouseY, int mouseButton) {
 		if(isHoldingScrollBar){
 			isHoldingScrollBar = false;
 			return true;
 		}
-		return super.mouseReleased(click);
+		return super.mouseReleased(mouseX, mouseY, mouseButton);
 	}
 	
 	@Override public void mouseMoved(double mouseX, double mouseY) {
@@ -398,17 +397,17 @@ public class SelectionScreen<T> extends GuiBase {
 			}
 		}
 		
-		@Override public boolean mouseClicked(Click click, boolean doubleClick) {
-			double translatedMouseX = click.x() - x, translatedMouseY = click.y() - titleHeight + ScrollBarInfo.getPosition(scrollBarInfo);
-			int index = (int) Math.floor(translatedMouseY/ buttonStride);
+		@Override public boolean mouseClicked(double mouseX, double mouseY, int mouseButton) {
+			int translatedMouseX = (int) (mouseX - x), translatedMouseY = (int) (mouseY - titleHeight + ScrollBarInfo.getPosition(scrollBarInfo));
+			int index = Math.floorDiv(translatedMouseY, buttonStride);
 			if(index >= 0 && index < optionButtons.length){
 				var button = optionButtons[index];
-				if(button.onMouseClicked(new Click(translatedMouseX, translatedMouseY, click.buttonInfo()), doubleClick)){
+				if(button.onMouseClicked(translatedMouseX, translatedMouseY, mouseButton)) {
 					selectedIndex = index;
 					return true;
 				}
 			}
-			return super.mouseClicked(click, doubleClick);
+			return super.mouseClicked(mouseX, mouseY, mouseButton);
 		}
 		
 		void updateData(){

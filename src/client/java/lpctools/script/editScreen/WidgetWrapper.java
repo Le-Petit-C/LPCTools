@@ -2,11 +2,8 @@ package lpctools.script.editScreen;
 
 import fi.dy.masa.malilib.gui.button.ButtonGeneric;
 import fi.dy.masa.malilib.gui.widgets.WidgetBase;
-import net.minecraft.client.gui.Click;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.narration.NarrationMessageBuilder;
-import net.minecraft.client.input.CharInput;
-import net.minecraft.client.input.KeyInput;
 import net.minecraft.text.Text;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -49,23 +46,25 @@ public class WidgetWrapper extends HoveredClickableWidget{
 	@Override protected void renderWidget(DrawContext context, int mouseX, int mouseY, float deltaTicks) {
 		widget.render(context, mouseX, mouseY, widget.isMouseOver(mouseX, mouseY) || this == screen.getFocused() || this == screen.getScriptFocused());
 	}
-	@Override public boolean mouseClicked(Click click, boolean doubleClick) {
-		return widget.onMouseClicked(click, doubleClick);
+	
+	@Override public boolean mouseClicked(double mouseX, double mouseY, int button) {
+		return widget.onMouseClicked((int) mouseX, (int) mouseY, button);
 	}
-	@Override public boolean mouseReleased(Click click) {
-		widget.onMouseReleased(click);
+	
+	@Override public boolean mouseReleased(double mouseX, double mouseY, int button) {
+		widget.onMouseReleased((int) mouseX, (int) mouseY, button);
 		return false;
 	}
 	@Override public boolean mouseScrolled(double mouseX, double mouseY, double horizontalAmount, double verticalAmount) {
 		return widget.onMouseScrolled((int)Math.floor(mouseX), (int)Math.floor(mouseY), horizontalAmount, verticalAmount);
 	}
 	
-	@Override public boolean keyPressed(KeyInput input) {
-		return widget.onKeyTyped(input);
+	@Override public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
+		return widget.onKeyTyped(keyCode, scanCode, modifiers);
 	}
 	
-	@Override public boolean charTyped(CharInput input) {
-		return widget.onCharTyped(input);
+	@Override public boolean charTyped(char chr, int modifiers) {
+		return widget.onCharTyped(chr, modifiers);
 	}
 	@Override public boolean isMouseOver(double mouseX, double mouseY) {
 		return widget.isMouseOver((int) mouseX, (int) mouseY);

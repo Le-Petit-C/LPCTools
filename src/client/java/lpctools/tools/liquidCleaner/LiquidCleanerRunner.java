@@ -90,7 +90,7 @@ public class LiquidCleanerRunner implements ClientTickEvents.EndTick {
     }
 
     private static boolean shouldAttackBlock(@NotNull ShapeList shapeList ,@NotNull ClientPlayerEntity player, @NotNull BlockPos pos){
-        World world = player.getEntityWorld();
+        World world = player.getWorld();
         BlockState state = world.getBlockState(pos);
         if(!shapeList.testPos(pos)){
             if(!expandRange.getAsBoolean()) return false;

@@ -10,11 +10,8 @@ import lpctools.script.*;
 import lpctools.util.GuiUtils;
 import lpctools.util.data.Rect2d;
 import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.gui.Click;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.Element;
-import net.minecraft.client.input.CharInput;
-import net.minecraft.client.input.KeyInput;
 import net.minecraft.text.Text;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -87,29 +84,28 @@ public class ScriptEditScreen extends GuiConfigsBase {
 	
 	public @Nullable Element getScriptFocused(){return scriptFocused;}
 	
-	@Override public boolean mouseClicked(Click click, boolean doubleClick) {
-		if(super.mouseClicked(click, doubleClick)) {
+	@Override public boolean mouseClicked(double mouseX, double mouseY, int mouseButton) {
+		if(super.mouseClicked(mouseX, mouseY, mouseButton)) {
 			setScriptFocused(null);
 			return true;
 		}
-		double fixedMouseX = calcFixedX(click.x());
-		double fixedMouseY = calcFixedY(click.y());
+		double fixedMouseX = calcFixedX(mouseX);
+		double fixedMouseY = calcFixedY(mouseY);
 		var widget = getRootDisplayWidget().getByLine((int)Math.floor(fixedMouseY / 22));
 		if(widget != null){
-			if(widget.mouseClicked(new Click(fixedMouseX, fixedMouseY, click.buttonInfo()), doubleClick))
+			if(widget.mouseClicked(fixedMouseX, fixedMouseY, mouseButton))
 				return true;
 		}
 		setScriptFocused(null);
-		if (click.button() == 0) {
+		if (mouseButton == 0) {
 			if(widget != null){
 				int mx = (int)Math.floor(fixedMouseX), my = (int)Math.floor(fixedMouseY);
-				Click mclick = new Click(mx, my, click.buttonInfo());
-				if(isCopyPastDisplayKeyPressed() && copyButton.onMouseClicked(mclick, doubleClick)){
+				if(isCopyPastDisplayKeyPressed() && copyButton.onMouseClicked(mx, my, mouseButton)){
 					ScriptData.setClipboard(widget.script.getAsJsonElement(), widget.script.getClass());
 					cursorInfo("Copied", 2000);
 					return true;
 				}
-				else if(isCopyPastDisplayKeyPressed() && pasteButton.onMouseClicked(mclick, doubleClick)){
+				else if(isCopyPastDisplayKeyPressed() && pasteButton.onMouseClicked(mx, my, mouseButton)){
 					if(ScriptData.pasteTo(json->{
 						widget.script.setValueFromJsonElement(json);
 						widget.markUpdateChain();
@@ -119,18 +115,18 @@ public class ScriptEditScreen extends GuiConfigsBase {
 					return true;
 				}
 				else if(widget.parent instanceof ScriptWithSubScriptMutableDisplayWidget<?> parent) {
-					if(isDragDisplayKeyPressed() && dragButton.onMouseClicked(mclick, doubleClick)){
+					if(isDragDisplayKeyPressed() && dragButton.onMouseClicked(mx, my, mouseButton)){
 						scriptHoldingData = new ScriptHoldingData(
 							new Vec2d(fixedMouseX - widget.getX(), fixedMouseY - widget.getY()),
 							widget
 						);
 						return true;
 					}
-					else if(isInsertRemoveDisplayKeyPressed() && insertButton.onMouseClicked(mclick, doubleClick)){
+					else if(isInsertRemoveDisplayKeyPressed() && insertButton.onMouseClicked(mx, my, mouseButton)){
 						insertionButtonClicked(widget, parent);
 						return true;
 					}
-					else if(isInsertRemoveDisplayKeyPressed() && removeButton.onMouseClicked(mclick, doubleClick)){
+					else if(isInsertRemoveDisplayKeyPressed() && removeButton.onMouseClicked(mx, my, mouseButton)){
 						int i = parent.indexOf(widget);
 						if(i >= 0) {
 							var v = parent.getIScript().getSubScripts().remove(i);
@@ -148,7 +144,7 @@ public class ScriptEditScreen extends GuiConfigsBase {
 					}
 				}
 			}
-			holdingScreenBackground = new Vec2d(click.x() - x, click.y() - y);
+			holdingScreenBackground = new Vec2d(mouseX - x, mouseY - y);
 			return true;
 		}
 		return false;
@@ -193,32 +189,30 @@ public class ScriptEditScreen extends GuiConfigsBase {
 		}
 	}
 	
-	@Override public boolean mouseReleased(Click click) {
-		double fixedMouseX = calcFixedX(click.x());
-		double fixedMouseY = calcFixedY(click.y());
-		if (holdingScreenBackground != null && click.button() == 0) {
+	@Override public boolean mouseReleased(double mouseX, double mouseY, int mouseButton) {
+		double fixedMouseX = calcFixedX(mouseX);
+		double fixedMouseY = calcFixedY(mouseY);
+		if (holdingScreenBackground != null && mouseButton == 0) {
 			holdingScreenBackground = null;
 			return true;
 		}
-		if(scriptHoldingData != null && click.button() == 0) {
+		if(scriptHoldingData != null && mouseButton == 0) {
 			scriptHoldingData = null;
 			return true;
 		}
-		Click fixedClick = new Click(fixedMouseX, fixedMouseY, click.buttonInfo());
-		if(scriptFocused != null && scriptFocused.mouseReleased(fixedClick)) return true;
+		if(scriptFocused != null && scriptFocused.mouseReleased(fixedMouseX, fixedMouseY, mouseButton)) return true;
 		var widget = getRootDisplayWidget().getByLine((int)Math.floor(fixedMouseY / 22));
-		if(widget != null && widget.mouseReleased(fixedClick)) return true;
-		return super.mouseReleased(click);
+		if(widget != null && widget.mouseReleased(fixedMouseX, fixedMouseY, mouseButton)) return true;
+		return super.mouseReleased(mouseX, mouseY, mouseButton);
 	}
 	
-	@Override public boolean mouseDragged(Click click, double offsetX, double offsetY) {
-		double fixedMouseX = calcFixedX(click.x());
-		double fixedMouseY = calcFixedY(click.y());
-		Click fixedClick = new Click(fixedMouseX, fixedMouseY, click.buttonInfo());
-		if(scriptFocused != null && scriptFocused.mouseDragged(fixedClick, offsetX, offsetY)) return true;
+	@Override public boolean mouseDragged(double mouseX, double mouseY, int button, double deltaX, double deltaY) {
+		double fixedMouseX = calcFixedX(mouseX);
+		double fixedMouseY = calcFixedY(mouseY);
+		if(scriptFocused != null && scriptFocused.mouseDragged(fixedMouseX, fixedMouseY, button, deltaX, deltaY)) return true;
 		var widget = getRootDisplayWidget().getByLine((int)Math.floor(fixedMouseY / 22));
-		if(widget != null && widget.mouseDragged(fixedClick, offsetX, offsetY)) return true;
-		return super.mouseDragged(click, offsetX, offsetY);
+		if(widget != null && widget.mouseDragged(fixedMouseX, fixedMouseY, button, deltaX, deltaY)) return true;
+		return super.mouseDragged(mouseX, mouseY, button, deltaX, deltaY);
 	}
 	
 	@Override public boolean mouseScrolled(double mouseX, double mouseY, double horizontalAmount, double verticalAmount) {
@@ -231,19 +225,19 @@ public class ScriptEditScreen extends GuiConfigsBase {
 		return super.mouseScrolled(mouseX, mouseY, horizontalAmount, verticalAmount);
 	}
 	
-	@Override public boolean keyPressed(KeyInput key) {
-		if(scriptFocused != null && scriptFocused.keyPressed(key)) return true;
-		return super.keyPressed(key);
+	@Override public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
+		if(scriptFocused != null && scriptFocused.keyPressed(keyCode, scanCode, modifiers)) return true;
+		return super.keyPressed(keyCode, scanCode, modifiers);
 	}
 	
-	@Override public boolean keyReleased(KeyInput key) {
-		if(scriptFocused != null && scriptFocused.keyReleased(key)) return true;
-		return super.keyReleased(key);
+	@Override public boolean keyReleased(int keyCode, int scanCode, int modifiers) {
+		if(scriptFocused != null && scriptFocused.keyReleased(keyCode, scanCode, modifiers)) return true;
+		return super.keyReleased(keyCode, scanCode, modifiers);
 	}
 	
-	@Override public boolean charTyped(CharInput input) {
-		if(scriptFocused != null && scriptFocused.charTyped(input)) return true;
-		return super.charTyped(input);
+	@Override public boolean charTyped(char charIn, int modifiers) {
+		if(scriptFocused != null && scriptFocused.charTyped(charIn, modifiers)) return true;
+		return super.charTyped(charIn, modifiers);
 	}
 	
 	//以父screen为背景

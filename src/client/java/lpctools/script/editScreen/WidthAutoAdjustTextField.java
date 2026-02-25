@@ -3,7 +3,6 @@ package lpctools.script.editScreen;
 import fi.dy.masa.malilib.gui.GuiTextFieldGeneric;
 import lpctools.mixin.client.TextFieldWidgetAccessor;
 import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.gui.Click;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.function.Consumer;
@@ -47,10 +46,10 @@ public class WidthAutoAdjustTextField extends GuiTextFieldGeneric{
 		recalculateWidth(getText());
 	}
 	
-	@Override public boolean mouseClicked(Click click, boolean doubleClick) {
-		if(click.button() == 0 && isMouseOver(click.x(), click.y()))
+	@Override public boolean mouseClicked(double mouseX, double mouseY, int mouseButton) {
+		if(mouseButton == 0 && isMouseOver(mouseX, mouseY))
 			parent.editScreen.setScriptFocused(this);
-		return super.mouseClicked(click, doubleClick);
+		return super.mouseClicked(mouseX, mouseY, mouseButton);
 	}
 	
 	@Override public void setPosition(int x, int y) {

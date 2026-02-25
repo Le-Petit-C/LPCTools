@@ -8,7 +8,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 
-public class LPCConfigList implements ILPCConfig, ILPCConfigList, SimpleDirtyImpl {
+public class LPCConfigList implements ILPCConfig, ILPCConfigList {
 	private final String nameKey;
 	private final ILPCConfigReadable parent;
 	private final ArrayList<ILPCConfig> subConfigs = new ArrayList<>();
@@ -33,9 +33,6 @@ public class LPCConfigList implements ILPCConfig, ILPCConfigList, SimpleDirtyImp
 	@Override public void setAlignedIndent(int indent) {this.indent = indent;}
 	@Override public int getAlignedIndent() {return indent;}
 	@Override public boolean hasHotkey() {return false;}
-	
-	DirtyState dirty = new DirtyState();
-	@Override public DirtyState getDirty() { return dirty; }
 	
 	@Override public ConfigType getType() {return null;}
 	@Override public String getName() {return getNameKey();}

@@ -22,7 +22,7 @@ public class Vector3dConfig extends ThirdListConfig implements IConfigResettable
         if(expanded){
             res.add(new ButtonOption(1, (button, mouseButton)->{
                 ClientPlayerEntity player = MinecraftClient.getInstance().player;
-                if(player != null) setPos(player.getEntityPos());
+                if(player != null) setPos(player.getPos());
             }, ()->Text.translatable("lpctools.configs.utils.blockPosConfig.setToPlayer").getString(), buttonGenericAllocator));
             res.add(new ButtonOption(1, (button, mouseButton)->{
                 if(MinecraftClient.getInstance().crosshairTarget instanceof BlockHitResult hitResult)

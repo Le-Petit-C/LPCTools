@@ -42,7 +42,7 @@ public class MossBorerRunner implements AutoCloseable, ClientTickEvents.EndTick{
             return;
         }
         operationSpeed.resetOperationTimes();
-        World world = player.getEntityWorld();
+        World world = player.getWorld();
         Vec3d eyePos = player.getEyePos();
         Comparator<BlockPos> comparator = (pos1, pos2)-> pos2.getY() != pos1.getY() ?
             pos2.getY() - pos1.getY() :

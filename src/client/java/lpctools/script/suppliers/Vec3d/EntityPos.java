@@ -21,6 +21,6 @@ public class EntityPos extends AbstractSupplierWithTypeDeterminedSubSuppliers im
 	@Override public @NotNull ScriptNotNullSupplier<Vec3d>
 	compileNotNull(CompileEnvironment environment) {
 		var compiledEntitySupplier = entity.get().compileCheckedNotNull(environment);
-		return map->compiledEntitySupplier.scriptApply(map).getEntityPos();
+		return map->compiledEntitySupplier.scriptApply(map).getPos();
 	}
 }

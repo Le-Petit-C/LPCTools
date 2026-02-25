@@ -109,7 +109,7 @@ public class ChooseItemScreen extends GuiBase {
 		}
 	}
 	
-	@Override public boolean onMouseScrolled(double mouseX, double mouseY, double horizontalAmount, double verticalAmount) {
+	@Override public boolean onMouseScrolled(int mouseX, int mouseY, double horizontalAmount, double verticalAmount) {
 		int lastShift = shift;
 		shift -= (int)Math.signum(verticalAmount);
 		int mh = ((searchedItems.size() + width - 1) / width) - height;

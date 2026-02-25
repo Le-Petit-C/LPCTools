@@ -104,10 +104,10 @@ public class RenderInstance implements QuietAutoCloseable, Registries.WorldPreMa
 	
 	public static RenderPipeline linePipeline = MaLiLibPipelines.DEBUG_LINES_MASA_SIMPLE;
 	
-	public static RenderOption shapeOptionWithDepth = new RenderOption(shapePipeline, true, true, RenderTiming.BEFORE_TRANSLUCENT);
-	public static RenderOption shapeOptionDepthless = new RenderOption(shapePipeline, true, false, RenderTiming.END_MAIN);
-	public static RenderOption lineOptionWithDepth = new RenderOption(linePipeline, true, true, RenderTiming.BEFORE_TRANSLUCENT);
-	public static RenderOption lineOptionDepthless = new RenderOption(linePipeline, true, false, RenderTiming.END_MAIN);
+	public static RenderOption shapeOptionWithDepth = new RenderOption(shapePipeline, true, true, RenderTiming.AFTER_TRANSLUCENT);
+	public static RenderOption shapeOptionDepthless = new RenderOption(shapePipeline, true, false, RenderTiming.ON_LAST);
+	public static RenderOption lineOptionWithDepth = new RenderOption(linePipeline, true, true, RenderTiming.AFTER_TRANSLUCENT);
+	public static RenderOption lineOptionDepthless = new RenderOption(linePipeline, true, false, RenderTiming.ON_LAST);
 	
 	public static RenderInstance shapeInstanceWithDepth() { return getRenderInstance(shapeOptionWithDepth); }
 	public static RenderInstance shapeInstanceDepthless() { return getRenderInstance(shapeOptionDepthless); }
