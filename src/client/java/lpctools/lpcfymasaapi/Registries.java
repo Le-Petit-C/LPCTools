@@ -4,7 +4,6 @@ import com.google.common.collect.ImmutableMap;
 import fi.dy.masa.malilib.event.RenderEventHandler;
 import fi.dy.masa.malilib.interfaces.IRangeChangeListener;
 import fi.dy.masa.malilib.interfaces.IRenderer;
-import fi.dy.masa.malilib.render.GuiContext;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientChunkEvents;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientWorldEvents;
@@ -13,6 +12,7 @@ import net.fabricmc.fabric.api.resource.v1.ResourceLoader;
 import net.minecraft.block.BlockState;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gl.Framebuffer;
+import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.render.GuiRenderer;
 import net.minecraft.client.gui.render.SpecialGuiElementRenderer;
 import net.minecraft.client.gui.render.state.special.SpecialGuiElementRenderState;
@@ -132,7 +132,7 @@ public class Registries {
         var toolTipComponentInsertLastRenderer = MASA_RENDER_TOOLTIP_COMPONENT_INSERTION_LAST.run();
         var toolTipLastRenderer = MASA_RENDER_TOOLTIP_LAST.run();
         IRenderer malilibRenderer = new IRenderer() {
-            @Override public void onRenderGameOverlayPostAdvanced(GuiContext ctx, float partialTicks, Profiler profiler) {
+            @Override public void onRenderGameOverlayPostAdvanced(DrawContext ctx, float partialTicks, Profiler profiler, MinecraftClient mc) {
                 overlayRenderer.renderGameOverlay(ctx, partialTicks, profiler);
             }
             @Override public void onRenderWorldPreWeather(Framebuffer fb, Matrix4f posMatrix, Matrix4f projMatrix, Frustum frustum, Camera camera, BufferBuilderStorage buffers, Profiler profiler) {
@@ -150,7 +150,7 @@ public class Registries {
             @Override public void onRenderTooltipComponentInsertLast(Item.TooltipContext context, ItemStack stack, Consumer<Text> list) {
                 toolTipComponentInsertLastRenderer.onRenderTooltipComponentInsertLast(context, stack, list);
             }
-            @Override public void onRenderTooltipLast(GuiContext ctx, ItemStack stack, int x, int y) {
+            @Override public void onRenderTooltipLast(DrawContext ctx, ItemStack stack, int x, int y) {
                 toolTipLastRenderer.onRenderTooltipLast(ctx, stack, x, y);
             }
             @Override public void onRegisterSpecialGuiRenderer(GuiRenderer guiRenderer, VertexConsumerProvider.Immediate immediate, MinecraftClient mc, ImmutableMap.Builder<Class<? extends SpecialGuiElementRenderState>, SpecialGuiElementRenderer<?>> builder) {
@@ -172,7 +172,7 @@ public class Registries {
     }
     
     public interface GameOverlayRender {
-        void renderGameOverlay(GuiContext ctx, float partialTicks, Profiler profiler);
+        void renderGameOverlay(DrawContext ctx, float partialTicks, Profiler profiler);
     }
     public record MASAWorldRenderContext(Framebuffer fb, Matrix4f positionMatrix, Matrix4f projectionMatrix, Frustum frustum, Camera camera, BufferBuilderStorage buffers, Profiler profiler) {}
     public interface WorldPreMainRender {
@@ -194,7 +194,7 @@ public class Registries {
         void onRenderTooltipComponentInsertLast(Item.TooltipContext context, ItemStack stack, Consumer<Text> list);
     }
     public interface TooltipLastRender {
-        void onRenderTooltipLast(GuiContext ctx, ItemStack stack, int x, int y);
+        void onRenderTooltipLast(DrawContext ctx, ItemStack stack, int x, int y);
     }
     public interface ClientWorldChunkSetBlockState {//at RETURN
         void onClientWorldChunkSetBlockState(WorldChunk chunk, BlockPos pos, BlockState lastState, BlockState newState);

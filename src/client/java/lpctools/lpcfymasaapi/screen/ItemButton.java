@@ -1,7 +1,7 @@
 package lpctools.lpcfymasaapi.screen;
 
 import fi.dy.masa.malilib.gui.button.ButtonBase;
-import fi.dy.masa.malilib.render.GuiContext;
+import net.minecraft.client.gui.DrawContext;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 
@@ -17,7 +17,7 @@ public class ItemButton extends ButtonBase {
 		setHoverStrings(hoverStrings);
 	}
 	
-	@Override public void render(GuiContext context, int mouseX, int mouseY, boolean selected) {
+	@Override public void render(DrawContext context, int mouseX, int mouseY, boolean selected) {
 		super.render(context, mouseX, mouseY, selected);
 		hovered = isMouseOver(mouseX, mouseY);
 		if(hovered) context.fill(x, y, x + 16, y + 16, 0x3fffffff);

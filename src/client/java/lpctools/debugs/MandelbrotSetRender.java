@@ -49,7 +49,7 @@ public class MandelbrotSetRender extends BooleanThirdListConfig implements Regis
         private int lastMaxDepth = -1;
         private final GpuBuffer vertexBuffer = RenderSystem.getDevice()
             .createBuffer(() -> "Mandelbrot Vertex Buffer",
-                GpuBuffer.USAGE_VERTEX | GpuBuffer.USAGE_COPY_DST, (long)VertexFormats.POSITION_TEXTURE.getVertexSize() * Float.BYTES);
+                GpuBuffer.USAGE_VERTEX | GpuBuffer.USAGE_COPY_DST, VertexFormats.POSITION_TEXTURE.getVertexSize() * Float.BYTES);
         private float lastStretch = Float.NaN;
         public GpuBuffer getUpdatedMandelbrotUniformBuffer(){
             int maxDepth = MandelbrotSetRender.this.maxDepth.getAsInt();
@@ -111,7 +111,7 @@ public class MandelbrotSetRender extends BooleanThirdListConfig implements Regis
         GpuTextureView depthAttachmentView = fb.useDepthAttachment ? fb.getDepthAttachmentView() : null;
         GpuBufferSlice dynamicTransforms = RenderSystem.getDynamicUniforms()
             .write(RenderSystem.getModelViewMatrix().translate(context.camera().getCameraPos().toVector3f().mul(-1),
-                new Matrix4f()), new Vector4f(1.0F, 1.0F, 1.0F, 1.0F), new Vector3f(), new Matrix4f());
+                new Matrix4f()), new Vector4f(1.0F, 1.0F, 1.0F, 1.0F), new Vector3f(), new Matrix4f(), 1.0f);
         GpuBufferSlice projection = RenderSystem.getProjectionMatrixBuffer();
         var renderSources = this.renderSources.get();
         GpuBuffer mandelbrotUniformBuffer = renderSources.getUpdatedMandelbrotUniformBuffer();
