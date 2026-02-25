@@ -9,7 +9,8 @@
 	],
 	"contact": {
 		"homepage": "https://github.com/Le-Petit-C",
-		"sources": "https://github.com/Le-Petit-C/LPCTools"
+		"sources": "https://github.com/Le-Petit-C/LPCTools",
+		"issues": "https://github.com/Le-Petit-C/LPCTools/issues"
 	},
 	"license": "LGPLv3",
 	"icon": "assets/lpctools/icon.png",
@@ -31,16 +32,19 @@
 	],
 	"accessWidener" : "lpctools.accesswidener",
 	"depends": {
-		"fabricloader": ">=0.16.2",
+		"fabricloader": "*",
 		"minecraft": [
 			"1.21.9",
 			"1.21.10"
 		],
 		"java": ">=21",
-		"malilib": ["0.26.8"],
+		"malilib": "*",
 		"fabric-api": "*"
 	},
 	"suggests": {
-		"another-mod": "*"
+		"malilib": "0.26.8",
+		"minihud": "0.37.6",
+		"litematica": "0.24.7",
+		"tweakeroo": "0.26.5"
 	}
 }
