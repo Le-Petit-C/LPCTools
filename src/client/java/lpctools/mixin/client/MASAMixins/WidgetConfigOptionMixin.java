@@ -14,6 +14,7 @@ import fi.dy.masa.malilib.gui.widgets.WidgetBase;
 import fi.dy.masa.malilib.gui.widgets.WidgetConfigOption;
 import fi.dy.masa.malilib.gui.widgets.WidgetConfigOptionBase;
 import fi.dy.masa.malilib.gui.widgets.WidgetListConfigOptionsBase;
+import fi.dy.masa.malilib.gui.wrappers.TextFieldType;
 import lpctools.generic.GenericConfigs;
 import lpctools.lpcfymasaapi.interfaces.ButtonBaseProvider;
 import lpctools.lpcfymasaapi.interfaces.ButtonConsumer;
@@ -48,8 +49,12 @@ public abstract class WidgetConfigOptionMixin extends WidgetConfigOptionBase<Gui
                     return WidgetConfigOptionMixin.this.createTextField(x, y, width, height);
                 }
                 @Override public int getMaxTextFieldTextLength() {return maxTextfieldTextLength;}
+                @Deprecated
                 @Override public void addTextField(GuiTextFieldGeneric field, ConfigOptionChangeListenerTextField listener) {
-                    WidgetConfigOptionMixin.this.addTextField(field, listener);
+                    WidgetConfigOptionMixin.this.addTextField(field, listener, TextFieldType.STRING);
+                }
+                @Override public void addTextField(GuiTextFieldGeneric field, ConfigOptionChangeListenerTextField listener, TextFieldType textFieldType) {
+                    WidgetConfigOptionMixin.this.addTextField(field, listener, textFieldType);
                 }
                 @Override public void addExtraTextField(GuiTextFieldGeneric field, ConfigOptionChangeListenerTextField listener) {
                     ((IWidgetConfigOptionBaseEx)getThis()).lPCTools$addExtraTextField(field, listener);

@@ -1,4 +1,4 @@
-package lpctools.mixin.client.BarTweakMixin;
+package lpctools.mixin.client.tweaks.BarTweakMixin;
 
 import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
 import lpctools.tweaks.BarTweaks;
