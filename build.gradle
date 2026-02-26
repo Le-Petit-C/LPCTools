@@ -52,6 +52,8 @@ dependencies {
 	modRuntimeOnly "maven.modrinth:tweakeroo:${project.tweakeroo_version}"
 	modCompileOnly "maven.modrinth:modmenu:${project.mod_menu_version}"
 	modRuntimeOnly "maven.modrinth:modmenu:${project.mod_menu_version}"
+	modRuntimeOnly "maven.modrinth:spark:${project.spark_version}"
+	modRuntimeOnly "maven.modrinth:fabric-permissions-api:${project.fabric_permissions_api_version}"
 
 	// Fabric API. This is technically optional, but you probably want it anyway.
 	modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_api_version}"

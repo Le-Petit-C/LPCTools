@@ -8,6 +8,9 @@
 		"ClientPlayNetworkHandlerMixin",
 		"DisplayClickSlotArguments",
 		"FurnaceMaintainer",
+		"GlyphAtlasTextureAccessor",
+		"GlyphAtlasTextureMixin",
+		"MinecraftClientAccessor",
 		"MixinWorldRenderer",
 		"OnMouseButtonReturnMixin",
 		"SplashTextResourceSupplierMixin",
@@ -17,8 +20,6 @@
 		"AutoReconnect.ConnectScreenMixin",
 		"AutoReconnect.DisconnectedScreenMixin",
 		"AutoReconnect.MinecraftClientMixin",
-		"BarTweakMixin.ClientPlayerInteractionManagerMixin",
-		"BarTweakMixin.InGameHudMixin",
 		"blockBreakRestriction.ClientPlayerInteractionManagerMixin",
 		"enchantmentLevelFix.MixinTranslationStorage",
 		"EntityHighlight.EntityMixin",
@@ -39,14 +40,16 @@
 		"MASAMixins.MuteMASAConfigMinMaxMixin.ConfigDoubleMixin",
 		"MASAMixins.MuteMASAConfigMinMaxMixin.ConfigIntegerMixin",
 		"ModMenuMixin.ModsScreenMixin",
-		"TweakerooMixin.GuiConfigsMixin",
 		"scriptMixins.TagKeyMixin",
 		"scriptMixins.propertiesMixin.BooleanPropertyRegisterMixin",
 		"scriptMixins.propertiesMixin.EnumPropertyMixin",
 		"scriptMixins.propertiesMixin.IntegerPropertyRegisterMixin",
 		"scriptMixins.propertiesMixin.PropertyRegisterMixin",
 		"TweakerooMixin.ConfigsListsMixin",
-		"TweakerooMixin.ConfigsMixin"
+		"TweakerooMixin.ConfigsMixin",
+		"TweakerooMixin.GuiConfigsMixin",
+		"tweaks.BarTweakMixin.ClientPlayerInteractionManagerMixin",
+		"tweaks.BarTweakMixin.InGameHudMixin"
 	],
 	"injectors": {
 		"defaultRequire": 1
