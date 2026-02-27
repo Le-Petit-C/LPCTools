@@ -12,4 +12,6 @@ import java.util.Map;
 public interface FontManagerAccessor {
 	@Accessor FontStorage getMissingStorage();
 	@Accessor Map<Identifier, FontStorage> getFontStorages();
+	@Accessor FontManager.Fonts getAnyFonts();
+	@Accessor FontManager.Fonts getAdvanceValidatedFonts();
 }
