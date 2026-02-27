@@ -31,9 +31,7 @@ public class GlyphAtlasResize {
 		return ((GlyphBakerAccessor)((FontStorageAccessor)fontStorage).getGlyphBaker()).getGlyphAtlases().size() > 1;
 	}
 	
-	private static boolean hasGlyphAtlasBakerSizeOutOuBound() {
-		MinecraftClient client = MinecraftClient.getInstance();
-		FontManager fontManager = ((MinecraftClientAccessor)client).getFontManager();
+	private static boolean hasGlyphAtlasBakerSizeOutOuBound(FontManager fontManager) {
 		if(isStorageBakerSizeOutOfBound(((FontManagerAccessor)fontManager).getMissingStorage())) return true;
 		for(var fontStorage : ((FontManagerAccessor)fontManager).getFontStorages().values())
 			if(isStorageBakerSizeOutOfBound(fontStorage)) return true;
@@ -42,15 +40,18 @@ public class GlyphAtlasResize {
 	
 	private static void refresh() {
 		refreshScheduled = false;
-		if(autoResize.getBooleanValue() && hasGlyphAtlasBakerSizeOutOuBound())
+		MinecraftClient client = MinecraftClient.getInstance();
+		FontManager fontManager = ((MinecraftClientAccessor)client).getFontManager();
+		if(autoResize.getBooleanValue() && hasGlyphAtlasBakerSizeOutOuBound(fontManager))
 			glyphAtlasSize.setIntegerValue(glyphAtlasSize.getIntegerValue() * 2);
 		else if(needReset) glyphAtlasSize.setIntegerValue(256);
 		needReset = false;
 		int newLength = glyphAtlasResize.getBooleanValue() ? glyphAtlasSize.getIntegerValue() : 256;
 		if(newLength == GlyphAtlasTextureAccessor.getSlotLength()) return;
 		GlyphAtlasTextureAccessor.setSlotLength(newLength);
-		var client = MinecraftClient.getInstance();
 		((MinecraftClientAccessor)client).invokeOnFontOptionsChanged();
+		((FontManagerAccessor)fontManager).getAnyFonts().clear();
+		((FontManagerAccessor)fontManager).getAdvanceValidatedFonts().clear();
 	}
 	
 	private static void autoResizeChanged() {
