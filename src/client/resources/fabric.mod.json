@@ -34,16 +34,17 @@
 	"depends": {
 		"fabricloader": "*",
 		"minecraft": [
-			"1.21.11"
+			"1.21.9",
+			"1.21.10"
 		],
 		"java": ">=21",
 		"malilib": "*",
 		"fabric-api": "*"
 	},
 	"suggests": {
-		"malilib": "0.27.6",
-		"minihud": "0.38.3",
-		"litematica": "0.25.4",
-		"tweakeroo": "0.27.5"
+		"malilib": "0.26.8",
+		"minihud": "0.37.6",
+		"litematica": "0.24.7",
+		"tweakeroo": "0.26.5"
 	}
 }

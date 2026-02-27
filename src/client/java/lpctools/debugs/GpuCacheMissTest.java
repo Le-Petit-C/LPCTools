@@ -216,7 +216,7 @@ public class GpuCacheMissTest {
 			GpuTextureView depthAttachmentView = fb.useDepthAttachment ? fb.getDepthAttachmentView() : null;
 			GpuBufferSlice dynamicTransforms = RenderSystem.getDynamicUniforms()
 				.write(RenderSystem.getModelViewMatrix().translate(context.camera().getCameraPos().toVector3f().mul(-1),
-					new Matrix4f()), new Vector4f(1.0F, 1.0F, 1.0F, 1.0F), new Vector3f(), new Matrix4f());
+					new Matrix4f()), new Vector4f(1.0F, 1.0F, 1.0F, 1.0F), new Vector3f(), new Matrix4f(), 1.0f);
 			GpuBufferSlice projection = RenderSystem.getProjectionMatrixBuffer();
 			try(RenderPass renderPass = RenderSystem.getDevice()
 				.createCommandEncoder()

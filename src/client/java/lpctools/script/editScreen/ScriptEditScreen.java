@@ -4,7 +4,6 @@ import fi.dy.masa.malilib.gui.*;
 import fi.dy.masa.malilib.gui.button.ButtonGeneric;
 import fi.dy.masa.malilib.gui.widgets.WidgetBase;
 import fi.dy.masa.malilib.gui.widgets.WidgetListConfigOptions;
-import fi.dy.masa.malilib.render.GuiContext;
 import fi.dy.masa.malilib.util.position.Vec2d;
 import it.unimi.dsi.fastutil.objects.Object2LongOpenHashMap;
 import lpctools.script.*;
@@ -20,7 +19,6 @@ import net.minecraft.text.Text;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Matrix3x2f;
-import org.jspecify.annotations.NonNull;
 
 import java.util.*;
 
@@ -89,7 +87,7 @@ public class ScriptEditScreen extends GuiConfigsBase {
 	
 	public @Nullable Element getScriptFocused(){return scriptFocused;}
 	
-	@Override public boolean mouseClicked(@NonNull Click click, boolean doubleClick) {
+	@Override public boolean mouseClicked(Click click, boolean doubleClick) {
 		if(super.mouseClicked(click, doubleClick)) {
 			setScriptFocused(null);
 			return true;
@@ -233,7 +231,7 @@ public class ScriptEditScreen extends GuiConfigsBase {
 		return super.mouseScrolled(mouseX, mouseY, horizontalAmount, verticalAmount);
 	}
 	
-	@Override public boolean keyPressed(@NonNull KeyInput key) {
+	@Override public boolean keyPressed(KeyInput key) {
 		if(scriptFocused != null && scriptFocused.keyPressed(key)) return true;
 		return super.keyPressed(key);
 	}
@@ -243,20 +241,20 @@ public class ScriptEditScreen extends GuiConfigsBase {
 		return super.keyReleased(key);
 	}
 	
-	@Override public boolean charTyped(@NonNull CharInput input) {
+	@Override public boolean charTyped(CharInput input) {
 		if(scriptFocused != null && scriptFocused.charTyped(input)) return true;
 		return super.charTyped(input);
 	}
 	
 	//以父screen为背景
-	@Override public void render(@NonNull DrawContext drawContext, int mouseX, int mouseY, float partialTicks) {
+	@Override public void render(DrawContext drawContext, int mouseX, int mouseY, float partialTicks) {
 		hoveredRenderer.clear();
 		if(getParent() != null)
 			getParent().render(drawContext, -1, -1, partialTicks);
 		super.render(drawContext, mouseX, mouseY, partialTicks);
 	}
 	//渲染内容，选择重载drawTitle只是因为渲染顺序
-	@Override public void drawTitle(GuiContext context, int mouseX, int mouseY, float partialTicks) {
+	@Override public void drawTitle(DrawContext context, int mouseX, int mouseY, float partialTicks) {
 		adjustPosition();
 		//渲染内容
 		var root = getRootDisplayWidget();
@@ -370,13 +368,13 @@ public class ScriptEditScreen extends GuiConfigsBase {
 		hoveredRenderer.setHover(widget, mouseX, mouseY, matrix);
 	}
 	
-	public void renderAndTryHover(GuiContext context, ButtonGeneric buttonGeneric, int fixedMouseX, int fixedMouseY){
+	public void renderAndTryHover(DrawContext context, ButtonGeneric buttonGeneric, int fixedMouseX, int fixedMouseY){
 		boolean isOver = buttonGeneric.isMouseOver(fixedMouseX, fixedMouseY);
 		buttonGeneric.render(context, fixedMouseX, fixedMouseY, isOver);
 		if(isOver) setHover(buttonGeneric, fixedMouseX, fixedMouseY, context.getMatrices());
 	}
 	
-	@Override protected void drawHoveredWidget(GuiContext context, int mouseX, int mouseY) {
+	@Override protected void drawHoveredWidget(DrawContext context, int mouseX, int mouseY) {
 		super.drawHoveredWidget(context, mouseX, mouseY);
 		if(!isHoverTextDisplayKeyPressed()) return;
 		hoveredRenderer.tryRender(context);
