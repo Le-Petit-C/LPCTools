@@ -18,7 +18,6 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.Vec3i;
 import org.apache.commons.lang3.mutable.MutableObject;
-import org.jspecify.annotations.NonNull;
 
 import java.util.ArrayList;
 
@@ -36,7 +35,7 @@ public class TilingToolExecutor implements AutoCloseable, ClientTickEvents.EndTi
     private void registerAll(boolean b){
         Registries.END_CLIENT_TICK.register(this, b);
     }
-    @Override public void onEndTick(@NonNull MinecraftClient mc) {
+    @Override public void onEndTick(MinecraftClient mc) {
         if(storedData == null) {
             if(autoRefresh.get().refreshOnExecuteNull)
                 autoRefreshOperation.get().run();
