@@ -1,4 +1,4 @@
-package lpctools.mixin.client;
+package lpctools.mixin.client.tweaks.glyphAtlasResize;
 
 import net.minecraft.client.font.GlyphAtlasTexture;
 import org.spongepowered.asm.mixin.Mixin;
