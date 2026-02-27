@@ -295,6 +295,8 @@
 	"lpctools.configs.tweaks.glyphAtlasResize.comment": "通过增大字形图集尺寸，避免渲染时频繁切换纹理\n可显著提升含大量文本场景的渲染性能",
 	"lpctools.configs.tweaks.glyphAtlasResize.glyphAtlasSize.name": "图集边长",
 	"lpctools.configs.tweaks.glyphAtlasResize.glyphAtlasSize.comment": "正方形纹理集的边长值（单位：像素）\n增大此值可容纳更多字形，但会提升显存占用",
+	"lpctools.configs.tweaks.glyphAtlasResize.autoResize.name": "自动扩展图集",
+	"lpctools.configs.tweaks.glyphAtlasResize.autoResize.comment": "当字形图集空间不足时自动扩展其尺寸\n（避免因图集满载导致的渲染问题）",
 	"lpctools.configs.scripts.title": "脚本",
 	"lpctools.configs.scripts.guiScale.name": "界面缩放",
 	"lpctools.configs.scripts.guiScale.comment": "原版的配置界面缩放配置\n我想应该会有人想在编辑脚本时把界面缩小点\n所以我添加了这个，只是为了方便",

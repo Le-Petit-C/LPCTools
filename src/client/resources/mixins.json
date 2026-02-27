@@ -8,9 +8,6 @@
 		"ClientPlayNetworkHandlerMixin",
 		"DisplayClickSlotArguments",
 		"FurnaceMaintainer",
-		"GlyphAtlasTextureAccessor",
-		"GlyphAtlasTextureMixin",
-		"MinecraftClientAccessor",
 		"MixinWorldRenderer",
 		"OnMouseButtonReturnMixin",
 		"SplashTextResourceSupplierMixin",
@@ -48,8 +45,15 @@
 		"TweakerooMixin.ConfigsListsMixin",
 		"TweakerooMixin.ConfigsMixin",
 		"TweakerooMixin.GuiConfigsMixin",
-		"tweaks.BarTweakMixin.ClientPlayerInteractionManagerMixin",
-		"tweaks.BarTweakMixin.InGameHudMixin"
+		"tweaks.barTweak.ClientPlayerInteractionManagerMixin",
+		"tweaks.barTweak.InGameHudMixin",
+		"tweaks.glyphAtlasResize.FontManagerAccessor",
+		"tweaks.glyphAtlasResize.FontStorageAccessor",
+		"tweaks.glyphAtlasResize.GlyphAtlasTextureAccessor",
+		"tweaks.glyphAtlasResize.GlyphAtlasTextureMixin",
+		"tweaks.glyphAtlasResize.GlyphBakerAccessor",
+		"tweaks.glyphAtlasResize.GlyphBakerMixin",
+		"tweaks.glyphAtlasResize.MinecraftClientAccessor"
 	],
 	"injectors": {
 		"defaultRequire": 1
