@@ -1,22 +1,25 @@
 package lpctools.lpcfymasaapi.render.translucentShapes;
 
-import lpctools.lpcfymasaapi.render.PositionColorVertex;
+import lpctools.lpcfymasaapi.render.PositionColorLineWidthVertex;
 import net.minecraft.util.math.BlockPos;
 import org.joml.Vector3d;
 
-public class LineQuad extends Shape<PositionColorVertex> {
+public class LineQuad extends Shape<PositionColorLineWidthVertex> {
 	static final int[][] baseIndices = {{0, 1}, {2, 3}, {0, 2}, {1, 3},};
 	
-	public LineQuad(BlockPos pos, int color, boolean xrays) {
-		super(new PositionColorVertex[4], baseIndices, new Vector3d());
+	public LineQuad(BlockPos pos, int color, boolean xrays, float lineWidth) {
+		super(new PositionColorLineWidthVertex[4], baseIndices, new Vector3d());
 		center.set(pos.getX() + 0.5, pos.getY() + (xrays ? 0.0 : 0.005), pos.getZ() + 0.5);
 		for (int i = 0; i < 4; ++i) {
-			vertices[i] = new PositionColorVertex(
+			vertices[i] = new PositionColorLineWidthVertex(
 				pos.getX() + ((i & 1) == 0 ? 0.1 : 0.9),
 				pos.getY() + 0.005,
 				pos.getZ() + ((i & 2) == 0 ? 0.1 : 0.9),
-				color);
+				color, lineWidth);
 		}
 		setDefaultCenters(this);
+	}
+	public LineQuad(BlockPos pos, int color, boolean xrays){
+		this(pos, color, xrays, 1.0f);
 	}
 }
