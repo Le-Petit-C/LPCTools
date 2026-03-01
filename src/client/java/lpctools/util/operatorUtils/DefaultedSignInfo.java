@@ -5,7 +5,7 @@ import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import lpctools.lpcfymasaapi.screen.SelectionScreen;
 import lpctools.util.CachedSupplier;
 import net.minecraft.text.Text;
-import org.apache.commons.text.similarity.LevenshteinDistance;
+import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -77,10 +77,9 @@ public class DefaultedSignInfo<T extends Operators.SignBase> implements Operator
 			index = id2indexMap.getInt(idString);
 		else if(fuzzy && !sortedList.get().isEmpty()){
 			var ids = this.ids.get();
-			LevenshteinDistance lev = LevenshteinDistance.getDefaultInstance();
-			int i = 0, min = lev.apply(ids.getFirst(), idString);
+			int i = 0, min = StringUtils.getLevenshteinDistance(ids.getFirst(), idString);
 			for(int j = 1; j < sortedList.get().size(); ++j){
-				int d = lev.apply(ids.get(j), idString);
+				int d = StringUtils.getLevenshteinDistance(ids.get(j), idString);
 				if(d < min){
 					min = d;
 					i = j;

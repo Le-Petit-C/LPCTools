@@ -11,6 +11,7 @@ import net.minecraft.client.font.FontStorage;
 import static lpctools.lpcfymasaapi.LPCConfigStatics.*;
 
 public class GlyphAtlasResize {
+	static boolean lastOpened = false;
 	public static final BooleanThirdListConfig glyphAtlasResize = new BooleanThirdListConfig(TweakConfigs.tweaks, "glyphAtlasResize", false, GlyphAtlasResize::scheduleRefresh);
 	static {listStack.push(glyphAtlasResize);}
 	public static final UniqueBooleanConfig autoResize = addConfig(new UniqueBooleanConfig(peekConfigList(), "autoResize", true, GlyphAtlasResize::autoResizeChanged));
@@ -40,6 +41,8 @@ public class GlyphAtlasResize {
 	
 	private static void refresh() {
 		refreshScheduled = false;
+		if(lastOpened == glyphAtlasResize.getBooleanValue() && !lastOpened) return;
+		lastOpened = glyphAtlasResize.getBooleanValue();
 		MinecraftClient client = MinecraftClient.getInstance();
 		FontManager fontManager = ((MinecraftClientAccessor)client).getFontManager();
 		if(autoResize.getBooleanValue() && hasGlyphAtlasBakerSizeOutOuBound(fontManager))

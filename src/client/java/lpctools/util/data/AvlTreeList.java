@@ -100,7 +100,7 @@ public class AvlTreeList<E> extends AbstractList<E> {
 			throw new IndexOutOfBoundsException();
 		MutableObject<E> result = new MutableObject<>();
 		root = root.removeAt(index, v->result.setValue(v.value));
-		return result.get();
+		return result.getValue();
 	}
 	
 	
@@ -213,7 +213,7 @@ public class AvlTreeList<E> extends AbstractList<E> {
 				else {
 					MutableObject<Node<E>> res = new MutableObject<>();
 					right = right.removeAt(0, res::setValue);
-					var node = res.get();
+					var node = res.getValue();
 					replaceByNode(node);
 					node.recalculate();
 					return node.balance();
