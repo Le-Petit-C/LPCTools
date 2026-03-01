@@ -56,7 +56,7 @@ public class TilingToolExecutor implements AutoCloseable, ClientTickEvents.EndTi
         Block[][][] storedBlocks = storedData.storedBlocks();
         MutableObject<Block> block = new MutableObject<>();
         Object2BooleanFunction<Block> condition = b ->{
-            Block storedBlock = block.get();
+            Block storedBlock = block.getValue();
             if(b == storedBlock) return true;
             ArrayList<ImmutableSet<Block>> list = vagueBlocks.get(storedBlock);
             if(list == null) return false;
@@ -82,7 +82,7 @@ public class TilingToolExecutor implements AutoCloseable, ClientTickEvents.EndTi
             if(data.block == null){
                 data.count = HandRestock.restock(restockTest, offhandOperate.getAsBoolean() ? -1 : 0);
                 if(data.count == 0) return NO_OPERATION;
-                data.block = block.get();
+                data.block = block.getValue();
             }
             if(!condition.getBoolean(data.block)) return NO_OPERATION;
             BlockHitResult hitResult = new BlockHitResult(pos.toCenterPos(), Direction.DOWN, pos.toImmutable(), false);

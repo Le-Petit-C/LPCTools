@@ -35,7 +35,8 @@ loom {
 
 dependencies {
 
-	implementation "org.apache.commons:commons-text:1.15.0"
+	compileOnly "org.apache.commons:commons-text:1.15.0+"
+	include "org.apache.commons:commons-text:1.15.0+"
 
 	// To change the versions see the gradle.properties file
 	minecraft "com.mojang:minecraft:${project.minecraft_version}"
@@ -52,7 +53,11 @@ dependencies {
 	modRuntimeOnly "maven.modrinth:tweakeroo:${project.tweakeroo_version}"
 	modCompileOnly "maven.modrinth:modmenu:${project.mod_menu_version}"
 	modRuntimeOnly "maven.modrinth:modmenu:${project.mod_menu_version}"
+
+	//Test mods
+	modCompileOnly "maven.modrinth:spark:${project.spark_version}"
 	modRuntimeOnly "maven.modrinth:spark:${project.spark_version}"
+	modCompileOnly "maven.modrinth:fabric-permissions-api:${project.fabric_permissions_api_version}"
 	modRuntimeOnly "maven.modrinth:fabric-permissions-api:${project.fabric_permissions_api_version}"
 
 	// Fabric API. This is technically optional, but you probably want it anyway.
