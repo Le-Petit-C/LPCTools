@@ -21,7 +21,7 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.ChunkSectionPos;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.util.math.Vec3i;
-import org.apache.commons.text.similarity.LevenshteinDistance;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
@@ -213,12 +213,11 @@ public class DataUtils {
     public static String findMostSimilar(Collection<String> collection, String target) {
         if (collection == null || target == null) return null;
         
-        LevenshteinDistance levenshtein = LevenshteinDistance.getDefaultInstance();
         String mostSimilar = null;
         int minDistance = Integer.MAX_VALUE;
         
         for (String str : collection) {
-            int distance = levenshtein.apply(target, str);
+            int distance = StringUtils.getLevenshteinDistance(target, str);
             if (distance < minDistance) {
                 minDistance = distance;
                 mostSimilar = str;
