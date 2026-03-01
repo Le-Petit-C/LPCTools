@@ -98,11 +98,9 @@ public class RenderInstance implements QuietAutoCloseable, Registries.WorldPreMa
 		return renderInstances.computeIfAbsent(renderOption, RenderInstance::new);
 	}
 	
-	public static RenderPipeline shapePipeline =
-		MaLiLibPipelines.POSITION_COLOR_MASA;
-		// MaLiLibPipelines.POSITION_COLOR_MASA_DEPTH_MASK;
+	public static RenderPipeline shapePipeline = MaLiLibPipelines.POSITION_COLOR_TRANSLUCENT;
 	
-	public static RenderPipeline linePipeline = MaLiLibPipelines.DEBUG_LINES_MASA_SIMPLE;
+	public static RenderPipeline linePipeline = MaLiLibPipelines.DEBUG_LINES_TRANSLUCENT;
 	
 	public static RenderOption shapeOptionWithDepth = new RenderOption(shapePipeline, true, true, RenderTiming.BEFORE_TRANSLUCENT);
 	public static RenderOption shapeOptionDepthless = new RenderOption(shapePipeline, true, false, RenderTiming.END_MAIN);
