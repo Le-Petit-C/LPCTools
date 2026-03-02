@@ -14,8 +14,7 @@ public class TweakConfigs {
             BarTweaks.barTweaks,
             EnchantmentLevelFix.enchantmentLevelFix,
             modMenuPlayClickSound,
-            LPCfyTweakerooList.lpcfyTweakerooList,
-            GlyphAtlasResize.glyphAtlasResize
+            LPCfyTweakerooList.lpcfyTweakerooList
         );
     }
 }

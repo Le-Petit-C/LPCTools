@@ -46,14 +46,7 @@
 		"TweakerooMixin.ConfigsMixin",
 		"TweakerooMixin.GuiConfigsMixin",
 		"tweaks.barTweak.ClientPlayerInteractionManagerMixin",
-		"tweaks.barTweak.InGameHudMixin",
-		"tweaks.glyphAtlasResize.FontManagerAccessor",
-		"tweaks.glyphAtlasResize.FontStorageAccessor",
-		"tweaks.glyphAtlasResize.GlyphAtlasTextureAccessor",
-		"tweaks.glyphAtlasResize.GlyphAtlasTextureMixin",
-		"tweaks.glyphAtlasResize.GlyphBakerAccessor",
-		"tweaks.glyphAtlasResize.GlyphBakerMixin",
-		"tweaks.glyphAtlasResize.MinecraftClientAccessor"
+		"tweaks.barTweak.InGameHudMixin"
 	],
 	"injectors": {
 		"defaultRequire": 1

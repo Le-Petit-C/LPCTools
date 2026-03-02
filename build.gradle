@@ -11,10 +11,28 @@ base {
 }
 
 repositories {
+	maven {
+		name = "Lenni0451"
+		url = "https://maven.lenni0451.net/releases"
+
+		content {
+			includeGroup "net.lenni0451"
+		}
+	}
+	// mavenCentral()
+	maven {url = 'https://maven.fallenbreath.me/releases'
+		content {includeGroupAndSubgroups("me.fallenbreath")}
+	}
 	maven { url = 'https://jitpack.io' }
 	maven { url = 'https://maven.terraformersmc.com/releases/' }
 	maven { url = "https://api.modrinth.com/maven" }
 	maven { url = "https://cursemaven.com"}
+	maven {
+		url = "https://www.cursemaven.com"
+		content {
+			includeGroup "curse.maven"
+		}
+	}
 	// Add repositories to retrieve artifacts from in here.
 	// You should only use this when depending on other mods because
 	// Loom adds the essential maven repositories to download Minecraft and libraries from automatically.
@@ -38,28 +56,38 @@ dependencies {
 	// To change the versions see the gradle.properties file
 	minecraft "com.mojang:minecraft:${project.minecraft_version}"
 	mappings "net.fabricmc:yarn:${project.yarn_mappings}:v2"
+
+	// Relied mods & their required lib(s)
 	modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
 	modImplementation "maven.modrinth:malilib:${project.malilib_version}"
+	implementation "me.fallenbreath:conditional-mixin-fabric:${project.conditionalmixin_version}"
+	modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_api_version}"
 
-	//Suggested mods
+	// Suggested mods
 	modCompileOnly "maven.modrinth:minihud:${project.minihud_version}"
 	modRuntimeOnly "maven.modrinth:minihud:${project.minihud_version}"
 	modCompileOnly "maven.modrinth:litematica:${project.litematica_version}"
 	modRuntimeOnly "maven.modrinth:litematica:${project.litematica_version}"
 	modCompileOnly "maven.modrinth:tweakeroo:${project.tweakeroo_version}"
 	modRuntimeOnly "maven.modrinth:tweakeroo:${project.tweakeroo_version}"
+	modCompileOnly "maven.modrinth:placeholder-api:${project.placeholder_api_version}"
+	modRuntimeOnly "maven.modrinth:placeholder-api:${project.placeholder_api_version}"
 	modCompileOnly "maven.modrinth:modmenu:${project.mod_menu_version}"
 	modRuntimeOnly "maven.modrinth:modmenu:${project.mod_menu_version}"
 
-	//Test mods
-	modCompileOnly "maven.modrinth:spark:${project.spark_version}"
-	modRuntimeOnly "maven.modrinth:spark:${project.spark_version}"
+	// Test mods
 	modCompileOnly "maven.modrinth:fabric-permissions-api:${project.fabric_permissions_api_version}"
 	modRuntimeOnly "maven.modrinth:fabric-permissions-api:${project.fabric_permissions_api_version}"
-
-	// Fabric API. This is technically optional, but you probably want it anyway.
-	modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_api_version}"
-	
+	modCompileOnly "maven.modrinth:spark:${project.spark_version}"
+	modRuntimeOnly "maven.modrinth:spark:${project.spark_version}"
+	modCompileOnly "maven.modrinth:sodium:${project.sodium_version}"
+	modRuntimeOnly "maven.modrinth:sodium:${project.sodium_version}"
+	modCompileOnly "maven.modrinth:iris:${project.iris_version}"
+	modRuntimeOnly "maven.modrinth:iris:${project.iris_version}"
+	modCompileOnly "maven.modrinth:immediatelyfast:${project.immediatelyfast_version}"
+	modRuntimeOnly "maven.modrinth:immediatelyfast:${project.immediatelyfast_version}"
+	compileOnly "net.lenni0451:Reflect:${project.reflect_version}"
+	runtimeOnly "net.lenni0451:Reflect:${project.reflect_version}"
 }
 
 processClientResources {
