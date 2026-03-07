@@ -29,6 +29,7 @@ import static lpctools.util.DataUtils.*;
 // TODO
 //  bug:开着SlightXRay同时渲染范围限制有效，此时进入世界时会有一些期望的范围外的方块被标注
 //  暂时不知道如何修复
+//  bug:切换FreeCamera状态时一些已标记的内容会被意外清理，可能是因为切换FreeCamera的一瞬间Camera的坐标在世界原点
 public class SlightXRay{
     public static final BooleanHotkeyThirdListConfig SXConfig = new BooleanHotkeyThirdListConfig(ToolConfigs.toolConfigs, "SX", SlightXRay::switchChanged);
     public static final ColoredBlockListConfig XRayBlocksConfig = new ColoredBlockListConfig(SXConfig, "XRayBlocks");
@@ -99,22 +100,17 @@ public class SlightXRay{
             if(newBlocks.containsKey(block)) clientMessage(String.format("§eWarning: Repeat block \"%s\"", block.getName()), false);
             else newBlocks.put(block, DataUtils.argb2agbr(c.getColor().getIntValue()));
         });
-        synchronized (XRayBlocks){
-            if(XRayBlocks.keySet().equals(newBlocks.keySet())) {
-                for(var block : newBlocks.object2IntEntrySet())
-                    XRayBlocks.get(block.getKey()).setValue(block.getIntValue());
-				if (dataInstance != null) dataInstance.resetData();
-			}
-            else {
-                XRayBlocks.clear();
-                for(var entry : newBlocks.object2IntEntrySet())
-                    XRayBlocks.put(entry.getKey(), new MutableInt(entry.getIntValue()));
-                if(dataInstance != null) {
-                    dataInstance.clearData();
-                    dataInstance.resetData();
-                }
-            }
+        if(XRayBlocks.keySet().equals(newBlocks.keySet())) {
+            for(var block : newBlocks.object2IntEntrySet())
+                XRayBlocks.get(block.getKey()).setValue(block.getIntValue());
         }
+        else {
+            XRayBlocks.clear();
+            for(var entry : newBlocks.object2IntEntrySet())
+                XRayBlocks.put(entry.getKey(), new MutableInt(entry.getIntValue()));
+            recordedXRayBlocks = null;
+        }
+        if (dataInstance != null) dataInstance.resetData();
     }
     private static void switchChanged() {
         if(SXConfig.getBooleanValue()){

@@ -22,7 +22,7 @@ public class ClientPlayNetworkHandlerMixin {
             updater.run();
             WorldChunk worldChunk = world.getChunkManager().getWorldChunk(i, j, false);
             if (worldChunk != null)
-                Registries.CLIENT_CHUNK_LIGHT_LOAD.run().onClientWorldChunkLightUpdated(world, worldChunk);
+                Registries.CLIENT_CHUNK_LIGHT_LOAD.runner().onClientWorldChunkLightUpdated(world, worldChunk);
         };
     }
 }

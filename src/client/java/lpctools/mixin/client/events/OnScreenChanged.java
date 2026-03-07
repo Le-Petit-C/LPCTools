@@ -13,6 +13,6 @@ import static lpctools.lpcfymasaapi.Registries.ON_SCREEN_CHANGED;
 public class OnScreenChanged {
     @Inject(method = "setScreen", at = @At("TAIL"))
     void setScreenMixin(Screen screen, CallbackInfo ci){
-        ON_SCREEN_CHANGED.run().onScreenChanged(screen);
+        ON_SCREEN_CHANGED.runner().onScreenChanged(screen);
     }
 }

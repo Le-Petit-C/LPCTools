@@ -4,12 +4,11 @@ import fi.dy.masa.malilib.config.IConfigBoolean;
 import fi.dy.masa.malilib.hotkeys.IHotkey;
 import fi.dy.masa.malilib.util.InfoUtils;
 import fi.dy.masa.malilib.util.StringUtils;
-import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
-import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
-import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
-import it.unimi.dsi.fastutil.ints.IntSet;
+import it.unimi.dsi.fastutil.ints.*;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
+import lpctools.generic.UpdateCounter;
 import lpctools.lpcfymasaapi.interfaces.ILPCConfig;
+import lpctools.util.LPCMathHelper;
 import lpctools.util.Packed;
 import lpctools.util.javaex.ToBooleanFunction;
 import net.minecraft.text.Text;
@@ -20,7 +19,6 @@ import java.util.Collection;
 import java.util.Map;
 import java.util.function.Consumer;
 import java.util.function.Function;
-import java.util.function.IntConsumer;
 
 @SuppressWarnings({"UnusedReturnValue", "unused"})
 public class ToolUtils {
@@ -53,26 +51,32 @@ public class ToolUtils {
         return result;
     }
     public static <T, U extends Collection<T>, V> U recordCollection(U result, @Nullable V source, Function<? super V, ? extends Collection<? extends T>> mappingFunction){
-        if(source != null) result.addAll(mappingFunction.apply(source));
+        if(source != null) {
+            var collection = mappingFunction.apply(source);
+            UpdateCounter.updated(collection.size() / 16);
+            int sz = collection.size();
+            result.addAll(collection);
+        }
         return result;
     }
     public static <T, U, V extends Map<T, U>> V recordMap(V result, @Nullable Map<? extends T, ? extends U> source){
-        if(source != null) result.putAll(source);
+        if(source != null) {
+            result.putAll(source);
+            UpdateCounter.updated(source.size() / 16);
+        }
         return result;
     }
     
-    public static <T, U extends Collection<T>> U combineCollections(@NotNull U collection1, @Nullable U collection2, IntConsumer operatedSizeConsumer) {
+    public static <T, U extends Collection<T>> U combineCollections(@NotNull U collection1, @Nullable U collection2) {
         if(collection2 == null) return collection1;
         if(collection1.size() >= collection2.size()) {
             collection1.addAll(collection2);
-            if(operatedSizeConsumer != null)
-                operatedSizeConsumer.accept(collection2.size());
+            UpdateCounter.updated(collection2.size() / 16);
             return collection1;
         }
         else {
             collection2.addAll(collection1);
-            if(operatedSizeConsumer != null)
-                operatedSizeConsumer.accept(collection1.size());
+            UpdateCounter.updated(collection1.size() / 16);
             return collection2;
         }
     }
@@ -82,7 +86,7 @@ public class ToolUtils {
         if(chunk == null) return null;
         else return chunk.get(Packed.ChunkLocal.pack(x, y, z));
     }
-    public static <T> T chunkedGet(Long2ObjectMap<? extends Int2ObjectMap<T>> map, long packedBlockPos) {
+    public static <T> T chunkedGet(Long2ObjectMap<? extends Int2ObjectOpenHashMap<T>> map, long packedBlockPos) {
         return chunkedGet(map, Packed.BlockPos.unpackX(packedBlockPos), Packed.BlockPos.unpackY(packedBlockPos), Packed.BlockPos.unpackZ(packedBlockPos));
     }
     
@@ -139,7 +143,11 @@ public class ToolUtils {
         return chunkedRemove(set, Packed.BlockPos.unpackX(packedBlockPos), Packed.BlockPos.unpackY(packedBlockPos), Packed.BlockPos.unpackZ(packedBlockPos));
     }
     
-    public static <T> void clearMapDataOutOfRange(double chunkedCamX, double chunkedCamZ, double distanceLimitSquared, Long2ObjectMap<T> mapToClean, ToBooleanFunction<T> emptyCheck, Consumer<T> cleaner) {
+    public static double chunkedCoord(double origin) {
+        return origin / 16 - 0.5;
+    }
+    
+    public static <T> void clearMapDataOutOfRange(double chunkedCamX, double chunkedCamZ, double chunkDistanceLimitSquared, Long2ObjectMap<T> mapToClean, ToBooleanFunction<T> emptyCheck, Consumer<T> cleaner) {
         var it = mapToClean.long2ObjectEntrySet().iterator();
         while (it.hasNext()) {
             var entry = it.next();
@@ -149,10 +157,11 @@ public class ToolUtils {
                 continue;
             }
             long packedChunkPos = entry.getLongKey();
-            double dx = Packed.ChunkPos.unpackX(packedChunkPos) - chunkedCamX;
-            double dz = Packed.ChunkPos.unpackZ(packedChunkPos) - chunkedCamZ;
-            double distanceSquared = dx * dx + dz * dz;
-            if(distanceSquared >= distanceLimitSquared) {
+            double distanceSquared = LPCMathHelper.squaredLength(
+                Packed.ChunkPos.unpackX(packedChunkPos) - chunkedCamX,
+                Packed.ChunkPos.unpackZ(packedChunkPos) - chunkedCamZ
+            );
+            if(distanceSquared >= chunkDistanceLimitSquared) {
                 it.remove();
                 if(cleaner != null) cleaner.accept(obj);
             }

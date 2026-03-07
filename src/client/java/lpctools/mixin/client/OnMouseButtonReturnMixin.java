@@ -18,6 +18,6 @@ public abstract class OnMouseButtonReturnMixin {
     @Inject(method = "onMouseButton", at = @At("RETURN"))
     private void onMouseButton(long window, MouseInput input, int action, CallbackInfo ci){
         if(window != this.client.getWindow().getHandle()) return;
-        if(!GuiUtils.isInTextOrGui()) Registries.IN_GAME_END_MOUSE.run().onInGameEndMouse(input, action);
+        if(!GuiUtils.isInTextOrGui()) Registries.IN_GAME_END_MOUSE.runner().onInGameEndMouse(input, action);
     }
 }

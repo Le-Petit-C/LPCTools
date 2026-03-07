@@ -36,5 +36,5 @@ public class UnregistrableRegistry<T> implements IUnregistrableRegistry<T> {
         applyNewRegistrable();
         return callbacks.isEmpty();
     }
-    @Override public T run(){ return runner; }
+    @Override public T runner(){ return runner; }
 }

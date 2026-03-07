@@ -29,7 +29,7 @@ public class RenderEventHandler {
 			pass.setRenderer(() -> {
 				GpuBufferSlice fog = RenderSystem.getShaderFog();
 				Framebuffer fb = handleMain.get();
-				Registries.PRE_MAIN.run().onRenderWorldPreMain(new Registries.MASAWorldRenderContext(fb, posMatrix, projMatrix, frustum, camera, buffers, profiler));
+				Registries.PRE_MAIN.runner().onRenderWorldPreMain(new Registries.MASAWorldRenderContext(fb, posMatrix, projMatrix, frustum, camera, buffers, profiler));
 				RenderSystem.setShaderFog(fog);
 			});
 			if (!Registries.PRE_MAIN.isEmpty())
