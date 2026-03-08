@@ -5,8 +5,10 @@ import lpctools.compact.derived.ShapeList;
 import lpctools.generic.ChunkedTaskInstance;
 import lpctools.lpcfymasaapi.Registries;
 import lpctools.lpcfymasaapi.render.BlockOuterEdgeHighlightInstance;
+import lpctools.tools.ToolUtils;
 import lpctools.util.AlgorithmUtils;
 import lpctools.util.Packed;
+import lpctools.util.instance.CameraPosMarker;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientChunkEvents;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientWorldEvents;
 import net.minecraft.block.Block;
@@ -17,6 +19,7 @@ import net.minecraft.client.world.ClientWorld;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.ChunkPos;
 import net.minecraft.util.math.Direction;
+import net.minecraft.util.math.MathHelper;
 import net.minecraft.world.World;
 import net.minecraft.world.chunk.Chunk;
 import net.minecraft.world.chunk.ChunkStatus;
@@ -33,9 +36,10 @@ import static lpctools.util.AlgorithmUtils.iterateInManhattanDistance;
 import static lpctools.util.BlockUtils.isFluid;
 import static lpctools.util.DataUtils.loadedChunks;
 
-class DataInstance implements AutoCloseable, ClientChunkEvents.Load, ClientWorldEvents.AfterClientWorldChange, Registries.ClientWorldChunkSetBlockState {
+class DataInstance implements AutoCloseable, ClientChunkEvents.Load, ClientWorldEvents.AfterClientWorldChange, Registries.ClientWorldChunkSetBlockState, Registries.BetweenRenderFrames {
     private final BlockOuterEdgeHighlightInstance highlightInstance = new BlockOuterEdgeHighlightInstance();
     private final ChunkedTaskInstance taskInstance = new ChunkedTaskInstance();
+    private final CameraPosMarker cameraPosMarker = new CameraPosMarker();
     
     DataInstance() {
         updateRangeLimit();
@@ -48,6 +52,7 @@ class DataInstance implements AutoCloseable, ClientChunkEvents.Load, ClientWorld
         Registries.AFTER_CLIENT_WORLD_CHANGE.register(this, b);
         Registries.CLIENT_CHUNK_LOAD.register(this, b);
         Registries.CLIENT_WORLD_CHUNK_SET_BLOCK_STATE.register(this, b);
+        Registries.BETWEEN_RENDER_FRAMES.register(this, b);
     }
     
     @Override public void onClientWorldChunkSetBlockState(WorldChunk chunk, BlockPos pos, BlockState lastState, BlockState newState) {
@@ -138,6 +143,19 @@ class DataInstance implements AutoCloseable, ClientChunkEvents.Load, ClientWorld
             var pos = worldChunk.getPos();
             testChunkAsync(pos.x, pos.z, world);
         }
+    }
+    
+    private void clearChunksOutOfRange(double chunkedCamX, double chunkedCamZ, double chunkedDistanceSquared){
+        taskInstance.clearTasksOutOfRange(chunkedCamX, chunkedCamZ, chunkedDistanceSquared);
+        highlightInstance.clearChunksOutOfRange(chunkedCamX, chunkedCamZ, chunkedDistanceSquared);
+    }
+    
+    @Override public void betweenFrames() {
+        SlightXRay.tryRefreshXRayBlocks();
+        var camPos = MinecraftClient.getInstance().gameRenderer.getCamera().getCameraPos();
+        cameraPosMarker.nextPos(ToolUtils.chunkedCoord(camPos.x), ToolUtils.chunkedCoord(camPos.z));
+        clearChunksOutOfRange(cameraPosMarker.getResX(), cameraPosMarker.getResZ(),
+            MathHelper.square(cameraPosMarker.getResR() + 2 * MinecraftClient.getInstance().options.getViewDistance().getValue()));
     }
     
     private record ChunkData(Chunk current, Chunk west, Chunk east, Chunk north, Chunk south){

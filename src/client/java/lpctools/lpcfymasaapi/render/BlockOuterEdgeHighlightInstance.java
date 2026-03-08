@@ -10,7 +10,6 @@ import lpctools.lpcfymasaapi.render.translucentShapes.Quad;
 import lpctools.lpcfymasaapi.render.translucentShapes.RenderInstance;
 import lpctools.lpcfymasaapi.render.translucentShapes.ShapeReference;
 import lpctools.tools.ToolUtils;
-import lpctools.tools.slightXRay.SlightXRay;
 import lpctools.util.Packed;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientWorldEvents;
 import net.minecraft.client.MinecraftClient;
@@ -23,7 +22,7 @@ import org.jspecify.annotations.NonNull;
 
 import static lpctools.tools.ToolUtils.*;
 
-public class BlockOuterEdgeHighlightInstance implements AutoCloseable, ClientWorldEvents.AfterClientWorldChange, Registries.WorldLastRender {
+public class BlockOuterEdgeHighlightInstance implements AutoCloseable, ClientWorldEvents.AfterClientWorldChange, Registries.BetweenRenderFrames {
     private static final RenderInstance renderInstance = RenderInstance.shapeInstanceDepthless();
     
     private final ChunkedTaskInstance taskInstance = new ChunkedTaskInstance(-2);
@@ -136,13 +135,12 @@ public class BlockOuterEdgeHighlightInstance implements AutoCloseable, ClientWor
     }
     
     // 清理超出距离的区块
-    public void clearChunksOutOfRange(double chunkedCamX, double chunkedCamZ) {
-        double distanceLimitSquared = MathHelper.square(2.0 * MinecraftClient.getInstance().options.getViewDistance().getValue());
-        taskInstance.clearTasksOutOfRange(chunkedCamX, chunkedCamZ, distanceLimitSquared);
-        clearMapDataOutOfRange(chunkedCamX, chunkedCamZ, distanceLimitSquared, markedPoses, Int2ObjectOpenHashMap::isEmpty, null);
-        clearMapDataOutOfRange(chunkedCamX, chunkedCamZ, distanceLimitSquared, renderingPoses, IntOpenHashSet::isEmpty, null);
-        clearMapDataOutOfRange(chunkedCamX, chunkedCamZ, distanceLimitSquared, posesNeedToUpdateRender, IntOpenHashSet::isEmpty, null);
-        clearMapDataOutOfRange(chunkedCamX, chunkedCamZ, distanceLimitSquared, posQuads, Int2ObjectOpenHashMap::isEmpty, quads->clearQuads(quads.values()));
+    public void clearChunksOutOfRange(double chunkedCamX, double chunkedCamZ, double chunkedDistanceSquared) {
+        taskInstance.clearTasksOutOfRange(chunkedCamX, chunkedCamZ, chunkedDistanceSquared);
+        clearMapDataOutOfRange(chunkedCamX, chunkedCamZ, chunkedDistanceSquared, markedPoses, Int2ObjectOpenHashMap::isEmpty, null);
+        clearMapDataOutOfRange(chunkedCamX, chunkedCamZ, chunkedDistanceSquared, renderingPoses, IntOpenHashSet::isEmpty, null);
+        clearMapDataOutOfRange(chunkedCamX, chunkedCamZ, chunkedDistanceSquared, posesNeedToUpdateRender, IntOpenHashSet::isEmpty, null);
+        clearMapDataOutOfRange(chunkedCamX, chunkedCamZ, chunkedDistanceSquared, posQuads, Int2ObjectOpenHashMap::isEmpty, quads->clearQuads(quads.values()));
     }
     
     void updatePosesNeedToUpdate(double chunkedCamX, double chunkedCamZ) {
@@ -175,19 +173,16 @@ public class BlockOuterEdgeHighlightInstance implements AutoCloseable, ClientWor
         return taskResult;
     }
     
-    @Override public void onLast(Registries.MASAWorldRenderContext context) {
-        SlightXRay.tryRefreshXRayBlocks();
-        var camPos = context.camera().getCameraPos();
+    @Override public void betweenFrames() {
+        var camPos = MinecraftClient.getInstance().gameRenderer.getCamera().getCameraPos();
         double chunkedCamX = ToolUtils.chunkedCoord(camPos.x);
         double chunkedCamZ = ToolUtils.chunkedCoord(camPos.z);
-        clearChunksOutOfRange(chunkedCamX, chunkedCamZ);
-        if(UpdateCounter.isTired()) return;
         updatePosesNeedToUpdate(chunkedCamX, chunkedCamZ);
     }
     
     void registerAll(boolean b){
         Registries.AFTER_CLIENT_WORLD_CHANGE.register(this, b);
-        Registries.MASA_WORLD_RENDER_LAST.register(this, b);
+        Registries.BETWEEN_RENDER_FRAMES.register(this, b);
     }
     
     public void setUseCullFace(boolean useCullFace) {
