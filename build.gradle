@@ -1,7 +1,10 @@
+
 plugins {
 	id 'fabric-loom' version "${loom_version}"
 	id 'maven-publish'
 }
+
+project.mod_version = mod_version_prefix + mod_version_suffix
 
 group = project.maven_group
 
