@@ -11,7 +11,6 @@ import com.mojang.blaze3d.vertex.VertexFormat;
 import fi.dy.masa.malilib.render.MaLiLibPipelines;
 import it.unimi.dsi.fastutil.ints.*;
 import it.unimi.dsi.fastutil.longs.Long2IntOpenHashMap;
-import lpctools.generic.GenericUtils;
 import lpctools.lpcfymasaapi.Registries;
 import lpctools.lpcfymasaapi.render.IPositionVertex;
 import lpctools.util.CachedSupplier;
@@ -54,6 +53,8 @@ public class RenderInstance implements QuietAutoCloseable, Registries.WorldPreMa
 	private static final Supplier<String> indexBufferLabel = () -> appendLabel("IndexBuffer");
 	private static final Supplier<String> vertexBufferLabel = () -> appendLabel("VertexBuffer");
 	private static final Supplier<String> renderPassLabel = () -> appendLabel("RenderPass");
+	// should only be modified in referred mixin
+	public static final Matrix4f worldProjectionMatrixBiased = new Matrix4f();
 	
 	private static String appendLabel(String tail) { return baseLabel + ' ' + tail; }
 	
@@ -162,11 +163,7 @@ public class RenderInstance implements QuietAutoCloseable, Registries.WorldPreMa
 		// z-fighting解决方案
 		// 或许可以把具有相似配置的RenderInstance一起绘制从而避免频繁的重设数据？
 		GpuBufferSlice projection;
-		if(depthAttachmentView != null) {
-			var projectionMatrix = new Matrix4f(recordedWorldRenderContext.projectionMatrix());
-			projectionMatrix.m23(projectionMatrix.m23() - GenericUtils.zFightBias());
-			projection = rawProjectionMatrix.set(projectionMatrix);
-		}
+		if(depthAttachmentView != null) projection = rawProjectionMatrix.set(worldProjectionMatrixBiased);
 		else projection = RenderSystem.getProjectionMatrixBuffer();
 		try (RenderPass renderPass = commandEncoder
 			.createRenderPass(renderPassLabel, colorAttachmentView, OptionalInt.empty(), depthAttachmentView, OptionalDouble.empty())) {
