@@ -17,6 +17,7 @@ import net.minecraft.screen.slot.SlotActionType;
 
 import static lpctools.lpcfymasaapi.LPCConfigStatics.*;
 import static lpctools.tools.furnaceMaintainer.FurnaceMaintainerData.*;
+import static lpctools.tools.furnaceMaintainer.FurnaceMaintainerData.applyToDataInstanceCallback;
 
 public class FurnaceMaintainer {
     public static final BooleanHotkeyThirdListConfig FMConfig = new BooleanHotkeyThirdListConfig(ToolConfigs.toolConfigs, "FM", FurnaceMaintainer::switchCallback);
@@ -30,6 +31,9 @@ public class FurnaceMaintainer {
     public static final UniqueColorConfig markingColor = addConfigEx(l->
         new UniqueColorConfig(l, "markingColor", 0x7fff7f00, applyToDataInstanceCallback(DataInstance::refreshColor)));
     public static final UniqueBooleanConfig includesHopperAbove = addConfigEx(l->new UniqueBooleanConfig(l, "includesHopperAbove", true, null));
+    public static final UniqueBooleanConfig renderXRays = addConfigEx(l->new UniqueBooleanConfig(l, "renderXRays", false, applyToDataInstanceCallback(DataInstance::refreshRenderXRays)));
+    public static final UniqueBooleanConfig useCullFace = addConfigEx(l->new UniqueBooleanConfig(l, "useCullFace", true, applyToDataInstanceCallback(DataInstance::refreshUseCullFace)));
+    
     static {listStack.pop();}
     private static void switchCallback(){
         if(FMConfig.getBooleanValue() && dataInstance != null){

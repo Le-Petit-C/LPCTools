@@ -21,6 +21,8 @@ import static lpctools.util.DataUtils.*;
 
 @SuppressWarnings("unused")
 public class GenericUtils {
+    static float zFightBias = (float)GenericConfigs.zFightBias.getDoubleValue();
+    public static float zFightBias(){ return zFightBias; }
     public static boolean mayMobSpawnAt(@NotNull BlockView world, @Nullable LightingProvider light, BlockPos pos){
         BlockState block = world.getBlockState(pos);
         if(!block.getCollisionShape(world, pos).isEmpty()) return false;
