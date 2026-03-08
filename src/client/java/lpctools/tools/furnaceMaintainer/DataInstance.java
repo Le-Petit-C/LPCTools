@@ -32,6 +32,8 @@ public class DataInstance implements QuietAutoCloseable, Registries.ClientWorldC
 	
 	public DataInstance() {
 		refreshColor();
+		refreshRenderXRays();
+		refreshUseCullFace();
 		registerAll(true);
 	}
 	
@@ -40,6 +42,10 @@ public class DataInstance implements QuietAutoCloseable, Registries.ClientWorldC
 		highlightInstance.reshapesAsync();
 	}
 	public void refreshColor() { setColor(DataUtils.argb2agbr(FurnaceMaintainer.markingColor.getIntegerValue())); }
+	public void setUseCullFace(boolean useCullFace) { highlightInstance.setUseCullFace(useCullFace); }
+	public void refreshUseCullFace() { setUseCullFace(FurnaceMaintainer.useCullFace.getBooleanValue()); }
+	public void setRenderXRays(boolean xRays) { highlightInstance.setRenderXRays(xRays); }
+	public void refreshRenderXRays() { setRenderXRays(FurnaceMaintainer.renderXRays.getBooleanValue()); }
 	
 	public boolean isEmpty() {
 		return highlightInstance.isEmpty() && detectTasks.isEmpty();
@@ -110,7 +116,7 @@ public class DataInstance implements QuietAutoCloseable, Registries.ClientWorldC
 					if(upperBlockState.getBlock() instanceof HopperBlock) {
 						var facing = upperBlockState.get(HopperBlock.FACING);
 						if(facing == Direction.DOWN)
-							result.put(Packed.ChunkLocal.pack(pos), color);
+							result.put(Packed.ChunkLocal.pack(up), color);
 					}
 				}
 			}

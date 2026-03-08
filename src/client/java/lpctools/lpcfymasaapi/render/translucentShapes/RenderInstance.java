@@ -11,6 +11,7 @@ import com.mojang.blaze3d.vertex.VertexFormat;
 import fi.dy.masa.malilib.render.MaLiLibPipelines;
 import it.unimi.dsi.fastutil.ints.*;
 import it.unimi.dsi.fastutil.longs.Long2IntOpenHashMap;
+import lpctools.generic.GenericUtils;
 import lpctools.lpcfymasaapi.Registries;
 import lpctools.lpcfymasaapi.render.IPositionVertex;
 import lpctools.util.CachedSupplier;
@@ -151,9 +152,11 @@ public class RenderInstance implements QuietAutoCloseable, Registries.WorldPreMa
 		GpuTextureView colorAttachmentView = renderOption.useColorBuffer() ? fb.getColorAttachmentView() : null;
 		GpuTextureView depthAttachmentView = renderOption.useDepthBuffer() ? (fb.useDepthAttachment ? fb.getDepthAttachmentView() : null) : null;
 		var camPos = context.camera().getCameraPos();
+		var modelViewMatrix = RenderSystem.getModelViewMatrix().translate(new Vector3f((float) (basePoint.x - camPos.x), (float) (basePoint.y - camPos.y), (float) (basePoint.z - camPos.z)), new Matrix4f());
+		// z-fighting解决方案
+		if(depthAttachmentView != null) modelViewMatrix.m23(modelViewMatrix.m23() - modelViewMatrix.m33() * GenericUtils.zFightBias());
 		GpuBufferSlice dynamicTransforms = RenderSystem.getDynamicUniforms()
-			.write(RenderSystem.getModelViewMatrix().translate(new Vector3f((float) (basePoint.x - camPos.x), (float) (basePoint.y - camPos.y), (float) (basePoint.z - camPos.z)), new Matrix4f()),
-				new Vector4f(1.0F, 1.0F, 1.0F, 1.0F), new Vector3f(), new Matrix4f());
+			.write(modelViewMatrix, new Vector4f(1.0F, 1.0F, 1.0F, 1.0F), new Vector3f(), new Matrix4f());
 		GpuBufferSlice projection = RenderSystem.getProjectionMatrixBuffer();
 		try (RenderPass renderPass = commandEncoder
 			.createRenderPass(renderPassLabel, colorAttachmentView, OptionalInt.empty(), depthAttachmentView, OptionalDouble.empty())) {
