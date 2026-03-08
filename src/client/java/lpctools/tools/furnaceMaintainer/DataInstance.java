@@ -81,7 +81,7 @@ public class DataInstance implements QuietAutoCloseable, Registries.ClientWorldC
 	
 	@Override public void onEndTick(MinecraftClient client) {
 		if(dataInstance != this || isEmpty()) {
-			DataUtils.clientMessage(Text.translatable("lpctools.configs.tools.FM.markedBlocksCleared").getString(), true);
+			DataUtils.clientMessage(Text.translatable("lpctools.configs.tools.FM.markedBlocksCleared"), true);
 			if(dataInstance == this) {
 				if(runner != null) {
 					runner.close();

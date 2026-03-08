@@ -21,7 +21,8 @@ import static lpctools.tools.furnaceMaintainer.FurnaceMaintainer.*;
 import static lpctools.tools.furnaceMaintainer.FurnaceMaintainerData.*;
 
 public class FurnaceMaintainerRunner implements QuietAutoCloseable, ClientTickEvents.EndTick {
-    FurnaceMaintainerRunner(){registerAll(true);}
+    long lastOperateTimeMillis = 0;
+    FurnaceMaintainerRunner(){ registerAll(true); }
     @Override public void close(){ registerAll(false); }
     private void registerAll(boolean b){Registries.END_CLIENT_TICK.register(this, b);}
     
@@ -37,6 +38,7 @@ public class FurnaceMaintainerRunner implements QuietAutoCloseable, ClientTickEv
 			return;
 		}
         
+        
         ClientPlayerEntity player = mc.player;
         ClientWorld world = mc.world;
         ClientPlayerInteractionManager itm = mc.interactionManager;
@@ -44,6 +46,12 @@ public class FurnaceMaintainerRunner implements QuietAutoCloseable, ClientTickEv
             FMConfig.setBooleanValue(false);
             return;
         }
+        
+        // TODO 这个“贤者时间”或许可以改成可配置的项
+        if(lastOperateTimeMillis != 0 && System.currentTimeMillis() - lastOperateTimeMillis < 2000) return;
+        
+        if(MinecraftClient.getInstance().isShiftPressed()) return;
+        
         int requiredEmptyStackCount = includesHopperAbove.getBooleanValue() ? 5 : 1;
         for(ItemStack stack : player.getInventory().getMainStacks()){
             if(stack.isEmpty()){
@@ -73,7 +81,10 @@ public class FurnaceMaintainerRunner implements QuietAutoCloseable, ClientTickEv
 					&& world.getBlockState(pos.down()).getBlock() instanceof AbstractFurnaceBlock;
                 if(shouldClick) {
                     BlockHitResult hitResult = new BlockHitResult(pos.toCenterPos(), Direction.DOWN, pos.toImmutable(), false);
+                    isFMInteracting = true;
                     itm.interactBlock(player, Hand.MAIN_HAND, hitResult);
+                    isFMInteracting = false;
+                    lastOperateTimeMillis = System.currentTimeMillis();
                     dataInstance.highlightInstance.mark(pos, null);
                     break;
                 }
