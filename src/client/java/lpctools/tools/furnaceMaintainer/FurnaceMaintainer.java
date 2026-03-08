@@ -7,6 +7,7 @@ import lpctools.lpcfymasaapi.configButtons.uniqueConfigs.UniqueBooleanConfig;
 import lpctools.lpcfymasaapi.configButtons.uniqueConfigs.UniqueColorConfig;
 import lpctools.tools.ToolConfigs;
 import lpctools.tools.ToolUtils;
+import lpctools.util.DataUtils;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.screen.ingame.AbstractFurnaceScreen;
@@ -14,6 +15,7 @@ import net.minecraft.client.gui.screen.ingame.HopperScreen;
 import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.client.network.ClientPlayerInteractionManager;
 import net.minecraft.screen.slot.SlotActionType;
+import net.minecraft.text.Text;
 
 import static lpctools.lpcfymasaapi.LPCConfigStatics.*;
 import static lpctools.tools.furnaceMaintainer.FurnaceMaintainerData.*;
@@ -70,17 +72,27 @@ public class FurnaceMaintainer {
             FMConfig.setBooleanValue(false);
             return false;
         }
+        boolean operated;
         if(screen instanceof AbstractFurnaceScreen<?>) {
             itm.clickSlot(player.currentScreenHandler.syncId, 0, 0, SlotActionType.QUICK_MOVE, player);
-            clearClientScreen(screen);
-            return true;
+            operated = true;
         }
         else if(screen instanceof HopperScreen) {
             for(int i = 0; i < 5; ++i)
                 itm.clickSlot(player.currentScreenHandler.syncId, i, 0, SlotActionType.QUICK_MOVE, player);
-            clearClientScreen(screen);
-            return true;
+            operated = true;
         }
-        return false;
+        else operated = false;
+        if(operated) {
+            clearClientScreen(screen);
+            runner.lastOperateTimeMillis = 0;
+        }
+        return operated;
+    }
+    public static void onBlockInteracted() {
+        if(!FMConfig.getBooleanValue()) return;
+        if(isFMInteracting) return;
+        FMConfig.setBooleanValue(false);
+        DataUtils.clientMessage(Text.translatable("lpctools.configs.tools.FM.unexpectedInteractBlock"), true);
     }
 }

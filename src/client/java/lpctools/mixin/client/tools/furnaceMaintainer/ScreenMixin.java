@@ -1,4 +1,4 @@
-package lpctools.mixin.client.tools;
+package lpctools.mixin.client.tools.furnaceMaintainer;
 
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.Screen;
@@ -9,7 +9,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import static lpctools.tools.furnaceMaintainer.FurnaceMaintainer.*;
 
 @Mixin(Screen.class)
-public class FurnaceMaintainer {
+public class ScreenMixin {
     @Inject(method = "renderWithTooltip", at = @At("HEAD"), cancellable = true)
     void mixinScreenRender(DrawContext context, int mouseX, int mouseY, float deltaTicks, CallbackInfo ci){
         if(beforeScreenRendered((Screen)(Object)this)) ci.cancel();
