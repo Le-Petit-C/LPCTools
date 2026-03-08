@@ -156,7 +156,7 @@ public class RenderInstance implements QuietAutoCloseable, Registries.WorldPreMa
 		var camPos = context.camera().getCameraPos();
 		var modelViewMatrix = RenderSystem.getModelViewMatrix().translate(new Vector3f((float) (basePoint.x - camPos.x), (float) (basePoint.y - camPos.y), (float) (basePoint.z - camPos.z)), new Matrix4f());
 		// z-fighting解决方案
-		if(depthAttachmentView != null) modelViewMatrix.m23(modelViewMatrix.m23() - modelViewMatrix.m33() * GenericUtils.zFightBias());
+		if(depthAttachmentView != null) modelViewMatrix.m23(modelViewMatrix.m23() + modelViewMatrix.m33() * GenericUtils.zFightBias());
 		GpuBufferSlice dynamicTransforms = RenderSystem.getDynamicUniforms()
 			.write(modelViewMatrix, new Vector4f(1.0F, 1.0F, 1.0F, 1.0F), new Vector3f(), new Matrix4f(), 1.0f);
 		GpuBufferSlice projection = RenderSystem.getProjectionMatrixBuffer();
