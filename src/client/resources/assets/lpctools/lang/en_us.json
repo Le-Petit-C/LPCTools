@@ -71,7 +71,7 @@
 	"lpctools.configs.generic.updateLimitPerFrame.name": "Max Updates Per Frame",
 	"lpctools.configs.generic.updateLimitPerFrame.comment": "Limits maximum updates per frame on the main thread to prevent lag\nApplies to tools like 'Slight X-Ray' and 'Can Spawn Display' for limiting shape updates per frame",
 	"lpctools.configs.generic.zFightBias.name": "Z-Fighting Bias",
-	"lpctools.configs.generic.zFightBias.comment": "A small depth bias used to mitigate Z-fighting.\nIf the value is too small, Z-fighting may still occur.\nIf the value is too large, the depth ordering of rendered objects may become incorrect.\nAdjust this value according to your needs.\nDetailed mechanism:\n\tWhen LPCTools' internal renderer detects that a depth buffer is enabled, it slightly adjusts the current modelViewMatrix:\n\t\tMV.m23 -= MV.m33 * zFightBias",
+	"lpctools.configs.generic.zFightBias.comment": "A small depth bias used to mitigate Z-fighting.\nIf the value is too small, Z-fighting may still occur.\nIf the value is too large, the depth ordering of rendered objects may become incorrect.\nAdjust this value according to your needs.\nDetailed mechanism:\n    When LPCTools' internal renderer detects that a depth buffer is enabled, it slightly adjusts the current modelViewMatrix:\n        MV.m23 -= MV.m33 * zFightBias",
 	"lpctools.configs.tools.title": "Tools",
 	"lpctools.tools.enableNotification": "Tool %s §aON§f",
 	"lpctools.tools.disableNotification": "Tool %s §cOFF§f",
