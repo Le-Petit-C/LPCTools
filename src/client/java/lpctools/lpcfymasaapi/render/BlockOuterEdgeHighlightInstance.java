@@ -23,8 +23,6 @@ import org.jspecify.annotations.NonNull;
 import static lpctools.tools.ToolUtils.*;
 
 public class BlockOuterEdgeHighlightInstance implements AutoCloseable, ClientWorldEvents.AfterClientWorldChange, Registries.BetweenRenderFrames {
-    private static final RenderInstance renderInstance = RenderInstance.shapeInstanceDepthless();
-    
     private final ChunkedTaskInstance taskInstance = new ChunkedTaskInstance(-2);
     
     // 为方便清理操作，给markedPoses分块，区块坐标->区块local坐标->颜色
@@ -32,6 +30,8 @@ public class BlockOuterEdgeHighlightInstance implements AutoCloseable, ClientWor
     private final Long2ObjectOpenHashMap<IntOpenHashSet> renderingPoses = new Long2ObjectOpenHashMap<>();
     private final Long2ObjectOpenHashMap<Int2ObjectOpenHashMap<ShapeReference[]>> posQuads = new Long2ObjectOpenHashMap<>();
     private final Long2ObjectOpenHashMap<IntOpenHashSet> posesNeedToUpdateRender = new Long2ObjectOpenHashMap<>();
+    
+    private RenderInstance renderInstance = RenderInstance.shapeInstanceDepthless();
     
     private boolean useCullFace;
     private @Nullable ShapeList shapeList;
@@ -42,6 +42,11 @@ public class BlockOuterEdgeHighlightInstance implements AutoCloseable, ClientWor
     
     public void setUseCullFace(boolean useCullFace) {
         this.useCullFace = useCullFace;
+        reshapesAsync();
+    }
+    
+    public void setRenderXRays(boolean xRays) {
+        renderInstance = RenderInstance.defaultRenderInstance(false, xRays);
         reshapesAsync();
     }
     
@@ -84,7 +89,11 @@ public class BlockOuterEdgeHighlightInstance implements AutoCloseable, ClientWor
             oldChanged = (shapeList == null || shapeList.testPos(x, y, z)) && chunkedAdd(renderingPoses, x, y, z);
             chunkedPut(markedPoses, x, y, z, color);
         }
-        if(oldChanged || color != null) chunkedAdd(posesNeedToUpdateRender, x, y, z);
+        if(oldChanged || color != null) {
+            chunkedAdd(posesNeedToUpdateRender, x, y, z);
+            for(var d : Direction.values())
+                chunkedAdd(posesNeedToUpdateRender, x + d.getOffsetX(), y + d.getOffsetY(), z + d.getOffsetZ());
+        }
     }
     
     public void mark(long packedBlockPos, @Nullable MutableInt color) {
