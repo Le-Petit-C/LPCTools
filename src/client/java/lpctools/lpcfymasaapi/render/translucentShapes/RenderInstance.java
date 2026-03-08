@@ -17,6 +17,7 @@ import lpctools.lpcfymasaapi.render.IPositionVertex;
 import lpctools.util.CachedSupplier;
 import lpctools.util.javaex.QuietAutoCloseable;
 import net.minecraft.client.render.Frustum;
+import net.minecraft.client.render.RawProjectionMatrix;
 import net.minecraft.util.Util;
 import net.minecraft.util.math.Box;
 import net.minecraft.util.math.ChunkSectionPos;
@@ -73,6 +74,7 @@ public class RenderInstance implements QuietAutoCloseable, Registries.WorldPreMa
 	private static long toPackedGreaterSectionPos(Vector3d pos){ return getPackedGreaterSectionPos(pos.x, pos.y, pos.z); }
 	
 	private final RenderOption renderOption;
+	private final RawProjectionMatrix rawProjectionMatrix = new RawProjectionMatrix("LPCToolsRenderInstance");
 	// 变换基点，所有vertex以此为基点进行变换
 	private final Vector3d basePoint = new Vector3d();
 	private final ArrayList<SubChunk> subChunks = new ArrayList<>();
@@ -155,11 +157,17 @@ public class RenderInstance implements QuietAutoCloseable, Registries.WorldPreMa
 		GpuTextureView depthAttachmentView = renderOption.useDepthBuffer() ? (fb.useDepthAttachment ? fb.getDepthAttachmentView() : null) : null;
 		var camPos = context.camera().getCameraPos();
 		var modelViewMatrix = RenderSystem.getModelViewMatrix().translate(new Vector3f((float) (basePoint.x - camPos.x), (float) (basePoint.y - camPos.y), (float) (basePoint.z - camPos.z)), new Matrix4f());
-		// z-fighting解决方案
-		if(depthAttachmentView != null) modelViewMatrix.m23(modelViewMatrix.m23() + modelViewMatrix.m33() * GenericUtils.zFightBias());
 		GpuBufferSlice dynamicTransforms = RenderSystem.getDynamicUniforms()
 			.write(modelViewMatrix, new Vector4f(1.0F, 1.0F, 1.0F, 1.0F), new Vector3f(), new Matrix4f(), 1.0f);
-		GpuBufferSlice projection = RenderSystem.getProjectionMatrixBuffer();
+		// z-fighting解决方案
+		// 或许可以把具有相似配置的RenderInstance一起绘制从而避免频繁的重设数据？
+		GpuBufferSlice projection;
+		if(depthAttachmentView != null) {
+			var projectionMatrix = new Matrix4f(recordedWorldRenderContext.projectionMatrix());
+			projectionMatrix.m23(projectionMatrix.m23() - GenericUtils.zFightBias());
+			projection = rawProjectionMatrix.set(projectionMatrix);
+		}
+		else projection = RenderSystem.getProjectionMatrixBuffer();
 		try (RenderPass renderPass = commandEncoder
 			.createRenderPass(renderPassLabel, colorAttachmentView, OptionalInt.empty(), depthAttachmentView, OptionalDouble.empty())) {
 			renderPass.setPipeline(renderOption.pipeline());
@@ -193,6 +201,7 @@ public class RenderInstance implements QuietAutoCloseable, Registries.WorldPreMa
 		sortedRenderSubChunks.clear();
 		subChunksNeedUpload.clear();
 		subChunkSortingCache.close();
+		rawProjectionMatrix.close();
 		
 		Registries.PRE_MAIN.unregister(this);
 		renderOption.timing().unregister(this);
