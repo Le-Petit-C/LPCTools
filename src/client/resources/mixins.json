@@ -5,9 +5,11 @@
 	"client": [
 		"AutoGrindstone",
 		"BlockReplaceAction",
+		"ClientChunkAccessor$ClientChunkMapAccessor",
 		"ClientPlayNetworkHandlerMixin",
 		"DisplayClickSlotArguments",
-		"FurnaceMaintainer",
+		"tools.FurnaceMaintainer",
+		"MinecraftClientMixin",
 		"MixinWorldRenderer",
 		"OnMouseButtonReturnMixin",
 		"SplashTextResourceSupplierMixin",
@@ -52,5 +54,6 @@
 		"defaultRequire": 1
 	},
 	"mixins": [
+		"ClientChunkAccessor"
 	]
 }

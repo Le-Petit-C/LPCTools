@@ -99,21 +99,17 @@ public class SlightXRay{
             if(newBlocks.containsKey(block)) clientMessage(String.format("§eWarning: Repeat block \"%s\"", block.getName()), false);
             else newBlocks.put(block, DataUtils.argb2agbr(c.getColor().getIntValue()));
         });
-        synchronized (XRayBlocks){
-            if(XRayBlocks.keySet().equals(newBlocks.keySet())) {
-                for(var block : newBlocks.object2IntEntrySet())
-                    XRayBlocks.get(block.getKey()).setValue(block.getIntValue());
-				if (dataInstance != null) dataInstance.resetData();
-			}
-            else {
-                XRayBlocks.clear();
-                for(var entry : newBlocks.object2IntEntrySet())
-                    XRayBlocks.put(entry.getKey(), new MutableInt(entry.getIntValue()));
-                if(dataInstance != null) {
-                    dataInstance.clearData();
-                    dataInstance.resetData();
-                }
-            }
+        if(XRayBlocks.keySet().equals(newBlocks.keySet())) {
+            for(var block : newBlocks.object2IntEntrySet())
+                XRayBlocks.get(block.getKey()).setValue(block.getIntValue());
+            if(dataInstance != null) dataInstance.refreshColor();
+        }
+        else {
+            XRayBlocks.clear();
+            for(var entry : newBlocks.object2IntEntrySet())
+                XRayBlocks.put(entry.getKey(), new MutableInt(entry.getIntValue()));
+            recordedXRayBlocks = null;
+            if (dataInstance != null) dataInstance.resetData();
         }
     }
     private static void switchChanged() {

@@ -1,6 +1,7 @@
 package lpctools.tools.slightXRay;
 
 import com.google.common.collect.ImmutableList;
+import com.mojang.blaze3d.systems.RenderSystem;
 import lpctools.lpcfymasaapi.interfaces.ILPCValueChangeCallback;
 import net.minecraft.block.Block;
 import net.minecraft.block.Blocks;
@@ -14,6 +15,13 @@ import java.util.function.Consumer;
 public class SlightXRayData {
     static @Nullable DataInstance dataInstance;
     public static final @NotNull HashMap<Block, MutableInt> XRayBlocks;
+    static @Nullable HashMap<Block, MutableInt> recordedXRayBlocks;
+    
+    static HashMap<Block, MutableInt> getRecordedXRayBlocks() {
+        RenderSystem.assertOnRenderThread();
+        if(recordedXRayBlocks == null) recordedXRayBlocks = new HashMap<>(XRayBlocks);
+        return recordedXRayBlocks;
+    }
     
     static void applyToDataInstance(Consumer<DataInstance> consumer) {
         if(dataInstance != null) consumer.accept(dataInstance);
@@ -32,5 +40,6 @@ public class SlightXRayData {
         XRayBlocks = new HashMap<>();
         for(Block block : defaultXRayBlocks)
             XRayBlocks.put(block, new MutableInt(0));
+        recordedXRayBlocks = null;
     }
 }

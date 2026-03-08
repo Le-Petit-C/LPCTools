@@ -6,7 +6,7 @@ import lpctools.lpcfymasaapi.UnregistrableRegistry;
 public interface IUnregistrableRegistry<T> {
     boolean register(T callback, boolean register);
     boolean isEmpty();
-    T run();
+    T runner();
     default boolean register(T callback){return register(callback, true);}
     default boolean unregister(T callback){return register(callback, false);}
     interface IterableEx<U> extends Iterable<U>{

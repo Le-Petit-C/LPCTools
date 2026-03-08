@@ -39,15 +39,15 @@ public class UniqueColorConfig extends LPCUniqueConfigBase implements IConfigCol
     @Override public int getDefaultIntegerValue() {return defaultColor.intValue;}
     @Override public void setIntegerValue(int i) {
         if(i != color.intValue){
-            color = Color4f.fromColor(color);
+            color = Color4f.fromColor(i);
             onValueChanged();
         }
     }
     @Override public int getMinIntegerValue() {return Integer.MIN_VALUE;}
     @Override public int getMaxIntegerValue() {return Integer.MAX_VALUE;}
-    @Override public boolean isModified() {return color.intValue != defaultColor.intValue;}
-    @Override public void resetToDefault() {color = defaultColor;}
-    @Override public String getDefaultStringValue() {return defaultColor.toString();}
+    @Override public boolean isModified() { return color.intValue != defaultColor.intValue; }
+    @Override public void resetToDefault() { setIntegerValue(defaultColor.intValue); }
+    @Override public String getDefaultStringValue() { return defaultColor.toString(); }
     @Override public void setValueFromString(String s) {
         var color = Color4f.fromString(s);
         setColor(color);

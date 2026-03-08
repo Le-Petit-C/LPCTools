@@ -16,10 +16,10 @@ public enum RenderTiming implements IUnregistrableRegistry<IRenderCallback> {
 	END_MAIN(Registries.END_MAIN, callback->context->callback.render());
 	<T> RenderTiming(UnregistrableRegistry<T> registry, Function<IRenderCallback, T> mappingFunction) {
 		this.registry = new UnregistrableRegistry<>(callbacks->()->callbacks.forEach(IRenderCallback::render));
-		registry.register(mappingFunction.apply(this.registry.run()));
+		registry.register(mappingFunction.apply(this.registry.runner()));
 	}
 	private final UnregistrableRegistry<IRenderCallback> registry;
 	@Override public boolean register(IRenderCallback renderCallback, boolean register){ return registry.register(renderCallback, register); }
 	@Override public boolean isEmpty() { return registry.isEmpty(); }
-	@Override public IRenderCallback run() { return registry.run(); }
+	@Override public IRenderCallback runner() { return registry.runner(); }
 }

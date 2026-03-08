@@ -21,7 +21,7 @@ public class DataManagerMixin{
         target = "Lfi/dy/masa/litematica/data/DataManager;renderRange:Lfi/dy/masa/malilib/util/LayerRange;"))
     void onRenderRangeModified(JsonObject obj, CallbackInfo ci){
         IRangeChangeListener refresher = ((LayerRangeMixin)renderRange).getRefresher();
-        IRangeChangeListener myRefresher = Registries.LITEMATICA_RANGE_CHANGED.run();
+        IRangeChangeListener myRefresher = Registries.LITEMATICA_RANGE_CHANGED.runner();
         if(refresher == null) renderRange.setRefresher(myRefresher);
         else renderRange.setRefresher(new IRangeChangeListener() {
             @Override public void updateAll() {
