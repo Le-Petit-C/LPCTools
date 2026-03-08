@@ -1,26 +1,22 @@
 package lpctools.tools.furnaceMaintainer;
 
-import lpctools.generic.GenericUtils;
 import lpctools.lpcfymasaapi.configButtons.derivedConfigs.ReachDistanceConfig;
 import lpctools.lpcfymasaapi.configButtons.uniqueConfigs.BooleanHotkeyThirdListConfig;
 import lpctools.lpcfymasaapi.configButtons.uniqueConfigs.ButtonHotkeyConfig;
+import lpctools.lpcfymasaapi.configButtons.uniqueConfigs.UniqueBooleanConfig;
+import lpctools.lpcfymasaapi.configButtons.uniqueConfigs.UniqueColorConfig;
 import lpctools.tools.ToolConfigs;
 import lpctools.tools.ToolUtils;
-import lpctools.util.AlgorithmUtils;
-import lpctools.util.MathUtils;
-import net.minecraft.block.AbstractFurnaceBlock;
 import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.gui.screen.Screen;
+import net.minecraft.client.gui.screen.ingame.AbstractFurnaceScreen;
+import net.minecraft.client.gui.screen.ingame.HopperScreen;
 import net.minecraft.client.network.ClientPlayerEntity;
-import net.minecraft.client.world.ClientWorld;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.chunk.Chunk;
-
-import java.util.ArrayList;
+import net.minecraft.client.network.ClientPlayerInteractionManager;
+import net.minecraft.screen.slot.SlotActionType;
 
 import static lpctools.lpcfymasaapi.LPCConfigStatics.*;
 import static lpctools.tools.furnaceMaintainer.FurnaceMaintainerData.*;
-
-//TODO:未检测熔炉渲染
 
 public class FurnaceMaintainer {
     public static final BooleanHotkeyThirdListConfig FMConfig = new BooleanHotkeyThirdListConfig(ToolConfigs.toolConfigs, "FM", FurnaceMaintainer::switchCallback);
@@ -28,10 +24,15 @@ public class FurnaceMaintainer {
     static {listStack.push(FMConfig);}
     public static final ReachDistanceConfig reachDistance = addReachDistanceConfig();
     @SuppressWarnings("unused")
-    public static final ButtonHotkeyConfig detectFurnaces = addButtonHotkeyConfig("detectFurnaces", null, FurnaceMaintainer::detectFurnacesCallback);
+    public static final ButtonHotkeyConfig detectFurnaces = addButtonHotkeyConfig("retestFurnaces", null, FurnaceMaintainer::detectFurnacesCallback);
+    @SuppressWarnings("unused")
+    public static final ButtonHotkeyConfig clearMarks = addButtonHotkeyConfig("clearMarks", null, FurnaceMaintainer::clearMarksCallback);
+    public static final UniqueColorConfig markingColor = addConfigEx(l->
+        new UniqueColorConfig(l, "markingColor", 0x7fff7f00, applyToDataInstanceCallback(DataInstance::refreshColor)));
+    public static final UniqueBooleanConfig includesHopperAbove = addConfigEx(l->new UniqueBooleanConfig(l, "includesHopperAbove", true, null));
     static {listStack.pop();}
     private static void switchCallback(){
-        if(FMConfig.getBooleanValue()){
+        if(FMConfig.getBooleanValue() && dataInstance != null){
             if(runner == null)
                 runner = new FurnaceMaintainerRunner();
         }
@@ -43,23 +44,39 @@ public class FurnaceMaintainer {
         }
     }
     private static void detectFurnacesCallback(){
-        AlgorithmUtils.cancelTasks(detectTasks);
-        MinecraftClient mc = MinecraftClient.getInstance();
-        ClientPlayerEntity player = mc.player;
-        ClientWorld world = mc.world;
-        if(player == null || world == null) return;
-        for(Chunk chunk : AlgorithmUtils.iterateLoadedChunksFromClosest(world, player.getEyePos()))
-            asyncDetectFurnace(chunk, MathUtils.squaredDistance(player.getEntityPos(), chunk.getPos()));
+        if(dataInstance == null) dataInstance = new DataInstance();
+        dataInstance.retestFurnaces();
     }
-    private static void asyncDetectFurnace(Chunk chunk, double distanceSquared){
-        detectTasks.add(GenericUtils.supplyAsync(()->detectFurnace(chunk), distanceSquared));
-    }
-    private static ArrayList<BlockPos> detectFurnace(Chunk chunk){
-        ArrayList<BlockPos> result = new ArrayList<>();
-        for(BlockPos pos : AlgorithmUtils.iterateInBox(0, chunk.getBottomY(), 0, 15, chunk.getBottomY() + chunk.getHeight() - 1, 15)){
-            if(chunk.getBlockState(pos).getBlock() instanceof AbstractFurnaceBlock)
-                result.add(pos.add(chunk.getPos().getStartPos()).toImmutable());
+    private static void clearMarksCallback(){
+        if(dataInstance != null) {
+            dataInstance.close();
+            dataInstance = null;
         }
-        return result;
+    }
+    private static void clearClientScreen(Screen screen){
+        var mc = MinecraftClient.getInstance();
+        if(mc.currentScreen == screen) mc.setScreen(null);
+    }
+    public static boolean beforeScreenRendered(Screen screen) {
+        if(!FMConfig.getBooleanValue() || dataInstance == null || runner == null) return false;
+        MinecraftClient client = MinecraftClient.getInstance();
+        ClientPlayerEntity player = client.player;
+        ClientPlayerInteractionManager itm = client.interactionManager;
+        if(player == null || itm == null) {
+            FMConfig.setBooleanValue(false);
+            return false;
+        }
+        if(screen instanceof AbstractFurnaceScreen<?>) {
+            itm.clickSlot(player.currentScreenHandler.syncId, 0, 0, SlotActionType.QUICK_MOVE, player);
+            clearClientScreen(screen);
+            return true;
+        }
+        else if(screen instanceof HopperScreen) {
+            for(int i = 0; i < 5; ++i)
+                itm.clickSlot(player.currentScreenHandler.syncId, i, 0, SlotActionType.QUICK_MOVE, player);
+            clearClientScreen(screen);
+            return true;
+        }
+        return false;
     }
 }

@@ -27,6 +27,7 @@ import net.minecraft.world.chunk.ChunkStatus;
 import net.minecraft.world.chunk.WorldChunk;
 import net.minecraft.world.chunk.light.LightingProvider;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.jspecify.annotations.NonNull;
 
 import java.util.ArrayList;
@@ -203,8 +204,8 @@ public class DataInstance implements AutoCloseable, Registries.ClientWorldChunkL
         var light = world.getLightingProvider();
         delayedTasks.add(new DelayedTask(packedChunkPos, ()->testChunkAsync(chunk, light, packedChunkPos)));
     }
-    @Override public void onClientWorldChunkSetBlockState(WorldChunk chunk, BlockPos pos, BlockState lastState, BlockState newState) {
-        if(newState.getBlock() == Blocks.WATER) return;
+    @Override public void onClientWorldChunkSetBlockState(WorldChunk chunk, BlockPos pos, @Nullable BlockState lastState, @Nullable BlockState newState) {
+        if(newState != null && newState.getBlock() == Blocks.WATER) return;
         int x = pos.getX() >> 4, z = pos.getZ() >> 4;
         World world = chunk.getWorld();
         for(int dx = -1; dx <= 1; ++dx)

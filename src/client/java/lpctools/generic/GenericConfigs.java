@@ -27,7 +27,7 @@ import static lpctools.lpcfymasaapi.LPCConfigStatics.*;
 //TODO:Shadow Config
 
 public class GenericConfigs {
-    private static final ILPCValueChangeCallback runSpawnConditionChanged = SPAWN_CONDITION_CHANGED.run()::onSpawnConditionChanged;
+    private static final ILPCValueChangeCallback runSpawnConditionChanged = SPAWN_CONDITION_CHANGED.runner()::onSpawnConditionChanged;
     public static final LPCConfigList generic = new LPCConfigList(page, "generic");
     static {listStack.push(generic);}
     @SuppressWarnings("unused")

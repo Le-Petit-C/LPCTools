@@ -4,9 +4,12 @@ import com.google.common.collect.ImmutableList;
 import it.unimi.dsi.fastutil.objects.Object2DoubleOpenHashMap;
 import lpctools.LPCTools;
 import lpctools.lpcfymasaapi.LPCAPIInit;
+import lpctools.mixin.client.ClientChunkAccessor;
 import lpctools.util.javaex.Object2BooleanFunction;
 import net.minecraft.block.Block;
 import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.world.ClientChunkManager;
+import net.minecraft.client.world.ClientWorld;
 import net.minecraft.entity.EntityType;
 import net.minecraft.item.BlockItem;
 import net.minecraft.item.Item;
@@ -21,6 +24,7 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.ChunkSectionPos;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.util.math.Vec3i;
+import net.minecraft.world.chunk.WorldChunk;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.Contract;
@@ -29,6 +33,7 @@ import org.jetbrains.annotations.Nullable;
 import org.joml.Vector3d;
 import org.joml.Vector3i;
 import org.joml.Vector4f;
+import org.jspecify.annotations.NonNull;
 import org.lwjgl.opengl.GL30;
 
 import java.io.IOException;
@@ -260,4 +265,29 @@ public class DataUtils {
         );
     }
     
+    public static Iterable<WorldChunk> loadedChunks(ClientWorld world){
+        ClientChunkManager chunkManager = world.getChunkManager();
+        ClientChunkManager.ClientChunkMap chunkMap = ((ClientChunkAccessor)chunkManager).getChunks();
+        var chunks = ((ClientChunkAccessor.ClientChunkMapAccessor)(Object)chunkMap).getChunks();
+        int length = chunks.length();
+        int startIndex = 0;
+        while (startIndex < length && chunks.get(startIndex) == null) ++startIndex;
+        int finalStartIndex = startIndex;
+        return new Iterable<>() {
+            @Override public @NonNull Iterator<WorldChunk> iterator() {
+                return new Iterator<>() {
+                    int nextIndex = finalStartIndex;
+                    @Override public boolean hasNext() {
+                        return nextIndex < length;
+                    }
+                    
+                    @Override public WorldChunk next() {
+                        var res = chunks.get(nextIndex++);
+                        while (nextIndex < length && chunks.get(nextIndex) == null) ++nextIndex;
+                        return res;
+                    }
+                };
+            }
+        };
+    }
 }

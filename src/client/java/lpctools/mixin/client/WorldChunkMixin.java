@@ -22,6 +22,6 @@ public class WorldChunkMixin {
         ChunkPos chunkPos = castedThis.getPos();
         int rx = (pos.getX() & 15) + chunkPos.getStartX();
         int rz = (pos.getZ() & 15) + chunkPos.getStartZ();
-        CLIENT_WORLD_CHUNK_SET_BLOCK_STATE.run().onClientWorldChunkSetBlockState(castedThis, new BlockPos(rx, pos.getY(), rz), cir.getReturnValue(), state);
+        CLIENT_WORLD_CHUNK_SET_BLOCK_STATE.runner().onClientWorldChunkSetBlockState(castedThis, new BlockPos(rx, pos.getY(), rz), cir.getReturnValue(), state);
     }
 }
