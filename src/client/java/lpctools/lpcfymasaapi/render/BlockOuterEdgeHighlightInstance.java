@@ -27,10 +27,6 @@ public class BlockOuterEdgeHighlightInstance implements AutoCloseable, ClientWor
     
     private final ChunkedTaskInstance taskInstance = new ChunkedTaskInstance(-2);
     
-    public BlockOuterEdgeHighlightInstance() { registerAll(true); }
-    
-    public record TaskResult(@NotNull Int2ObjectOpenHashMap<MutableInt> markedPoses, IntOpenHashSet shownPoses, IntOpenHashSet posesNeedToUpdate){}
-    
     // 为方便清理操作，给markedPoses分块，区块坐标->区块local坐标->颜色
     private final Long2ObjectOpenHashMap<Int2ObjectOpenHashMap<MutableInt>> markedPoses = new Long2ObjectOpenHashMap<>();
     private final Long2ObjectOpenHashMap<IntOpenHashSet> renderingPoses = new Long2ObjectOpenHashMap<>();
@@ -40,7 +36,89 @@ public class BlockOuterEdgeHighlightInstance implements AutoCloseable, ClientWor
     private boolean useCullFace;
     private @Nullable ShapeList shapeList;
     
-    void reshapesAsync() {
+    private record TaskResult(@NotNull Int2ObjectOpenHashMap<MutableInt> markedPoses, IntOpenHashSet shownPoses, IntOpenHashSet posesNeedToUpdate){}
+    
+    public BlockOuterEdgeHighlightInstance() { registerAll(true); }
+    
+    public void setUseCullFace(boolean useCullFace) {
+        this.useCullFace = useCullFace;
+        reshapesAsync();
+    }
+    
+    public void setRangeLimit(ShapeList shapeList) {
+        this.shapeList = shapeList;
+        reshapesAsync();
+    }
+    
+    public boolean isEmpty() { return markedPoses.isEmpty() && taskInstance.isEmpty(); }
+    public boolean containsKey(long packedBlockPos) { return chunkedContainsKey(markedPoses, packedBlockPos); }
+    public boolean containsKey(BlockPos pos) { return chunkedContainsKey(markedPoses, pos.getX(), pos.getY(), pos.getZ()); }
+    
+    // 清理超出距离的区块
+    public void clearChunksOutOfRange(double chunkedCamX, double chunkedCamZ, double chunkedDistanceSquared) {
+        taskInstance.clearTasksOutOfRange(chunkedCamX, chunkedCamZ, chunkedDistanceSquared);
+        clearMapDataOutOfRange(chunkedCamX, chunkedCamZ, chunkedDistanceSquared, markedPoses, Int2ObjectOpenHashMap::isEmpty, null);
+        clearMapDataOutOfRange(chunkedCamX, chunkedCamZ, chunkedDistanceSquared, renderingPoses, IntOpenHashSet::isEmpty, null);
+        clearMapDataOutOfRange(chunkedCamX, chunkedCamZ, chunkedDistanceSquared, posesNeedToUpdateRender, IntOpenHashSet::isEmpty, null);
+        clearMapDataOutOfRange(chunkedCamX, chunkedCamZ, chunkedDistanceSquared, posQuads, Int2ObjectOpenHashMap::isEmpty, quads->clearQuads(quads.values()));
+    }
+    
+    public void clearData(){
+        taskInstance.clearTasks();
+        for(var quadSet : posQuads.values())
+            for(var quads : quadSet.values())
+                for(var ref : quads)
+                    if(ref != null) ref.close();
+        posQuads.clear();
+        posesNeedToUpdateRender.clear();
+        markedPoses.clear();
+    }
+    
+    public void mark(int x, int y, int z, @Nullable MutableInt color) {
+        boolean oldChanged;
+        if(color == null) {
+            oldChanged = chunkedRemove(renderingPoses, x, y, z);
+            chunkedRemoveKey(markedPoses, x, y, z);
+        }
+        else {
+            oldChanged = (shapeList == null || shapeList.testPos(x, y, z)) && chunkedAdd(renderingPoses, x, y, z);
+            chunkedPut(markedPoses, x, y, z, color);
+        }
+        if(oldChanged || color != null) chunkedAdd(posesNeedToUpdateRender, x, y, z);
+    }
+    
+    public void mark(long packedBlockPos, @Nullable MutableInt color) {
+        mark(Packed.BlockPos.unpackX(packedBlockPos), Packed.BlockPos.unpackY(packedBlockPos), Packed.BlockPos.unpackZ(packedBlockPos), color);
+    }
+    
+    public void mark(BlockPos pos, @Nullable MutableInt color) { mark(pos.getX(), pos.getY(), pos.getZ(), color); }
+    
+    public void resetChunk(long packedChunkPos, Int2ObjectOpenHashMap<MutableInt> markedPoses) {
+        taskInstance.scheduleTask(packedChunkPos, callback->{
+            var basePosesNeedToUpdate = recordCollection(new IntOpenHashSet(), posQuads.get(packedChunkPos), Int2ObjectOpenHashMap::keySet);
+            callback.task = ()->{
+                TaskResult res = generateFullTaskResult(packedChunkPos, markedPoses, shapeList, basePosesNeedToUpdate);
+                return ()->resetChunk(packedChunkPos, res);
+            };
+        });
+    }
+    
+    @Override public void close(){
+        registerAll(false);
+        clearData();
+        taskInstance.close();
+    }
+    
+    @Override public void afterWorldChange(@NonNull MinecraftClient mc, @NonNull ClientWorld world) {clearData();}
+    
+    @Override public void betweenFrames() {
+        var camPos = MinecraftClient.getInstance().gameRenderer.getCamera().getCameraPos();
+        double chunkedCamX = ToolUtils.chunkedCoord(camPos.x);
+        double chunkedCamZ = ToolUtils.chunkedCoord(camPos.z);
+        updatePosesNeedToUpdate(chunkedCamX, chunkedCamZ);
+    }
+    
+    public void reshapesAsync() {
         LongOpenHashSet dataChunks = new LongOpenHashSet(markedPoses.keySet());
         dataChunks.removeAll(taskInstance.delayedTaskChunkPoses());
         for(long packedChunkPos : dataChunks) {
@@ -134,15 +212,6 @@ public class BlockOuterEdgeHighlightInstance implements AutoCloseable, ClientWor
         }
     }
     
-    // 清理超出距离的区块
-    public void clearChunksOutOfRange(double chunkedCamX, double chunkedCamZ, double chunkedDistanceSquared) {
-        taskInstance.clearTasksOutOfRange(chunkedCamX, chunkedCamZ, chunkedDistanceSquared);
-        clearMapDataOutOfRange(chunkedCamX, chunkedCamZ, chunkedDistanceSquared, markedPoses, Int2ObjectOpenHashMap::isEmpty, null);
-        clearMapDataOutOfRange(chunkedCamX, chunkedCamZ, chunkedDistanceSquared, renderingPoses, IntOpenHashSet::isEmpty, null);
-        clearMapDataOutOfRange(chunkedCamX, chunkedCamZ, chunkedDistanceSquared, posesNeedToUpdateRender, IntOpenHashSet::isEmpty, null);
-        clearMapDataOutOfRange(chunkedCamX, chunkedCamZ, chunkedDistanceSquared, posQuads, Int2ObjectOpenHashMap::isEmpty, quads->clearQuads(quads.values()));
-    }
-    
     void updatePosesNeedToUpdate(double chunkedCamX, double chunkedCamZ) {
         if(UpdateCounter.isTired()) return;
         if(!posesNeedToUpdateRender.isEmpty()) {
@@ -166,46 +235,16 @@ public class BlockOuterEdgeHighlightInstance implements AutoCloseable, ClientWor
         }
     }
     
-    TaskResult generateFullTaskResult(long packedChunkPos, Int2ObjectOpenHashMap<MutableInt> markedPoses, ShapeList rangeLimit, IntOpenHashSet basePosesNeedToUpdate) {
+    TaskResult generateFullTaskResult(long packedChunkPos, Int2ObjectOpenHashMap<MutableInt> markedPoses, @Nullable ShapeList rangeLimit, IntOpenHashSet basePosesNeedToUpdate) {
         var taskResult = new TaskResult(markedPoses, new IntOpenHashSet(), basePosesNeedToUpdate);
         buildShownPoses(taskResult.shownPoses, rangeLimit, taskResult.markedPoses.keySet(), packedChunkPos);
         markEdgePoses(taskResult.shownPoses, taskResult.shownPoses, taskResult.posesNeedToUpdate);
         return taskResult;
     }
     
-    @Override public void betweenFrames() {
-        var camPos = MinecraftClient.getInstance().gameRenderer.getCamera().getCameraPos();
-        double chunkedCamX = ToolUtils.chunkedCoord(camPos.x);
-        double chunkedCamZ = ToolUtils.chunkedCoord(camPos.z);
-        updatePosesNeedToUpdate(chunkedCamX, chunkedCamZ);
-    }
-    
     void registerAll(boolean b){
         Registries.AFTER_CLIENT_WORLD_CHANGE.register(this, b);
         Registries.BETWEEN_RENDER_FRAMES.register(this, b);
-    }
-    
-    public void setUseCullFace(boolean useCullFace) {
-        this.useCullFace = useCullFace;
-        reshapesAsync();
-    }
-    
-    public void setRangeLimit(ShapeList shapeList) {
-        this.shapeList = shapeList;
-        reshapesAsync();
-    }
-    
-    public void mark(long packedBlockPos, @Nullable MutableInt color) {
-        boolean oldChanged;
-        if(color == null) {
-            oldChanged = chunkedRemove(renderingPoses, packedBlockPos);
-            chunkedRemoveKey(markedPoses, packedBlockPos);
-        }
-        else {
-            oldChanged = (shapeList == null || shapeList.testPos(packedBlockPos)) && chunkedAdd(renderingPoses, packedBlockPos);
-            chunkedPut(markedPoses, packedBlockPos, color);
-        }
-        if(oldChanged || color != null) chunkedAdd(posesNeedToUpdateRender, packedBlockPos);
     }
     
     private ChunkedTaskInstance.CallbackStatus resetChunk(long packedChunkPos, TaskResult res) {
@@ -215,36 +254,7 @@ public class BlockOuterEdgeHighlightInstance implements AutoCloseable, ClientWor
         return ChunkedTaskInstance.CallbackStatus.CONTINUE;
     }
     
-    public void resetChunk(long packedChunkPos, Int2ObjectOpenHashMap<MutableInt> markedPoses) {
-        taskInstance.scheduleTask(packedChunkPos, callback->{
-            var basePosesNeedToUpdate = recordCollection(new IntOpenHashSet(), posQuads.get(packedChunkPos), Int2ObjectOpenHashMap::keySet);
-            callback.task = ()->{
-                TaskResult res = generateFullTaskResult(packedChunkPos, markedPoses, shapeList, basePosesNeedToUpdate);
-                return ()->resetChunk(packedChunkPos, res);
-            };
-        });
-    }
-    
-    @Override public void close(){
-        registerAll(false);
-        clearData();
-        taskInstance.close();
-    }
-    
-    @Override public void afterWorldChange(@NonNull MinecraftClient mc, @NonNull ClientWorld world) {clearData();}
-    
-    public void clearData(){
-        taskInstance.clearTasks();
-        for(var quadSet : posQuads.values())
-            for(var quads : quadSet.values())
-                for(var ref : quads)
-                    if(ref != null) ref.close();
-        posQuads.clear();
-        posesNeedToUpdateRender.clear();
-        markedPoses.clear();
-    }
-    
-    private static void buildShownPoses(IntOpenHashSet shownPoses, ShapeList rangeLimit, IntSet chunkLocalMarkedPoses, long packedChunkPos) {
+    private static void buildShownPoses(IntOpenHashSet shownPoses, @Nullable ShapeList rangeLimit, IntSet chunkLocalMarkedPoses, long packedChunkPos) {
         int chunkBlockX = Packed.getBlockCoord(Packed.ChunkPos.unpackX(packedChunkPos));
         int chunkBlockZ = Packed.getBlockCoord(Packed.ChunkPos.unpackZ(packedChunkPos));
         var it = chunkLocalMarkedPoses.iterator();
@@ -253,7 +263,7 @@ public class BlockOuterEdgeHighlightInstance implements AutoCloseable, ClientWor
             int x = chunkBlockX + Packed.ChunkLocal.unpackX(localPos);
             int y = Packed.ChunkLocal.unpackY(localPos);
             int z = chunkBlockZ + Packed.ChunkLocal.unpackZ(localPos);
-            if(rangeLimit.testPos(x, y, z))
+            if(rangeLimit == null || rangeLimit.testPos(x, y, z))
                 shownPoses.add(localPos);
         }
     }

@@ -34,6 +34,7 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.profiler.Profiler;
 import net.minecraft.world.chunk.WorldChunk;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.joml.Matrix4f;
 
 import java.util.function.Consumer;
@@ -199,7 +200,7 @@ public class Registries {
         void onRenderTooltipLast(GuiContext ctx, ItemStack stack, int x, int y);
     }
     public interface ClientWorldChunkSetBlockState {//at RETURN
-        void onClientWorldChunkSetBlockState(WorldChunk chunk, BlockPos pos, BlockState lastState, BlockState newState);
+        void onClientWorldChunkSetBlockState(WorldChunk chunk, BlockPos pos, @Nullable BlockState lastState, @Nullable BlockState newState);
     }
     public interface ScreenChangeCallback{
         void onScreenChanged(Screen newScreen);

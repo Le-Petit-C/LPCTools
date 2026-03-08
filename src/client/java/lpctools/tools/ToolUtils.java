@@ -89,7 +89,14 @@ public class ToolUtils {
     public static <T> T chunkedGet(Long2ObjectMap<? extends Int2ObjectOpenHashMap<T>> map, long packedBlockPos) {
         return chunkedGet(map, Packed.BlockPos.unpackX(packedBlockPos), Packed.BlockPos.unpackY(packedBlockPos), Packed.BlockPos.unpackZ(packedBlockPos));
     }
-    
+    public static boolean chunkedContainsKey(Long2ObjectMap<? extends Int2ObjectMap<?>> map, int x, int y, int z) {
+        var chunk = map.get(Packed.ChunkPos.packCoords(x, z));
+        if(chunk == null) return false;
+        else return chunk.containsKey(Packed.ChunkLocal.pack(x, y, z));
+    }
+    public static boolean chunkedContainsKey(Long2ObjectMap<? extends Int2ObjectMap<?>> map, long packedBlockPos) {
+        return chunkedContainsKey(map, Packed.BlockPos.unpackX(packedBlockPos), Packed.BlockPos.unpackY(packedBlockPos), Packed.BlockPos.unpackZ(packedBlockPos));
+    }
     public static <T> T chunkedPut(Long2ObjectMap<Int2ObjectOpenHashMap<T>> map, int x, int y, int z, T val) {
         return map.computeIfAbsent(Packed.ChunkPos.packCoords(x, z), k->new Int2ObjectOpenHashMap<>())
             .put(Packed.ChunkLocal.pack(x, y, z), val);

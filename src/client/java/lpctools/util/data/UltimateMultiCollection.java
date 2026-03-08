@@ -13,6 +13,7 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 
 //一个支持O(log(n))按元素查找，按元素插入删除，按索引查找，按索引插入删除的元素可重复的集合
+@SuppressWarnings("unused")
 public class UltimateMultiCollection<E> extends AvlTreeList<E> implements Multiset<E> {
 	protected final HashMap<E, AvlTreeList<UltimateNode<E>>> nodeMap = new HashMap<>();
 	
@@ -549,7 +550,7 @@ public class UltimateMultiCollection<E> extends AvlTreeList<E> implements Multis
 		nodeMap.forEach((v, list)->{
 			for(var node : list){
 				if(!nodes.remove(node))
-					throw new AssertionError("Ultimate structure violated: nodeMap contains invalid node:" + node);
+					throw new AssertionError("Ultimate structure violated: nodeMap containsKey invalid node:" + node);
 			}
 		});
 	}

@@ -74,6 +74,10 @@ public class ChunkedTaskInstance implements AutoCloseable {
 		clearMapDataOutOfRange(chunkedCamX, chunkedCamZ, chunkDistanceLimitSquared, runningTasks, null, task->task.task.cancel(true));
 	}
 	
+	public boolean isEmpty() {
+		return runningTasks.isEmpty() && delayedTasks.isEmpty();
+	}
+	
 	@Override public void close() {
 		clearTasks();
 	}

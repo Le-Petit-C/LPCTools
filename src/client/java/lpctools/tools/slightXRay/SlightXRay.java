@@ -102,14 +102,15 @@ public class SlightXRay{
         if(XRayBlocks.keySet().equals(newBlocks.keySet())) {
             for(var block : newBlocks.object2IntEntrySet())
                 XRayBlocks.get(block.getKey()).setValue(block.getIntValue());
+            if(dataInstance != null) dataInstance.refreshColor();
         }
         else {
             XRayBlocks.clear();
             for(var entry : newBlocks.object2IntEntrySet())
                 XRayBlocks.put(entry.getKey(), new MutableInt(entry.getIntValue()));
             recordedXRayBlocks = null;
+            if (dataInstance != null) dataInstance.resetData();
         }
-        if (dataInstance != null) dataInstance.resetData();
     }
     private static void switchChanged() {
         if(SXConfig.getBooleanValue()){

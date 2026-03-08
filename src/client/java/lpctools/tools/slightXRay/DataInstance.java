@@ -55,7 +55,7 @@ class DataInstance implements AutoCloseable, ClientChunkEvents.Load, ClientWorld
         Registries.BETWEEN_RENDER_FRAMES.register(this, b);
     }
     
-    @Override public void onClientWorldChunkSetBlockState(WorldChunk chunk, BlockPos pos, BlockState lastState, BlockState newState) {
+    @Override public void onClientWorldChunkSetBlockState(WorldChunk chunk, BlockPos pos, @Nullable BlockState lastState, @Nullable BlockState newState) {
         if(newState == null) newState = Blocks.AIR.getDefaultState();
         if(isFluid(newState.getBlock())) return;
         if(doShowAround(newState)){
@@ -134,6 +134,7 @@ class DataInstance implements AutoCloseable, ClientChunkEvents.Load, ClientWorld
     }
 	
 	public void resetData() { testWorldAsync(MinecraftClient.getInstance().world); }
+    public void refreshColor() { highlightInstance.reshapesAsync(); }
     
     private void testWorldAsync(ClientWorld world){
         highlightInstance.clearData();
