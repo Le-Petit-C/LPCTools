@@ -110,7 +110,7 @@ public class DataInstance implements QuietAutoCloseable, Registries.ClientWorldC
 					if(upperBlockState.getBlock() instanceof HopperBlock) {
 						var facing = upperBlockState.get(HopperBlock.FACING);
 						if(facing == Direction.DOWN)
-							result.put(Packed.ChunkLocal.pack(pos), color);
+							result.put(Packed.ChunkLocal.pack(up), color);
 					}
 				}
 			}
