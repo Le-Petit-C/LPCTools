@@ -244,6 +244,7 @@
 	"lpctools.configs.tools.TT.vagueBlocks.blocks.block.comment": "A Block Option",
 	"lpctools.configs.tools.FM.notEnoughEmptyStack": "§eNot enough empty stack available",
 	"lpctools.configs.tools.FM.markedBlocksCleared": "All marked blocks has been cleared",
+	"lpctools.configs.tools.FM.unexpectedInteractBlock": "Unexpected block interaction detected (outside Furnace Maintainer tool). Furnace Maintainer has been disabled.",
 	"lpctools.configs.tools.FM.name": "Furnace Maintainer",
 	"lpctools.configs.tools.FM.comment": "Helps you maintain your furnace group\nCurrently can only help you remove obstructions in the furnace",
 	"lpctools.configs.tools.FM.retestFurnaces.title": "Detect",
