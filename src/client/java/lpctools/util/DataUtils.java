@@ -4,7 +4,8 @@ import com.google.common.collect.ImmutableList;
 import it.unimi.dsi.fastutil.objects.Object2DoubleOpenHashMap;
 import lpctools.LPCTools;
 import lpctools.lpcfymasaapi.LPCAPIInit;
-import lpctools.mixin.client.ClientChunkAccessor;
+import lpctools.mixin.client.accessors.ClientChunkAccessor;
+import lpctools.mixin.client.accessors.ClientChunkMapAccessor;
 import lpctools.util.javaex.Object2BooleanFunction;
 import net.minecraft.block.Block;
 import net.minecraft.client.MinecraftClient;
@@ -267,7 +268,7 @@ public class DataUtils {
     public static Iterable<WorldChunk> loadedChunks(ClientWorld world){
         ClientChunkManager chunkManager = world.getChunkManager();
         ClientChunkManager.ClientChunkMap chunkMap = ((ClientChunkAccessor)chunkManager).getChunks();
-        var chunks = ((ClientChunkAccessor.ClientChunkMapAccessor)(Object)chunkMap).getChunks();
+        var chunks = ((ClientChunkMapAccessor)(Object)chunkMap).getChunks();
         int length = chunks.length();
         int startIndex = 0;
         while (startIndex < length && chunks.get(startIndex) == null) ++startIndex;

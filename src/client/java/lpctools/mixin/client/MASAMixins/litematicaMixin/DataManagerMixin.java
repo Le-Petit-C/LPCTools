@@ -5,7 +5,7 @@ import fi.dy.masa.litematica.data.DataManager;
 import fi.dy.masa.malilib.interfaces.IRangeChangeListener;
 import fi.dy.masa.malilib.util.LayerRange;
 import lpctools.lpcfymasaapi.Registries;
-import lpctools.mixin.client.MASAMixins.LayerRangeMixin;
+import lpctools.mixin.client.accessors.LayerRangeAccessor;
 import org.objectweb.asm.Opcodes;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Pseudo;
@@ -20,7 +20,7 @@ public class DataManagerMixin{
     @Inject(method = "fromJson", at = @At(value = "FIELD", opcode = Opcodes.PUTFIELD, shift = At.Shift.AFTER,
         target = "Lfi/dy/masa/litematica/data/DataManager;renderRange:Lfi/dy/masa/malilib/util/LayerRange;"))
     void onRenderRangeModified(JsonObject obj, CallbackInfo ci){
-        IRangeChangeListener refresher = ((LayerRangeMixin)renderRange).getRefresher();
+        IRangeChangeListener refresher = ((LayerRangeAccessor)renderRange).getRefresher();
         IRangeChangeListener myRefresher = Registries.LITEMATICA_RANGE_CHANGED.runner();
         if(refresher == null) renderRange.setRefresher(myRefresher);
         else renderRange.setRefresher(new IRangeChangeListener() {
