@@ -5,7 +5,6 @@
 	"client": [
 		"AutoGrindstone",
 		"BlockReplaceAction",
-		"ClientChunkAccessor$ClientChunkMapAccessor",
 		"ClientPlayNetworkHandlerMixin",
 		"DisplayClickSlotArguments",
 		"MinecraftClientMixin",
@@ -13,8 +12,11 @@
 		"OnMouseButtonReturnMixin",
 		"SplashTextResourceSupplierMixin",
 		"SpriteContentsMixin",
-		"TextFieldWidgetAccessor",
 		"WorldChunkMixin",
+		"accessors.ClientChunkMapAccessor",
+		"accessors.GuiBaseAccessor",
+		"accessors.LayerRangeAccessor",
+		"accessors.TextFieldWidgetAccessor",
 		"AutoReconnect.ConnectScreenMixin",
 		"AutoReconnect.DisconnectedScreenMixin",
 		"AutoReconnect.MinecraftClientMixin",
@@ -28,9 +30,7 @@
 		"HappyGhastRidingTweak.PlayerInputC2SPacketMixin",
 		"MASAMixins.ButtonGenericMixin",
 		"MASAMixins.ConfigButtonKeybindMixin",
-		"MASAMixins.GuiBaseAccessor",
 		"MASAMixins.GuiListBaseMixin",
-		"MASAMixins.LayerRangeMixin",
 		"MASAMixins.WidgetConfigOptionBaseMixin",
 		"MASAMixins.WidgetConfigOptionMixin",
 		"MASAMixins.WidgetListConfigOptionsMixin",
@@ -56,6 +56,7 @@
 		"defaultRequire": 1
 	},
 	"mixins": [
-		"ClientChunkAccessor"
+		"accessors.BlockItemAccessor",
+		"accessors.ClientChunkAccessor"
 	]
 }
