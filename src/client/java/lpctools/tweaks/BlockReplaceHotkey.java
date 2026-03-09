@@ -5,8 +5,10 @@ import fi.dy.masa.malilib.hotkeys.KeyAction;
 import lpctools.lpcfymasaapi.configButtons.transferredConfigs.HotkeyConfig;
 import lpctools.mixin.client.BlockReplaceAction;
 import lpctools.mixin.client.accessors.BlockItemAccessor;
+import lpctools.util.DataUtils;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
+import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.command.DefaultPermissions;
 import net.minecraft.command.argument.BlockArgumentParser;
@@ -15,15 +17,18 @@ import net.minecraft.item.ItemPlacementContext;
 import net.minecraft.item.ItemStack;
 import net.minecraft.sound.BlockSoundGroup;
 import net.minecraft.sound.SoundCategory;
+import net.minecraft.text.Text;
 import net.minecraft.util.Hand;
 import net.minecraft.util.hit.BlockHitResult;
 
 import java.util.Locale;
 
+import static lpctools.generic.GenericConfigs.maxCommandLength;
+
 public class BlockReplaceHotkey {
     public static final HotkeyConfig blockReplaceHotkey = new HotkeyConfig(TweakConfigs.tweaks, "blockReplaceHotkey", null, BlockReplaceHotkey::blockReplaceHotkeyCallback);
     public static final HotkeyConfig setBlockReplaceHotkey = new HotkeyConfig(TweakConfigs.tweaks, "setBlockReplaceHotkey", null, BlockReplaceHotkey::setBlockReplaceHotkeyCallback);
-
+    
     private static boolean normalReplacePair() {
         ((BlockReplaceAction) MinecraftClient.getInstance()).invokeDoAttack();
         ((BlockReplaceAction)MinecraftClient.getInstance()).invokeDoItemUse();
@@ -59,8 +64,19 @@ public class BlockReplaceHotkey {
             }
             BlockState state = accessor.invokePlaceFromNbt(pos, world, itemStack, rawState);
             world.setBlockState(pos, state);
-            String command = String.format(Locale.ROOT, "setblock %d %d %d %s", pos.getX(), pos.getY(), pos.getZ(), BlockArgumentParser.stringifyBlockState(state));
-            player.networkHandler.sendChatCommand(command);
+            StringBuilder blockData = new StringBuilder(BlockArgumentParser.stringifyBlockState(state));
+            BlockEntity blockEntity = world.getBlockEntity(pos);
+			if (blockEntity != null) {
+                blockEntity.readComponents(itemStack);
+                blockData.append(blockEntity.createNbt(player.getRegistryManager()));
+            }
+            String command = String.format(Locale.ROOT, "setblock %d %d %d %s", pos.getX(), pos.getY(), pos.getZ(), blockData);
+            DataUtils.clientMessage(command, false);
+            if(command.length() > maxCommandLength.getIntegerValue()) {
+                DataUtils.clientMessage(Text.translatable("lpctools.configs.tweaks.setBlockReplaceHotkey.commandTooLong", command.length(), maxCommandLength.getIntegerValue()), false);
+                normalReplacePair();
+            }
+            else player.networkHandler.sendChatCommand(command);
             player.swingHand(hand);
             BlockSoundGroup blockSoundGroup = state.getSoundGroup();
             BlockSoundGroup oldBlockSoundGroup = oldState.getSoundGroup();

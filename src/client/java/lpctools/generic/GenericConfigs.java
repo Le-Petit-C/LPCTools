@@ -5,12 +5,9 @@ import fi.dy.masa.malilib.hotkeys.KeybindSettings;
 import lpctools.lpcfymasaapi.LPCConfigList;
 import lpctools.lpcfymasaapi.configButtons.derivedConfigs.ConfigOpenGuiConfig;
 import lpctools.lpcfymasaapi.configButtons.transferredConfigs.HotkeyConfig;
-import lpctools.lpcfymasaapi.configButtons.uniqueConfigs.BlockListConfig;
-import lpctools.lpcfymasaapi.configButtons.uniqueConfigs.BooleanThirdListConfig;
+import lpctools.lpcfymasaapi.configButtons.uniqueConfigs.*;
 import lpctools.lpcfymasaapi.configButtons.transferredConfigs.BooleanConfig;
 import lpctools.lpcfymasaapi.configButtons.transferredConfigs.IntegerConfig;
-import lpctools.lpcfymasaapi.configButtons.uniqueConfigs.ButtonConfig;
-import lpctools.lpcfymasaapi.configButtons.uniqueConfigs.UniqueDoubleConfig;
 import lpctools.lpcfymasaapi.interfaces.ILPCValueChangeCallback;
 import lpctools.util.CachedSupplier;
 import lpctools.util.javaex.PriorityThreadPoolExecutor;
@@ -57,6 +54,7 @@ public class GenericConfigs {
     public static final ButtonConfig clearLPCToolsCache = addButtonConfig("clearLPCToolsCache", (b, m)->CachedSupplier.clearAllCache());
     public static final IntegerConfig updateLimitPerFrame = addIntegerConfig("updateLimitPerFrame", 8192);
     public static final UniqueDoubleConfig zFightBias = addConfigEx(l->new UniqueDoubleConfig(l, "zFightBias", 1.0 / (1 << 18), 1.0 / (1 << 30), 1, GenericConfigs::zFightBiasCallback)).logMode();
+    public static final UniqueIntegerConfig maxCommandLength = addConfigEx(l->new UniqueIntegerConfig(l, "maxCommandLength", 32767, 0, Integer.MAX_VALUE, null));
     static {threadCountConfig.onValueChanged();}
     static {listStack.pop();}
     
