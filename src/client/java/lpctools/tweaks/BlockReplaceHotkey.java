@@ -71,7 +71,7 @@ public class BlockReplaceHotkey {
                 blockData.append(blockEntity.createNbt(player.getRegistryManager()));
             }
             String command = String.format(Locale.ROOT, "setblock %d %d %d %s", pos.getX(), pos.getY(), pos.getZ(), blockData);
-            DataUtils.clientMessage(command, false);
+            // DataUtils.clientMessage(command, false);
             if(command.length() > maxCommandLength.getIntegerValue()) {
                 DataUtils.clientMessage(Text.translatable("lpctools.configs.tweaks.setBlockReplaceHotkey.commandTooLong", command.length(), maxCommandLength.getIntegerValue()), false);
                 normalReplacePair();
