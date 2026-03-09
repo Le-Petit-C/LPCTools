@@ -10,6 +10,7 @@ public class TweakConfigs {
     static {
         tweaks.addConfigs(
             BlockReplaceHotkey.blockReplaceHotkey,
+            BlockReplaceHotkey.setBlockReplaceHotkey,
             HappyGhastRidingTweak.happyGhastRidingTweak,
             BarTweaks.barTweaks,
             EnchantmentLevelFix.enchantmentLevelFix,
