@@ -57,6 +57,8 @@
 	},
 	"mixins": [
 		"accessors.BlockItemAccessor",
-		"accessors.ClientChunkAccessor"
+		"accessors.ClientChunkAccessor",
+		"tweaks.blockReplaceHotkey.BlockItemMixin",
+		"utils.PacketRecorder"
 	]
 }
