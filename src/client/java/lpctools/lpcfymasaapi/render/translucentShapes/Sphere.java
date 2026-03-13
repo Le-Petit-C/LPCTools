@@ -6,7 +6,7 @@ import lpctools.lpcfymasaapi.render.PositionColorLineWidthVertex;
 import org.joml.Vector3d;
 
 public class Sphere extends PositionedShape<PositionColorLineWidthVertex> {
-	private static final int[][] baseIndices = {
+	public static final int[][] baseIndices = {
 		{0, 1, 3, 0, 1, 3, 0, 3, 2, 0, 3, 2},
 		{0, 5, 1, 0, 5, 1, 0, 4, 5, 0, 4, 5},
 		{0, 6, 4, 0, 6, 4, 0, 2, 6, 0, 2, 6},
