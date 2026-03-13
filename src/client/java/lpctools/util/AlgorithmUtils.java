@@ -200,7 +200,6 @@ public class AlgorithmUtils {
         protected final Queue<BlockPos> poses;
         ClosestIterator3D(@NotNull Vec3d center, BiFunction<Vec3d, BlockPos, ? extends Queue<BlockPos>> containerGenerator){
             this.center = center;
-            //poses = new PriorityQueue<>(Comparator.comparingDouble(pos->pos.getSquaredDistance(center)));
             startPos = BlockPos.ofFloored(center);
             poses = containerGenerator.apply(center, startPos);
             poses.add(startPos);
@@ -219,30 +218,32 @@ public class AlgorithmUtils {
             int opIndex;
             if(res.getX() != startPos.getX()) {
                 poses.add(res.add(res.getX() < startPos.getX() ? -1 : 1, 0, 0));
+                // 热点代码，直接返回可以省下跳过else{}代码块的“跳转开销”
                 return res;
             }
-            else if(res.getY() != startPos.getY()) {
-                poses.add(res.add(0, res.getY() < startPos.getY() ? -1 : 1, 0));
-                opIndex = 1;
-            }
-            else if(res.getZ() != startPos.getZ()) {
-                poses.add(res.add(0, 0, res.getZ() < startPos.getZ() ? -1 : 1));
-                opIndex = 2;
-            }
-            else opIndex = 3;
-            switch (opIndex) {
-                case 3:
-                    poses.add(res.add( 0, 0,-1));
-                    poses.add(res.add( 0, 0, 1));
-                case 2:
+            else {
+                poses.add(res.add(-1, 0, 0));
+                poses.add(res.add( 1, 0, 0));
+                if(res.getY() != startPos.getY()) {
+                    poses.add(res.add(0, res.getY() < startPos.getY() ? -1 : 1, 0));
+                    return res;
+                }
+                else {
                     poses.add(res.add( 0,-1, 0));
                     poses.add(res.add( 0, 1, 0));
-                case 1:
-                    poses.add(res.add(-1, 0, 0));
-                    poses.add(res.add( 1, 0, 0));
-            }
-            return res;
-        }
+					//noinspection IfStatementWithIdenticalBranches
+					if(res.getZ() != startPos.getZ()) {
+                        poses.add(res.add(0, 0, res.getZ() < startPos.getZ() ? -1 : 1));
+                        return res;
+                    }
+                    else {
+                        poses.add(res.add( 0, 0,-1));
+                        poses.add(res.add( 0, 0, 1));
+                        return res;
+					}
+				}
+			}
+		}
     }
     public static class EuclideanInClosestIterator3D extends ClosestIterator3D {
         public final double maxSquaredDistance;
