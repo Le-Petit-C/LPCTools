@@ -1,5 +1,3 @@
-package lpctools;
-
 import net.minecraft.util.math.*;
 import org.jetbrains.annotations.NotNull;
 
@@ -98,7 +96,5 @@ public class DebugMain {
 			}
 			@Override public boolean hasNext() {return getNextDistance() <= maxSquaredDistance;}
 		}
-		
 	}
-	
 }
