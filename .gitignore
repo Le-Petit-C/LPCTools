@@ -42,3 +42,6 @@ replay_*.log
 /scripts/
 /简介.txt
 /libSources/
+/Hints.txt
+/old/
+/logs/

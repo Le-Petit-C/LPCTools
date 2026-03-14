@@ -5,11 +5,9 @@ import fi.dy.masa.malilib.hotkeys.KeybindSettings;
 import lpctools.lpcfymasaapi.LPCConfigList;
 import lpctools.lpcfymasaapi.configButtons.derivedConfigs.ConfigOpenGuiConfig;
 import lpctools.lpcfymasaapi.configButtons.transferredConfigs.HotkeyConfig;
-import lpctools.lpcfymasaapi.configButtons.uniqueConfigs.BlockListConfig;
-import lpctools.lpcfymasaapi.configButtons.uniqueConfigs.BooleanThirdListConfig;
+import lpctools.lpcfymasaapi.configButtons.uniqueConfigs.*;
 import lpctools.lpcfymasaapi.configButtons.transferredConfigs.BooleanConfig;
 import lpctools.lpcfymasaapi.configButtons.transferredConfigs.IntegerConfig;
-import lpctools.lpcfymasaapi.configButtons.uniqueConfigs.ButtonConfig;
 import lpctools.lpcfymasaapi.interfaces.ILPCValueChangeCallback;
 import lpctools.util.CachedSupplier;
 import lpctools.util.javaex.PriorityThreadPoolExecutor;
@@ -27,7 +25,7 @@ import static lpctools.lpcfymasaapi.LPCConfigStatics.*;
 //TODO:Shadow Config
 
 public class GenericConfigs {
-    private static final ILPCValueChangeCallback runSpawnConditionChanged = SPAWN_CONDITION_CHANGED.run()::onSpawnConditionChanged;
+    private static final ILPCValueChangeCallback runSpawnConditionChanged = SPAWN_CONDITION_CHANGED.runner()::onSpawnConditionChanged;
     public static final LPCConfigList generic = new LPCConfigList(page, "generic");
     static {listStack.push(generic);}
     @SuppressWarnings("unused")
@@ -54,8 +52,9 @@ public class GenericConfigs {
     static {addConfig(SelectionScreenConfigs.selectionScreenConfigs);}
     @SuppressWarnings("unused")
     public static final ButtonConfig clearLPCToolsCache = addButtonConfig("clearLPCToolsCache", (b, m)->CachedSupplier.clearAllCache());
-    // TODO: 将此updateLimitPerFrame的功能实现放到ToolUtils中而不是每个DataInstance自己实现
     public static final IntegerConfig updateLimitPerFrame = addIntegerConfig("updateLimitPerFrame", 8192);
+    public static final UniqueDoubleConfig zFightBias = addConfigEx(l->new UniqueDoubleConfig(l, "zFightBias", 1.0 / (1 << 18), 1.0 / (1 << 30), 1, GenericConfigs::zFightBiasCallback)).logMode();
+    public static final UniqueIntegerConfig maxCommandLength = addConfigEx(l->new UniqueIntegerConfig(l, "maxCommandLength", 32767, 0, Integer.MAX_VALUE, null));
     static {threadCountConfig.onValueChanged();}
     static {listStack.pop();}
     
@@ -68,5 +67,8 @@ public class GenericConfigs {
         ThreadPoolExecutor oldPool = threadPool;
         threadPool = newPool;
         if(oldPool != null) oldPool.close();
+    }
+    private static void zFightBiasCallback() {
+        GenericUtils.zFightBias = (float)zFightBias.getDoubleValue();
     }
 }

@@ -9,6 +9,7 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 
 //一个支持O(log(n))按元素查找，按元素插入删除，按索引查找，按索引插入删除的元素不可重复的集合
+@SuppressWarnings("unused")
 public class UltimateCollection<E> extends AvlTreeList<E> implements Set<E> {
 	protected final HashMap<E, UltimateNode<E>> nodeMap = new HashMap<>();
 	
@@ -290,7 +291,7 @@ public class UltimateCollection<E> extends AvlTreeList<E> implements Set<E> {
 			root.checkStructure(nodes);
 		nodeMap.forEach((v, node)->{
 			if(!nodes.remove(node))
-				throw new AssertionError("Ultimate structure violated: nodeMap contains invalid node:" + node);
+				throw new AssertionError("Ultimate structure violated: nodeMap containsKey invalid node:" + node);
 		});
 	}
 }

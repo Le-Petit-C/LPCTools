@@ -2,7 +2,6 @@ package lpctools.mixin.client;
 
 import net.minecraft.client.resource.SplashTextResourceSupplier;
 import net.minecraft.resource.ResourceManager;
-import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.profiler.Profiler;
 import org.spongepowered.asm.mixin.Mixin;
@@ -21,11 +20,11 @@ public class SplashTextResourceSupplierMixin {
     @Unique private static final Identifier RESOURCE_ID = Identifier.of("lpctools", "texts/splashes.txt");
     @Inject(method = "prepare(Lnet/minecraft/resource/ResourceManager;Lnet/minecraft/util/profiler/Profiler;)Ljava/util/List;",
     at = @At("RETURN"), cancellable = true)
-    void injectPrepare(ResourceManager resourceManager, Profiler profiler, CallbackInfoReturnable<List<Text>> cir){
+    void injectPrepare(ResourceManager resourceManager, Profiler profiler, CallbackInfoReturnable<List<String>> cir){
 		try (BufferedReader bufferedReader = resourceManager.openAsReader(RESOURCE_ID)) {
-			List<Text> extra;
+			List<String> extra;
 			if (bufferedReader == null) return;
-			extra = bufferedReader.lines().map(s -> (Text) Text.literal(s.trim())).toList();
+			extra = bufferedReader.lines().map(String::trim).toList();
 			if (cir.getReturnValue() != null) {
 				try {
 					cir.getReturnValue().addAll(extra);

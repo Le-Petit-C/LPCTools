@@ -4,14 +4,14 @@ import lpctools.lpcfymasaapi.render.PositionColorVertex;
 import org.joml.Vector3d;
 
 // 平行四边形，逆时针方向定为base->base+u->base+u+v->base+v
-public class Quad extends Shape<PositionColorVertex> {
+public class Quad extends PositionedShape<PositionColorVertex> {
 	public static final int[][] cullIndices = {{0, 1, 2, 2, 1, 3}};
 	public static final int[][] noCullIndices = {{0, 1, 2, 2, 1, 0, 2, 1, 3, 3, 1, 2}};
 	public Vector3d base, u, v;
 	public int color;
 	
 	public Quad(Vector3d base, Vector3d u, Vector3d v, int color, boolean cull) {
-		super(new PositionColorVertex[4], cull ? cullIndices : noCullIndices, new Vector3d[1], new Vector3d());
+		super(new PositionColorVertex[4], cull ? cullIndices : noCullIndices, new Vector3d());
 		this.base = base;
 		this.u = u;
 		this.v = v;
@@ -41,4 +41,8 @@ public class Quad extends Shape<PositionColorVertex> {
 	}
 	
 	public Quad(Quad quad) {this(new Vector3d(quad.base), new Vector3d(quad.u), new Vector3d(quad.v), quad.color);}
+	
+	public static ShapeRegister<Quad> register(boolean xrays){
+		return genShapeRegister(RenderInstance.defaultRenderInstance(false, xrays));
+	}
 }

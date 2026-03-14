@@ -1,7 +1,7 @@
 package lpctools.script.editScreen;
 
 import fi.dy.masa.malilib.gui.GuiTextFieldGeneric;
-import lpctools.mixin.client.TextFieldWidgetAccessor;
+import lpctools.mixin.client.accessors.TextFieldWidgetAccessor;
 import net.minecraft.client.MinecraftClient;
 import org.jetbrains.annotations.Nullable;
 

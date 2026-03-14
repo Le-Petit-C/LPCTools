@@ -1,21 +1,40 @@
 package lpctools.lpcfymasaapi;
 
 import lpctools.lpcfymasaapi.interfaces.IUnregistrableRegistry;
-import org.jetbrains.annotations.NotNull;
 
+import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.function.Function;
 
 public class UnregistrableRegistry<T> implements IUnregistrableRegistry<T> {
-    public final @NotNull LinkedHashSet<T> callbacks = new LinkedHashSet<>();
+    public final LinkedHashSet<T> callbacks = new LinkedHashSet<>();
+    private final LinkedHashSet<T> newRegistrables = new LinkedHashSet<>();
     public final T runner;
+    private Iterator<T> generateIterator() {
+        applyNewRegistrable();
+        return callbacks.iterator();
+    }
     public UnregistrableRegistry(Function<IterableEx<T>, T> runner){
-        this.runner = runner.apply(callbacks::iterator);
+        this.runner = runner.apply(this::generateIterator);
+    }
+    private void applyNewRegistrable() {
+        if(newRegistrables.isEmpty()) return;
+        for(var callback : newRegistrables) {
+            if(callbacks.contains(callback)) callbacks.remove(callback);
+            else callbacks.add(callback);
+        }
+        newRegistrables.clear();
+    }
+    private boolean newRegistrable(T callback, boolean add) {
+        if(add) return newRegistrables.add(callback);
+        else return newRegistrables.remove(callback);
     }
     @Override public boolean register(T callback, boolean register){
-        if(register) return callbacks.add(callback);
-        else return callbacks.remove(callback);
+        return newRegistrable(callback, register != callbacks.contains(callback));
     }
-    @Override public boolean isEmpty(){return callbacks.isEmpty();}
-    @Override public T run(){return runner;}
+    @Override public boolean isEmpty(){
+        applyNewRegistrable();
+        return callbacks.isEmpty();
+    }
+    @Override public T runner(){ return runner; }
 }

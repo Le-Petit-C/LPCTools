@@ -1,4 +1,4 @@
-package lpctools.mixin.client.BarTweakMixin;
+package lpctools.mixin.client.tweaks.barTweak;
 
 import lpctools.tweaks.BarTweaks;
 import net.minecraft.client.network.ClientPlayerInteractionManager;

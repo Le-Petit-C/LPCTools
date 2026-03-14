@@ -1,8 +1,11 @@
 package lpctools.lpcfymasaapi.render.translucentShapes;
 
+import com.google.common.collect.ImmutableSet;
 import com.mojang.blaze3d.pipeline.RenderPipeline;
+import org.jetbrains.annotations.NotNull;
 
-public record RenderOption(RenderPipeline pipeline, boolean useColorBuffer, boolean useDepthBuffer, RenderTiming timing) {
+public record RenderOption(RenderPipeline pipeline, boolean useColorBuffer, boolean useDepthBuffer,
+						   TranslateMethod translateMethod, RenderTiming timing, @NotNull ImmutableSet<ExtraBindings> extraBindings) {
 	public RenderOption {
 		if (!useColorBuffer && !useDepthBuffer)
 			throw new IllegalArgumentException("writeDepth and writeBuffer cannot be false for both");

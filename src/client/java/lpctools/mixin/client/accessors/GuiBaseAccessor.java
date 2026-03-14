@@ -1,4 +1,4 @@
-package lpctools.mixin.client.MASAMixins;
+package lpctools.mixin.client.accessors;
 
 import fi.dy.masa.malilib.gui.GuiBase;
 import fi.dy.masa.malilib.gui.GuiTextFieldGeneric;

@@ -8,7 +8,6 @@ import lpctools.generic.GenericRegistry;
 import lpctools.generic.GenericUtils;
 import lpctools.lpcfymasaapi.Registries;
 import lpctools.lpcfymasaapi.render.translucentShapes.ShapeReference;
-import lpctools.lpcfymasaapi.render.translucentShapes.RenderInstance;
 import lpctools.util.AlgorithmUtils;
 import lpctools.util.LPCMathHelper;
 import lpctools.util.Packed;
@@ -27,6 +26,7 @@ import net.minecraft.world.chunk.ChunkStatus;
 import net.minecraft.world.chunk.WorldChunk;
 import net.minecraft.world.chunk.light.LightingProvider;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -51,7 +51,7 @@ public class DataInstance implements AutoCloseable, Registries.ClientWorldChunkL
     private int updateCounter = 0;
     private int renderColor;
     private IRenderMethod method;
-    private RenderInstance renderInstance;
+    private ICSShapeRegister shapeRegister;
     private ShapeList range;
     private boolean renderXRays;
     
@@ -72,13 +72,13 @@ public class DataInstance implements AutoCloseable, Registries.ClientWorldChunkL
         });
     }
     void setRenderXRays(boolean xrays){
-        renderInstance = method.getRenderInstance(renderXRays = xrays);
+        shapeRegister = method.getShapeRegister(renderXRays = xrays);
         reshapesAsync();
     }
     void updateRenderXRays(){ setRenderXRays(CanSpawnDisplay.renderXRays.getAsBoolean()); }
     void setRenderMethod(IRenderMethod method){
         this.method = method;
-        renderInstance = method.getRenderInstance(renderXRays);
+        shapeRegister = method.getShapeRegister(renderXRays);
         reshapesAsync();
     }
     void updateRenderMethod(){ setRenderMethod(CanSpawnDisplay.renderMethod.get()); }
@@ -157,7 +157,7 @@ public class DataInstance implements AutoCloseable, Registries.ClientWorldChunkL
                 updateCounter -= shapes.size();
                 shapes.values().forEach(QuietAutoCloseable::closeIfNotNull);
                 shapes.clear();
-                for(var pos : res.result) shapes.put(pos, range.testPos(pos) ? renderInstance.addShape(method.getShape(pos, renderColor, renderXRays)) : null);
+                for(var pos : res.result) shapes.put(pos, range.testPos(pos) ? shapeRegister.registerShape(pos, renderColor) : null);
                 updateCounter -= shapes.size();
                 if(completedTasks == null) completedTasks = new LongOpenHashSet();
                 completedTasks.add(packedChunkPos);
@@ -202,8 +202,8 @@ public class DataInstance implements AutoCloseable, Registries.ClientWorldChunkL
         var light = world.getLightingProvider();
         delayedTasks.add(new DelayedTask(packedChunkPos, ()->testChunkAsync(chunk, light, packedChunkPos)));
     }
-    @Override public void onClientWorldChunkSetBlockState(WorldChunk chunk, BlockPos pos, BlockState lastState, BlockState newState) {
-        if(newState.getBlock() == Blocks.WATER) return;
+    @Override public void onClientWorldChunkSetBlockState(WorldChunk chunk, BlockPos pos, @Nullable BlockState lastState, @Nullable BlockState newState) {
+        if(newState != null && newState.getBlock() == Blocks.WATER) return;
         int x = pos.getX() >> 4, z = pos.getZ() >> 4;
         World world = chunk.getWorld();
         for(int dx = -1; dx <= 1; ++dx)

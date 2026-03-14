@@ -37,11 +37,15 @@ public class CanSpawnDisplay{
         }
     }
     public static void switchCallback() {
-        boolean currentValue = CSConfig.getBooleanValue();
-        if(currentValue) dataInstance = new DataInstance(MinecraftClient.getInstance());
-        else if(dataInstance != null){
-            dataInstance.close();
-            dataInstance = null;
+        if(CSConfig.getBooleanValue()) {
+            if(dataInstance == null)
+                dataInstance = new DataInstance(MinecraftClient.getInstance());
+        }
+        else {
+            if(dataInstance != null){
+                dataInstance.close();
+                dataInstance = null;
+            }
         }
     }
 }

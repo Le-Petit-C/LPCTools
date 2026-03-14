@@ -33,6 +33,7 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.profiler.Profiler;
 import net.minecraft.world.chunk.WorldChunk;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.joml.Matrix4f;
 
 import java.util.function.Consumer;
@@ -113,30 +114,32 @@ public class Registries {
         });
     public static final UnregistrableRegistry<ResourceReloadCallback> CLIENT_RESOURCE_RELOAD = new UnregistrableRegistry<>(
         callbacks->manager->callbacks.forEach(callback->callback.onResourceReload(manager)));
+    public static final UnregistrableRegistry<BetweenRenderFrames> BETWEEN_RENDER_FRAMES = new UnregistrableRegistry<>(
+        callbacks->()->callbacks.forEach(BetweenRenderFrames::betweenFrames));
     
     static{
-        ClientWorldEvents.AFTER_CLIENT_WORLD_CHANGE.register(AFTER_CLIENT_WORLD_CHANGE.run());
-        ClientTickEvents.START_CLIENT_TICK.register(START_CLIENT_TICK.run());
-        ClientTickEvents.END_CLIENT_TICK.register(END_CLIENT_TICK.run());
-        ClientChunkEvents.CHUNK_LOAD.register(CLIENT_CHUNK_LOAD.run());
-        ClientChunkEvents.CHUNK_UNLOAD.register(CLIENT_CHUNK_UNLOAD.run());
-        WorldRenderEvents.START.register(START.run());
-        WorldRenderEvents.AFTER_SETUP.register(AFTER_SETUP.run());
-        WorldRenderEvents.BEFORE_ENTITIES.register(BEFORE_ENTITIES.run());
-        WorldRenderEvents.AFTER_ENTITIES.register(AFTER_ENTITIES.run());
-        WorldRenderEvents.BEFORE_BLOCK_OUTLINE.register(BEFORE_BLOCK_OUTLINE.run());
-        WorldRenderEvents.BLOCK_OUTLINE.register(BLOCK_OUTLINE.run());
-        WorldRenderEvents.BEFORE_DEBUG_RENDER.register(BEFORE_DEBUG_RENDER.run());
-        WorldRenderEvents.AFTER_TRANSLUCENT.register(AFTER_TRANSLUCENT.run());
-        WorldRenderEvents.LAST.register(ON_LAST.run());
-        WorldRenderEvents.END.register(ON_END.run());
-        var overlayRenderer = MASA_RENDER_GAME_OVERLAY.run();
-        var worldPreWeatherRenderer = MASA_RENDER_WORLD_PRE_WEATHER.run();
-        var worldLastRenderer = MASA_WORLD_RENDER_LAST.run();
-        var toolTipComponentInsertFirstRenderer = MASA_RENDER_TOOLTIP_COMPONENT_INSERTION_FIRST.run();
-        var toolTipComponentInsertMiddleRenderer = MASA_RENDER_TOOLTIP_COMPONENT_INSERTION_MIDDLE.run();
-        var toolTipComponentInsertLastRenderer = MASA_RENDER_TOOLTIP_COMPONENT_INSERTION_LAST.run();
-        var toolTipLastRenderer = MASA_RENDER_TOOLTIP_LAST.run();
+        ClientWorldEvents.AFTER_CLIENT_WORLD_CHANGE.register(AFTER_CLIENT_WORLD_CHANGE.runner());
+        ClientTickEvents.START_CLIENT_TICK.register(START_CLIENT_TICK.runner());
+        ClientTickEvents.END_CLIENT_TICK.register(END_CLIENT_TICK.runner());
+        ClientChunkEvents.CHUNK_LOAD.register(CLIENT_CHUNK_LOAD.runner());
+        ClientChunkEvents.CHUNK_UNLOAD.register(CLIENT_CHUNK_UNLOAD.runner());
+        WorldRenderEvents.START.register(START.runner());
+        WorldRenderEvents.AFTER_SETUP.register(AFTER_SETUP.runner());
+        WorldRenderEvents.BEFORE_ENTITIES.register(BEFORE_ENTITIES.runner());
+        WorldRenderEvents.AFTER_ENTITIES.register(AFTER_ENTITIES.runner());
+        WorldRenderEvents.BEFORE_BLOCK_OUTLINE.register(BEFORE_BLOCK_OUTLINE.runner());
+        WorldRenderEvents.BLOCK_OUTLINE.register(BLOCK_OUTLINE.runner());
+        WorldRenderEvents.BEFORE_DEBUG_RENDER.register(BEFORE_DEBUG_RENDER.runner());
+        WorldRenderEvents.AFTER_TRANSLUCENT.register(AFTER_TRANSLUCENT.runner());
+        WorldRenderEvents.LAST.register(ON_LAST.runner());
+        WorldRenderEvents.END.register(ON_END.runner());
+        var overlayRenderer = MASA_RENDER_GAME_OVERLAY.runner();
+        var worldPreWeatherRenderer = MASA_RENDER_WORLD_PRE_WEATHER.runner();
+        var worldLastRenderer = MASA_WORLD_RENDER_LAST.runner();
+        var toolTipComponentInsertFirstRenderer = MASA_RENDER_TOOLTIP_COMPONENT_INSERTION_FIRST.runner();
+        var toolTipComponentInsertMiddleRenderer = MASA_RENDER_TOOLTIP_COMPONENT_INSERTION_MIDDLE.runner();
+        var toolTipComponentInsertLastRenderer = MASA_RENDER_TOOLTIP_COMPONENT_INSERTION_LAST.runner();
+        var toolTipLastRenderer = MASA_RENDER_TOOLTIP_LAST.runner();
         IRenderer malilibRenderer = new IRenderer() {
             @Override public void onRenderGameOverlayPostAdvanced(DrawContext ctx, float partialTicks, Profiler profiler, MinecraftClient mc) {
                 overlayRenderer.renderGameOverlay(ctx, partialTicks, profiler);
@@ -175,7 +178,7 @@ public class Registries {
         Identifier lpcRegistryClientResourceReloadCallbackId = Identifier.of("lpctools", "lpcfymasaapi_reload");
         ResourceManagerHelper.get(ResourceType.CLIENT_RESOURCES).registerReloadListener( new SimpleSynchronousResourceReloadListener() {
             @Override public Identifier getFabricId() {return lpcRegistryClientResourceReloadCallbackId;}
-            @Override public void reload(ResourceManager manager) {CLIENT_RESOURCE_RELOAD.run().onResourceReload(manager);}
+            @Override public void reload(ResourceManager manager) {CLIENT_RESOURCE_RELOAD.runner().onResourceReload(manager);}
         });
     }
     
@@ -205,7 +208,7 @@ public class Registries {
         void onRenderTooltipLast(DrawContext ctx, ItemStack stack, int x, int y);
     }
     public interface ClientWorldChunkSetBlockState {//at RETURN
-        void onClientWorldChunkSetBlockState(WorldChunk chunk, BlockPos pos, BlockState lastState, BlockState newState);
+        void onClientWorldChunkSetBlockState(WorldChunk chunk, BlockPos pos, @Nullable BlockState lastState, @Nullable BlockState newState);
     }
     public interface ScreenChangeCallback{
         void onScreenChanged(Screen newScreen);
@@ -218,5 +221,8 @@ public class Registries {
     }
     public interface ResourceReloadCallback{
         void onResourceReload(ResourceManager manager);
+    }
+    public interface BetweenRenderFrames {
+        void betweenFrames();
     }
 }

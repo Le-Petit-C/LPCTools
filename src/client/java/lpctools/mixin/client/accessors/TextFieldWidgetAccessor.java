@@ -1,4 +1,4 @@
-package lpctools.mixin.client;
+package lpctools.mixin.client.accessors;
 
 import net.minecraft.client.font.TextRenderer;
 import net.minecraft.client.gui.widget.TextFieldWidget;

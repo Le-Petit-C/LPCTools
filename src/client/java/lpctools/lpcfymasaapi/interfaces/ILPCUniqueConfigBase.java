@@ -25,7 +25,7 @@ public interface ILPCUniqueConfigBase extends ILPCUniqueConfig, IConfigBase, ILP
             resetButton = consumer.createResetButton(x + configWidth + 2, y, resettable);
             consumer.addButton(resetButton, (button, mouseButton)->{
                 resettable.resetToDefault();
-                button.setEnabled(false);
+                getPage().markNeedUpdate();
             });
         }
         else resetButton = null;

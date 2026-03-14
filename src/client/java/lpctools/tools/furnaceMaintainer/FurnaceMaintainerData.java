@@ -1,14 +1,18 @@
 package lpctools.tools.furnaceMaintainer;
 
-import net.minecraft.util.math.BlockPos;
+import lpctools.lpcfymasaapi.interfaces.ILPCValueChangeCallback;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.concurrent.CompletableFuture;
+import java.util.function.Consumer;
 
 public class FurnaceMaintainerData {
-    static final HashSet<BlockPos> uncheckedFurnaces = new HashSet<>();
-    static final ArrayList<CompletableFuture<ArrayList<BlockPos>>> detectTasks = new ArrayList<>();
+    static boolean isFMInteracting = false;
+    static @Nullable DataInstance dataInstance;
     static @Nullable FurnaceMaintainerRunner runner;
+    static void applyToDataInstance(Consumer<DataInstance> consumer) {
+        if(dataInstance != null) consumer.accept(dataInstance);
+    }
+    static ILPCValueChangeCallback applyToDataInstanceCallback(Consumer<DataInstance> consumer) {
+        return ()->applyToDataInstance(consumer);
+    }
 }

@@ -36,6 +36,7 @@ public abstract class LPCUniqueConfigBase implements ILPCUniqueConfigBase {
         if(callback != null) callback.onValueChanged();
         LPCConfigPage.ConfigPageInstance instance = getPage().getPageInstance();
         if(instance != null) instance.markConfigsModified();
+        getPage().markNeedUpdate();
     }
     @Override public void setValueChangeCallback(@Nullable ILPCValueChangeCallback callback) {
         this.callback = callback;
