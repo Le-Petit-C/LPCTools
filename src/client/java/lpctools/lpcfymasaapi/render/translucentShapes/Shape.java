@@ -25,24 +25,18 @@ public class Shape<T extends IVertex> {
 		this(vertices, baseIndices, new Vector3d[baseIndices.length], center);
 	}
 	
+	protected static <T extends Shape<? extends IPositionVertex>> ShapeRegister<T>
+	genShapeRegister(RenderInstance renderInstance) {
+		return new ShapeRegister<>(renderInstance);
+	}
+	
 	@SuppressWarnings("unused") protected void setDefaultCenters(Function<T, Vector3d> centerFunction) {
 		for(int i = 0; i < baseIndices.length; i++){
 			var indices = baseIndices[i];
 			if(centers[i] == null) centers[i] = new Vector3d();
+			else centers[i].set(0);
 			for(int j : indices) centers[i].add(centerFunction.apply(vertices[j]));
 			centers[i].div(indices.length);
-		}
-	}
-	
-	protected static void setDefaultCenters(Shape<? extends IPositionVertex> shape) {
-		for(int i = 0; i < shape.baseIndices.length; i++){
-			var indices = shape.baseIndices[i];
-			if(shape.centers[i] == null) shape.centers[i] = new Vector3d();
-			for(int j : indices) {
-				var vertex = shape.vertices[j];
-				shape.centers[i].add(vertex.getX(), vertex.getY(), vertex.getZ());
-			}
-			shape.centers[i].div(indices.length);
 		}
 	}
 	

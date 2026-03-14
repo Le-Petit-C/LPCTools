@@ -28,7 +28,7 @@ void main() {
     else {
         FragColor = ColorModulator * outColor;
         FragColor.a *= log(float(a + 1)) / log(float(maxDepth));
-        if(FragColor.a == 0) gl_FragDepth = 1;
+        if(FragColor.a == 0) discard;
         else gl_FragDepth = gl_FragCoord.z;
     }
 }

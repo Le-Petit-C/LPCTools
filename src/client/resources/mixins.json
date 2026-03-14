@@ -44,7 +44,7 @@
 		"scriptMixins.propertiesMixin.IntegerPropertyRegisterMixin",
 		"scriptMixins.propertiesMixin.PropertyRegisterMixin",
 		"tools.furnaceMaintainer.ClientPlayerInteractionManagerMixin",
-		"tools.furnaceMaintainer.ScreenMixin",
+		"tools.furnaceMaintainer.MinecraftClientMixin",
 		"TweakerooMixin.ConfigsListsMixin",
 		"TweakerooMixin.ConfigsMixin",
 		"TweakerooMixin.GuiConfigsMixin",

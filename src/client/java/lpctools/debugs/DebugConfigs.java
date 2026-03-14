@@ -50,6 +50,7 @@ public class DebugConfigs {
     static {addConfig(TimeTest.timeTest);}
     static {addConfig(GpuCacheMissTest.gpuCacheMissTest);}
     static {addConfig(TranslucentQuadsTest.translucentQuadsTest);}
+    static {addConfig(ThreeBodyDisplay.threeBody);}
     static {listStack.pop();}
     
     private static void booleanHotkeyThirdListTestCallback(){
