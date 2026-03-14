@@ -315,8 +315,6 @@
 	"lpctools.configs.tweaks.lpcfyTweakerooList.name": "LPC化Tweakeroo列表配置",
 	"lpctools.configs.tweaks.lpcfyTweakerooList.comment": "使用LPCTools风格的配置列表取代部分Tweakeroo的列表配置",
 	"lpctools.configs.scripts.title": "脚本",
-	"lpctools.configs.scripts.guiScale.name": "界面缩放",
-	"lpctools.configs.scripts.guiScale.comment": "原版的配置界面缩放配置\n我想应该会有人想在编辑脚本时把界面缩小点\n所以我添加了这个，只是为了方便",
 	"lpctools.configs.scripts.guidelineColor.name": "引导线颜色",
 	"lpctools.configs.scripts.guidelineColor.comment": "设置引导线颜色",
 	"lpctools.configs.scripts.guidelineThickness.name": "引导线粗细",
