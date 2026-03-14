@@ -8,7 +8,6 @@ import lpctools.generic.GenericRegistry;
 import lpctools.generic.GenericUtils;
 import lpctools.lpcfymasaapi.Registries;
 import lpctools.lpcfymasaapi.render.translucentShapes.ShapeReference;
-import lpctools.lpcfymasaapi.render.translucentShapes.RenderInstance;
 import lpctools.util.AlgorithmUtils;
 import lpctools.util.LPCMathHelper;
 import lpctools.util.Packed;
@@ -52,7 +51,7 @@ public class DataInstance implements AutoCloseable, Registries.ClientWorldChunkL
     private int updateCounter = 0;
     private int renderColor;
     private IRenderMethod method;
-    private RenderInstance renderInstance;
+    private ICSShapeRegister shapeRegister;
     private ShapeList range;
     private boolean renderXRays;
     
@@ -73,13 +72,13 @@ public class DataInstance implements AutoCloseable, Registries.ClientWorldChunkL
         });
     }
     void setRenderXRays(boolean xrays){
-        renderInstance = method.getRenderInstance(renderXRays = xrays);
+        shapeRegister = method.getShapeRegister(renderXRays = xrays);
         reshapesAsync();
     }
     void updateRenderXRays(){ setRenderXRays(CanSpawnDisplay.renderXRays.getAsBoolean()); }
     void setRenderMethod(IRenderMethod method){
         this.method = method;
-        renderInstance = method.getRenderInstance(renderXRays);
+        shapeRegister = method.getShapeRegister(renderXRays);
         reshapesAsync();
     }
     void updateRenderMethod(){ setRenderMethod(CanSpawnDisplay.renderMethod.get()); }
@@ -158,7 +157,7 @@ public class DataInstance implements AutoCloseable, Registries.ClientWorldChunkL
                 updateCounter -= shapes.size();
                 shapes.values().forEach(QuietAutoCloseable::closeIfNotNull);
                 shapes.clear();
-                for(var pos : res.result) shapes.put(pos, range.testPos(pos) ? renderInstance.addShape(method.getShape(pos, renderColor, renderXRays)) : null);
+                for(var pos : res.result) shapes.put(pos, range.testPos(pos) ? shapeRegister.registerShape(pos, renderColor) : null);
                 updateCounter -= shapes.size();
                 if(completedTasks == null) completedTasks = new LongOpenHashSet();
                 completedTasks.add(packedChunkPos);

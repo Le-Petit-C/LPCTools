@@ -32,7 +32,7 @@ public class UniqueDoubleConfig extends LPCUniqueConfigBase implements IConfigDo
         this.maxDouble = maxDouble;
     }
     @SuppressWarnings("unused")
-	public UniqueDoubleConfig(@NotNull ILPCConfigReadable parent, @NotNull String nameKey, int defaultDouble) {
+	public UniqueDoubleConfig(@NotNull ILPCConfigReadable parent, @NotNull String nameKey, double defaultDouble) {
         this(parent, nameKey, defaultDouble, -Double.MAX_VALUE, Double.MAX_VALUE, null);
     }
     @Override public double getDoubleValue() {return doubleValue;}

@@ -1,10 +1,7 @@
 package lpctools.tools.furnaceMaintainer;
 
 import lpctools.lpcfymasaapi.configButtons.derivedConfigs.ReachDistanceConfig;
-import lpctools.lpcfymasaapi.configButtons.uniqueConfigs.BooleanHotkeyThirdListConfig;
-import lpctools.lpcfymasaapi.configButtons.uniqueConfigs.ButtonHotkeyConfig;
-import lpctools.lpcfymasaapi.configButtons.uniqueConfigs.UniqueBooleanConfig;
-import lpctools.lpcfymasaapi.configButtons.uniqueConfigs.UniqueColorConfig;
+import lpctools.lpcfymasaapi.configButtons.uniqueConfigs.*;
 import lpctools.tools.ToolConfigs;
 import lpctools.tools.ToolUtils;
 import lpctools.util.DataUtils;
@@ -26,6 +23,7 @@ public class FurnaceMaintainer {
     static {ToolUtils.setLPCToolsToggleText(FMConfig);}
     static {listStack.push(FMConfig);}
     public static final ReachDistanceConfig reachDistance = addReachDistanceConfig();
+    public static final UniqueDoubleConfig operationSpeedLimit = addConfigEx(l->new UniqueDoubleConfig(l, "operationSpeedLimit", 1, 0, 1, null));
     @SuppressWarnings("unused")
     public static final ButtonHotkeyConfig detectFurnaces = addButtonHotkeyConfig("retestFurnaces", null, FurnaceMaintainer::detectFurnacesCallback);
     @SuppressWarnings("unused")
@@ -63,8 +61,8 @@ public class FurnaceMaintainer {
         var mc = MinecraftClient.getInstance();
         if(mc.currentScreen == screen) mc.setScreen(null);
     }
-    public static boolean beforeScreenRendered(Screen screen) {
-        if(!FMConfig.getBooleanValue() || dataInstance == null || runner == null) return false;
+    public static boolean screenCallback(Screen screen) {
+        if(!FMConfig.getBooleanValue() || dataInstance == null || runner == null || runner.lastInteractedPos == null) return false;
         MinecraftClient client = MinecraftClient.getInstance();
         ClientPlayerEntity player = client.player;
         ClientPlayerInteractionManager itm = client.interactionManager;
@@ -72,20 +70,21 @@ public class FurnaceMaintainer {
             FMConfig.setBooleanValue(false);
             return false;
         }
+        // DataUtils.clientMessage(String.valueOf(player.currentScreenHandler.syncId), false);
         boolean operated;
-        if(screen instanceof AbstractFurnaceScreen<?>) {
-            itm.clickSlot(player.currentScreenHandler.syncId, 0, 0, SlotActionType.QUICK_MOVE, player);
+        if(screen instanceof AbstractFurnaceScreen<?> screen1) {
+            itm.clickSlot(screen1.getScreenHandler().syncId, 0, 0, SlotActionType.QUICK_MOVE, player);
             operated = true;
         }
-        else if(screen instanceof HopperScreen) {
-            for(int i = 0; i < 5; ++i)
-                itm.clickSlot(player.currentScreenHandler.syncId, i, 0, SlotActionType.QUICK_MOVE, player);
+        else if(screen instanceof HopperScreen screen1) {
+            for(int i = 0; i < 5; ++i) itm.clickSlot(screen1.getScreenHandler().syncId, i, 0, SlotActionType.QUICK_MOVE, player);
             operated = true;
         }
         else operated = false;
         if(operated) {
             clearClientScreen(screen);
-            runner.lastOperateTimeMillis = 0;
+            dataInstance.highlightInstance.mark(runner.lastInteractedPos, null);
+            runner.lastInteractedPos = null;
         }
         return operated;
     }

@@ -44,3 +44,4 @@ replay_*.log
 /libSources/
 /Hints.txt
 /old/
+/logs/

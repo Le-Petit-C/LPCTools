@@ -16,12 +16,16 @@ import net.minecraft.util.Hand;
 import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
+import org.jetbrains.annotations.Nullable;
 
 import static lpctools.tools.furnaceMaintainer.FurnaceMaintainer.*;
 import static lpctools.tools.furnaceMaintainer.FurnaceMaintainerData.*;
 
+// 或许可以预测syncId提前发送interact网络包以加速？
 public class FurnaceMaintainerRunner implements QuietAutoCloseable, ClientTickEvents.EndTick {
-    long lastOperateTimeMillis = 0;
+    double operationReserved = 0;
+    long lastInteractTimeMillis = 0;
+    @Nullable BlockPos lastInteractedPos = null;
     FurnaceMaintainerRunner(){ registerAll(true); }
     @Override public void close(){ registerAll(false); }
     private void registerAll(boolean b){Registries.END_CLIENT_TICK.register(this, b);}
@@ -38,7 +42,6 @@ public class FurnaceMaintainerRunner implements QuietAutoCloseable, ClientTickEv
 			return;
 		}
         
-        
         ClientPlayerEntity player = mc.player;
         ClientWorld world = mc.world;
         ClientPlayerInteractionManager itm = mc.interactionManager;
@@ -47,11 +50,15 @@ public class FurnaceMaintainerRunner implements QuietAutoCloseable, ClientTickEv
             return;
         }
         
-        // TODO 这个“贤者时间”或许可以改成可配置的项
-        if(lastOperateTimeMillis != 0 && System.currentTimeMillis() - lastOperateTimeMillis < 2000) return;
+        operationReserved += operationSpeedLimit.getDoubleValue();
         
+        if(lastInteractedPos != null){
+            if(System.currentTimeMillis() - lastInteractTimeMillis > 1000) {
+                FMConfig.setBooleanValue(false);
+                DataUtils.clientMessage(Text.translatable("lpctools.configs.tools.FM.interactionMismatch"), true);
+            }
+        }
         if(MinecraftClient.getInstance().isShiftPressed()) return;
-        
         int requiredEmptyStackCount = includesHopperAbove.getBooleanValue() ? 5 : 1;
         for(ItemStack stack : player.getInventory().getMainStacks()){
             if(stack.isEmpty()){
@@ -64,31 +71,30 @@ public class FurnaceMaintainerRunner implements QuietAutoCloseable, ClientTickEv
             DataUtils.clientMessage(Text.translatable("lpctools.configs.tools.FM.notEnoughEmptyStack").getString(), true);
             return;
         }
-        for(BlockPos pos : reachDistance.iterateFromClosest(player.getEyePos())){
-            if(dataInstance.highlightInstance.containsKey(pos)){
+        if(operationReserved < 1) return;
+        if(lastInteractedPos == null) {
+            for(BlockPos pos : reachDistance.iterateFromClosest(player.getEyePos())){
+                if(!dataInstance.highlightInstance.containsKey(pos)) continue;
                 var state = world.getBlockState(pos);
                 var block = state.getBlock();
-                boolean shouldClick;
                 if(block instanceof AbstractFurnaceBlock) {
                     var upperPos = pos.up();
                     if(dataInstance.highlightInstance.containsKey(upperPos)) {
                         var upperState = world.getBlockState(upperPos);
-                        shouldClick = !(upperState.getBlock() instanceof HopperBlock) || upperState.get(HopperBlock.FACING) != Direction.DOWN;
+                        if(upperState.getBlock() instanceof HopperBlock && upperState.get(HopperBlock.FACING) == Direction.DOWN) continue;
                     }
-                    else shouldClick = true;
                 }
-                else shouldClick = block instanceof HopperBlock && state.get(HopperBlock.FACING) == Direction.DOWN
-					&& world.getBlockState(pos.down()).getBlock() instanceof AbstractFurnaceBlock;
-                if(shouldClick) {
-                    BlockHitResult hitResult = new BlockHitResult(pos.toCenterPos(), Direction.DOWN, pos.toImmutable(), false);
-                    isFMInteracting = true;
-                    itm.interactBlock(player, Hand.MAIN_HAND, hitResult);
-                    isFMInteracting = false;
-                    lastOperateTimeMillis = System.currentTimeMillis();
-                    dataInstance.highlightInstance.mark(pos, null);
-                    break;
-                }
+                else if(!(block instanceof HopperBlock) || state.get(HopperBlock.FACING) != Direction.DOWN
+					|| !(world.getBlockState(pos.down()).getBlock() instanceof AbstractFurnaceBlock)) continue;
+                BlockHitResult hitResult = new BlockHitResult(pos.toCenterPos(), Direction.DOWN, lastInteractedPos = pos.toImmutable(), false);
+                isFMInteracting = true;
+                itm.interactBlock(player, Hand.MAIN_HAND, hitResult);
+                isFMInteracting = false;
+                lastInteractTimeMillis = System.currentTimeMillis();
+                --operationReserved;
+                break;
             }
         }
+        if(operationReserved > 1) operationReserved = 1;
     }
 }

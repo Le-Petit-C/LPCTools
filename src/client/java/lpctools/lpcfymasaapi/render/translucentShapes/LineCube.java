@@ -4,7 +4,7 @@ import lpctools.lpcfymasaapi.render.PositionColorVertex;
 import net.minecraft.util.math.BlockPos;
 import org.joml.Vector3d;
 
-public class LineCube extends Shape<PositionColorVertex> {
+public class LineCube extends PositionedShape<PositionColorVertex> {
 	static final int[][] baseIndices = {
 		{0, 1}, {2, 3}, {4, 5}, {6, 7},
 		{0, 2}, {1, 3}, {4, 6}, {5, 7},
@@ -21,6 +21,10 @@ public class LineCube extends Shape<PositionColorVertex> {
 				pos.getZ() + ((i & 4) == 0 ? 0.1 : 0.9),
 				color);
 		}
-		setDefaultCenters(this);
+		setDefaultCenters();
+	}
+	
+	public static ShapeRegister<LineCube> register(boolean xrays) {
+		return genShapeRegister(RenderInstance.defaultRenderInstance(true, xrays));
 	}
 }

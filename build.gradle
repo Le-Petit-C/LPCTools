@@ -4,6 +4,10 @@ plugins {
 	id 'maven-publish'
 }
 
+test {
+	failOnNoDiscoveredTests = false
+}
+
 project.mod_version = mod_version_prefix + mod_version_suffix
 
 group = project.maven_group

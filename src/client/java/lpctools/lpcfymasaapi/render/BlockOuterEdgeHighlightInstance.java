@@ -7,8 +7,8 @@ import lpctools.generic.ChunkedTaskInstance;
 import lpctools.generic.UpdateCounter;
 import lpctools.lpcfymasaapi.Registries;
 import lpctools.lpcfymasaapi.render.translucentShapes.Quad;
-import lpctools.lpcfymasaapi.render.translucentShapes.RenderInstance;
 import lpctools.lpcfymasaapi.render.translucentShapes.ShapeReference;
+import lpctools.lpcfymasaapi.render.translucentShapes.ShapeRegister;
 import lpctools.tools.ToolUtils;
 import lpctools.util.Packed;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientWorldEvents;
@@ -30,7 +30,7 @@ public class BlockOuterEdgeHighlightInstance implements AutoCloseable, ClientWor
     private final Long2ObjectOpenHashMap<Int2ObjectOpenHashMap<ShapeReference[]>> posQuads = new Long2ObjectOpenHashMap<>();
     private final Long2ObjectOpenHashMap<IntOpenHashSet> posesNeedToUpdateRender = new Long2ObjectOpenHashMap<>();
     
-    private RenderInstance renderInstance = RenderInstance.shapeInstanceDepthless();
+    private ShapeRegister<Quad> shapeRegister = Quad.register(true);
     
     private boolean useCullFace;
     private @Nullable ShapeList shapeList;
@@ -45,7 +45,7 @@ public class BlockOuterEdgeHighlightInstance implements AutoCloseable, ClientWor
     }
     
     public void setRenderXRays(boolean xRays) {
-        renderInstance = RenderInstance.defaultRenderInstance(false, xRays);
+        shapeRegister = Quad.register(xRays);
         reshapesAsync();
     }
     
@@ -180,7 +180,8 @@ public class BlockOuterEdgeHighlightInstance implements AutoCloseable, ClientWor
         }
         for(var o : Temp.quadOffsets){
             if(!chunkedContains(renderingPoses, x + o[1], y + o[2], z + o[3]))
-                quads[o[0]] = renderInstance.addShape(new Quad(x + o[4], y + o[5], z + o[6], o[7], o[8], o[9], o[10], o[11], o[12], color, useCullFace));
+				//noinspection resource
+				quads[o[0]] = shapeRegister.register(new Quad(x + o[4], y + o[5], z + o[6], o[7], o[8], o[9], o[10], o[11], o[12], color, useCullFace));
             else {
                 Direction attachedDirection = Direction.byIndex(o[0]);
                 Direction oppositeDirection = attachedDirection.getOpposite();
