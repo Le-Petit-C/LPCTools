@@ -143,7 +143,7 @@ public class ChunkedTaskInstance implements AutoCloseable {
 		@Override public void betweenFrames() {
 			scheduled = false;
 			Registries.BETWEEN_RENDER_FRAMES.unregister(this);
-			Vec3d camPos = MinecraftClient.getInstance().gameRenderer.getCamera().getCameraPos();
+			Vec3d camPos = MinecraftClient.getInstance().gameRenderer.getCamera().getPos();
 			for(ChunkedTaskInstance taskInstance : tasks) { taskInstance.scheduled = false; }
 			var cachedTasks = new ArrayList<>(tasks);
 			tasks.clear();

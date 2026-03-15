@@ -6,7 +6,7 @@ import net.minecraft.client.MinecraftClient;
 public interface ExtraBindings {
 	@SuppressWarnings("unused")
 	ExtraBindings LIGHT_MAP = pass->pass.bindSampler("Sampler2",
-		MinecraftClient.getInstance().gameRenderer.getLightmapTextureManager().getGlTextureView()
+		MinecraftClient.getInstance().gameRenderer.getLightmapTextureManager().getGlTexture()
 	);
 	
 	void bindExtra(RenderPass renderPass);

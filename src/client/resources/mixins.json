@@ -16,6 +16,7 @@
 		"accessors.ClientChunkMapAccessor",
 		"accessors.GuiBaseAccessor",
 		"accessors.LayerRangeAccessor",
+		"accessors.MatrixStackEntryAccessor",
 		"accessors.TextFieldWidgetAccessor",
 		"AutoReconnect.ConnectScreenMixin",
 		"AutoReconnect.DisconnectedScreenMixin",
@@ -25,9 +26,6 @@
 		"EntityHighlight.EntityMixin",
 		"events.OnScreenChanged",
 		"generic.MouseHorizontalMixin",
-		"HappyGhastRidingTweak.ClientPlayerEntityMixin",
-		"HappyGhastRidingTweak.HappyGhastEntityMixin",
-		"HappyGhastRidingTweak.PlayerInputC2SPacketMixin",
 		"MASAMixins.ButtonGenericMixin",
 		"MASAMixins.ConfigButtonKeybindMixin",
 		"MASAMixins.GuiListBaseMixin",
@@ -49,7 +47,6 @@
 		"TweakerooMixin.ConfigsMixin",
 		"TweakerooMixin.GuiConfigsMixin",
 		"tweaks.barTweak.ClientPlayerInteractionManagerMixin",
-		"tweaks.barTweak.InGameHudMixin",
 		"utils.RenderInstance"
 	],
 	"injectors": {

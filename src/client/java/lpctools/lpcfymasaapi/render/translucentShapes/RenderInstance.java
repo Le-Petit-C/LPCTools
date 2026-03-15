@@ -1,13 +1,14 @@
 package lpctools.lpcfymasaapi.render.translucentShapes;
 
 import com.google.common.collect.ImmutableSet;
+import com.mojang.blaze3d.buffers.BufferType;
+import com.mojang.blaze3d.buffers.BufferUsage;
 import com.mojang.blaze3d.buffers.GpuBuffer;
-import com.mojang.blaze3d.buffers.GpuBufferSlice;
 import com.mojang.blaze3d.pipeline.RenderPipeline;
 import com.mojang.blaze3d.systems.CommandEncoder;
 import com.mojang.blaze3d.systems.RenderPass;
 import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.blaze3d.textures.GpuTextureView;
+import com.mojang.blaze3d.textures.GpuTexture;
 import com.mojang.blaze3d.vertex.VertexFormat;
 import fi.dy.masa.malilib.render.MaLiLibPipelines;
 import it.unimi.dsi.fastutil.ints.*;
@@ -18,7 +19,6 @@ import lpctools.lpcfymasaapi.render.IPositionVertex;
 import lpctools.util.CachedSupplier;
 import lpctools.util.javaex.QuietAutoCloseable;
 import net.minecraft.client.render.Frustum;
-import net.minecraft.client.render.RawProjectionMatrix;
 import net.minecraft.util.Util;
 import net.minecraft.util.math.Box;
 import net.minecraft.util.math.ChunkSectionPos;
@@ -54,7 +54,6 @@ public class RenderInstance implements QuietAutoCloseable, Registries.WorldPreMa
 	private static final String baseLabel = "LPCTools TranslucentQuadsRenderInstance";
 	private static final Supplier<String> indexBufferLabel = () -> appendLabel("IndexBuffer");
 	private static final Supplier<String> vertexBufferLabel = () -> appendLabel("VertexBuffer");
-	private static final Supplier<String> renderPassLabel = () -> appendLabel("RenderPass");
 	// should only be modified in referred mixin
 	public static final Matrix4f worldBasicProjectionMatrix = new Matrix4f();
 	public static final Matrix4f worldProjectionMatrix = new Matrix4f();
@@ -79,7 +78,6 @@ public class RenderInstance implements QuietAutoCloseable, Registries.WorldPreMa
 	private static long toPackedGreaterSectionPos(Vector3d pos){ return getPackedGreaterSectionPos(pos.x, pos.y, pos.z); }
 	
 	private final RenderOption renderOption;
-	private final RawProjectionMatrix rawProjectionMatrixBuffer = new RawProjectionMatrix("LPCToolsRenderInstance");
 	// 变换基点，所有vertex以此为基点进行变换
 	private final Vector3d basePoint = new Vector3d();
 	private final ArrayList<SubChunk> subChunks = new ArrayList<>();
@@ -158,12 +156,13 @@ public class RenderInstance implements QuietAutoCloseable, Registries.WorldPreMa
 			subChunksNeedUpload.clear();
 		}
 		var fb = context.fb();
-		GpuTextureView colorAttachmentView = renderOption.useColorBuffer() ? fb.getColorAttachmentView() : null;
-		GpuTextureView depthAttachmentView = renderOption.useDepthBuffer() ? (fb.useDepthAttachment ? fb.getDepthAttachmentView() : null) : null;
-		var camPos = context.camera().getCameraPos();
+		GpuTexture colorAttachmentView = renderOption.useColorBuffer() ? fb.getColorAttachment() : null;
+		GpuTexture depthAttachmentView = renderOption.useDepthBuffer() ? (fb.useDepthAttachment ? fb.getDepthAttachment() : null) : null;
+		var camPos = context.camera().getPos();
 		Vector3f offset = new Vector3f();
 		Matrix4f modelViewMatrix = new Matrix4f(RenderSystem.getModelViewMatrix());
 		Matrix4f projectionMatrix = new Matrix4f(worldBasicProjectionMatrix);
+		boolean hasOffset = false;
 		switch (renderOption.translateMethod().projectionTranslationLocation) {
 			case PROJECTION -> projectionMatrix.mul(worldProjectionTranslateMatrix);
 			case MODEL_VIEW -> worldProjectionTranslateMatrix.mul(modelViewMatrix, modelViewMatrix);
@@ -173,28 +172,32 @@ public class RenderInstance implements QuietAutoCloseable, Registries.WorldPreMa
 				offset.mul(-1);
 				modelViewMatrix.translate(offset);
 				offset.mul(-1);
+				hasOffset = true;
 			}
 		}
 		switch (renderOption.translateMethod().offsetLocation) {
 			case MODEL_VIEW -> modelViewMatrix.translate((float) (basePoint.x - camPos.x), (float) (basePoint.y - camPos.y), (float) (basePoint.z - camPos.z));
-			case OFFSET -> offset.add((float) (basePoint.x - camPos.x), (float) (basePoint.y - camPos.y), (float) (basePoint.z - camPos.z));
+			case OFFSET -> {
+				offset.add((float) (basePoint.x - camPos.x), (float) (basePoint.y - camPos.y), (float) (basePoint.z - camPos.z));
+				hasOffset = true;
+			}
 		}
-		GpuBufferSlice dynamicTransforms = RenderSystem.getDynamicUniforms()
-			.write(modelViewMatrix, new Vector4f(1.0F, 1.0F, 1.0F, 1.0F), offset, new Matrix4f(), 1.0f);
 		// z-fighting解决方案
 		// 或许可以把具有相似配置的RenderInstance一起绘制从而避免频繁的重设数据？
 		if(depthAttachmentView != null) projectionMatrix.m23(projectionMatrix.m23() - GenericUtils.zFightBias());
-		GpuBufferSlice projection = rawProjectionMatrixBuffer.set(projectionMatrix);
+		projectionMatrix.swap(RenderSystem.getProjectionMatrix());
+		modelViewMatrix.swap(RenderSystem.getModelViewMatrix());
 		try (RenderPass renderPass = commandEncoder
-			.createRenderPass(renderPassLabel, colorAttachmentView, OptionalInt.empty(), depthAttachmentView, OptionalDouble.empty())) {
+			.createRenderPass(colorAttachmentView, OptionalInt.empty(), depthAttachmentView, OptionalDouble.empty())) {
 			renderPass.setPipeline(renderOption.pipeline());
-			renderPass.setUniform("DynamicTransforms", dynamicTransforms);
-			renderPass.setUniform("Projection", projection);
+			if(hasOffset) renderPass.setUniform("offset", offset.x, offset.y, offset.z);
 			for(var extraBindings : renderOption.extraBindings())
 				extraBindings.bindExtra(renderPass);
 			for (var subChunk : sortedRenderSubChunks)
 				subChunk.render(renderPass);
 		}
+		modelViewMatrix.swap(RenderSystem.getModelViewMatrix());
+		projectionMatrix.swap(RenderSystem.getProjectionMatrix());
 	}
 	
 	@Override public void onRenderWorldPreMain(Registries.MASAWorldRenderContext context) {
@@ -207,7 +210,7 @@ public class RenderInstance implements QuietAutoCloseable, Registries.WorldPreMa
 		RenderSystem.assertOnRenderThread();
 		waitForTasks();
 		final Frustum frustum = recordData ? new Frustum(context.frustum()) : context.frustum();
-		dispatchTask = CompletableFuture.supplyAsync(() -> dispatchPrepareTasks(frustum, context.camera().getCameraPos(), executor), executor);
+		dispatchTask = CompletableFuture.supplyAsync(() -> dispatchPrepareTasks(frustum, context.camera().getPos(), executor), executor);
 		prepareTasks = dispatchTask.thenCompose(tasks -> tasks);
 	}
 	
@@ -220,7 +223,6 @@ public class RenderInstance implements QuietAutoCloseable, Registries.WorldPreMa
 		sortedRenderSubChunks.clear();
 		subChunksNeedUpload.clear();
 		subChunkSortingCache.close();
-		rawProjectionMatrixBuffer.close();
 		
 		Registries.PRE_MAIN.unregister(this);
 		renderOption.timing().unregister(this);
@@ -486,10 +488,10 @@ public class RenderInstance implements QuietAutoCloseable, Registries.WorldPreMa
 				int oldSize = indexBuffer == null ? 0 : indexBuffer.size();
 				if(indexBuffer != null) indexBuffer.close();
 				indexBuffer = RenderSystem.getDevice().createBuffer(
-					indexBufferLabel, GpuBuffer.USAGE_INDEX | GpuBuffer.USAGE_COPY_DST,
+					indexBufferLabel, BufferType.INDICES, BufferUsage.DYNAMIC_WRITE,
 					Math.max(oldSize * 2, requiredIndexSize));
 			}
-			encoder.writeToBuffer(indexBuffer.slice(0, requiredIndexSize), indexBufferToUpload);
+			encoder.writeToBuffer(indexBuffer, indexBufferToUpload, 0);
 			MemoryUtil.memFree(indexBufferToUpload);
 			indexBufferToUpload = null;
 			
@@ -499,10 +501,10 @@ public class RenderInstance implements QuietAutoCloseable, Registries.WorldPreMa
 					int oldSize = vertexBuffer == null ? 0 : vertexBuffer.size();
 					if(vertexBuffer != null) vertexBuffer.close();
 					vertexBuffer = RenderSystem.getDevice().createBuffer(
-						vertexBufferLabel, GpuBuffer.USAGE_VERTEX | GpuBuffer.USAGE_COPY_DST,
+						vertexBufferLabel, BufferType.VERTICES, BufferUsage.DYNAMIC_WRITE,
 						Math.max(oldSize * 2, requiredVertexSize));
 				}
-				encoder.writeToBuffer(vertexBuffer.slice(0, requiredVertexSize), vertexBufferToUpload);
+				encoder.writeToBuffer(vertexBuffer, vertexBufferToUpload, 0);
 				MemoryUtil.memFree(vertexBufferToUpload);
 				vertexBufferToUpload = null;
 			}
@@ -515,7 +517,7 @@ public class RenderInstance implements QuietAutoCloseable, Registries.WorldPreMa
 			if(!veryInitialized) return;
 			renderPass.setVertexBuffer(0, vertexBuffer);
 			renderPass.setIndexBuffer(indexBuffer, indexType);
-			renderPass.drawIndexed(0, 0, uploadedSize, 1);
+			renderPass.drawIndexed(0, uploadedSize);
 		}
 		
 		@Contract("_,_->null")

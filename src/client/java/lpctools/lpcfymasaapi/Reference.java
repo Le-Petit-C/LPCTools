@@ -7,7 +7,7 @@ public class Reference {
     public final String modName;
     public final String modId;
 
-    public static String getMCVersion(){return MinecraftVersion.create().name();}
+    public static String getMCVersion(){return MinecraftVersion.create().getName();}
     public static String getModType(){return "fabric";}
     public Reference(String modName){
         this(modName, modName.toLowerCase());

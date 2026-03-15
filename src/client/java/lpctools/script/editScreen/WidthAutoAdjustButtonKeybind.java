@@ -17,12 +17,12 @@ public class WidthAutoAdjustButtonKeybind extends ConfigButtonKeybind {
 		super.updateDisplayString();
 		needUpdateWidth = true;
 	}
-	@Override public void render(DrawContext context, int mouseX, int mouseY, boolean selected) {
+	@Override public void render(int mouseX, int mouseY, boolean selected, DrawContext context) {
 		if(needUpdateWidth){
 			needUpdateWidth = false;
 			setWidth(calculateTextButtonWidth(displayString, textRenderer, getHeight()));
 			widget.markUpdateChain();
 		}
-		super.render(context, mouseX, mouseY, selected);
+		super.render(mouseX, mouseY, selected, context);
 	}
 }

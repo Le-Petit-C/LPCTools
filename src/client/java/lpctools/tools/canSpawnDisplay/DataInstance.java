@@ -130,7 +130,7 @@ public class DataInstance implements AutoCloseable, Registries.ClientWorldChunkL
         updateCounter = GenericConfigs.updateLimitPerFrame.getAsInt() + Math.min(updateCounter, 0);
         
         double squaredDistanceLimit = MathHelper.square((double)MinecraftClient.getInstance().options.getViewDistance().getValue() * 2);
-        var camPos = context.camera().getCameraPos();
+        var camPos = context.camera().getPos();
         double chunkedCamX = camPos.x / 16 - 0.5, chunkedCamZ = camPos.z / 16 - 0.5;
         
         // 先清理超出范围的delayedTask

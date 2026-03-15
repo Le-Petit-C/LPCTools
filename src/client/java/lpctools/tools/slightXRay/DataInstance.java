@@ -151,7 +151,7 @@ class DataInstance implements AutoCloseable, ClientChunkEvents.Load, ClientWorld
     
     @Override public void betweenFrames() {
         SlightXRay.tryRefreshXRayBlocks();
-        var camPos = MinecraftClient.getInstance().gameRenderer.getCamera().getCameraPos();
+        var camPos = MinecraftClient.getInstance().gameRenderer.getCamera().getPos();
         cameraPosMarker.nextPos(ToolUtils.chunkedCoord(camPos.x), ToolUtils.chunkedCoord(camPos.z));
         clearChunksOutOfRange(cameraPosMarker.getResX(), cameraPosMarker.getResZ(),
             MathHelper.square(cameraPosMarker.getResR() + 2 * MinecraftClient.getInstance().options.getViewDistance().getValue()));

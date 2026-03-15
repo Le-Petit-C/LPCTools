@@ -6,9 +6,11 @@ import lpctools.LPCTools;
 import lpctools.lpcfymasaapi.LPCAPIInit;
 import lpctools.mixin.client.accessors.ClientChunkAccessor;
 import lpctools.mixin.client.accessors.ClientChunkMapAccessor;
+import lpctools.mixin.client.accessors.MatrixStackEntryAccessor;
 import lpctools.util.javaex.Object2BooleanFunction;
 import net.minecraft.block.Block;
 import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.client.world.ClientChunkManager;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.entity.EntityType;
@@ -285,5 +287,8 @@ public class DataUtils {
 				return res;
 			}
 		};
+    }
+    public static void copy(MatrixStack.Entry dst, MatrixStack.Entry src){
+        ((MatrixStackEntryAccessor)(Object)dst).invokeCopy(src);
     }
 }

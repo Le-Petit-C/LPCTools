@@ -1,7 +1,6 @@
 package lpctools.script.editScreen;
 
 import fi.dy.masa.malilib.gui.GuiTextFieldGeneric;
-import lpctools.mixin.client.accessors.TextFieldWidgetAccessor;
 import net.minecraft.client.MinecraftClient;
 import org.jetbrains.annotations.Nullable;
 
@@ -54,19 +53,19 @@ public class WidthAutoAdjustTextField extends GuiTextFieldGeneric{
 	
 	@Override public void setPosition(int x, int y) {
 		super.setPosition(x, y);
-		((TextFieldWidgetAccessor)this).invokeUpdateTextPosition();
+		// ((TextFieldWidgetAccessor)this).invokeUpdateTextPosition();
 	}
 	@Override public void setWidth(int width) {
 		super.setWidth(width);
-		((TextFieldWidgetAccessor)this).invokeUpdateTextPosition();
+		// ((TextFieldWidgetAccessor)this).invokeUpdateTextPosition();
 	}
 	@Override public void setHeight(int height) {
 		super.setHeight(height);
-		((TextFieldWidgetAccessor)this).invokeUpdateTextPosition();
+		// ((TextFieldWidgetAccessor)this).invokeUpdateTextPosition();
 	}
 	@Override public void setDimensions(int width, int height) {
 		super.setDimensions(width, height);
-		((TextFieldWidgetAccessor)this).invokeUpdateTextPosition();
+		// ((TextFieldWidgetAccessor)this).invokeUpdateTextPosition();
 	}
 	public void setCallback(@Nullable Consumer<String> callback){this.callback = callback;}
 	

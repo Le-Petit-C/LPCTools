@@ -7,15 +7,16 @@ import fi.dy.masa.malilib.gui.widgets.WidgetListConfigOptions;
 import fi.dy.masa.malilib.util.position.Vec2d;
 import it.unimi.dsi.fastutil.objects.Object2LongOpenHashMap;
 import lpctools.script.*;
+import lpctools.util.DataUtils;
 import lpctools.util.GuiUtils;
 import lpctools.util.data.Rect2d;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.Element;
+import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.text.Text;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.joml.Matrix3x2f;
 
 import java.util.*;
 
@@ -255,7 +256,9 @@ public class ScriptEditScreen extends GuiConfigsBase {
 		var matrices = context.getMatrices();
 		root.tryUpdate();
 		//位置修正
-		matrices.pushMatrix().translate((float)x, (float)y).scale((float)stretch);
+		matrices.push();
+		matrices.translate((float)x, (float)y, 0);
+		matrices.scale((float)stretch, (float)stretch, 1.0f);
 		int fixedMouseX = (int)Math.round(calcFixedX(mouseX)), fixedMouseY = (int)Math.round(calcFixedY(mouseY));
 		if(holdingScreenBackground != null)
 			context.fill(-reservedDistance.left.getIntegerValue(), -reservedDistance.top.getIntegerValue(),
@@ -307,7 +310,7 @@ public class ScriptEditScreen extends GuiConfigsBase {
 				if(l == parent.subCount() - 1 && dy > 0) dy = 0;
 				if(l == 0 && dy < 0) dy = 0;
 			}
-			matrices.translate((float)dx, (float)dy);
+			matrices.translate((float)dx, (float)dy, 0.0f);
 			fixedMouseX = (int)Math.round(holdingPos.x + hoverWidget.getX());
 			fixedMouseY = (int)Math.round(holdingPos.y + hoverWidget.getY());
 			//绘制
@@ -347,29 +350,29 @@ public class ScriptEditScreen extends GuiConfigsBase {
 				}
 			}
 		}
-		matrices.popMatrix();
+		matrices.pop();
 		
 		GuiUtils.renderInfoWidgets(infoWidgets, context, mouseX, mouseY);
 		
 		super.drawTitle(context, mouseX, mouseY, partialTicks);
 	}
 	
-	public void setHover(WidgetBase widget, int mouseX, int mouseY, Matrix3x2f matrix){
-		hoveredRenderer.setHover(widget, mouseX, mouseY, matrix);
+	public void setHover(WidgetBase widget, int mouseX, int mouseY, MatrixStack.Entry entry){
+		hoveredRenderer.setHover(widget, mouseX, mouseY, entry);
 	}
 	
-	public void setHover(HoveredClickableWidget widget, int mouseX, int mouseY, Matrix3x2f matrix){
-		hoveredRenderer.setHover(widget, mouseX, mouseY, matrix);
+	public void setHover(HoveredClickableWidget widget, int mouseX, int mouseY, MatrixStack.Entry entry){
+		hoveredRenderer.setHover(widget, mouseX, mouseY, entry);
 	}
 	
 	public void renderAndTryHover(DrawContext context, ButtonGeneric buttonGeneric, int fixedMouseX, int fixedMouseY){
 		boolean isOver = buttonGeneric.isMouseOver(fixedMouseX, fixedMouseY);
-		buttonGeneric.render(context, fixedMouseX, fixedMouseY, isOver);
-		if(isOver) setHover(buttonGeneric, fixedMouseX, fixedMouseY, context.getMatrices());
+		buttonGeneric.render(fixedMouseX, fixedMouseY, isOver, context);
+		if(isOver) setHover(buttonGeneric, fixedMouseX, fixedMouseY, context.getMatrices().peek());
 	}
 	
-	@Override protected void drawHoveredWidget(DrawContext context, int mouseX, int mouseY) {
-		super.drawHoveredWidget(context, mouseX, mouseY);
+	@Override protected void drawHoveredWidget(int mouseX, int mouseY, DrawContext context) {
+		super.drawHoveredWidget(mouseX, mouseY, context);
 		if(!isHoverTextDisplayKeyPressed()) return;
 		hoveredRenderer.tryRender(context);
 	}
@@ -423,7 +426,7 @@ public class ScriptEditScreen extends GuiConfigsBase {
 		private @Nullable HoveredClickableWidget hoveredWidget;
 		private final WidgetWrapper tempWidgetWrapper;
 		private int storedMouseX, storedMouseY;
-		private final Matrix3x2f renderMatrix = new Matrix3x2f();
+		private final MatrixStack.Entry renderMatrix = new MatrixStack.Entry();
 		
 		HoveredRenderer(ScriptEditScreen screen){
 			tempWidgetWrapper = new WidgetWrapper(null, screen);
@@ -431,24 +434,26 @@ public class ScriptEditScreen extends GuiConfigsBase {
 		
 		public void tryRender(DrawContext context){
 			if(hoveredWidget != null){
-				context.getMatrices().pushMatrix().set(renderMatrix);
+				var matrices = context.getMatrices();
+				matrices.push();
+				DataUtils.copy(matrices.peek(), renderMatrix);
 				hoveredWidget.postRenderHovered(context, storedMouseX, storedMouseY, false);
-				context.getMatrices().popMatrix();
+				context.getMatrices().pop();
 			}
 		}
 		public void clear(){hoveredWidget = null;}
-		public void setHover(WidgetBase widget, int mouseX, int mouseY, Matrix3x2f matrix){
+		public void setHover(WidgetBase widget, int mouseX, int mouseY, MatrixStack.Entry entry){
 			tempWidgetWrapper.setWrappedWidget(widget);
 			hoveredWidget = tempWidgetWrapper;
 			storedMouseX = mouseX;
 			storedMouseY = mouseY;
-			this.renderMatrix.set(matrix);
+			DataUtils.copy(renderMatrix, entry);
 		}
-		public void setHover(HoveredClickableWidget widget, int mouseX, int mouseY, Matrix3x2f matrix){
+		public void setHover(HoveredClickableWidget widget, int mouseX, int mouseY, MatrixStack.Entry entry){
 			hoveredWidget = widget;
 			storedMouseX = mouseX;
 			storedMouseY = mouseY;
-			this.renderMatrix.set(matrix);
+			DataUtils.copy(renderMatrix, entry);
 		}
 	}
 }

@@ -11,7 +11,6 @@ public class TweakConfigs {
         tweaks.addConfigs(
             BlockReplaceHotkey.blockReplaceHotkey,
             BlockReplaceHotkey.setBlockReplaceHotkey,
-            HappyGhastRidingTweak.happyGhastRidingTweak,
             BarTweaks.barTweaks,
             EnchantmentLevelFix.enchantmentLevelFix,
             modMenuPlayClickSound,

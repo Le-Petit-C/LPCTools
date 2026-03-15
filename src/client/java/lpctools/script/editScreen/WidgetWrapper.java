@@ -28,7 +28,7 @@ public class WidgetWrapper extends HoveredClickableWidget{
 	}
 	
 	@Override public void postRenderHovered(DrawContext drawContext, int mouseX, int mouseY, boolean selected){
-		widget.postRenderHovered(drawContext, mouseX, mouseY, selected);
+		widget.postRenderHovered(mouseX, mouseY, selected, drawContext);
 	}
 	@Override public void setX(int x) {
 		super.setX(x);
@@ -44,7 +44,7 @@ public class WidgetWrapper extends HoveredClickableWidget{
 	@Override public int getHeight() {return widget.getHeight();}
 	@Override protected void appendClickableNarrations(NarrationMessageBuilder builder) {}
 	@Override protected void renderWidget(DrawContext context, int mouseX, int mouseY, float deltaTicks) {
-		widget.render(context, mouseX, mouseY, widget.isMouseOver(mouseX, mouseY) || this == screen.getFocused() || this == screen.getScriptFocused());
+		widget.render(mouseX, mouseY, widget.isMouseOver(mouseX, mouseY) || this == screen.getFocused() || this == screen.getScriptFocused(), context);
 	}
 	
 	@Override public boolean mouseClicked(double mouseX, double mouseY, int button) {

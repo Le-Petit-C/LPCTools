@@ -1,12 +1,8 @@
 #version 330 core
 
-#moj_import <minecraft:dynamictransforms.glsl>
-
-layout(std140) uniform Mandelbrot {
-    vec4 setColor;
-    vec4 outColor;
-    int maxDepth;
-};
+uniform vec4 setColor;
+uniform vec4 outColor;
+uniform int maxDepth;
 
 // 将texCoord0视为复平面上的点使用
 in vec2 texCoord0;
@@ -22,11 +18,11 @@ void main() {
         z = vec2(x2 - y2, 2 * z.x * z.y) + texCoord0;
     }
     if(a >= maxDepth) {
-        FragColor = ColorModulator * setColor;
+        FragColor = setColor;
         gl_FragDepth = gl_FragCoord.z;
     }
     else {
-        FragColor = ColorModulator * outColor;
+        FragColor = outColor;
         FragColor.a *= log(float(a + 1)) / log(float(maxDepth));
         if(FragColor.a == 0) discard;
         else gl_FragDepth = gl_FragCoord.z;

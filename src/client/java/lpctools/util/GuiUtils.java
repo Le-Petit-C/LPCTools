@@ -23,7 +23,7 @@ public class GuiUtils {
                 if(removedWidgets == null) removedWidgets = new ArrayList<>();
                 removedWidgets.add(widget);
             }
-            else widget.render(drawContext, mouseX, mouseY, widget.isMouseOver(mouseX, mouseY));
+            else widget.render(mouseX, mouseY, widget.isMouseOver(mouseX, mouseY), drawContext);
         }
         if(removedWidgets != null) removedWidgets.forEach(infoWidgets::removeLong);
     }

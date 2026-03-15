@@ -190,14 +190,14 @@ public class ScriptDisplayWidget extends ClickableWidget{
 		updateDisplayWidgets();
 		if (nameButton != null) {
 			boolean isOver = nameButton.isMouseOver(mouseX, mouseY);
-			nameButton.render(context, mouseX, mouseY, isOver);
+			nameButton.render(mouseX, mouseY, isOver, context);
 			if(nameButton.hasHoverText() && nameButton.isMouseOver(mouseX, mouseY))
-				editScreen.setHover(nameButton, mouseX, mouseY, context.getMatrices());
+				editScreen.setHover(nameButton, mouseX, mouseY, context.getMatrices().peek());
 		}
 		for (var widget : widgets) {
 			widget.render(context, mouseX, mouseY, deltaTicks);
 			if(widget.isMouseOver(mouseX, mouseY) && widget instanceof HoveredClickableWidget hoveredClickableWidget)
-				editScreen.setHover(hoveredClickableWidget, mouseX, mouseY, context.getMatrices());
+				editScreen.setHover(hoveredClickableWidget, mouseX, mouseY, context.getMatrices().peek());
 		}
 	}
 	

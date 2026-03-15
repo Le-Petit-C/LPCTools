@@ -23,7 +23,7 @@ public class RenderInstance {
 		worldBasicProjectionMatrix.set(original);
 		return original;
 	}
-	@ModifyArg(method = "renderWorld", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/render/RawProjectionMatrix;set(Lorg/joml/Matrix4f;)Lcom/mojang/blaze3d/buffers/GpuBufferSlice;"))
+	@ModifyArg(method = "renderWorld", at = @At(value = "INVOKE", target = "Lcom/mojang/blaze3d/systems/RenderSystem;setProjectionMatrix(Lorg/joml/Matrix4f;Lcom/mojang/blaze3d/systems/ProjectionType;)V"))
 	Matrix4f recordWorldProjectionMatrix(Matrix4f projectionMatrix) {
 		worldProjectionMatrix.set(projectionMatrix);
 		return projectionMatrix;

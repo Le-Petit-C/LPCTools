@@ -122,7 +122,7 @@ public class ScriptWithSubScriptDisplayWidget extends ScriptDisplayWidget{
 	@Override public void renderWidget(DrawContext context, int mouseX, int mouseY, float deltaTicks) {
 		tryUpdate();
 		super.renderWidget(context, mouseX, mouseY, deltaTicks);
-		expandButton.render(context, mouseX, mouseY, expandButton.isMouseOver(mouseX, mouseY));
+		expandButton.render(mouseX, mouseY, expandButton.isMouseOver(mouseX, mouseY), context);
 		renderExpandGuidelines(context);
 	}
 	

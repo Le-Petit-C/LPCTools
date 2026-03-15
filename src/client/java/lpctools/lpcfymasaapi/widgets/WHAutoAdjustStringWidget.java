@@ -49,17 +49,17 @@ public class WHAutoAdjustStringWidget extends WidgetBase {
 		needUpdateSize = true;
 	}
 	
-	@Override public void render(DrawContext context, int mouseX, int mouseY, boolean selected) {
+	@Override public void render(int mouseX, int mouseY, boolean selected, DrawContext context) {
 		tryUpdateSize();
-		super.render(context, mouseX, mouseY, selected);
+		super.render(mouseX, mouseY, selected, context);
 		int x = getX(), y = getY(), w = getWidth(), h = getHeight();
 		context.fill(x - 2, y - 2, x + w + 2, y, frameColor);
 		context.fill(x - 2, y + h, x + w + 2, y + h + 2, frameColor);
 		context.fill(x - 2, y, x, y + h, frameColor);
 		context.fill(x + w, y, x + w + 2, y + h, frameColor);
 		context.fill(x, y, x + w, y + h, fillColor);
-		for(int i = 0; i < texts.size(); ++i) this.drawStringWithShadow(context,
-			textStartX, textStartY + (textRenderer.fontHeight + 2) * i, 0xffffffff, texts.get(i));
+		for(int i = 0; i < texts.size(); ++i) this.drawStringWithShadow(
+			textStartX, textStartY + (textRenderer.fontHeight + 2) * i, 0xffffffff, texts.get(i), context);
 	}
 	
 	@Override public void setX(int x) {

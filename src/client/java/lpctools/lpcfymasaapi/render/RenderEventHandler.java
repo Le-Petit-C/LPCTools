@@ -1,6 +1,5 @@
 package lpctools.lpcfymasaapi.render;
 
-import com.mojang.blaze3d.buffers.GpuBufferSlice;
 import com.mojang.blaze3d.systems.RenderSystem;
 import lpctools.LPCTools;
 import lpctools.lpcfymasaapi.Registries;
@@ -27,7 +26,7 @@ public class RenderEventHandler {
 			fbSet.mainFramebuffer = pass.transfer(fbSet.mainFramebuffer);
 			Handle<Framebuffer> handleMain = fbSet.mainFramebuffer;
 			pass.setRenderer(() -> {
-				GpuBufferSlice fog = RenderSystem.getShaderFog();
+				Fog fog = RenderSystem.getShaderFog();
 				Framebuffer fb = handleMain.get();
 				Registries.PRE_MAIN.runner().onRenderWorldPreMain(new Registries.MASAWorldRenderContext(fb, posMatrix, projMatrix, frustum, camera, buffers, profiler));
 				RenderSystem.setShaderFog(fog);

@@ -48,7 +48,6 @@ public class DebugConfigs {
     private static ImmutableMap<String, BiFunction<MutableConfig<ILPCUniqueConfigBase>, String, ILPCUniqueConfigBase>> getConfigSuppliers(){return configSuppliers;}
     static {Registries.ON_SCREEN_CHANGED.register(newScreen -> buttonConfigTest.buttonName = null);}
     static {addConfig(TimeTest.timeTest);}
-    static {addConfig(GpuCacheMissTest.gpuCacheMissTest);}
     static {addConfig(TranslucentQuadsTest.translucentQuadsTest);}
     static {listStack.pop();}
     

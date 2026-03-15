@@ -195,20 +195,23 @@ public class SelectionScreen<T> extends GuiBase {
 		super.render(context, mouseX, mouseY, deltaTicks);
 		double position = ScrollBarInfo.getPosition(scrollBarInfo);
 		int startIndex = getListIndexAtX(position, 0), endIndex = getListIndexAtX(position + getScreenWidth(), optionList.size() - 1);
-		context.getMatrices().pushMatrix().translate((float) -position, 0);
+		var matrices = context.getMatrices();
+		matrices.push();
+		matrices.translate((float) -position, 0, 0);
 		int dividerBottom = scrollBarInfo == null ? getScreenHeight() : getScreenHeight() - (scrollBarThickness + 2);
 		for(int i = startIndex; i <= endIndex; ++i){
 			var list = optionList.get(i);
 			// 绘制分割线
 			if(i != 0) context.fill(list.x - 1, titleHeight, list.x, dividerBottom,
 				getDividerColor(i == selectedList || i == selectedList + 1));
-			context.getMatrices().pushMatrix().translate(list.x, titleHeight);
+			matrices.push();
+			matrices.translate(list.x, titleHeight, 0);
 			context.enableScissor(0, 0, list.getScreenWidth(), list.getScreenHeight());
 			list.renderEx(context, dMouseX + position - list.x, dMouseY - titleHeight);
 			context.disableScissor();
-			context.getMatrices().popMatrix();
+			matrices.pop();
 		}
-		context.getMatrices().popMatrix();
+		matrices.pop();
 		// 绘制横向滚动条
 		if(scrollBarInfo != null) {
 			boolean highlighted = (selectedList < 0 || selectedList >= optionList.size()) && isHoldingScrollBar;
@@ -219,11 +222,11 @@ public class SelectionScreen<T> extends GuiBase {
 			double scrollBarLeft = scrollBarInfo.currentPosition * k;
 			double scrollBarWidth = getScreenWidth() * k;
 			// 使用translate+scale，避免因为四舍五入导致的锯齿
-			context.getMatrices().pushMatrix()
-				.translate((float) scrollBarLeft, getScreenHeight() - 1 - scrollBarThickness)
-				.scale((float) scrollBarWidth, 1.0f);
+			matrices.push();
+			matrices.translate((float) scrollBarLeft, getScreenHeight() - 1 - scrollBarThickness, 0);
+			matrices.scale((float) scrollBarWidth, 1.0f, 1.0f);
 			context.fill(0, 0, 1, scrollBarThickness, getScrollBarColor(highlighted));
-			context.getMatrices().popMatrix();
+			matrices.pop();
 		}
 	}
 	
@@ -360,6 +363,7 @@ public class SelectionScreen<T> extends GuiBase {
 		public void renderEx(DrawContext context, double mouseX, double mouseY) {
 			tickScrollBarInfo(scrollBarInfo, millisTimer);
 			boolean highlighted = index == selectedList;
+			var matrices = context.getMatrices();
 			if(highlighted) context.fill(0, 0, getScreenWidth(), getScreenHeight(), backgroundHighlightColor.getIntegerValue());
 			if(scrollBarInfo != null){
 				// 绘制滚动条背景
@@ -369,14 +373,14 @@ public class SelectionScreen<T> extends GuiBase {
 				double scrollBarTop = scrollBarInfo.currentPosition * k;
 				double scrollBarHeight = getScreenHeight() * k;
 				// 使用translate+scale，避免因为四舍五入导致的锯齿
-				context.getMatrices().pushMatrix()
-					.translate(getScreenWidth() - 1 - scrollBarThickness, (float) scrollBarTop)
-					.scale(1.0f, (float) scrollBarHeight);
+				matrices.push();
+				matrices.translate(getScreenWidth() - 1 - scrollBarThickness, (float) scrollBarTop, 0);
+				matrices.scale(1.0f, (float) scrollBarHeight, 1.0f);
 				context.fill(0, 0, scrollBarThickness, 1, getScrollBarColor(highlighted));
-				context.getMatrices().popMatrix();
+				matrices.pop();
 			}
 			double position = ScrollBarInfo.getPosition(scrollBarInfo);
-			context.getMatrices().translate(0.0f, (float) -position);
+			matrices.translate(0.0f, (float) -position, 0.0f);
 			double translatedMouseY = mouseY + position;
 			int startIndex = (int) Math.floor(position / buttonStride);
 			int endIndex = Math.min((int) Math.ceil((position + getScreenHeight()) / buttonStride), optionButtons.length);
@@ -393,7 +397,7 @@ public class SelectionScreen<T> extends GuiBase {
 					tx = (int) mouseX;
 					ty = (int) translatedMouseY;
 				}
-				button.render(context, tx, ty, highlight);
+				button.render(tx, ty, highlight, context);
 			}
 		}
 		
