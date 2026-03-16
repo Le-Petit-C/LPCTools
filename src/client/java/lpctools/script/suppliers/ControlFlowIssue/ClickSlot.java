@@ -39,10 +39,10 @@ public class ClickSlot extends AbstractSupplierWithTypeDeterminedSubSuppliers im
 			var finalButton = new WidthAutoAdjustButtonGeneric(
 				getDisplayWidget(), 0, 0, 20, slotActionType.name(), null);
 			finalButton.setActionListener((button, mouseButton)->{
-				int idx = slotActionType.getIndex();
+				int idx = slotActionType.ordinal();
 				var arr = SlotActionType.values();
 				if(mouseButton == 0) slotActionType = (idx >= arr.length - 1) ? arr[0] : arr[idx + 1];
-				else slotActionType = (idx <= 0) ? arr[arr.length - 1] : arr[idx - 1];
+				else slotActionType = (idx == 0) ? arr[arr.length - 1] : arr[idx - 1];
 				finalButton.setDisplayString(slotActionType.name());
 			});
 			actionTypeButton = finalButton;

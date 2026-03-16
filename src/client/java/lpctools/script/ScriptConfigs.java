@@ -1,7 +1,7 @@
 package lpctools.script;
 
 import fi.dy.masa.malilib.hotkeys.KeybindSettings;
-import fi.dy.masa.malilib.util.data.Color4f;
+import fi.dy.masa.malilib.util.Color4f;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import lpctools.LPCTools;
 import lpctools.lpcfymasaapi.LPCConfigList;
@@ -16,6 +16,7 @@ import java.util.ArrayList;
 
 import static lpctools.lpcfymasaapi.LPCConfigStatics.*;
 
+@SuppressWarnings("deprecation")
 public class ScriptConfigs {
     public static final LPCConfigList script = new LPCConfigList(LPCTools.page, "scripts");
     static {listStack.push(script);}

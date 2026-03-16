@@ -1,6 +1,6 @@
 package lpctools.generic;
 
-import fi.dy.masa.malilib.util.data.Color4f;
+import fi.dy.masa.malilib.util.Color4f;
 import lpctools.lpcfymasaapi.configButtons.transferredConfigs.ColorConfig;
 import lpctools.lpcfymasaapi.configButtons.uniqueConfigs.ButtonConfig;
 import lpctools.lpcfymasaapi.configButtons.uniqueConfigs.ThirdListConfig;
@@ -13,6 +13,7 @@ import java.util.Random;
 
 import static lpctools.lpcfymasaapi.LPCConfigStatics.*;
 
+@SuppressWarnings("deprecation")
 public class SelectionScreenConfigs {
 	public static final ThirdListConfig selectionScreenConfigs
 		= new ThirdListConfig(GenericConfigs.generic, "selectionScreenConfigs", null);

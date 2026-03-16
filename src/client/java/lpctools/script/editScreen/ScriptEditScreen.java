@@ -300,11 +300,10 @@ public class ScriptEditScreen extends GuiConfigsBase {
 			var holdingPos = scriptHoldingData.holdingPos;
 			hoverWidget = scriptHoldingData.widget;
 			var client = MinecraftClient.getInstance();
-			var window = client.getWindow();
 			var mouse = client.mouse;
 			var method = dragVisualMode.get();
-			double dx = method.moveX ? mouse.getScaledX(window) - holdingPos.x - x - hoverWidget.getX() : 0;
-			double dy = method.moveY ? mouse.getScaledY(window) - holdingPos.y - y - hoverWidget.getY() : 0;
+			double dx = method.moveX ? mouse.getX() - holdingPos.x - x - hoverWidget.getX() : 0;
+			double dy = method.moveY ? mouse.getY() - holdingPos.y - y - hoverWidget.getY() : 0;
 			if(dragBoundaryConstraint.getAsBoolean() && hoverWidget.parent instanceof ScriptWithSubScriptDisplayWidget parent){
 				int l = parent.indexOf(hoverWidget);
 				if(l == parent.subCount() - 1 && dy > 0) dy = 0;
@@ -426,7 +425,7 @@ public class ScriptEditScreen extends GuiConfigsBase {
 		private @Nullable HoveredClickableWidget hoveredWidget;
 		private final WidgetWrapper tempWidgetWrapper;
 		private int storedMouseX, storedMouseY;
-		private final MatrixStack.Entry renderMatrix = new MatrixStack.Entry();
+		private final MatrixStack renderMatrix = new MatrixStack();
 		
 		HoveredRenderer(ScriptEditScreen screen){
 			tempWidgetWrapper = new WidgetWrapper(null, screen);
@@ -436,7 +435,7 @@ public class ScriptEditScreen extends GuiConfigsBase {
 			if(hoveredWidget != null){
 				var matrices = context.getMatrices();
 				matrices.push();
-				DataUtils.copy(matrices.peek(), renderMatrix);
+				DataUtils.copy(matrices.peek(), renderMatrix.peek());
 				hoveredWidget.postRenderHovered(context, storedMouseX, storedMouseY, false);
 				context.getMatrices().pop();
 			}
@@ -447,13 +446,13 @@ public class ScriptEditScreen extends GuiConfigsBase {
 			hoveredWidget = tempWidgetWrapper;
 			storedMouseX = mouseX;
 			storedMouseY = mouseY;
-			DataUtils.copy(renderMatrix, entry);
+			DataUtils.copy(renderMatrix.peek(), entry);
 		}
 		public void setHover(HoveredClickableWidget widget, int mouseX, int mouseY, MatrixStack.Entry entry){
 			hoveredWidget = widget;
 			storedMouseX = mouseX;
 			storedMouseY = mouseY;
-			DataUtils.copy(renderMatrix, entry);
+			DataUtils.copy(renderMatrix.peek(), entry);
 		}
 	}
 }

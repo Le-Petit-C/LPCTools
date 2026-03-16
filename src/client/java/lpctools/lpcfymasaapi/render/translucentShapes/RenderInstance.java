@@ -1,16 +1,8 @@
 package lpctools.lpcfymasaapi.render.translucentShapes;
 
 import com.google.common.collect.ImmutableSet;
-import com.mojang.blaze3d.buffers.BufferType;
-import com.mojang.blaze3d.buffers.BufferUsage;
-import com.mojang.blaze3d.buffers.GpuBuffer;
-import com.mojang.blaze3d.pipeline.RenderPipeline;
-import com.mojang.blaze3d.systems.CommandEncoder;
-import com.mojang.blaze3d.systems.RenderPass;
+import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.blaze3d.textures.GpuTexture;
-import com.mojang.blaze3d.vertex.VertexFormat;
-import fi.dy.masa.malilib.render.MaLiLibPipelines;
 import it.unimi.dsi.fastutil.ints.*;
 import it.unimi.dsi.fastutil.longs.Long2IntOpenHashMap;
 import lpctools.generic.GenericUtils;
@@ -18,7 +10,11 @@ import lpctools.lpcfymasaapi.Registries;
 import lpctools.lpcfymasaapi.render.IPositionVertex;
 import lpctools.util.CachedSupplier;
 import lpctools.util.javaex.QuietAutoCloseable;
+import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.gl.*;
 import net.minecraft.client.render.Frustum;
+import net.minecraft.client.render.VertexFormat;
+import net.minecraft.client.render.VertexFormats;
 import net.minecraft.util.Util;
 import net.minecraft.util.math.Box;
 import net.minecraft.util.math.ChunkSectionPos;
@@ -27,6 +23,7 @@ import net.minecraft.util.math.Vec3d;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.Nullable;
 import org.joml.*;
+import org.lwjgl.opengl.GL11;
 import org.lwjgl.system.MemoryUtil;
 
 import java.lang.Math;
@@ -37,7 +34,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executor;
 import java.util.function.Consumer;
 import java.util.function.IntConsumer;
-import java.util.function.Supplier;
 
 import static lpctools.lpcfymasaapi.render.translucentShapes.TranslateMethod.PROJECTION__MODEL_VIEW;
 
@@ -46,20 +42,15 @@ import static lpctools.lpcfymasaapi.render.translucentShapes.TranslateMethod.PRO
 //  渲染优先级（或许可以在渲染选项中指定）
 public class RenderInstance implements QuietAutoCloseable, Registries.WorldPreMainRender, IRenderCallback {
 	private static final ConcurrentHashMap<RenderOption, RenderInstance> renderInstances = new ConcurrentHashMap<>();
-	
 	// 进行重排的最小tan值，值越小重排越频繁，也就越卡，但是对应地出现深度错误的情况越少
 	private static final double resortTan = 0.25;
 	private static final double resortTanSquare = resortTan * resortTan;
+	private static int glVertexArrayId = 0;
 	
-	private static final String baseLabel = "LPCTools TranslucentQuadsRenderInstance";
-	private static final Supplier<String> indexBufferLabel = () -> appendLabel("IndexBuffer");
-	private static final Supplier<String> vertexBufferLabel = () -> appendLabel("VertexBuffer");
 	// should only be modified in referred mixin
 	public static final Matrix4f worldBasicProjectionMatrix = new Matrix4f();
 	public static final Matrix4f worldProjectionMatrix = new Matrix4f();
 	public static final Matrix4f worldProjectionTranslateMatrix = new Matrix4f();
-	
-	private static String appendLabel(String tail) { return baseLabel + ' ' + tail; }
 	
 	// 比ChunkSection大一圈的Section，叫做Greater Section没什么不妥吧？
 	private static final int greaterExponent = 1;
@@ -92,8 +83,6 @@ public class RenderInstance implements QuietAutoCloseable, Registries.WorldPreMa
 	
 	private Registries.MASAWorldRenderContext recordedWorldRenderContext;
 	
-	private int sizePerVertex(){ return renderOption.pipeline().getVertexFormat().getVertexSize(); }
-	
 	private RenderInstance(RenderOption renderOption) {
 		this.renderOption = renderOption;
 		Registries.PRE_MAIN.register(this);
@@ -104,16 +93,11 @@ public class RenderInstance implements QuietAutoCloseable, Registries.WorldPreMa
 		return renderInstances.computeIfAbsent(renderOption, RenderInstance::new);
 	}
 	
-	public static RenderPipeline shapePipeline =
-		MaLiLibPipelines.POSITION_COLOR_MASA;
-		// MaLiLibPipelines.POSITION_COLOR_MASA_DEPTH_MASK;
 	
-	public static RenderPipeline linePipeline = MaLiLibPipelines.DEBUG_LINES_MASA_SIMPLE;
-	
-	public static RenderOption shapeOptionWithDepth = new RenderOption(shapePipeline, true, true, PROJECTION__MODEL_VIEW, RenderTiming.AFTER_TRANSLUCENT, ImmutableSet.of());
-	public static RenderOption shapeOptionDepthless = new RenderOption(shapePipeline, true, false, PROJECTION__MODEL_VIEW, RenderTiming.ON_LAST, ImmutableSet.of());
-	public static RenderOption lineOptionWithDepth = new RenderOption(linePipeline, true, true, PROJECTION__MODEL_VIEW, RenderTiming.AFTER_TRANSLUCENT, ImmutableSet.of());
-	public static RenderOption lineOptionDepthless = new RenderOption(linePipeline, true, false, PROJECTION__MODEL_VIEW, RenderTiming.ON_LAST, ImmutableSet.of());
+	public static RenderOption shapeOptionWithDepth = new RenderOption(ShaderProgramKeys.POSITION_COLOR, VertexFormats.POSITION_COLOR, VertexFormat.DrawMode.TRIANGLES, true, true, PROJECTION__MODEL_VIEW, RenderTiming.AFTER_TRANSLUCENT, ImmutableSet.of());
+	public static RenderOption shapeOptionDepthless = new RenderOption(ShaderProgramKeys.POSITION_COLOR, VertexFormats.POSITION_COLOR, VertexFormat.DrawMode.TRIANGLES, true, false, PROJECTION__MODEL_VIEW, RenderTiming.ON_LAST, ImmutableSet.of());
+	public static RenderOption lineOptionWithDepth = new RenderOption(ShaderProgramKeys.POSITION_COLOR, VertexFormats.POSITION_COLOR, VertexFormat.DrawMode.DEBUG_LINES, true, true, PROJECTION__MODEL_VIEW, RenderTiming.AFTER_TRANSLUCENT, ImmutableSet.of());
+	public static RenderOption lineOptionDepthless = new RenderOption(ShaderProgramKeys.POSITION_COLOR, VertexFormats.POSITION_COLOR, VertexFormat.DrawMode.DEBUG_LINES, true, false, PROJECTION__MODEL_VIEW, RenderTiming.ON_LAST, ImmutableSet.of());
 	
 	public static RenderInstance shapeInstanceWithDepth() { return getRenderInstance(shapeOptionWithDepth); }
 	public static RenderInstance shapeInstanceDepthless() { return getRenderInstance(shapeOptionDepthless); }
@@ -150,54 +134,42 @@ public class RenderInstance implements QuietAutoCloseable, Registries.WorldPreMa
 	@Override public void render() {
 		var context = recordedWorldRenderContext;
 		waitForTasks();
-		var commandEncoder = RenderSystem.getDevice().createCommandEncoder();
 		if(!subChunksNeedUpload.isEmpty()) {
-			for (var subChunk : subChunksNeedUpload) subChunk.upload(commandEncoder);
+			for (var subChunk : subChunksNeedUpload) subChunk.upload();
 			subChunksNeedUpload.clear();
 		}
-		var fb = context.fb();
-		GpuTexture colorAttachmentView = renderOption.useColorBuffer() ? fb.getColorAttachment() : null;
-		GpuTexture depthAttachmentView = renderOption.useDepthBuffer() ? (fb.useDepthAttachment ? fb.getDepthAttachment() : null) : null;
 		var camPos = context.camera().getPos();
-		Vector3f offset = new Vector3f();
 		Matrix4f modelViewMatrix = new Matrix4f(RenderSystem.getModelViewMatrix());
 		Matrix4f projectionMatrix = new Matrix4f(worldBasicProjectionMatrix);
-		boolean hasOffset = false;
 		switch (renderOption.translateMethod().projectionTranslationLocation) {
 			case PROJECTION -> projectionMatrix.mul(worldProjectionTranslateMatrix);
 			case MODEL_VIEW -> worldProjectionTranslateMatrix.mul(modelViewMatrix, modelViewMatrix);
-			case OFFSET -> {
-				worldProjectionTranslateMatrix.mul(modelViewMatrix, modelViewMatrix);
-				modelViewMatrix.get3x3(new Matrix3f()).invert().transform(modelViewMatrix.getColumn(3, offset));
-				offset.mul(-1);
-				modelViewMatrix.translate(offset);
-				offset.mul(-1);
-				hasOffset = true;
-			}
 		}
-		switch (renderOption.translateMethod().offsetLocation) {
-			case MODEL_VIEW -> modelViewMatrix.translate((float) (basePoint.x - camPos.x), (float) (basePoint.y - camPos.y), (float) (basePoint.z - camPos.z));
-			case OFFSET -> {
-				offset.add((float) (basePoint.x - camPos.x), (float) (basePoint.y - camPos.y), (float) (basePoint.z - camPos.z));
-				hasOffset = true;
-			}
+		if (Objects.requireNonNull(renderOption.translateMethod().offsetLocation) == TranslateMethod.Location.MODEL_VIEW) {
+			modelViewMatrix.translate((float) (basePoint.x - camPos.x), (float) (basePoint.y - camPos.y), (float) (basePoint.z - camPos.z));
 		}
+		
 		// z-fighting解决方案
 		// 或许可以把具有相似配置的RenderInstance一起绘制从而避免频繁的重设数据？
-		if(depthAttachmentView != null) projectionMatrix.m23(projectionMatrix.m23() - GenericUtils.zFightBias());
-		projectionMatrix.swap(RenderSystem.getProjectionMatrix());
-		modelViewMatrix.swap(RenderSystem.getModelViewMatrix());
-		try (RenderPass renderPass = commandEncoder
-			.createRenderPass(colorAttachmentView, OptionalInt.empty(), depthAttachmentView, OptionalDouble.empty())) {
-			renderPass.setPipeline(renderOption.pipeline());
-			if(hasOffset) renderPass.setUniform("offset", offset.x, offset.y, offset.z);
-			for(var extraBindings : renderOption.extraBindings())
-				extraBindings.bindExtra(renderPass);
+		if(renderOption.useDepthBuffer()) projectionMatrix.m23(projectionMatrix.m23() - GenericUtils.zFightBias());
+		if(glVertexArrayId == 0) glVertexArrayId = GlStateManager._glGenVertexArrays();
+		GlStateManager._glBindVertexArray(glVertexArrayId);
+		var program = RenderSystem.setShader(renderOption.shader());
+		if (program != null) {
+			program.initializeUniforms(renderOption.drawMode(), modelViewMatrix, projectionMatrix, MinecraftClient.getInstance().getWindow());
+			program.bind();
+			RenderSystem.depthMask(renderOption.useDepthBuffer());
+			boolean isBlendEnabled = GL11.glIsEnabled(GL11.GL_BLEND);
+			if(!isBlendEnabled) RenderSystem.enableBlend();
+			for(var extraBindings : renderOption.extraOperations())
+				extraBindings.run();
 			for (var subChunk : sortedRenderSubChunks)
-				subChunk.render(renderPass);
+				subChunk.render();
+			RenderSystem.depthMask(true);
+			if(!isBlendEnabled) RenderSystem.disableBlend();
+			program.unbind();
 		}
-		modelViewMatrix.swap(RenderSystem.getModelViewMatrix());
-		projectionMatrix.swap(RenderSystem.getProjectionMatrix());
+		GlStateManager._glBindVertexArray(0);
 	}
 	
 	@Override public void onRenderWorldPreMain(Registries.MASAWorldRenderContext context) {
@@ -223,6 +195,10 @@ public class RenderInstance implements QuietAutoCloseable, Registries.WorldPreMa
 		sortedRenderSubChunks.clear();
 		subChunksNeedUpload.clear();
 		subChunkSortingCache.close();
+		if(glVertexArrayId != 0) {
+			GlStateManager._glDeleteVertexArrays(glVertexArrayId);
+			glVertexArrayId = 0;
+		}
 		
 		Registries.PRE_MAIN.unregister(this);
 		renderOption.timing().unregister(this);
@@ -425,7 +401,7 @@ public class RenderInstance implements QuietAutoCloseable, Registries.WorldPreMa
 		
 		void buildVertexByteBuffer(){
 			if(vertexBufferToUpload != null) MemoryUtil.memFree(vertexBufferToUpload);
-			int vertexSize = sizePerVertex();
+			int vertexSize = renderOption.vertexFormat().getVertexSizeByte();
 			vertexBufferToUpload = MemoryUtil.memAlloc(vertices_size * vertexSize);
 			indexType = vertices_size > 65536 ? VertexFormat.IndexType.INT : VertexFormat.IndexType.SHORT;
 			int gpuIndex = 0;
@@ -480,31 +456,27 @@ public class RenderInstance implements QuietAutoCloseable, Registries.WorldPreMa
 			indexBufferToUpload.flip();
 		}
 		
-		void upload(CommandEncoder encoder){
+		void upload(){
 			if(indexBufferToUpload == null) return;
 			
 			int requiredIndexSize = indexBufferToUpload.limit();
-			if(indexBuffer == null || indexBuffer.size() < requiredIndexSize){
-				int oldSize = indexBuffer == null ? 0 : indexBuffer.size();
+			if(indexBuffer == null || indexBuffer.size < requiredIndexSize){
+				int oldSize = indexBuffer == null ? 0 : indexBuffer.size;
 				if(indexBuffer != null) indexBuffer.close();
-				indexBuffer = RenderSystem.getDevice().createBuffer(
-					indexBufferLabel, BufferType.INDICES, BufferUsage.DYNAMIC_WRITE,
-					Math.max(oldSize * 2, requiredIndexSize));
+				indexBuffer = new GpuBuffer(GlBufferTarget.INDICES, GlUsage.DYNAMIC_WRITE, Math.max(oldSize * 2, requiredIndexSize));
 			}
-			encoder.writeToBuffer(indexBuffer, indexBufferToUpload, 0);
+			indexBuffer.copyFrom(indexBufferToUpload, 0);
 			MemoryUtil.memFree(indexBufferToUpload);
 			indexBufferToUpload = null;
 			
 			if(vertexBufferToUpload != null) {
 				int requiredVertexSize = vertexBufferToUpload.limit();
-				if(vertexBuffer == null || vertexBuffer.size() < requiredVertexSize){
-					int oldSize = vertexBuffer == null ? 0 : vertexBuffer.size();
+				if(vertexBuffer == null || vertexBuffer.size < requiredVertexSize){
+					int oldSize = vertexBuffer == null ? 0 : vertexBuffer.size;
 					if(vertexBuffer != null) vertexBuffer.close();
-					vertexBuffer = RenderSystem.getDevice().createBuffer(
-						vertexBufferLabel, BufferType.VERTICES, BufferUsage.DYNAMIC_WRITE,
-						Math.max(oldSize * 2, requiredVertexSize));
+					vertexBuffer = new GpuBuffer(GlBufferTarget.VERTICES, GlUsage.DYNAMIC_WRITE, Math.max(oldSize * 2, requiredVertexSize));
 				}
-				encoder.writeToBuffer(vertexBuffer, vertexBufferToUpload, 0);
+				vertexBuffer.copyFrom(vertexBufferToUpload, 0);
 				MemoryUtil.memFree(vertexBufferToUpload);
 				vertexBufferToUpload = null;
 			}
@@ -513,11 +485,13 @@ public class RenderInstance implements QuietAutoCloseable, Registries.WorldPreMa
 			uploadedSize = requiredIndexSize / indexType.size;
 		}
 		
-		void render(RenderPass renderPass) {
+		void render() {
 			if(!veryInitialized) return;
-			renderPass.setVertexBuffer(0, vertexBuffer);
-			renderPass.setIndexBuffer(indexBuffer, indexType);
-			renderPass.drawIndexed(0, uploadedSize);
+			vertexBuffer.bind();
+			// Ensure vertex attribute pointers are set for the currently bound VBO so the VAO references the correct buffer
+			renderOption.vertexFormat().setupState();
+			indexBuffer.bind();
+			GL11.glDrawElements(renderOption.drawMode().glMode, uploadedSize, indexType.glType, 0);
 		}
 		
 		@Contract("_,_->null")

@@ -6,7 +6,7 @@ import lpctools.LPCTools;
 import lpctools.lpcfymasaapi.LPCAPIInit;
 import lpctools.mixin.client.accessors.ClientChunkAccessor;
 import lpctools.mixin.client.accessors.ClientChunkMapAccessor;
-import lpctools.mixin.client.accessors.MatrixStackEntryAccessor;
+import lpctools.mixinInterfaces.minecraft.IMatrixStackEntryMixin;
 import lpctools.util.javaex.Object2BooleanFunction;
 import net.minecraft.block.Block;
 import net.minecraft.client.MinecraftClient;
@@ -289,6 +289,6 @@ public class DataUtils {
 		};
     }
     public static void copy(MatrixStack.Entry dst, MatrixStack.Entry src){
-        ((MatrixStackEntryAccessor)(Object)dst).invokeCopy(src);
+        ((IMatrixStackEntryMixin)(Object)dst).lPCTools$copy(src);
     }
 }

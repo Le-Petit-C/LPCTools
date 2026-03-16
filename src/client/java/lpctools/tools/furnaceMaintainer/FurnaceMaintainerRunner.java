@@ -60,7 +60,7 @@ public class FurnaceMaintainerRunner implements QuietAutoCloseable, ClientTickEv
         }
         if(MinecraftClient.getInstance().options.sneakKey.isPressed()) return;
         int requiredEmptyStackCount = includesHopperAbove.getBooleanValue() ? 5 : 1;
-        for(ItemStack stack : player.getInventory().getMainStacks()){
+        for(ItemStack stack : player.getInventory().main){
             if(stack.isEmpty()){
                 if(--requiredEmptyStackCount <= 0)
                     break;

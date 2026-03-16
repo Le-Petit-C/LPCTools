@@ -1,6 +1,6 @@
 package lpctools.tools.slightXRay;
 
-import fi.dy.masa.malilib.util.data.Color4f;
+import fi.dy.masa.malilib.util.Color4f;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import lpctools.lpcfymasaapi.configButtons.derivedConfigs.ConfigListOptionListConfigEx;
 import lpctools.lpcfymasaapi.configButtons.derivedConfigs.RangeLimitConfig;
@@ -12,7 +12,6 @@ import lpctools.tools.ToolConfigs;
 import lpctools.util.DataUtils;
 import net.minecraft.block.Block;
 import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.render.model.BlockStateModel;
 import net.minecraft.client.texture.NativeImage;
 import net.minecraft.client.texture.Sprite;
 import org.apache.commons.lang3.mutable.MutableInt;
@@ -29,6 +28,7 @@ import static lpctools.util.DataUtils.*;
 // TODO
 //  bug:开着SlightXRay同时渲染范围限制有效，此时进入世界时会有一些期望的范围外的方块被标注
 //  暂时不知道如何修复
+@SuppressWarnings("deprecation")
 public class SlightXRay{
     public static final BooleanHotkeyThirdListConfig SXConfig = new BooleanHotkeyThirdListConfig(ToolConfigs.toolConfigs, "SX", SlightXRay::switchChanged);
     public static final ColoredBlockListConfig XRayBlocksConfig = new ColoredBlockListConfig(SXConfig, "XRayBlocks");
@@ -63,9 +63,9 @@ public class SlightXRay{
     private static int getColorByTextureColor(Block block) {
         int alphaMask = defaultAlpha.getAsInt() << 24;
         try{ // TODO: 延迟获取颜色（应该等到材质包加载完成之后。。。），否则会引发一大堆NullPointerException
-            BlockStateModel model = MinecraftClient.getInstance().getBlockRenderManager()
+            var model = MinecraftClient.getInstance().getBlockRenderManager()
                 .getModel(block.getDefaultState());
-            Sprite particleSprite = model.particleSprite();
+            Sprite particleSprite = model.getParticleSprite();
             float r = 0, g = 0, b = 0;
             float t = 0;
             for(NativeImage image : ((SpriteContentsMixin)particleSprite.getContents()).getMipmapLevelsImages()){

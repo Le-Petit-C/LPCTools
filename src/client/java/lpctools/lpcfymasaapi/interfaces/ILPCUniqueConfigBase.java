@@ -130,7 +130,7 @@ public interface ILPCUniqueConfigBase extends ILPCUniqueConfig, IConfigBase, ILP
     static ButtonOption iconButtonPreset(MaLiLibIcons icon, @Nullable IButtonActionListener actionListener, @Nullable Supplier<@Nullable String> buttonId){
         return new ButtonOption(ButtonWeightType.WIDTH, 16, actionListener, buttonId, iconButtonAllocator(icon, 16, LeftRight.CENTER));
     }
-    static IButtonAllocator colorEditorAllocator(IConfigColor config){
+    static IButtonAllocator colorEditorAllocator(IConfigInteger config){
         return (x, y, w, h, key, listener, consumer, reset)->consumer.addWidget(new WidgetColorIndicator(x, y + 1, 19, 19, config));
     }
     static ButtonOption buttonBooleanPreset(float widthWeight, IConfigBoolean configBoolean){

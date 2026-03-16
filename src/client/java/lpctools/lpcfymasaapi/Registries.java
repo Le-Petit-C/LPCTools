@@ -11,7 +11,6 @@ import net.fabricmc.fabric.api.resource.ResourceManagerHelper;
 import net.fabricmc.fabric.api.resource.SimpleSynchronousResourceReloadListener;
 import net.minecraft.block.BlockState;
 import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.gl.Framebuffer;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.render.*;
@@ -31,7 +30,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Matrix4f;
 
-import java.util.function.Consumer;
+import java.util.List;
 
 public class Registries {
     public static final UnregistrableRegistry<ClientWorldEvents.AfterClientWorldChange> AFTER_CLIENT_WORLD_CHANGE = new UnregistrableRegistry<>(
@@ -82,8 +81,6 @@ public class Registries {
         callbacks->(a, b, c)->callbacks.forEach(renderer->renderer.renderOverlayLast(a, b, c)));
     public static final UnregistrableRegistry<GameOverlayRender> MASA_RENDER_GAME_OVERLAY = new UnregistrableRegistry<>(
         callbacks->(a, b, c)->callbacks.forEach(renderer->renderer.renderGameOverlay(a, b, c)));
-    public static final UnregistrableRegistry<PostDebugRender> MASA_RENDER_POST_DEBUG = new UnregistrableRegistry<>(
-        callbacks->(a, b, c, d, e)->callbacks.forEach(renderer->renderer.renderPostDebug(a, b, c, d, e)));
     public static final UnregistrableRegistry<WorldPreWeatherRender> MASA_RENDER_WORLD_PRE_WEATHER = new UnregistrableRegistry<>(
         callbacks->c->callbacks.forEach(renderer->renderer.onRenderWorldPreWeather(c)));
     public static final UnregistrableRegistry<WorldLastRender> MASA_WORLD_RENDER_LAST = new UnregistrableRegistry<>(
@@ -134,7 +131,6 @@ public class Registries {
         WorldRenderEvents.END.register(ON_END.runner());
         var overlayLastRenderer = MASA_RENDER_OVERLAY_LAST.runner();
         var overlayRenderer = MASA_RENDER_GAME_OVERLAY.runner();
-        var postDebugRender = MASA_RENDER_POST_DEBUG.runner();
         var worldPreWeatherRenderer = MASA_RENDER_WORLD_PRE_WEATHER.runner();
         var worldLastRenderer = MASA_WORLD_RENDER_LAST.runner();
         var toolTipComponentInsertFirstRenderer = MASA_RENDER_TOOLTIP_COMPONENT_INSERTION_FIRST.runner();
@@ -148,22 +144,19 @@ public class Registries {
             @Override public void onRenderGameOverlayPostAdvanced(DrawContext ctx, float partialTicks, Profiler profiler, MinecraftClient mc) {
                 overlayRenderer.renderGameOverlay(ctx, partialTicks, profiler);
             }
-            @Override public void onRenderWorldPostDebugRender(MatrixStack matrices, Frustum frustum, VertexConsumerProvider.Immediate immediate, Vec3d camera, Profiler profiler) {
-                postDebugRender.renderPostDebug(matrices, frustum, immediate, camera, profiler);
+            @Override public void onRenderWorldPreWeather(Matrix4f posMatrix, Matrix4f projMatrix, Frustum frustum, Camera camera, Fog fog, Profiler profiler) {
+                worldPreWeatherRenderer.onRenderWorldPreWeather(new MASAWorldRenderContext(posMatrix, projMatrix, frustum, camera, profiler));
             }
-            @Override public void onRenderWorldPreWeather(Framebuffer fb, Matrix4f posMatrix, Matrix4f projMatrix, Frustum frustum, Camera camera, Fog fog, BufferBuilderStorage buffers, Profiler profiler) {
-                worldPreWeatherRenderer.onRenderWorldPreWeather(new MASAWorldRenderContext(fb, posMatrix, projMatrix, frustum, camera, buffers, profiler));
+            @Override public void onRenderWorldLastAdvanced(Matrix4f posMatrix, Matrix4f projMatrix, Frustum frustum, Camera camera, Fog fog, Profiler profiler) {
+                worldLastRenderer.onLast(new MASAWorldRenderContext(posMatrix, projMatrix, frustum, camera, profiler));
             }
-            @Override public void onRenderWorldLastAdvanced(Framebuffer fb, Matrix4f posMatrix, Matrix4f projMatrix, Frustum frustum, Camera camera, Fog fog, BufferBuilderStorage buffers, Profiler profiler) {
-                worldLastRenderer.onLast(new MASAWorldRenderContext(fb, posMatrix, projMatrix, frustum, camera, buffers, profiler));
-            }
-            @Override public void onRenderTooltipComponentInsertFirst(Item.TooltipContext context, ItemStack stack, Consumer<Text> list) {
+            @Override public void onRenderTooltipComponentInsertFirst(Item.TooltipContext context, ItemStack stack, List<Text> list) {
                 toolTipComponentInsertFirstRenderer.onRenderTooltipComponentInsertFirst(context, stack, list);
             }
-            @Override public void onRenderTooltipComponentInsertMiddle(Item.TooltipContext context, ItemStack stack, Consumer<Text> list) {
+            @Override public void onRenderTooltipComponentInsertMiddle(Item.TooltipContext context, ItemStack stack, List<Text> list) {
                 toolTipComponentInsertMiddleRenderer.onRenderTooltipComponentInsertMiddle(context, stack, list);
             }
-            @Override public void onRenderTooltipComponentInsertLast(Item.TooltipContext context, ItemStack stack, Consumer<Text> list) {
+            @Override public void onRenderTooltipComponentInsertLast(Item.TooltipContext context, ItemStack stack, List<Text> list) {
                 toolTipComponentInsertLastRenderer.onRenderTooltipComponentInsertLast(context, stack, list);
             }
             @Override public void onRenderTooltipLast(DrawContext ctx, ItemStack stack, int x, int y) {
@@ -173,7 +166,6 @@ public class Registries {
         var malilibRenderEventHandler = RenderEventHandler.getInstance();
         malilibRenderEventHandler.registerGameOverlayRenderer(malilibRenderer);
         malilibRenderEventHandler.registerTooltipLastRenderer(malilibRenderer);
-        malilibRenderEventHandler.registerWorldPostDebugRenderer(malilibRenderer);
         malilibRenderEventHandler.registerWorldPreWeatherRenderer(malilibRenderer);
         malilibRenderEventHandler.registerWorldLastRenderer(malilibRenderer);
     }
@@ -191,10 +183,7 @@ public class Registries {
     public interface GameOverlayRender {
         void renderGameOverlay(DrawContext ctx, float partialTicks, Profiler profiler);
     }
-    public interface PostDebugRender {
-        void renderPostDebug(MatrixStack matrices, Frustum frustum, VertexConsumerProvider.Immediate immediate, Vec3d camera, Profiler profiler);
-    }
-    public record MASAWorldRenderContext(Framebuffer fb, Matrix4f positionMatrix, Matrix4f projectionMatrix, Frustum frustum, Camera camera, BufferBuilderStorage buffers, Profiler profiler) {}
+    public record MASAWorldRenderContext(Matrix4f positionMatrix, Matrix4f projectionMatrix, Frustum frustum, Camera camera, Profiler profiler) {}
     public interface WorldPreMainRender {
         void onRenderWorldPreMain(MASAWorldRenderContext context);
     }
@@ -205,13 +194,13 @@ public class Registries {
         void onLast(MASAWorldRenderContext context);
     }
     public interface TooltipComponentInsertFirstRender {
-        void onRenderTooltipComponentInsertFirst(Item.TooltipContext context, ItemStack stack, Consumer<Text> list);
+        void onRenderTooltipComponentInsertFirst(Item.TooltipContext context, ItemStack stack, List<Text> list);
     }
     public interface TooltipComponentInsertMiddleRender {
-        void onRenderTooltipComponentInsertMiddle(Item.TooltipContext context, ItemStack stack, Consumer<Text> list);
+        void onRenderTooltipComponentInsertMiddle(Item.TooltipContext context, ItemStack stack, List<Text> list);
     }
     public interface TooltipComponentInsertLastRender {
-        void onRenderTooltipComponentInsertLast(Item.TooltipContext context, ItemStack stack, Consumer<Text> list);
+        void onRenderTooltipComponentInsertLast(Item.TooltipContext context, ItemStack stack, List<Text> list);
     }
     public interface TooltipLastRender {
         void onRenderTooltipLast(DrawContext ctx, ItemStack stack, int x, int y);

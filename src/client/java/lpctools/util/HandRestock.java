@@ -40,7 +40,7 @@ public class HandRestock {
         PlayerInventory inventory = player.getInventory();
         var slots = player.currentScreenHandler.slots;
         if(offhandPriority == -1 && restockTest.isStackOk(inventory.getStack(PlayerInventory.OFF_HAND_SLOT))) return -2;
-        if(restockTest.isStackOk(inventory.getSelectedStack())) return getHotbarStartSlotIndex(player) + inventory.getSelectedSlot();
+        if(restockTest.isStackOk(inventory.getMainHandStack())) return getHotbarStartSlotIndex(player) + inventory.selectedSlot;
         if(offhandPriority == 0 && restockTest.isStackOk(inventory.getStack(PlayerInventory.OFF_HAND_SLOT))) return -2;
         for (int i = 0; i < slots.size(); i++) {
             Slot slot = slots.get(i);
@@ -68,11 +68,11 @@ public class HandRestock {
             if(i != -2) itm.clickSlot(player.currentScreenHandler.syncId, i, PlayerInventory.OFF_HAND_SLOT, SlotActionType.SWAP, player);
         }
         else{
-            if(i == -2) itm.clickSlot(player.currentScreenHandler.syncId, getHotbarStartSlotIndex(player) + inventory.getSelectedSlot(), PlayerInventory.OFF_HAND_SLOT, SlotActionType.SWAP, player);
+            if(i == -2) itm.clickSlot(player.currentScreenHandler.syncId, getHotbarStartSlotIndex(player) + inventory.selectedSlot, PlayerInventory.OFF_HAND_SLOT, SlotActionType.SWAP, player);
             else {
                 int hotbarStart = getHotbarStartSlotIndex(player);
                 if(i >= hotbarStart && i < hotbarStart + 9) inventory.setSelectedSlot(i - hotbarStart);
-                else itm.clickSlot(player.currentScreenHandler.syncId, i, inventory.getSelectedSlot(), SlotActionType.SWAP, player);
+                else itm.clickSlot(player.currentScreenHandler.syncId, i, inventory.selectedSlot, SlotActionType.SWAP, player);
             }
         }
         return player.isCreative() ? 64 : count;

@@ -20,7 +20,6 @@ public enum StackGetter {
 	CHEST_STACK(entity -> entity.getEquippedStack(EquipmentSlot.CHEST), Text.translatable("lpctools.script.utils.stackGetter.chestStack"), "chest"),
 	HEAD_STACK(entity -> entity.getEquippedStack(EquipmentSlot.HEAD), Text.translatable("lpctools.script.utils.stackGetter.headStack"), "head"),
 	BODY_STACK(entity -> entity.getEquippedStack(EquipmentSlot.BODY), Text.translatable("lpctools.script.utils.stackGetter.bodyStack"), "body"),
-	SADDLE_STACK(entity -> entity.getEquippedStack(EquipmentSlot.SADDLE), Text.translatable("lpctools.script.utils.stackGetter.saddleStack"), "saddle"),
 	LEFT_HAND_STACK(entity -> entity.getStackInArm(Arm.LEFT), Text.translatable("lpctools.script.utils.stackGetter.leftHandStack"), "leftHand"),
 	RIGHT_HAND_STACK(entity -> entity.getStackInArm(Arm.RIGHT), Text.translatable("lpctools.script.utils.stackGetter.rightHandStack"), "rightHand"),;
 	private final Function<LivingEntity, ItemStack> slotGetter;

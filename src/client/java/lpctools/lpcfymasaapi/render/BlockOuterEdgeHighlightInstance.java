@@ -170,12 +170,12 @@ public class BlockOuterEdgeHighlightInstance implements AutoCloseable, ClientWor
         class Temp{
             static final int[][] quadOffsets = new int[Direction.values().length][];
             static {
-                quadOffsets[Direction.WEST .getIndex()] = new int[]{Direction.WEST .getIndex(),-1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0};
-                quadOffsets[Direction.EAST .getIndex()] = new int[]{Direction.EAST .getIndex(), 1, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1};
-                quadOffsets[Direction.DOWN .getIndex()] = new int[]{Direction.DOWN .getIndex(), 0,-1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1};
-                quadOffsets[Direction.UP   .getIndex()] = new int[]{Direction.UP   .getIndex(), 0, 1, 0, 0, 1, 0, 0, 0, 1, 1, 0, 0};
-                quadOffsets[Direction.NORTH.getIndex()] = new int[]{Direction.NORTH.getIndex(), 0, 0,-1, 0, 0, 0, 0, 1, 0, 1, 0, 0};
-                quadOffsets[Direction.SOUTH.getIndex()] = new int[]{Direction.SOUTH.getIndex(), 0, 0, 1, 0, 0, 1, 1, 0, 0, 0, 1, 0};
+                quadOffsets[Direction.WEST .getId()] = new int[]{Direction.WEST .getId(),-1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0};
+                quadOffsets[Direction.EAST .getId()] = new int[]{Direction.EAST .getId(), 1, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1};
+                quadOffsets[Direction.DOWN .getId()] = new int[]{Direction.DOWN .getId(), 0,-1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1};
+                quadOffsets[Direction.UP   .getId()] = new int[]{Direction.UP   .getId(), 0, 1, 0, 0, 1, 0, 0, 0, 1, 1, 0, 0};
+                quadOffsets[Direction.NORTH.getId()] = new int[]{Direction.NORTH.getId(), 0, 0,-1, 0, 0, 0, 0, 1, 0, 1, 0, 0};
+                quadOffsets[Direction.SOUTH.getId()] = new int[]{Direction.SOUTH.getId(), 0, 0, 1, 0, 0, 1, 1, 0, 0, 0, 1, 0};
             }
         }
         for(var o : Temp.quadOffsets){
@@ -183,9 +183,9 @@ public class BlockOuterEdgeHighlightInstance implements AutoCloseable, ClientWor
 				//noinspection resource
 				quads[o[0]] = shapeRegister.register(new Quad(x + o[4], y + o[5], z + o[6], o[7], o[8], o[9], o[10], o[11], o[12], color, useCullFace));
             else {
-                Direction attachedDirection = Direction.byIndex(o[0]);
+                Direction attachedDirection = Direction.byId(o[0]);
                 Direction oppositeDirection = attachedDirection.getOpposite();
-                int oppositeIndex = oppositeDirection.getIndex();
+                int oppositeIndex = oppositeDirection.getId();
                 long attachedBlockPos = BlockPos.offset(packedBlockPos, attachedDirection);
                 var attached = chunkedGet(posQuads, attachedBlockPos);
                 if(attached != null && attached[oppositeIndex] != null) {

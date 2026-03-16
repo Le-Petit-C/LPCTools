@@ -30,9 +30,8 @@ public class GuiUtils {
     
     public static void cursorInfo(Object2LongOpenHashMap<WidgetBase> infoWidgets, String text, int sustainMillis, int screenWidth){
         var mouse = MinecraftClient.getInstance().mouse;
-        var window = MinecraftClient.getInstance().getWindow();
         WHAutoAdjustStringWidget widget = new WHAutoAdjustStringWidget(
-            (int)mouse.getScaledX(window), (int)mouse.getScaledY(window),
+            (int)mouse.getX(), (int)mouse.getY(),
             WHAutoAdjustStringWidget.Align.RIGHT_UP, text
         );
         if(widget.getX() + widget.getWidth() > screenWidth) widget.setAlign(widget.getAlign().XOpposite());

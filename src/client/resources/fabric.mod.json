@@ -34,13 +34,13 @@
 	"depends": {
 		"fabricloader": "*",
 		"minecraft": [
-			"1.21.5"
+			"1.21.4"
 		],
 		"java": ">=21",
 		"malilib": "*",
 		"fabric-api": "*"
 	},
 	"suggests": {
-		"malilib": "0.24.3"
+		"malilib": "0.23.5"
 	}
 }

@@ -34,7 +34,6 @@ public class DebugConfigs {
     public static final BooleanConfig showExecuteTime = addBooleanConfig("showExecuteTime", false);
     public static final HotkeyConfig getBlockStateHotkey = addHotkeyConfig("getBlockStateHotkey", "", DebugConfigs::getBlockStateHotkeyCallback);
     public static final BooleanConfig briefBlockState = addBooleanConfig("briefBlockState", true);
-    public static final MandelbrotSetRender mandelbrotSetRender = addConfig(new MandelbrotSetRender(debugs));
     public static final BooleanHotkeyThirdListConfig booleanHotkeyThirdListTest =
         addBooleanHotkeyThirdListConfig(debugs, "booleanHotkeyThirdListTest", false, null, DebugConfigs::booleanHotkeyThirdListTestCallback);
     public static final UniqueIntegerConfig uniqueIntegerConfigTest = booleanHotkeyThirdListTest.addConfig(new UniqueIntegerConfig(booleanHotkeyThirdListTest, "uniqueIntegerConfigTest", 0));

@@ -187,8 +187,8 @@ public class SelectionScreen<T> extends GuiBase {
 	
 	@Override public void render(DrawContext context, int mouseX, int mouseY, float deltaTicks) {
 		var client = MinecraftClient.getInstance();
-		double dMouseX = client.mouse.getScaledX(client.getWindow());
-		double dMouseY = client.mouse.getScaledY(client.getWindow());
+		double dMouseX = client.mouse.getX();
+		double dMouseY = client.mouse.getY();
 		tickScrollBarInfo(scrollBarInfo, millisTimer);
 		var parent = getParent();
 		if(parent != null) parent.render(context, -1, -1, deltaTicks);

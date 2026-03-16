@@ -2,7 +2,7 @@ package lpctools.lpcfymasaapi.configButtons.uniqueConfigs;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonPrimitive;
-import fi.dy.masa.malilib.config.IConfigColor;
+import fi.dy.masa.malilib.config.IConfigInteger;
 import fi.dy.masa.malilib.util.data.Color4f;
 import lpctools.lpcfymasaapi.configButtons.UpdateTodo;
 import lpctools.lpcfymasaapi.interfaces.ILPCConfigReadable;
@@ -13,7 +13,7 @@ import org.jetbrains.annotations.Nullable;
 
 import static lpctools.lpcfymasaapi.LPCConfigUtils.warnFailedLoadingConfig;
 
-public class UniqueColorConfig extends LPCUniqueConfigBase implements IConfigColor {
+public class UniqueColorConfig extends LPCUniqueConfigBase implements IConfigInteger {
     private Color4f color;
     protected Color4f defaultColor;
     
@@ -27,8 +27,8 @@ public class UniqueColorConfig extends LPCUniqueConfigBase implements IConfigCol
     public UniqueColorConfig(@NotNull ILPCConfigReadable parent, @NotNull String nameKey, int defaultColor) {
         this(parent, nameKey, defaultColor, null);
     }
-    
-    @Override public Color4f getColor() {return color;}
+    // @Override
+    public Color4f getColor() {return color;}
     public void setColor(Color4f color) {
         if(!color.equals(this.color)){
             this.color = color;

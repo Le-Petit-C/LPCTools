@@ -6,7 +6,7 @@ import fi.dy.masa.malilib.config.IConfigOptionListEntry;
 import fi.dy.masa.malilib.gui.button.IButtonActionListener;
 import fi.dy.masa.malilib.hotkeys.IHotkeyCallback;
 import fi.dy.masa.malilib.hotkeys.KeybindSettings;
-import fi.dy.masa.malilib.util.data.Color4f;
+import fi.dy.masa.malilib.util.Color4f;
 import lpctools.lpcfymasaapi.configButtons.derivedConfigs.*;
 import lpctools.lpcfymasaapi.configButtons.transferredConfigs.*;
 import lpctools.lpcfymasaapi.configButtons.uniqueConfigs.*;
@@ -22,7 +22,7 @@ import java.util.Map;
 import java.util.Stack;
 import java.util.function.*;
 
-@SuppressWarnings({"unused", "UnusedReturnValue", "resource"})
+@SuppressWarnings({"unused", "UnusedReturnValue", "resource", "deprecation"})
 public interface LPCConfigStatics {
     //加入的配置无法删除
     //加入的配置不会立刻从文件中加载已有的设定，直到loadFromConfigPageJson被调用（一般来自LPCConfigPage中的load()），

@@ -29,7 +29,7 @@ public class ConstantDirection extends AbstractScript implements IDirectionSuppl
 	@Override public void setValueFromJsonElement(@Nullable JsonElement element) {
 		if(element == null) return;
 		if(!(element instanceof JsonPrimitive primitive) ||
-			!(Direction.byId(primitive.getAsString()) instanceof Direction direction)){
+			!(Direction.byName(primitive.getAsString()) instanceof Direction direction)){
 			warnFailedLoadingConfig("ConstantInteger", element);
 			return;
 		}
@@ -39,10 +39,10 @@ public class ConstantDirection extends AbstractScript implements IDirectionSuppl
 	
 	private @NotNull ButtonGeneric getSwitchButton(){
 		if(switchButton == null){
-			switchButton = new ButtonGeneric(0, 0, 100, 20, value.getId());
+			switchButton = new ButtonGeneric(0, 0, 100, 20, value.getName());
 			switchButton.setActionListener((button, mouseButton)->{
-				value = Direction.byIndex(value.getIndex() + 1);
-				switchButton.setDisplayString(value.getId());
+				value = Direction.byId(value.getId() + 1);
+				switchButton.setDisplayString(value.name());
 			});
 		}
 		return switchButton;

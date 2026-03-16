@@ -16,7 +16,6 @@
 		"accessors.ClientChunkMapAccessor",
 		"accessors.GuiBaseAccessor",
 		"accessors.LayerRangeAccessor",
-		"accessors.MatrixStackEntryAccessor",
 		"accessors.TextFieldWidgetAccessor",
 		"AutoReconnect.ConnectScreenMixin",
 		"AutoReconnect.DisconnectedScreenMixin",
@@ -47,6 +46,7 @@
 		"TweakerooMixin.ConfigsMixin",
 		"TweakerooMixin.GuiConfigsMixin",
 		"tweaks.barTweak.ClientPlayerInteractionManagerMixin",
+		"utils.MatrixStackEntryMixin",
 		"utils.RenderInstance"
 	],
 	"injectors": {

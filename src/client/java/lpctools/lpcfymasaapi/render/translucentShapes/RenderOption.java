@@ -1,11 +1,12 @@
 package lpctools.lpcfymasaapi.render.translucentShapes;
 
 import com.google.common.collect.ImmutableSet;
-import com.mojang.blaze3d.pipeline.RenderPipeline;
+import net.minecraft.client.gl.ShaderProgramKey;
+import net.minecraft.client.render.VertexFormat;
 import org.jetbrains.annotations.NotNull;
 
-public record RenderOption(RenderPipeline pipeline, boolean useColorBuffer, boolean useDepthBuffer,
-						   TranslateMethod translateMethod, RenderTiming timing, @NotNull ImmutableSet<ExtraBindings> extraBindings) {
+public record RenderOption(ShaderProgramKey shader, VertexFormat vertexFormat, VertexFormat.DrawMode drawMode, boolean useColorBuffer, boolean useDepthBuffer,
+						   TranslateMethod translateMethod, RenderTiming timing, @NotNull ImmutableSet<Runnable> extraOperations) {
 	public RenderOption {
 		if (!useColorBuffer && !useDepthBuffer)
 			throw new IllegalArgumentException("writeDepth and writeBuffer cannot be false for both");

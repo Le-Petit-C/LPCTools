@@ -29,6 +29,6 @@ public abstract class MixinWorldRenderer
 			shift = At.Shift.BEFORE))
 	private void lpctools_onRenderWorldMain(ObjectAllocator allocator, RenderTickCounter tickCounter, boolean renderBlockOutline, Camera camera, GameRenderer gameRenderer, Matrix4f positionMatrix, Matrix4f projectionMatrix, CallbackInfo ci, @Local Profiler profiler, @Local Frustum frustum, @Local FrameGraphBuilder frameGraphBuilder)
 	{
-		RenderEventHandler.runRenderWorldPreMain(positionMatrix, projectionMatrix, this.client, frameGraphBuilder, this.framebufferSet, frustum, camera, this.bufferBuilders, profiler);
+		RenderEventHandler.runRenderWorldPreMain(positionMatrix, projectionMatrix, this.client, frameGraphBuilder, this.framebufferSet, frustum, camera, profiler);
 	}
 }
