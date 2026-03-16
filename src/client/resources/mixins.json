@@ -55,6 +55,7 @@
 	"mixins": [
 		"accessors.BlockItemAccessor",
 		"accessors.ClientChunkAccessor",
+		"MASAMixins.RenderUtilsMixin",
 		"tweaks.blockReplaceHotkey.BlockItemMixin",
 		"utils.PacketRecorder"
 	]
