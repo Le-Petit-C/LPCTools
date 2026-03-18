@@ -12,10 +12,20 @@ public interface IPositionColorLineWidthVertex extends IPositionVertex, IColorVe
 		setLineWidth(lineWidth);
 	}
 	
-	default void setPositionColor(Vector3d position, int color, float lineWidth) {
+	default void setPositionColorLineWidth(Vector3d position, int color, float lineWidth) {
 		setPosition(position);
 		setColor(color);
 		setLineWidth(lineWidth);
+	}
+	
+	default void setPositionColor(Vector3d position, int color) {
+		setPosition(position);
+		setColor(color);
+	}
+	
+	default void setPositionColor(double x, double y, double z, int color) {
+		setPosition(x, y, z);
+		setColor(color);
 	}
 	
 	@Override default void putBytesRelatively(ByteBuffer buffer, double camX, double camY, double camZ) {
