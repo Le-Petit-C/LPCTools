@@ -1,4 +1,4 @@
-package lpctools.mixin.client.HappyGhastRidingTweak;
+package lpctools.mixin.client.tweaks.happyGhastRidingTweak;
 
 import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
 import net.minecraft.client.MinecraftClient;

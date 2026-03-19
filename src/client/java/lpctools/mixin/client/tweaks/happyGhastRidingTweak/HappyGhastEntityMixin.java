@@ -1,4 +1,4 @@
-package lpctools.mixin.client.HappyGhastRidingTweak;
+package lpctools.mixin.client.tweaks.happyGhastRidingTweak;
 
 import com.llamalad7.mixinextras.sugar.Local;
 import lpctools.tweaks.HappyGhastRidingTweak;
