@@ -1,4 +1,4 @@
-package lpctools.mixin.client.enchantmentLevelFix;
+package lpctools.mixin.client.tweaks.enchantmentLevelFix;
 
 import net.minecraft.client.resource.language.TranslationStorage;
 import org.spongepowered.asm.mixin.Mixin;

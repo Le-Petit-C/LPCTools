@@ -1,5 +1,6 @@
-package lpctools.mixin.client.EntityHighlight;
+package lpctools.mixin.client.tools.entityHighlight;
 
+import com.mojang.blaze3d.systems.RenderSystem;
 import lpctools.tools.entityHighlight.EntityHighlight;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityType;
@@ -14,7 +15,8 @@ public abstract class EntityMixin {
 	@Shadow public abstract EntityType<?> getType();
 	@Inject(method = "isGlowing", at = @At("RETURN"), cancellable = true)
 	void isGlowing(CallbackInfoReturnable<Boolean> cir){
-		if(EntityHighlight.EHConfig.getBooleanValue() && EntityHighlight.entityList.contains(getType()))
+		if(EntityHighlight.EHConfig.getBooleanValue() && RenderSystem.isOnRenderThread()
+			&& EntityHighlight.entityList.contains(getType()))
 			cir.setReturnValue(true);
 	}
 }
