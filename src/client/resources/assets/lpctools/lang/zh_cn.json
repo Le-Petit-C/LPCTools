@@ -132,6 +132,8 @@
 	"lpctools.configs.tools.LC.ignoreDownwardTest.comment": "水不会向上流，所以或许可以忽略向下的检测",
 	"lpctools.configs.tools.LC.limitRange.expandRange.name": "拓展清理空间",
 	"lpctools.configs.tools.LC.limitRange.expandRange.comment": "拓展一格清理空间\n期望效果是清空限制范围内部所有流体和清理用方块\n一般来说，如果不开启这个并且限制范围泡在水里\n最终的结果会是留下区域内最靠外一层清理用方块用来挡水",
+	"lpctools.configs.tools.LC.liquidSourceOnly.name": "仅流体源",
+	"lpctools.configs.tools.LC.liquidSourceOnly.comment": "开启后会仅填充替换流体源而不理会由流体源流出的流体方块",
 	"lpctools.configs.tools.SX.name": "轻微矿透",
 	"lpctools.configs.tools.SX.comment": "这个工具能高亮出暴露的，或者刚被破坏的方块附近的矿物\n最初设计用以“拯救”世吞下的钻石",
 	"lpctools.configs.tools.SX.defaultColorMethod.name": "默认颜色方式",

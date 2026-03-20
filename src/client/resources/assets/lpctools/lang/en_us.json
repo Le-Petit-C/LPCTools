@@ -132,6 +132,8 @@
 	"lpctools.configs.tools.LC.ignoreDownwardTest.comment": "Since water cannot flow upwards,\ndownward fluid checks can be safely omitted for optimization",
 	"lpctools.configs.tools.LC.limitRange.expandRange.name": "Expand Cleaning Range",
 	"lpctools.configs.tools.LC.limitRange.expandRange.comment": "Expands the cleaning area by one block\nAims to completely remove all fluids and cleanup blocks within the defined area\nWhen disabled in water-submerged scenarios,\nthe outermost layer of cleanup blocks will remain as water barriers",
+	"lpctools.configs.tools.LC.liquidSourceOnly.name": "Liquid Source Only",
+	"lpctools.configs.tools.LC.liquidSourceOnly.comment": "When enabled, only fluid source blocks will be filled/replaced, ignoring flowing fluid blocks that originate from the source.",
 	"lpctools.configs.tools.SX.name": "Slight X-Ray",
 	"lpctools.configs.tools.SX.comment": "This tool highlights ores exposed in air\nor near blocks that has just been broken",
 	"lpctools.configs.tools.SX.defaultColorMethod.name": "Default Color Method",
