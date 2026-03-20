@@ -18,7 +18,6 @@ import net.minecraft.client.texture.Sprite;
 import org.apache.commons.lang3.mutable.MutableInt;
 
 import java.awt.*;
-import java.util.*;
 import java.util.function.ToIntFunction;
 
 import static lpctools.lpcfymasaapi.LPCConfigStatics.*;
