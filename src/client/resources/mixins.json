@@ -13,21 +13,14 @@
 		"SplashTextResourceSupplierMixin",
 		"SpriteContentsMixin",
 		"WorldChunkMixin",
+		"accessors.BlockItemAccessor",
+		"accessors.ClientChunkAccessor",
 		"accessors.ClientChunkMapAccessor",
 		"accessors.GuiBaseAccessor",
 		"accessors.LayerRangeAccessor",
 		"accessors.TextFieldWidgetAccessor",
-		"tools.autoReconnect.ConnectScreenMixin",
-		"tools.autoReconnect.DisconnectedScreenMixin",
-		"tools.autoReconnect.MinecraftClientMixin",
-		"tools.blockBreakRestriction.ClientPlayerInteractionManagerMixin",
-		"tweaks.enchantmentLevelFix.MixinTranslationStorage",
-		"tools.entityHighlight.EntityMixin",
 		"events.OnScreenChanged",
 		"generic.MouseHorizontalMixin",
-		"tweaks.happyGhastRidingTweak.ClientPlayerEntityMixin",
-		"tweaks.happyGhastRidingTweak.HappyGhastEntityMixin",
-		"tweaks.happyGhastRidingTweak.PlayerInputC2SPacketMixin",
 		"MASAMixins.ButtonGenericMixin",
 		"MASAMixins.ConfigButtonKeybindMixin",
 		"MASAMixins.GuiListBaseMixin",
@@ -43,6 +36,11 @@
 		"scriptMixins.propertiesMixin.EnumPropertyMixin",
 		"scriptMixins.propertiesMixin.IntegerPropertyRegisterMixin",
 		"scriptMixins.propertiesMixin.PropertyRegisterMixin",
+		"tools.autoReconnect.ConnectScreenMixin",
+		"tools.autoReconnect.DisconnectedScreenMixin",
+		"tools.autoReconnect.MinecraftClientMixin",
+		"tools.blockBreakRestriction.ClientPlayerInteractionManagerMixin",
+		"tools.entityHighlight.EntityMixin",
 		"tools.furnaceMaintainer.ClientPlayerInteractionManagerMixin",
 		"tools.furnaceMaintainer.MinecraftClientMixin",
 		"TweakerooMixin.ConfigsListsMixin",
@@ -50,15 +48,16 @@
 		"TweakerooMixin.GuiConfigsMixin",
 		"tweaks.barTweak.ClientPlayerInteractionManagerMixin",
 		"tweaks.barTweak.InGameHudMixin",
-		"utils.RenderInstance"
+		"tweaks.blockReplaceHotkey.BlockItemMixin",
+		"tweaks.enchantmentLevelFix.MixinTranslationStorage",
+		"tweaks.happyGhastRidingTweak.ClientPlayerEntityMixin",
+		"tweaks.happyGhastRidingTweak.HappyGhastEntityMixin",
+		"tweaks.happyGhastRidingTweak.PlayerInputC2SPacketMixin",
+		"utils.PacketRecorder",
+		"utils.RenderInstance",
+		"accessors.AbstractBlockAccessor"
 	],
 	"injectors": {
 		"defaultRequire": 1
-	},
-	"mixins": [
-		"accessors.BlockItemAccessor",
-		"accessors.ClientChunkAccessor",
-		"tweaks.blockReplaceHotkey.BlockItemMixin",
-		"utils.PacketRecorder"
-	]
+	}
 }

@@ -290,6 +290,8 @@
 	"lpctools.configs.tweaks.setBlockReplaceHotkey.name": "SetBlock Replacement Hotkey",
 	"lpctools.configs.tweaks.setBlockReplaceHotkey.comment": "Defines an additional hotkey that mimics the block replacement effect (normally triggered by pressing both mouse buttons)\nBut uses the setBlock command instead. This preserves block attachments.\n• Overrides the 'Block Replacement Hotkey' when bound to the same key\n• Falls back to 'Block Replacement Hotkey' behavior when conditions aren't met (e.g., insufficient permissions, not in Creative mode, held item isn't a block item)",
 	"lpctools.configs.tweaks.setBlockReplaceHotkey.commandTooLong": "Command too long! (Length: %d exceeds max: %d. Using normal block replacement instead)",
+	"lpctools.configs.tweaks.quietBlockBreakHotkey.name": "Safe Block Break Hotkey",
+	"lpctools.configs.tweaks.quietBlockBreakHotkey.comment": "Defines an additional hotkey that mimics the block breaking effect.\nHowever, it actually uses the setBlock command to replace the block with air.\nIt also checks surrounding blocks that would drop as items when unsupported (like redstone dust or torches) and preemptively replaces them with air using setBlock.\nNote: Since the client cannot perfectly simulate block dropping, the detection is based on whether the original block can be placed back in its original state at the same position.",
 	"lpctools.configs.tweaks.happyGhastRidingTweak.name": "happyGhastRidingTweak",
 	"lpctools.configs.tweaks.happyGhastRidingTweak.comment": "Use sneak/jump key to move up and down when riding happy ghast instead of player pitch when enabled",
 	"lpctools.configs.tweaks.happyGhastRidingTweak.happyGhastDismountKey.name": "happyGhastDismountKey",
