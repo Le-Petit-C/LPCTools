@@ -1,4 +1,4 @@
-package lpctools.mixin.client.HappyGhastRidingTweak;
+package lpctools.mixin.client.tweaks.happyGhastRidingTweak;
 
 import lpctools.tweaks.HappyGhastRidingTweak;
 import net.minecraft.client.MinecraftClient;

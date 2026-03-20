@@ -5,6 +5,7 @@ import fi.dy.masa.malilib.gui.button.ButtonBase;
 import fi.dy.masa.malilib.hotkeys.IKeybind;
 import fi.dy.masa.malilib.hotkeys.KeyAction;
 import lpctools.LPCTools;
+import lpctools.debugs.ThreeBodyDisplay.ThreeBodyDisplay;
 import lpctools.lpcfymasaapi.LPCConfigList;
 import lpctools.lpcfymasaapi.Registries;
 import lpctools.lpcfymasaapi.configButtons.transferredConfigs.BooleanConfig;

@@ -78,7 +78,7 @@ public class LiquidCleanerRunner implements ClientTickEvents.EndTick {
                 if (shouldContinue) return NO_OPERATION;
             }
             BlockState state = world.getBlockState(pos);
-            if (isReplaceableLiquid(state)) {
+            if (isAllowedReplaceableLiquid(state)) {
                 limitOperationSpeedConfig.limitWithRestock(this::isStackOk, offhandPriority);
                 Vec3d midPos = pos.toCenterPos();
                 BlockHitResult hitResult = new BlockHitResult(midPos, Direction.DOWN, pos.mutableCopy(), false);
@@ -87,6 +87,12 @@ public class LiquidCleanerRunner implements ClientTickEvents.EndTick {
             }
             return NO_OPERATION;
         });
+    }
+    
+    private static boolean isAllowedReplaceableLiquid(BlockState state) {
+        if(!isReplaceableLiquid(state)) return false;
+        if(liquidSourceOnly.getAsBoolean() && state.get(FluidBlock.LEVEL) != 0) return false;
+        return true;
     }
 
     private static boolean shouldAttackBlock(@NotNull ShapeList shapeList ,@NotNull ClientPlayerEntity player, @NotNull BlockPos pos){

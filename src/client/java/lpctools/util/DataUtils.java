@@ -291,4 +291,81 @@ public class DataUtils {
             }
         };
     }
+    /**
+     * modified form {@link java.awt.Color#RGBtoHSB(int, int, int, float[])}
+     */
+    public static float[] fRGBtoHSB(float r, float g, float b, float[] hsbvals) {
+        float hue, saturation, brightness;
+        if (hsbvals == null) hsbvals = new float[3];
+        float cmax = Math.max(r, g);
+        if (b > cmax) cmax = b;
+        float cmin = Math.min(r, g);
+        if (b < cmin) cmin = b;
+        
+        brightness = cmax;
+        if (cmax != 0)
+            saturation = (cmax - cmin) / cmax;
+        else
+            saturation = 0;
+        if (saturation == 0)
+            hue = 0;
+        else {
+            float redc = (cmax - r) / (cmax - cmin);
+            float greenc = (cmax - g) / (cmax - cmin);
+            float bluec = (cmax - b) / (cmax - cmin);
+            if (r == cmax)
+                hue = bluec - greenc;
+            else if (g == cmax)
+                hue = 2.0f + redc - bluec;
+            else
+                hue = 4.0f + greenc - redc;
+            hue = hue / 6.0f;
+            if (hue < 0)
+                hue = hue + 1.0f;
+        }
+        hsbvals[0] = hue;
+        hsbvals[1] = saturation;
+        hsbvals[2] = brightness;
+        return hsbvals;
+    }
+    public static double[] dRGBtoHSB(double r, double g, double b, double[] hsbvals) {
+        double hue, saturation, brightness;
+        if (hsbvals == null) hsbvals = new double[3];
+        double cmax = Math.max(r, g);
+        if (b > cmax) cmax = b;
+        double cmin = Math.min(r, g);
+        if (b < cmin) cmin = b;
+        
+        brightness = cmax;
+        if (cmax != 0)
+            saturation = (cmax - cmin) / cmax;
+        else
+            saturation = 0;
+        if (saturation == 0)
+            hue = 0;
+        else {
+            double redc = (cmax - r) / (cmax - cmin);
+            double greenc = (cmax - g) / (cmax - cmin);
+            double bluec = (cmax - b) / (cmax - cmin);
+            if (r == cmax)
+                hue = bluec - greenc;
+            else if (g == cmax)
+                hue = 2.0f + redc - bluec;
+            else
+                hue = 4.0f + greenc - redc;
+            hue = hue / 6.0f;
+            if (hue < 0)
+                hue = hue + 1.0f;
+        }
+        hsbvals[0] = hue;
+        hsbvals[1] = saturation;
+        hsbvals[2] = brightness;
+        return hsbvals;
+    }
+    public static int dRGB2iRGB(double r, double g, double b) {
+        return 0xff000000 | ((int) (r * 255 + 0.5)) | ((int) (g * 255 + 0.5) << 8) | ((int) (b * 255 + 0.5) << 16);
+    }
+    public static int fRGB2iRGB(float r, float g, float b) {
+        return 0xff000000 | ((int) (r * 255 + 0.5f)) | ((int) (g * 255 + 0.5f) << 8) | ((int) (b * 255 + 0.5f) << 16);
+    }
 }
