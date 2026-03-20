@@ -89,10 +89,9 @@ public class RenderInstance implements QuietAutoCloseable, Registries.WorldPreMa
 	private final HashSet<SubChunk> subChunksNeedUpload = new HashSet<>();
 	private final CachedSupplier<ArrayList<ArrayList<SubChunk>>> subChunkSortingCache = new CachedSupplier<>(ArrayList::new);
 	
-	private CompletableFuture<Void> prepareTasks;
-	private CompletableFuture<CompletableFuture<Void>> dispatchTask;
-	
-	private Registries.MASAWorldRenderContext recordedWorldRenderContext;
+	private @Nullable CompletableFuture<Void> prepareTasks;
+	private @Nullable CompletableFuture<CompletableFuture<Void>> dispatchTask;
+	private @Nullable Registries.MASAWorldRenderContext recordedWorldRenderContext;
 	
 	private int sizePerVertex(){ return renderOption.pipeline().getVertexFormat().getVertexSize(); }
 	
@@ -151,6 +150,7 @@ public class RenderInstance implements QuietAutoCloseable, Registries.WorldPreMa
 	
 	@Override public void render() {
 		var context = recordedWorldRenderContext;
+		if(context == null) return;
 		waitForTasks();
 		var commandEncoder = RenderSystem.getDevice().createCommandEncoder();
 		if(!subChunksNeedUpload.isEmpty()) {
@@ -206,9 +206,11 @@ public class RenderInstance implements QuietAutoCloseable, Registries.WorldPreMa
 		var context = recordedWorldRenderContext;
 		RenderSystem.assertOnRenderThread();
 		waitForTasks();
-		final Frustum frustum = recordData ? new Frustum(context.frustum()) : context.frustum();
-		dispatchTask = CompletableFuture.supplyAsync(() -> dispatchPrepareTasks(frustum, context.camera().getCameraPos(), executor), executor);
-		prepareTasks = dispatchTask.thenCompose(tasks -> tasks);
+		if (context != null) {
+			final Frustum frustum = recordData ? new Frustum(context.frustum()) : context.frustum();
+			dispatchTask = CompletableFuture.supplyAsync(() -> dispatchPrepareTasks(frustum, context.camera().getCameraPos(), executor), executor);
+			prepareTasks = dispatchTask.thenCompose(tasks -> tasks);
+		}
 	}
 	
 	@Override public void close() {
