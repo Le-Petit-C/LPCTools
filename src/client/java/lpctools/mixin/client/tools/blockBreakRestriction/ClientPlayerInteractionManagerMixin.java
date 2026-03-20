@@ -1,4 +1,4 @@
-package lpctools.mixin.client.blockBreakRestriction;
+package lpctools.mixin.client.tools.blockBreakRestriction;
 
 import net.minecraft.block.BlockState;
 import net.minecraft.client.MinecraftClient;
