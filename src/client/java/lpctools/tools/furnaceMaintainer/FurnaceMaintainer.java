@@ -16,7 +16,6 @@ import net.minecraft.text.Text;
 
 import static lpctools.lpcfymasaapi.LPCConfigStatics.*;
 import static lpctools.tools.furnaceMaintainer.FurnaceMaintainerData.*;
-import static lpctools.tools.furnaceMaintainer.FurnaceMaintainerData.applyToDataInstanceCallback;
 
 public class FurnaceMaintainer {
     public static final BooleanHotkeyThirdListConfig FMConfig = new BooleanHotkeyThirdListConfig(ToolConfigs.toolConfigs, "FM", FurnaceMaintainer::switchCallback);

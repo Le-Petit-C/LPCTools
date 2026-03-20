@@ -13,6 +13,7 @@
 		"SplashTextResourceSupplierMixin",
 		"SpriteContentsMixin",
 		"WorldChunkMixin",
+		"accessors.AbstractBlockAccessor",
 		"accessors.BlockItemAccessor",
 		"accessors.ClientChunkAccessor",
 		"accessors.ClientChunkMapAccessor",
@@ -51,13 +52,14 @@
 		"tweaks.blockReplaceHotkey.BlockItemMixin",
 		"tweaks.enchantmentLevelFix.MixinTranslationStorage",
 		"tweaks.happyGhastRidingTweak.ClientPlayerEntityMixin",
-		"tweaks.happyGhastRidingTweak.HappyGhastEntityMixin",
-		"tweaks.happyGhastRidingTweak.PlayerInputC2SPacketMixin",
 		"utils.PacketRecorder",
-		"utils.RenderInstance",
-		"accessors.AbstractBlockAccessor"
+		"utils.RenderInstance"
 	],
 	"injectors": {
 		"defaultRequire": 1
-	}
+	},
+	"mixins": [
+		"tweaks.happyGhastRidingTweak.HappyGhastEntityMixin",
+		"tweaks.happyGhastRidingTweak.PlayerInputC2SPacketMixin"
+	]
 }
