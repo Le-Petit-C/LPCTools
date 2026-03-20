@@ -9,8 +9,9 @@ public class TweakConfigs {
     public static final BooleanConfig modMenuPlayClickSound = new BooleanConfig(tweaks, "modMenuPlayClickSound", false);
     static {
         tweaks.addConfigs(
-            BlockReplaceHotkey.blockReplaceHotkey,
-            BlockReplaceHotkey.setBlockReplaceHotkey,
+            VanillaBlockInteractionModifier.blockReplaceHotkey,
+            VanillaBlockInteractionModifier.setBlockReplaceHotkey,
+            VanillaBlockInteractionModifier.quietBlockBreakHotkey,
             HappyGhastRidingTweak.happyGhastRidingTweak,
             BarTweaks.barTweaks,
             EnchantmentLevelFix.enchantmentLevelFix,

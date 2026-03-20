@@ -24,6 +24,7 @@ public class LiquidCleaner {
     public static final BooleanConfig ignoreDownwardTest = addBooleanConfig("ignoreDownwardTest", false);
     public static final RangeLimitConfig limitCleaningRange = addRangeLimitConfig();
     public static final BooleanConfig expandRange = addBooleanConfig(limitCleaningRange, "expandRange", false);
+    public static final BooleanConfig liquidSourceOnly = addBooleanConfig("liquidSourceOnly", false);
     static {listStack.pop();}
     private static void switchCallback() {
         if(LCConfig.getBooleanValue()) enableTool();

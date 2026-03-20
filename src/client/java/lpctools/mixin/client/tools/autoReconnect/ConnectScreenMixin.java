@@ -1,4 +1,4 @@
-package lpctools.mixin.client.AutoReconnect;
+package lpctools.mixin.client.tools.autoReconnect;
 
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.screen.Screen;
