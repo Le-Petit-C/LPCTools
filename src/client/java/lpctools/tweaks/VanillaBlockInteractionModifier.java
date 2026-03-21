@@ -2,6 +2,7 @@ package lpctools.tweaks;
 
 import fi.dy.masa.malilib.hotkeys.IKeybind;
 import fi.dy.masa.malilib.hotkeys.KeyAction;
+import lpctools.lpcfymasaapi.configButtons.transferredConfigs.BooleanConfig;
 import lpctools.lpcfymasaapi.configButtons.transferredConfigs.HotkeyConfig;
 import lpctools.mixin.client.BlockReplaceAction;
 import lpctools.mixin.client.accessors.AbstractBlockAccessor;
@@ -29,8 +30,13 @@ public class VanillaBlockInteractionModifier {
     public static final HotkeyConfig blockReplaceHotkey = new HotkeyConfig(TweakConfigs.tweaks, "blockReplaceHotkey", null, VanillaBlockInteractionModifier::blockReplaceHotkeyCallback);
     public static final HotkeyConfig setBlockReplaceHotkey = new HotkeyConfig(TweakConfigs.tweaks, "setBlockReplaceHotkey", null, VanillaBlockInteractionModifier::setBlockReplaceHotkeyCallback);
     public static final HotkeyConfig quietBlockBreakHotkey = new HotkeyConfig(TweakConfigs.tweaks, "quietBlockBreakHotkey", null, VanillaBlockInteractionModifier::quietBlockBreakHotkeyCallback);
+    public static final BooleanConfig useQSetBlock = new BooleanConfig(TweakConfigs.tweaks, "useQSetBlock", false);
     private static boolean shouldModifyClientTest = false;
     public static boolean shouldModifyClientTest() { return shouldModifyClientTest; }
+    
+    private static String setBlockPrefix() {
+        return useQSetBlock.getAsBoolean() ? "qsetblock" : "setblock";
+    }
     
     private static boolean normalReplacePair() {
         ((BlockReplaceAction) MinecraftClient.getInstance()).invokeDoAttack();
@@ -65,7 +71,7 @@ public class VanillaBlockInteractionModifier {
             BlockEntity blockEntity = world.getBlockEntity(pos);
             StringBuilder blockData = new StringBuilder(BlockArgumentParser.stringifyBlockState(state));
             if (blockEntity != null) blockData.append(blockEntity.createNbt(player.getRegistryManager()));
-            String command = String.format(Locale.ROOT, "setblock %d %d %d %s", pos.getX(), pos.getY(), pos.getZ(), blockData);
+            String command = String.format(Locale.ROOT, setBlockPrefix() + " %d %d %d %s", pos.getX(), pos.getY(), pos.getZ(), blockData);
             if(command.length() > maxCommandLength.getIntegerValue()) {
                 DataUtils.clientMessage(Text.translatable("lpctools.configs.tweaks.setBlockReplaceHotkey.commandTooLong", command.length(), maxCommandLength.getIntegerValue()), false);
                 return true;
@@ -95,7 +101,7 @@ public class VanillaBlockInteractionModifier {
             else if(state.getBlock() instanceof DoorBlock && state.get(DoorBlock.HALF) == DoubleBlockHalf.UPPER) shouldCommand = false;
             else shouldCommand = true;
             if(shouldCommand) {
-                String command = String.format("setblock %d %d %d minecraft:air", pos.getX(), pos.getY(), pos.getZ());
+                String command = String.format(setBlockPrefix() + " %d %d %d minecraft:air", pos.getX(), pos.getY(), pos.getZ());
                 player.networkHandler.sendChatCommand(command);
             }
             var blockSoundGroup = state.getSoundGroup();

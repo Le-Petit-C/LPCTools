@@ -12,6 +12,7 @@ public class TweakConfigs {
             VanillaBlockInteractionModifier.blockReplaceHotkey,
             VanillaBlockInteractionModifier.setBlockReplaceHotkey,
             VanillaBlockInteractionModifier.quietBlockBreakHotkey,
+            VanillaBlockInteractionModifier.useQSetBlock,
             HappyGhastRidingTweak.happyGhastRidingTweak,
             BarTweaks.barTweaks,
             EnchantmentLevelFix.enchantmentLevelFix,

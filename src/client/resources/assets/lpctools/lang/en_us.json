@@ -294,6 +294,8 @@
 	"lpctools.configs.tweaks.setBlockReplaceHotkey.commandTooLong": "Command too long! (Length: %d exceeds max: %d. Using normal block replacement instead)",
 	"lpctools.configs.tweaks.quietBlockBreakHotkey.name": "Safe Block Break Hotkey",
 	"lpctools.configs.tweaks.quietBlockBreakHotkey.comment": "Defines an additional hotkey that mimics the block breaking effect.\nHowever, it actually uses the setBlock command to replace the block with air.\nIt also checks surrounding blocks that would drop as items when unsupported (like redstone dust or torches) and preemptively replaces them with air using setBlock.\nNote: Since the client cannot perfectly simulate block dropping, the detection is based on whether the original block can be placed back in its original state at the same position.",
+	"lpctools.configs.tweaks.useQSetBlock.name": "Use qsetblock",
+	"lpctools.configs.tweaks.useQSetBlock.comment": "The LPCCarpetAddition mod includes a 'qsetblock' command (quiet setblock, which executes setblock without sending command feedback).\nWhen enabled, the aforementioned setblock functions will use qsetblock instead to prevent chat spam.",
 	"lpctools.configs.tweaks.happyGhastRidingTweak.name": "happyGhastRidingTweak",
 	"lpctools.configs.tweaks.happyGhastRidingTweak.comment": "Use sneak/jump key to move up and down when riding happy ghast instead of player pitch when enabled",
 	"lpctools.configs.tweaks.happyGhastRidingTweak.happyGhastDismountKey.name": "happyGhastDismountKey",
