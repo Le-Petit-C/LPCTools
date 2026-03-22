@@ -11,4 +11,6 @@ import java.util.concurrent.atomic.AtomicReferenceArray;
 @Mixin(ClientChunkManager.ClientChunkMap.class)
 public interface ClientChunkMapAccessor {
 	@Accessor AtomicReferenceArray<@Nullable WorldChunk> getChunks();
+	@Accessor int getCenterChunkX();
+	@Accessor int getCenterChunkZ();
 }

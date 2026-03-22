@@ -5,10 +5,9 @@ import lpctools.compact.derived.ShapeList;
 import lpctools.generic.ChunkedTaskInstance;
 import lpctools.lpcfymasaapi.Registries;
 import lpctools.lpcfymasaapi.render.BlockOuterEdgeHighlightInstance;
-import lpctools.tools.ToolUtils;
 import lpctools.util.AlgorithmUtils;
+import lpctools.util.DataUtils;
 import lpctools.util.Packed;
-import lpctools.util.instance.CameraPosMarker;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientChunkEvents;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientWorldEvents;
 import net.minecraft.block.Block;
@@ -19,7 +18,6 @@ import net.minecraft.client.world.ClientWorld;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.ChunkPos;
 import net.minecraft.util.math.Direction;
-import net.minecraft.util.math.MathHelper;
 import net.minecraft.world.World;
 import net.minecraft.world.chunk.Chunk;
 import net.minecraft.world.chunk.ChunkStatus;
@@ -39,7 +37,6 @@ import static lpctools.util.DataUtils.loadedChunks;
 class DataInstance implements AutoCloseable, ClientChunkEvents.Load, ClientWorldEvents.AfterClientWorldChange, Registries.ClientWorldChunkSetBlockState, Registries.BetweenRenderFrames {
     private final BlockOuterEdgeHighlightInstance highlightInstance = new BlockOuterEdgeHighlightInstance();
     private final ChunkedTaskInstance taskInstance = new ChunkedTaskInstance();
-    private final CameraPosMarker cameraPosMarker = new CameraPosMarker();
     
     DataInstance() {
         updateRangeLimit();
@@ -153,10 +150,8 @@ class DataInstance implements AutoCloseable, ClientChunkEvents.Load, ClientWorld
     
     @Override public void betweenFrames() {
         SlightXRay.tryRefreshXRayBlocks();
-        var camPos = MinecraftClient.getInstance().gameRenderer.getCamera().getCameraPos();
-        cameraPosMarker.nextPos(ToolUtils.chunkedCoord(camPos.x), ToolUtils.chunkedCoord(camPos.z));
-        clearChunksOutOfRange(cameraPosMarker.getResX(), cameraPosMarker.getResZ(),
-            MathHelper.square(cameraPosMarker.getResR() + 2 * MinecraftClient.getInstance().options.getViewDistance().getValue()));
+        DataUtils.executeWithRenderCenterPos((x, z, r)->clearChunksOutOfRange(x, z, r * r),
+            2 * MinecraftClient.getInstance().options.getViewDistance().getValue());
     }
     
     private record ChunkData(Chunk current, Chunk west, Chunk east, Chunk north, Chunk south){

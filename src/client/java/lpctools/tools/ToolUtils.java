@@ -150,10 +150,6 @@ public class ToolUtils {
         return chunkedRemove(set, Packed.BlockPos.unpackX(packedBlockPos), Packed.BlockPos.unpackY(packedBlockPos), Packed.BlockPos.unpackZ(packedBlockPos));
     }
     
-    public static double chunkedCoord(double origin) {
-        return origin / 16 - 0.5;
-    }
-    
     public static <T> void clearMapDataOutOfRange(double chunkedCamX, double chunkedCamZ, double chunkDistanceLimitSquared, Long2ObjectMap<T> mapToClean, ToBooleanFunction<T> emptyCheck, Consumer<T> cleaner) {
         var it = mapToClean.long2ObjectEntrySet().iterator();
         while (it.hasNext()) {

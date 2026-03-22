@@ -21,10 +21,7 @@ import net.minecraft.resource.Resource;
 import net.minecraft.resource.ResourceManager;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.ChunkSectionPos;
-import net.minecraft.util.math.Vec3d;
-import net.minecraft.util.math.Vec3i;
+import net.minecraft.util.math.*;
 import net.minecraft.world.chunk.WorldChunk;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.Logger;
@@ -85,6 +82,11 @@ public class DataUtils {
         if(list != null) list.forEach(entityType->builder.add(getEntityTypeId(entityType)));
         return builder.build();
     }
+    
+    public static double chunkedCoord(double origin) {
+        return origin / 16 - 0.5;
+    }
+    
     public interface ClassCaster<T, U>{U cast(T v) throws ClassCastException;}
     public static @Nullable <T, U> U getObjectFromId(@NotNull String loggerInfo, @NotNull String id, Registry<T> registry, @NotNull ClassCaster<T, U> caster, boolean notifies){
         try{
@@ -367,5 +369,46 @@ public class DataUtils {
     }
     public static int fRGB2iRGB(float r, float g, float b) {
         return 0xff000000 | ((int) (r * 255 + 0.5f)) | ((int) (g * 255 + 0.5f) << 8) | ((int) (b * 255 + 0.5f) << 16);
+    }
+    
+    public static ChunkPos getCenterChunkPos(ClientWorld world) {
+        ClientChunkMapAccessor accessor = (ClientChunkMapAccessor)(Object)((ClientChunkAccessor)world.getChunkManager()).getChunks();
+		//noinspection DataFlowIssue
+		return new ChunkPos(accessor.getCenterChunkX(), accessor.getCenterChunkZ());
+    }
+    
+    public interface CameraCenterPosConsumer {
+        void acceptPos(double chunkedCenterX, double chunkedCenterZ);
+    }
+    
+    public static void executeWithCameraCenterPos(CameraCenterPosConsumer consumer) {
+        Vec3d camPos = MinecraftClient.getInstance().gameRenderer.getCamera().getCameraPos();
+        consumer.acceptPos(chunkedCoord(camPos.x), chunkedCoord(camPos.z));
+    }
+    
+    public interface RenderCenterPosConsumer {
+        void acceptPos(double chunkedCenterX, double chunkedCenterZ, double radius);
+    }
+    
+    public static void executeWithRenderCenterPos(RenderCenterPosConsumer consumer, double expandRadius) {
+        MinecraftClient mc = MinecraftClient.getInstance();
+        Vec3d camPos = mc.gameRenderer.getCamera().getCameraPos();
+        double chunkedCamX = chunkedCoord(camPos.x);
+        double chunkedCamZ = chunkedCoord(camPos.z);
+        double chunkedX, chunkedZ, radius;
+        if(mc.world instanceof ClientWorld world) {
+            ChunkPos worldCenterChunkPos = getCenterChunkPos(world);
+            chunkedX = (worldCenterChunkPos.x + chunkedCamX) * 0.5;
+            chunkedZ = (worldCenterChunkPos.z + chunkedCamZ) * 0.5;
+            double XOffset = chunkedX - chunkedCamX;
+            double ZOffset = chunkedZ - chunkedCamZ;
+            radius = Math.sqrt(XOffset * XOffset + ZOffset * ZOffset) + expandRadius;
+        }
+        else {
+            chunkedX = chunkedCamX;
+            chunkedZ = chunkedCamZ;
+            radius = expandRadius;
+        }
+        consumer.acceptPos(chunkedX, chunkedZ, radius);
     }
 }

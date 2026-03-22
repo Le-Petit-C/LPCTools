@@ -9,6 +9,7 @@ import lpctools.generic.GenericUtils;
 import lpctools.lpcfymasaapi.Registries;
 import lpctools.lpcfymasaapi.render.translucentShapes.ShapeReference;
 import lpctools.util.AlgorithmUtils;
+import lpctools.util.DataUtils;
 import lpctools.util.LPCMathHelper;
 import lpctools.util.Packed;
 import lpctools.util.javaex.QuietAutoCloseable;
@@ -37,7 +38,8 @@ import java.util.function.Supplier;
 
 import static lpctools.tools.ToolUtils.clearMapDataOutOfRange;
 
-public class DataInstance implements AutoCloseable, Registries.ClientWorldChunkLightUpdated, Registries.WorldLastRender, Registries.ClientWorldChunkSetBlockState, GenericRegistry.SpawnConditionChanged, ClientWorldEvents.AfterClientWorldChange {
+public class DataInstance implements AutoCloseable, Registries.ClientWorldChunkLightUpdated, Registries.BetweenRenderFrames, Registries.ClientWorldChunkSetBlockState, GenericRegistry.SpawnConditionChanged, ClientWorldEvents.AfterClientWorldChange {
+    
     private record DelayedTask(long packedChunkPos, Supplier<RunningTask> task){}
     private record RunningTask(long packedChunkPos, CompletableFuture<TaskResult> task){}
     private record TaskResult(long packedChunkPos, ArrayList<BlockPos> result){}
@@ -58,7 +60,7 @@ public class DataInstance implements AutoCloseable, Registries.ClientWorldChunkL
     
     protected void registerAll(boolean b){
         Registries.CLIENT_CHUNK_LIGHT_LOAD.register(this, b);
-        Registries.MASA_WORLD_RENDER_LAST.register(this, b);
+        Registries.BETWEEN_RENDER_FRAMES.register(this, b);
         Registries.CLIENT_WORLD_CHUNK_SET_BLOCK_STATE.register(this, b);
         Registries.AFTER_CLIENT_WORLD_CHANGE.register(this, b);
         GenericRegistry.SPAWN_CONDITION_CHANGED.register(this, b);
@@ -127,27 +129,30 @@ public class DataInstance implements AutoCloseable, Registries.ClientWorldChunkL
         clearData();
         registerAll(false);
     }
-    @Override public void onLast(Registries.MASAWorldRenderContext context) {
-        updateCounter = GenericConfigs.updateLimitPerFrame.getAsInt() + Math.min(updateCounter, 0);
-        
-        double squaredDistanceLimit = MathHelper.square((double)MinecraftClient.getInstance().options.getViewDistance().getValue() * 2);
-        var camPos = context.camera().getCameraPos();
-        double chunkedCamX = camPos.x / 16 - 0.5, chunkedCamZ = camPos.z / 16 - 0.5;
-        
+    
+    void clearDataOutOfRange(double chunkedX, double chunkedZ, double radius){
+        double radiusSquared = radius * radius;
         // 先清理超出范围的delayedTask
         AlgorithmUtils.fastRemove(delayedTasks, task->{
             double squaredDistance = LPCMathHelper.squaredLength(
-                Packed.ChunkPos.unpackX(task.packedChunkPos) - chunkedCamX
-                , Packed.ChunkPos.unpackZ(task.packedChunkPos) - chunkedCamZ);
-            return squaredDistance > squaredDistanceLimit;
+                Packed.ChunkPos.unpackX(task.packedChunkPos) - chunkedX
+                , Packed.ChunkPos.unpackZ(task.packedChunkPos) - chunkedZ);
+            return squaredDistance > radiusSquared;
         });
         
-        clearMapDataOutOfRange(chunkedCamX, chunkedCamZ, squaredDistanceLimit, canSpawnPoses, HashMap::isEmpty, data->data.values().forEach(QuietAutoCloseable::closeIfNotNull));
+        clearMapDataOutOfRange(chunkedX, chunkedZ, radiusSquared, canSpawnPoses, HashMap::isEmpty, data->data.values().forEach(QuietAutoCloseable::closeIfNotNull));
         
         runningTasks.sort(Comparator.comparingDouble(task->(
-            MathHelper.square(Packed.ChunkPos.unpackX(task.packedChunkPos) - chunkedCamX)
-                + MathHelper.square(Packed.ChunkPos.unpackZ(task.packedChunkPos) - chunkedCamZ)
+            MathHelper.square(Packed.ChunkPos.unpackX(task.packedChunkPos) - chunkedX)
+                + MathHelper.square(Packed.ChunkPos.unpackZ(task.packedChunkPos) - chunkedZ)
         )));
+    }
+    
+    @Override public void betweenFrames() {
+        updateCounter = GenericConfigs.updateLimitPerFrame.getAsInt() + Math.min(updateCounter, 0);
+        
+        DataUtils.executeWithRenderCenterPos(this::clearDataOutOfRange, MinecraftClient.getInstance().options.getViewDistance().getValue() * 2);
+        
         LongOpenHashSet completedTasks = null;
         if(updateCounter <= 0) return;
         for(var task : runningTasks) {
@@ -170,15 +175,20 @@ public class DataInstance implements AutoCloseable, Registries.ClientWorldChunkL
             AlgorithmUtils.fastRemove(runningTasks, task->finalCompletedTasks.contains(task.packedChunkPos));
         }
         
+        DataUtils.executeWithCameraCenterPos(this::scheduleDelayedTasksToRunningTasks);
+        
+        // if(updateCounter <= 0) return;
+    }
+    
+    void scheduleDelayedTasksToRunningTasks(double chunkedX, double chunkedZ) {
         if(runningTasks.size() < runningTasksLimit){
             delayedTasks.sort(Comparator.comparingDouble(task->-(
-                MathHelper.square(Packed.ChunkPos.unpackX(task.packedChunkPos) - chunkedCamX)
-                + MathHelper.square(Packed.ChunkPos.unpackZ(task.packedChunkPos) - chunkedCamZ)
+                MathHelper.square(Packed.ChunkPos.unpackX(task.packedChunkPos) - chunkedX)
+                    + MathHelper.square(Packed.ChunkPos.unpackZ(task.packedChunkPos) - chunkedZ)
             )));
             while (runningTasks.size() < runningTasksLimit && !delayedTasks.isEmpty())
                 runningTasks.add(delayedTasks.removeLast().task.get());
         }
-        // if(updateCounter <= 0) return;
     }
     
     @Override public void onSpawnConditionChanged() {

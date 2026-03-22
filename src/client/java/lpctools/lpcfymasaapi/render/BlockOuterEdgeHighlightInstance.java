@@ -9,7 +9,7 @@ import lpctools.lpcfymasaapi.Registries;
 import lpctools.lpcfymasaapi.render.translucentShapes.Quad;
 import lpctools.lpcfymasaapi.render.translucentShapes.ShapeReference;
 import lpctools.lpcfymasaapi.render.translucentShapes.ShapeRegister;
-import lpctools.tools.ToolUtils;
+import lpctools.util.DataUtils;
 import lpctools.util.Packed;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientWorldEvents;
 import net.minecraft.client.MinecraftClient;
@@ -122,8 +122,8 @@ public class BlockOuterEdgeHighlightInstance implements AutoCloseable, ClientWor
     
     @Override public void betweenFrames() {
         var camPos = MinecraftClient.getInstance().gameRenderer.getCamera().getCameraPos();
-        double chunkedCamX = ToolUtils.chunkedCoord(camPos.x);
-        double chunkedCamZ = ToolUtils.chunkedCoord(camPos.z);
+        double chunkedCamX = DataUtils.chunkedCoord(camPos.x);
+        double chunkedCamZ = DataUtils.chunkedCoord(camPos.z);
         updatePosesNeedToUpdate(chunkedCamX, chunkedCamZ);
     }
     
