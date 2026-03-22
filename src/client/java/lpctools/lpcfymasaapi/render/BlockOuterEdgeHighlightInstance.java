@@ -76,6 +76,7 @@ public class BlockOuterEdgeHighlightInstance implements AutoCloseable, ClientWor
                     if(ref != null) ref.close();
         posQuads.clear();
         posesNeedToUpdateRender.clear();
+        renderingPoses.clear();
         markedPoses.clear();
     }
     
