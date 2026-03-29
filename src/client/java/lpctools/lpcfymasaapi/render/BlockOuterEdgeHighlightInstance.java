@@ -113,6 +113,10 @@ public class BlockOuterEdgeHighlightInstance implements AutoCloseable, ClientWor
         });
     }
     
+    public @Nullable Int2ObjectOpenHashMap<MutableInt> getChunkMarks(long packedChunkPos) {
+        return markedPoses.get(packedChunkPos);
+    }
+    
     @Override public void close(){
         registerAll(false);
         clearData();

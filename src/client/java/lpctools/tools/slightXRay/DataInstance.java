@@ -5,6 +5,7 @@ import lpctools.compact.derived.ShapeList;
 import lpctools.generic.ChunkedTaskInstance;
 import lpctools.lpcfymasaapi.Registries;
 import lpctools.lpcfymasaapi.render.BlockOuterEdgeHighlightInstance;
+import lpctools.tools.ToolUtils;
 import lpctools.util.AlgorithmUtils;
 import lpctools.util.DataUtils;
 import lpctools.util.Packed;
@@ -121,8 +122,9 @@ class DataInstance implements AutoCloseable, ClientChunkEvents.Load, ClientWorld
     
     private void buildAsyncTask(long packedChunkPos, ChunkData chunkData, ChunkedTaskInstance.DelayedCallback callback){
         HashMap<Block, MutableInt> recorded = SlightXRayData.getRecordedXRayBlocks();
+        Int2ObjectOpenHashMap<MutableInt> recordedMarkedPoses = ToolUtils.recordMap(new Int2ObjectOpenHashMap<>(), highlightInstance.getChunkMarks(packedChunkPos));
         callback.task = ()->{
-            var res = testChunkData(chunkData, recorded);
+            var res = testChunkData(chunkData, recorded, recordedMarkedPoses);
             return ()->{
                 highlightInstance.resetChunk(packedChunkPos, res);
                 return ChunkedTaskInstance.CallbackStatus.CONTINUE;
@@ -168,7 +170,7 @@ class DataInstance implements AutoCloseable, ClientChunkEvents.Load, ClientWorld
         }
     }
     
-    private static Int2ObjectOpenHashMap<MutableInt> testChunkData(ChunkData data, HashMap<Block, MutableInt> colorMap){
+    private static Int2ObjectOpenHashMap<MutableInt> testChunkData(ChunkData data, HashMap<Block, MutableInt> colorMap, Int2ObjectOpenHashMap<MutableInt> recordedMarkedPoses){
         var res = new Int2ObjectOpenHashMap<MutableInt>();
         int bottom = data.current.getBottomY(), height = data.current.getHeight(), top = bottom + height;
         ChunkTestData displaysNear = new ChunkTestData(bottom, height);
@@ -186,23 +188,28 @@ class DataInstance implements AutoCloseable, ClientChunkEvents.Load, ClientWorld
             displaysNear.set(pos1, true);
         for(BlockPos pos1 : AlgorithmUtils.iterateInBox(0, top, 0, 15, top, 15))
             displaysNear.set(pos1, true);
+        BlockPos.Mutable posCache = new BlockPos.Mutable();
         for(BlockPos pos1 : AlgorithmUtils.iterateInBox(0, bottom, 0, 15, top - 1, 15)){
             BlockState state = data.current.getBlockState(pos1);
-            MutableInt color = colorMap.get(state.getBlock());
-            if(color == null) continue;
-            if(displaysNear.get(pos1)){
-                int chunkLocalPos = Packed.ChunkLocal.pack(pos1);
-                res.put(chunkLocalPos, color);
-                continue;
-            }
-            for(Direction direction : Direction.values()){
-                if(displaysNear.get(pos1.getX() + direction.getOffsetX(), pos1.getY() + direction.getOffsetY(), pos1.getZ() + direction.getOffsetZ())){
-                    int chunkLocalPos = Packed.ChunkLocal.pack(pos1);
-                    res.put(chunkLocalPos, color);
-                    break;
+            boolean hasDisplayNear;
+            if(displaysNear.get(pos1)) hasDisplayNear = true;
+            else {
+                boolean b = false;
+                for(Direction direction : Direction.values()){
+                    if(displaysNear.get(posCache.set(pos1).move(direction))){
+                        b = true;
+                        break;
+                    }
                 }
+                hasDisplayNear = b;
             }
-        }
+            int packedChunkLocal = Packed.ChunkLocal.pack(pos1);
+            
+			MutableInt color;
+			if(hasDisplayNear) color = colorMap.get(state.getBlock());
+            else color = recordedMarkedPoses.get(packedChunkLocal);
+			if(color != null) res.put(packedChunkLocal, color);
+		}
         return res;
     }
     
