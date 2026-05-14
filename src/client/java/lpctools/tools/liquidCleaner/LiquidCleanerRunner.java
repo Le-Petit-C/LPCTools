@@ -91,10 +91,10 @@ public class LiquidCleanerRunner implements ClientTickEvents.EndTick {
     
     private static boolean isAllowedReplaceableLiquid(BlockState state) {
         if(!isReplaceableLiquid(state)) return false;
-		return !liquidSourceOnly.getAsBoolean() || state.get(FluidBlock.LEVEL, 0) == 0;
+		return !liquidSourceOnly.getAsBoolean() || state.getFluidState().isStill();
 	}
 
-    private static boolean shouldAttackBlock(@NotNull ShapeList shapeList ,@NotNull ClientPlayerEntity player, @NotNull BlockPos pos){
+    private static boolean shouldAttackBlock(@NotNull ShapeList shapeList, @NotNull ClientPlayerEntity player, @NotNull BlockPos pos){
         World world = player.getEntityWorld();
         BlockState state = world.getBlockState(pos);
         if(!shapeList.testPos(pos)){
