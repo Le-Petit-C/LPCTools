@@ -46,3 +46,4 @@ replay_*.log
 /old/
 /logs/
 /TODO.txt
+/.profileconfig.json
