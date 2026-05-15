@@ -14,7 +14,7 @@ import java.util.function.Consumer;
 import static lpctools.lpcfymasaapi.LPCConfigStatics.*;
 
 public class ThreeBodyDisplay {
-	public static BooleanThirdListConfig threeBody = new BooleanThirdListConfig(DebugConfigs.debugs,
+	public static final BooleanThirdListConfig threeBody = new BooleanThirdListConfig(DebugConfigs.debugs,
 		"threeBody", false, ThreeBodyDisplay::mainCallback);
 	static { listStack.push(threeBody); }
 	private static final ILPCValueChangeCallback dataPackUpdater = consumeRunnerCallback(Runner::updateRandomizeDataPack);

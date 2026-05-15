@@ -10,18 +10,19 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.textures.GpuTextureView;
 import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 import com.mojang.blaze3d.vertex.VertexFormat;
-import lpctools.lpcfymasaapi.LPCConfigStatics.ConfigListLayer;
 import lpctools.lpcfymasaapi.Registries;
 import lpctools.lpcfymasaapi.configButtons.uniqueConfigs.BooleanThirdListConfig;
 import lpctools.lpcfymasaapi.configButtons.transferredConfigs.DoubleConfig;
 import lpctools.lpcfymasaapi.configButtons.transferredConfigs.IntegerConfig;
 import lpctools.lpcfymasaapi.interfaces.ILPCConfigReadable;
 import lpctools.util.CachedSupplier;
+import net.minecraft.client.Minecraft;
 import net.minecraft.resources.Identifier;
 import org.joml.*;
 import org.lwjgl.system.MemoryUtil;
 
 import java.nio.ByteBuffer;
+import java.util.Objects;
 import java.util.OptionalDouble;
 import java.util.OptionalInt;
 
@@ -108,7 +109,7 @@ public class MandelbrotSetRender extends BooleanThirdListConfig implements Regis
     
     @Override public void onLast(Registries.MASAWorldRenderContext context) {
         var fb = context.fb();
-        GpuTextureView colorAttachmentView = fb.getColorTextureView();
+        GpuTextureView colorAttachmentView = Objects.requireNonNullElse(fb.getColorTextureView(), Minecraft.getInstance().getMainRenderTarget().getColorTextureView());
         GpuTextureView depthAttachmentView = fb.useDepth ? fb.getDepthTextureView() : null;
         GpuBufferSlice dynamicTransforms = RenderSystem.getDynamicUniforms()
             .writeTransform(RenderSystem.getModelViewMatrix().translate(context.camera().position().toVector3f().mul(-1),
@@ -126,7 +127,7 @@ public class MandelbrotSetRender extends BooleanThirdListConfig implements Regis
                 colorAttachmentView, OptionalInt.empty(), depthAttachmentView, OptionalDouble.empty())){
             renderPass.setPipeline(RenderSources.mandelbrotSetPipeline);
             renderPass.setUniform("DynamicTransforms", dynamicTransforms);
-            renderPass.setUniform("Projection", projection);
+            if(projection != null) renderPass.setUniform("Projection", projection);
             renderPass.setUniform("Mandelbrot", mandelbrotUniformBuffer);
             renderPass.setVertexBuffer(0, vertexBuffer);
             renderPass.setIndexBuffer(indexBuffer, indexType);

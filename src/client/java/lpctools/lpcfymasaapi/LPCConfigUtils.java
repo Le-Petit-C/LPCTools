@@ -4,8 +4,6 @@ import com.google.gson.JsonElement;
 import fi.dy.masa.malilib.config.options.ConfigDouble;
 import fi.dy.masa.malilib.config.options.ConfigInteger;
 import lpctools.lpcfymasaapi.interfaces.ILPCConfigBase;
-import lpctools.mixinInterfaces.MASAMixins.MuteMASAConfigMinMaxMixin.MuteMASAConfigMinMaxDouble;
-import lpctools.mixinInterfaces.MASAMixins.MuteMASAConfigMinMaxMixin.MuteMASAConfigMinMaxInteger;
 import net.minecraft.client.gui.Font;
 import net.minecraft.network.chat.Component;
 import org.jetbrains.annotations.NotNull;

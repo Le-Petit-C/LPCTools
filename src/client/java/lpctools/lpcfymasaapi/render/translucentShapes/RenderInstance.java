@@ -10,6 +10,7 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.textures.GpuTextureView;
 import com.mojang.blaze3d.vertex.VertexFormat;
 import fi.dy.masa.malilib.render.MaLiLibPipelines;
+import fi.dy.masa.malilib.render.RenderUtils;
 import it.unimi.dsi.fastutil.ints.*;
 import it.unimi.dsi.fastutil.longs.Long2IntOpenHashMap;
 import lpctools.generic.GenericUtils;
@@ -105,14 +106,14 @@ public class RenderInstance implements QuietAutoCloseable, Registries.WorldPreMa
 		return renderInstances.computeIfAbsent(renderOption, RenderInstance::new);
 	}
 	
-	public static RenderPipeline shapePipeline = MaLiLibPipelines.POSITION_COLOR_TRANSLUCENT;
+	public static final RenderPipeline shapePipeline = MaLiLibPipelines.POSITION_COLOR_TRANSLUCENT;
 	
-	public static RenderPipeline linePipeline = MaLiLibPipelines.DEBUG_LINES_TRANSLUCENT;
+	public static final RenderPipeline linePipeline = MaLiLibPipelines.DEBUG_LINES_TRANSLUCENT;
 	
-	public static RenderOption shapeOptionWithDepth = new RenderOption(shapePipeline, true, true, PROJECTION__MODEL_VIEW, RenderTiming.BEFORE_TRANSLUCENT, ImmutableSet.of());
-	public static RenderOption shapeOptionDepthless = new RenderOption(shapePipeline, true, false, PROJECTION__MODEL_VIEW, RenderTiming.END_MAIN, ImmutableSet.of());
-	public static RenderOption lineOptionWithDepth = new RenderOption(linePipeline, true, true, PROJECTION__MODEL_VIEW, RenderTiming.BEFORE_TRANSLUCENT, ImmutableSet.of());
-	public static RenderOption lineOptionDepthless = new RenderOption(linePipeline, true, false, PROJECTION__MODEL_VIEW, RenderTiming.END_MAIN, ImmutableSet.of());
+	public static final RenderOption shapeOptionWithDepth = new RenderOption(shapePipeline, true, PROJECTION__MODEL_VIEW, RenderTiming.BEFORE_TRANSLUCENT, ImmutableSet.of());
+	public static final RenderOption shapeOptionDepthless = new RenderOption(shapePipeline, false, PROJECTION__MODEL_VIEW, RenderTiming.END_MAIN, ImmutableSet.of());
+	public static final RenderOption lineOptionWithDepth = new RenderOption(linePipeline, true, PROJECTION__MODEL_VIEW, RenderTiming.BEFORE_TRANSLUCENT, ImmutableSet.of());
+	public static final RenderOption lineOptionDepthless = new RenderOption(linePipeline, false, PROJECTION__MODEL_VIEW, RenderTiming.END_MAIN, ImmutableSet.of());
 	
 	public static RenderInstance shapeInstanceWithDepth() { return getRenderInstance(shapeOptionWithDepth); }
 	public static RenderInstance shapeInstanceDepthless() { return getRenderInstance(shapeOptionDepthless); }
@@ -156,7 +157,7 @@ public class RenderInstance implements QuietAutoCloseable, Registries.WorldPreMa
 			subChunksNeedUpload.clear();
 		}
 		var fb = context.fb();
-		GpuTextureView colorAttachmentView = renderOption.useColorBuffer() ? fb.getColorTextureView() : null;
+		GpuTextureView colorAttachmentView = Objects.requireNonNullElse(fb.getColorTextureView(), RenderUtils.fb().getColorTextureView());
 		GpuTextureView depthAttachmentView = renderOption.useDepthBuffer() ? (fb.useDepth ? fb.getDepthTextureView() : null) : null;
 		var camPos = context.camera().position();
 		Vector3f offset = new Vector3f();
