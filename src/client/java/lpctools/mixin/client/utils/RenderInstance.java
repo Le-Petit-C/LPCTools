@@ -41,7 +41,7 @@ public class RenderInstance {
 		worldBasicProjectionMatrix.scale(x, y, z);
 		worldProjectionTranslateMatrix.scaleLocal(1.0f / x, 1.0f / y, 1.0f / z).scale(x, y, z);
 	}
-	@Unique Quaternionf qCache = new Quaternionf();
+	@Unique final Quaternionf qCache = new Quaternionf();
 	@ModifyArgs(method = "renderLevel", at = @At(value = "INVOKE", target = "Lorg/joml/Matrix4f;rotate(FLorg/joml/Vector3fc;)Lorg/joml/Matrix4f;", remap = false))
 	void recordRotateEffects(Args args) {
 		float angle = args.get(0);

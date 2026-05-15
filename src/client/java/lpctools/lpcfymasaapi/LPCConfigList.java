@@ -34,7 +34,7 @@ public class LPCConfigList implements ILPCConfig, ILPCConfigList, SimpleDirtyImp
 	@Override public int getAlignedIndent() {return indent;}
 	@Override public boolean hasHotkey() {return false;}
 	
-	DirtyState dirty = new DirtyState();
+	final DirtyState dirty = new DirtyState();
 	@Override public DirtyState getDirty() { return dirty; }
 	
 	@Override public ConfigType getType() {return null;}

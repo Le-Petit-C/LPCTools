@@ -20,7 +20,7 @@ import java.util.List;
 public class BlockConfig extends LPCUniqueConfigBase implements SimpleDirtyImpl {
 	protected Block block;
 	public final @NotNull Block defaultValue;
-	DirtyState dirty = new DirtyState();
+	final DirtyState dirty = new DirtyState();
 	@Override public DirtyState getDirty() { return dirty; }
 	public BlockConfig(@NotNull ILPCConfigReadable parent, @NotNull String nameKey, @NotNull Block defaultValue, @Nullable ILPCValueChangeCallback callback) {
 		super(parent, nameKey, callback);

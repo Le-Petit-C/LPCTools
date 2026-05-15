@@ -39,6 +39,7 @@ import org.jspecify.annotations.NonNull;
 import org.lwjgl.opengl.GL30;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -49,8 +50,9 @@ public class DataUtils {
     public static @Nullable String getTextFileResource(ResourceManager manager, Identifier resId){
         Optional<Resource> res = manager.getResource(resId);
         if(res.isEmpty()) return null;
-        try {return new String(res.get().open().readAllBytes());
-        } catch (IOException ignored) {return null;}
+        try(InputStream stream = res.get().open()) {
+            return new String(stream.readAllBytes());
+        } catch (IOException ignored) { return null; }
     }
     public static void clientMessage(String message, boolean overlay){Minecraft.getInstance().getChatListener().handleSystemMessage(Component.nullToEmpty(message), overlay);}
     public static void clientMessage(Component message, boolean overlay){Minecraft.getInstance().getChatListener().handleSystemMessage(message, overlay);}

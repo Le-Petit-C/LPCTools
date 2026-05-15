@@ -24,7 +24,8 @@ import java.util.ArrayList;
 @Mixin(value = WidgetConfigOptionBase.class, remap = false)
 public class WidgetConfigOptionBaseMixin implements IWidgetConfigOptionBaseEx {
     @Shadow @Final protected WidgetListConfigOptionsBase<?, ?> parent;
-    @Unique ArrayList<TextFieldWrapper<? extends GuiTextFieldGeneric>> extraTextFieldWrappers = new ArrayList<>();
+    @Unique
+	final ArrayList<TextFieldWrapper<? extends GuiTextFieldGeneric>> extraTextFieldWrappers = new ArrayList<>();
     @Unique @Override public void lPCTools$addExtraTextField(GuiTextFieldGeneric field, ConfigOptionChangeListenerTextField listener) {
         TextFieldWrapper<? extends GuiTextFieldGeneric> wrapper = new TextFieldWrapper<>(field, listener);
         extraTextFieldWrappers.add(wrapper);

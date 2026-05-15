@@ -14,7 +14,8 @@ import java.util.Collection;
 import java.util.function.ToIntFunction;
 
 public class WrappedThirdListConfig extends LPCUniqueConfigBase implements ILPCConfigReadable, IExpandableThirdList {
-	@NotNull ArrayList<ILPCConfig> configs = new ArrayList<>();
+	@NotNull
+	final ArrayList<ILPCConfig> configs = new ArrayList<>();
 	public WrappedThirdListConfig(@NotNull ILPCConfigReadable parent, @NotNull String nameKey, @Nullable ILPCValueChangeCallback callback) {super(parent, nameKey, callback);}
 	@Override public void getButtonOptions(ButtonOptionArrayList res) {
 		res.add(IExpandableThirdList.thirdListIconPreset(this));

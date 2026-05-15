@@ -46,43 +46,41 @@ import org.joml.Vector4f;
 
 import java.util.function.Consumer;
 
+@SuppressWarnings("unused")
 public class Registries {
     public static final UnregistrableRegistry<ClientLevelEvents.AfterClientLevelChange> AFTER_CLIENT_WORLD_CHANGE = new UnregistrableRegistry<>(
-        callbacks->(client, world)->callbacks.forEach(screen->screen.afterLevelChange(client, world)));
+        callbacks->(client, world)->callbacks.forEach(screen->screen.afterLevelChange(client, world)), ClientWorldEvents.AFTER_CLIENT_WORLD_CHANGE);
     public static final UnregistrableRegistry<ScreenChangeCallback> ON_SCREEN_CHANGED = new UnregistrableRegistry<>(
         callbacks->newScreen->callbacks.forEach(screen->screen.onScreenChanged(newScreen)));
     public static final UnregistrableRegistry<ClientTickEvents.StartTick> START_CLIENT_TICK = new UnregistrableRegistry<>(
-        callbacks->mc->callbacks.forEach(screen->screen.onStartTick(mc)));
+        callbacks->mc->callbacks.forEach(screen->screen.onStartTick(mc)), ClientTickEvents.START_CLIENT_TICK);
     public static final UnregistrableRegistry<ClientTickEvents.EndTick> END_CLIENT_TICK = new UnregistrableRegistry<>(
-        callbacks->mc->callbacks.forEach(screen->screen.onEndTick(mc)));
+        callbacks->mc->callbacks.forEach(screen->screen.onEndTick(mc)), ClientTickEvents.END_CLIENT_TICK);
     public static final UnregistrableRegistry<ClientChunkEvents.Load> CLIENT_CHUNK_LOAD = new UnregistrableRegistry<>(
-        callbacks->(world, chunk)->callbacks.forEach(screen->screen.onChunkLoad(world, chunk)));
+        callbacks->(world, chunk)->callbacks.forEach(screen->screen.onChunkLoad(world, chunk)), ClientChunkEvents.CHUNK_LOAD);
     public static final UnregistrableRegistry<ClientChunkEvents.Unload> CLIENT_CHUNK_UNLOAD = new UnregistrableRegistry<>(
-        callbacks->(world, chunk)->callbacks.forEach(screen->screen.onChunkUnload(world, chunk)));
+        callbacks->(world, chunk)->callbacks.forEach(screen->screen.onChunkUnload(world, chunk)), ClientChunkEvents.CHUNK_UNLOAD);
     public static final UnregistrableRegistry<WorldPreMainRender> PRE_MAIN = new UnregistrableRegistry<>(
         callbacks->context->callbacks.forEach(callback->callback.onRenderWorldPreMain(context)));
     public static final UnregistrableRegistry<LevelRenderEvents.AfterBlockOutlineExtraction> AFTER_BLOCK_OUTLINE_EXTRACTION = new UnregistrableRegistry<>(
-        callbacks->(context, result)->callbacks.forEach(callback->callback.afterBlockOutlineExtraction(context, result)));
+        callbacks->(context, result)->callbacks.forEach(callback->callback.afterBlockOutlineExtraction(context, result)), WorldRenderEvents.AFTER_BLOCK_OUTLINE_EXTRACTION);
     public static final UnregistrableRegistry<LevelRenderEvents.EndExtraction> END_EXTRACTION = new UnregistrableRegistry<>(
-        callbacks->(context)->callbacks.forEach(callback->callback.endExtraction(context)));
+        callbacks->(context)->callbacks.forEach(callback->callback.endExtraction(context)), WorldRenderEvents.END_EXTRACTION);
     public static final UnregistrableRegistry<LevelRenderEvents.StartMain> START_MAIN = new UnregistrableRegistry<>(
-        callbacks->(context)->callbacks.forEach(callback->callback.startMain(context)));
+        callbacks->(context)->callbacks.forEach(callback->callback.startMain(context)), WorldRenderEvents.START_MAIN);
     public static final UnregistrableRegistry<LevelRenderEvents.BeforeEntities> BEFORE_ENTITIES = new UnregistrableRegistry<>(
-        callbacks->(context)->callbacks.forEach(callback->callback.beforeEntities(context)));
+        callbacks->(context)->callbacks.forEach(callback->callback.beforeEntities(context)), WorldRenderEvents.BEFORE_ENTITIES);
     public static final UnregistrableRegistry<LevelRenderEvents.AfterEntities> AFTER_ENTITIES = new UnregistrableRegistry<>(
-        callbacks->(context)->callbacks.forEach(callback->callback.afterEntities(context)));
+        callbacks->(context)->callbacks.forEach(callback->callback.afterEntities(context)), WorldRenderEvents.AFTER_ENTITIES);
     public static final UnregistrableRegistry<LevelRenderEvents.DebugRender> BEFORE_DEBUG_RENDER = new UnregistrableRegistry<>(
-        callbacks->(context)->callbacks.forEach(callback->callback.beforeDebugRender(context)));
+        callbacks->(context)->callbacks.forEach(callback->callback.beforeDebugRender(context)), WorldRenderEvents.BEFORE_DEBUG_RENDER);
     public static final UnregistrableRegistry<LevelRenderEvents.BeforeTranslucent> BEFORE_TRANSLUCENT = new UnregistrableRegistry<>(
-        callbacks->(context)->callbacks.forEach(callback->callback.beforeTranslucent(context)));
+        callbacks->(context)->callbacks.forEach(callback->callback.beforeTranslucent(context)), WorldRenderEvents.BEFORE_TRANSLUCENT);
     public static final UnregistrableRegistry<LevelRenderEvents.BeforeBlockOutline> BEFORE_BLOCK_OUTLINE = new UnregistrableRegistry<>(
-        callbacks->(context, outlineRenderState)->{
-            boolean shouldRender = true;
-            for(var callback : callbacks) if(!callback.beforeBlockOutline(context, outlineRenderState)) shouldRender = false;
-            return shouldRender;
-        });
+        callbacks->(context, outlineRenderState)->callbacks.andNonCircuit(callback->callback.beforeBlockOutline(context, outlineRenderState)),
+        WorldRenderEvents.BEFORE_BLOCK_OUTLINE);
     public static final UnregistrableRegistry<LevelRenderEvents.EndMain> END_MAIN = new UnregistrableRegistry<>(
-        callbacks->(context)->callbacks.forEach(callback->callback.endMain(context)));
+        callbacks->(context)->callbacks.forEach(callback->callback.endMain(context)), WorldRenderEvents.END_MAIN);
     public static final UnregistrableRegistry<ClientWorldChunkSetBlockState> CLIENT_WORLD_CHUNK_SET_BLOCK_STATE = new UnregistrableRegistry<>(
         callbacks->(chunk, pos, lastState, newState)->callbacks.forEach(screen->screen.onClientWorldChunkSetBlockState(chunk, pos, lastState, newState)));
     public static final UnregistrableRegistry<GameOverlayRender> MASA_RENDER_GAME_OVERLAY = new UnregistrableRegistry<>(
@@ -120,20 +118,6 @@ public class Registries {
         callbacks->()->callbacks.forEach(BetweenRenderFrames::betweenFrames));
     
     static{
-        ClientLevelEvents.AFTER_CLIENT_LEVEL_CHANGE.register(AFTER_CLIENT_WORLD_CHANGE.runner());
-        ClientTickEvents.START_CLIENT_TICK.register(START_CLIENT_TICK.runner());
-        ClientTickEvents.END_CLIENT_TICK.register(END_CLIENT_TICK.runner());
-        ClientChunkEvents.CHUNK_LOAD.register(CLIENT_CHUNK_LOAD.runner());
-        ClientChunkEvents.CHUNK_UNLOAD.register(CLIENT_CHUNK_UNLOAD.runner());
-        LevelRenderEvents.AFTER_BLOCK_OUTLINE_EXTRACTION.register(AFTER_BLOCK_OUTLINE_EXTRACTION.runner());
-        LevelRenderEvents.END_EXTRACTION.register(END_EXTRACTION.runner());
-        LevelRenderEvents.START_MAIN.register(START_MAIN.runner());
-        LevelRenderEvents.BEFORE_ENTITIES.register(BEFORE_ENTITIES.runner());
-        LevelRenderEvents.AFTER_ENTITIES.register(AFTER_ENTITIES.runner());
-        LevelRenderEvents.BEFORE_DEBUG_RENDER.register(BEFORE_DEBUG_RENDER.runner());
-        LevelRenderEvents.BEFORE_TRANSLUCENT.register(BEFORE_TRANSLUCENT.runner());
-        LevelRenderEvents.BEFORE_BLOCK_OUTLINE.register(BEFORE_BLOCK_OUTLINE.runner());
-        LevelRenderEvents.END_MAIN.register(END_MAIN.runner());
         var toolTipComponentInsertFirstRenderer = MASA_RENDER_TOOLTIP_COMPONENT_INSERTION_FIRST.runner();
         var toolTipComponentInsertMiddleRenderer = MASA_RENDER_TOOLTIP_COMPONENT_INSERTION_MIDDLE.runner();
         var toolTipComponentInsertLastRenderer = MASA_RENDER_TOOLTIP_COMPONENT_INSERTION_LAST.runner();

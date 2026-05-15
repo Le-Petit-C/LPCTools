@@ -2,7 +2,6 @@ package lpctools.tools.fillingAssistant;
 
 import com.google.common.collect.ImmutableList;
 import lpctools.LPCTools;
-import lpctools.tools.fillingAssistant.FillingAssistant.OuterRangeBlockMethod;
 import lpctools.util.DataUtils;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;

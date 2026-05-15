@@ -62,7 +62,7 @@ public class UltimateCollection<E> extends AvlTreeList<E> implements Set<E> {
 			res.setValue(n.value);
 			nodeMap.remove(n.value);
 		});
-		return res.getValue();
+		return res.get();
 	}
 	
 	@Override public boolean remove(Object o) {
@@ -192,7 +192,7 @@ public class UltimateCollection<E> extends AvlTreeList<E> implements Set<E> {
 				else {
 					MutableObject<Node<E>> res = new MutableObject<>();
 					right = right.removeAt(0, res::setValue);
-					var node = res.getValue();
+					var node = res.get();
 					replaceByNode(node);
 					node.recalculate();
 					return (UltimateNode<E>) node.balance();
