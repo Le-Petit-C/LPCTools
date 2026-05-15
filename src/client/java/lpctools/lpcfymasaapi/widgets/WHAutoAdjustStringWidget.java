@@ -2,10 +2,9 @@ package lpctools.lpcfymasaapi.widgets;
 
 import fi.dy.masa.malilib.gui.widgets.WidgetBase;
 import fi.dy.masa.malilib.render.GuiContext;
-import net.minecraft.util.math.Vec2f;
-
 import java.util.ArrayList;
 import java.util.Arrays;
+import net.minecraft.world.phys.Vec2;
 
 import static lpctools.lpcfymasaapi.LPCConfigUtils.calculateTextButtonWidth;
 
@@ -59,7 +58,7 @@ public class WHAutoAdjustStringWidget extends WidgetBase {
 		context.fill(x + w, y, x + w + 2, y + h, frameColor);
 		context.fill(x, y, x + w, y + h, fillColor);
 		for(int i = 0; i < texts.size(); ++i) this.drawStringWithShadow(context,
-			textStartX, textStartY + (textRenderer.fontHeight + 2) * i, 0xffffffff, texts.get(i));
+			textStartX, textStartY + (textRenderer.lineHeight + 2) * i, 0xffffffff, texts.get(i));
 	}
 	
 	@Override public void setX(int x) {
@@ -96,12 +95,12 @@ public class WHAutoAdjustStringWidget extends WidgetBase {
 		if(!needUpdateSize) return;
 		needUpdateSize = false;
 		int width = calculateTextButtonWidth("", textRenderer, 20);
-		int tx = width / 2, ty = (20 - textRenderer.fontHeight) / 2;
+		int tx = width / 2, ty = (20 - textRenderer.lineHeight) / 2;
 		for(String str : texts){
 			int w = calculateTextButtonWidth(str, textRenderer, 20);
 			if(w > width) width = w;
 		}
-		int height = (texts.size() - 1) * (textRenderer.fontHeight + 2) + 20;
+		int height = (texts.size() - 1) * (textRenderer.lineHeight + 2) + 20;
 		setWidth(width);
 		setHeight(height);
 		super.setX((int)(alignX + width * align.x));
@@ -111,7 +110,7 @@ public class WHAutoAdjustStringWidget extends WidgetBase {
 	}
 	
 	@SuppressWarnings("unused")
-	public static class Align extends Vec2f{
+	public static class Align extends Vec2{
 		public static final Align LEFT_UP = new Align(-1.0f, -1.0f);
 		public static final Align RIGHT_UP = new Align(0.0f, -1.0f);
 		public static final Align LEFT_DOWN = new Align(-1.0f, 0.0f);

@@ -4,14 +4,14 @@ import lpctools.script.CompileEnvironment;
 import lpctools.script.IScriptWithSubScript;
 import lpctools.script.runtimeInterfaces.ScriptNotNullSupplier;
 import lpctools.script.suppliers.AbstractSupplierWithTypeDeterminedSubSuppliers;
-import net.minecraft.block.Block;
-import net.minecraft.item.Item;
-import net.minecraft.text.Text;
+import net.minecraft.network.chat.Component;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.level.block.Block;
 import org.jetbrains.annotations.NotNull;
 
 public class BlockItem extends AbstractSupplierWithTypeDeterminedSubSuppliers implements IItemSupplier {
 	protected final SupplierStorage<Block> block = ofStorage(Block.class,
-		Text.translatable("lpctools.script.suppliers.item.blockItem.subSuppliers.block.name"), "block");
+		Component.translatable("lpctools.script.suppliers.item.blockItem.subSuppliers.block.name"), "block");
 	protected final SupplierStorage<?>[] subSuppliers = ofStorages(block);
 	
 	public BlockItem(IScriptWithSubScript parent) {super(parent);}

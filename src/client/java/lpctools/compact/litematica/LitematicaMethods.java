@@ -7,9 +7,9 @@ import fi.dy.masa.malilib.util.LayerRange;
 import lpctools.compact.derived.SimpleTestableShape;
 import lpctools.compact.interfaces.ITestableShape;
 import lpctools.util.data.Box3i;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Box;
-import net.minecraft.util.math.Direction;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.world.phys.AABB;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
@@ -22,9 +22,9 @@ public class LitematicaMethods {
             SimpleTestableShape.TestType testType = SimpleTestableShape.testTestType(placement.getName(), namePrefix);
             if(testType == null) continue;
             for(fi.dy.masa.litematica.selection.Box box : placement.getSchematic().getAreas().values()){
-                Box box1 = toMinecraftBox(box);
+                AABB box1 = toMinecraftBox(box);
                 if(box1 == null) continue;
-                Box finalBox = box1.offset(placement.getOrigin());
+                AABB finalBox = box1.move(placement.getOrigin());
                 list.add(ITestableShape.byTester(new SimpleTestableShape.InsideBox(finalBox),testType));
             }
         }
@@ -54,10 +54,10 @@ public class LitematicaMethods {
         }
     }
     //因为投影里用的Box不带这个方法，所以需要自己实现
-    @Nullable private static Box toMinecraftBox(fi.dy.masa.litematica.selection.Box box){
+    @Nullable private static AABB toMinecraftBox(fi.dy.masa.litematica.selection.Box box){
         BlockPos pos1 = box.getPos1(), pos2 = box.getPos2();
         if(pos1 == null || pos2 == null) return null;
-        return new Box(pos1.toCenterPos(), pos2.toCenterPos()).expand(0.5);
+        return new AABB(pos1.getCenter(), pos2.getCenter()).inflate(0.5);
     }
     @Nullable private static Box3i toBox3i(fi.dy.masa.litematica.selection.Box box){
         BlockPos pos1 = box.getPos1(), pos2 = box.getPos2();

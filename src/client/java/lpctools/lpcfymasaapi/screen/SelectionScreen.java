@@ -3,11 +3,6 @@ package lpctools.lpcfymasaapi.screen;
 import fi.dy.masa.malilib.gui.GuiBase;
 import fi.dy.masa.malilib.gui.button.ButtonGeneric;
 import fi.dy.masa.malilib.render.GuiContext;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.gui.Click;
-import net.minecraft.client.gui.DrawContext;
-import net.minecraft.client.gui.screen.Screen;
-import net.minecraft.text.Text;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jspecify.annotations.NonNull;
@@ -17,6 +12,11 @@ import java.util.Map;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.input.MouseButtonEvent;
+import net.minecraft.network.chat.Component;
 
 import static lpctools.generic.SelectionScreenConfigs.*;
 import static lpctools.lpcfymasaapi.LPCConfigUtils.calculateTextButtonWidth;
@@ -25,26 +25,26 @@ import static lpctools.lpcfymasaapi.LPCConfigUtils.calculateTextButtonWidth;
 // 此界面开启时不会响应窗口大小变化事件，也就是说开启后若窗口大小发生变化有可能会排版异常
 public class SelectionScreen<T> extends GuiBase {
 	public interface IOption<T> {
-		@NotNull Text getName();
-		@Nullable Text getComment();
+		@NotNull Component getName();
+		@Nullable Component getComment();
 		void onSelected(int yourDepth, SelectionScreen<T> screen);
 	}
 	@SuppressWarnings("unused")
 	public static class OptionNode<T> implements IOption<T> {
 		private final Supplier<? extends Iterable<? extends IOption<T>>> subOptionSupplier;
-		public final @NotNull Text name;
-		public final @Nullable Text comment;
-		public OptionNode(Supplier<? extends Iterable<? extends IOption<T>>> subOptionSupplier, @NotNull Text name, @Nullable Text comment){
+		public final @NotNull Component name;
+		public final @Nullable Component comment;
+		public OptionNode(Supplier<? extends Iterable<? extends IOption<T>>> subOptionSupplier, @NotNull Component name, @Nullable Component comment){
 			this.subOptionSupplier = subOptionSupplier;
 			this.name = name;
 			this.comment = comment;
 		}
-		public OptionNode(Supplier<? extends Iterable<? extends IOption<T>>> subOptionSupplier, @NotNull Text name) { this(subOptionSupplier, name, null); }
-		public OptionNode(Iterable<? extends IOption<T>> subOptionSupplier, @NotNull Text name, @Nullable Text comment) { this(()->subOptionSupplier, name, comment); }
-		public OptionNode(Iterable<? extends IOption<T>> subOptionSupplier, @NotNull Text name) { this(()->subOptionSupplier, name, null); }
+		public OptionNode(Supplier<? extends Iterable<? extends IOption<T>>> subOptionSupplier, @NotNull Component name) { this(subOptionSupplier, name, null); }
+		public OptionNode(Iterable<? extends IOption<T>> subOptionSupplier, @NotNull Component name, @Nullable Component comment) { this(()->subOptionSupplier, name, comment); }
+		public OptionNode(Iterable<? extends IOption<T>> subOptionSupplier, @NotNull Component name) { this(()->subOptionSupplier, name, null); }
 		public static <T> OptionNode<T> ofOptions(Iterable<? extends T> subOptions,
-												  @NotNull Function<T, Text> nameGenerator, @Nullable Function<T, Text> commentGenerator,
-												  @NotNull Text name, @Nullable Text comment) {
+												  @NotNull Function<T, Component> nameGenerator, @Nullable Function<T, Component> commentGenerator,
+												  @NotNull Component name, @Nullable Component comment) {
 			return new OptionNode<>(()->{
 				var list = new ArrayList<OptionLeaf<T>>();
 				subOptions.forEach(option->
@@ -53,27 +53,27 @@ public class SelectionScreen<T> extends GuiBase {
 				return list;
 			}, name, comment);
 		}
-		public static <T> OptionNode<T> ofOptions(Iterable<? extends T> subOptions, @NotNull Function<T, Text> nameGenerator, @NotNull Text name){
+		public static <T> OptionNode<T> ofOptions(Iterable<? extends T> subOptions, @NotNull Function<T, Component> nameGenerator, @NotNull Component name){
 			return ofOptions(subOptions, nameGenerator, null, name, null);
 		}
-		@Override public @NotNull Text getName() { return name; }
-		@Override public @Nullable Text getComment() { return comment; }
+		@Override public @NotNull Component getName() { return name; }
+		@Override public @Nullable Component getComment() { return comment; }
 		@Override public void onSelected(int yourDepth, SelectionScreen<T> screen) {
 			screen.setOptionList(yourDepth + 1, subOptionSupplier.get());
 		}
 	}
 	public static class OptionLeaf<T> implements IOption<T> {
 		private final T callbackVal;
-		public final @NotNull Text name;
-		public final @Nullable Text comment;
-		public OptionLeaf(T callbackVal, @NotNull Text name, @Nullable Text comment){
+		public final @NotNull Component name;
+		public final @Nullable Component comment;
+		public OptionLeaf(T callbackVal, @NotNull Component name, @Nullable Component comment){
 			this.callbackVal = callbackVal;
 			this.name = name;
 			this.comment = comment;
 		}
-		public OptionLeaf(T callbackVal, @NotNull Text name) { this(callbackVal, name, null); }
-		@Override public @NotNull Text getName() { return name; }
-		@Override public @Nullable Text getComment() { return comment; }
+		public OptionLeaf(T callbackVal, @NotNull Component name) { this(callbackVal, name, null); }
+		@Override public @NotNull Component getName() { return name; }
+		@Override public @Nullable Component getComment() { return comment; }
 		@Override public void onSelected(int yourDepth, SelectionScreen<T> screen) {
 			screen.applyCallback(callbackVal);
 			screen.closeGui(true);
@@ -150,10 +150,10 @@ public class SelectionScreen<T> extends GuiBase {
 	private final MillisTimer millisTimer = new MillisTimer();
 	private ScrollBarInfo scrollBarInfo = null;
 	
-	public static <T> SelectionScreen<T> openSelectionScreen(@Nullable Text title, OptionNode<T> tree, @Nullable Screen parent, Consumer<T> callback){
+	public static <T> SelectionScreen<T> openSelectionScreen(@Nullable Component title, OptionNode<T> tree, @Nullable Screen parent, Consumer<T> callback){
 		var res = new SelectionScreen<>(title, parent, callback);
-		var mc = MinecraftClient.getInstance();
-		if(mc.currentScreen == parent) mc.currentScreen = null;
+		var mc = Minecraft.getInstance();
+		if(mc.screen == parent) mc.screen = null;
 		mc.setScreen(res);
 		res.setOptionList(0, tree.subOptionSupplier.get());
 		return res;
@@ -164,17 +164,17 @@ public class SelectionScreen<T> extends GuiBase {
 		return openSelectionScreen(null, tree, parent, callback);
 	}
 	
-	public static <T> SelectionScreen<T> openSelectionScreen(@Nullable Text title, OptionNode<T> tree, Consumer<T> callback){
-		return openSelectionScreen(title, tree, MinecraftClient.getInstance().currentScreen, callback);
+	public static <T> SelectionScreen<T> openSelectionScreen(@Nullable Component title, OptionNode<T> tree, Consumer<T> callback){
+		return openSelectionScreen(title, tree, Minecraft.getInstance().screen, callback);
 	}
 	
 	@SuppressWarnings("UnusedReturnValue")
 	public static <T> SelectionScreen<T> openSelectionScreen(OptionNode<T> tree, Consumer<T> callback){
-		return openSelectionScreen(null, tree, MinecraftClient.getInstance().currentScreen, callback);
+		return openSelectionScreen(null, tree, Minecraft.getInstance().screen, callback);
 	}
 	
-	public static <T> SelectionScreen<T> openSelectionScreen(@Nullable Text title, Map<String, T> sources, Map<String, ?> tree, Consumer<T> callback){
-		return openSelectionScreen(title, generateOptionNodeFromMap(sources, tree, title == null ? Text.of("") : title), callback);
+	public static <T> SelectionScreen<T> openSelectionScreen(@Nullable Component title, Map<String, T> sources, Map<String, ?> tree, Consumer<T> callback){
+		return openSelectionScreen(title, generateOptionNodeFromMap(sources, tree, title == null ? Component.nullToEmpty("") : title), callback);
 	}
 	
 	@SuppressWarnings("unused")
@@ -182,36 +182,36 @@ public class SelectionScreen<T> extends GuiBase {
 		return openSelectionScreen(null, sources, tree, callback);
 	}
 	
-	private SelectionScreen(@Nullable Text title, @Nullable Screen parent, Consumer<T> callback){
+	private SelectionScreen(@Nullable Component title, @Nullable Screen parent, Consumer<T> callback){
 		setParent(parent);
 		setTitle(title == null ? "" : title.getString());
 		this.callback = callback;
 	}
 	
-	@Override public void render(@NonNull DrawContext context, int mouseX, int mouseY, float deltaTicks) {
-		var client = MinecraftClient.getInstance();
-		double dMouseX = client.mouse.getScaledX(client.getWindow());
-		double dMouseY = client.mouse.getScaledY(client.getWindow());
+	@Override public void render(@NonNull GuiGraphics context, int mouseX, int mouseY, float deltaTicks) {
+		var client = Minecraft.getInstance();
+		double dMouseX = client.mouseHandler.getScaledXPos(client.getWindow());
+		double dMouseY = client.mouseHandler.getScaledYPos(client.getWindow());
 		tickScrollBarInfo(scrollBarInfo, millisTimer);
 		var parent = getParent();
 		if(parent != null) parent.render(context, -1, -1, deltaTicks);
 		super.render(context, mouseX, mouseY, deltaTicks);
 		double position = ScrollBarInfo.getPosition(scrollBarInfo);
 		int startIndex = getListIndexAtX(position, 0), endIndex = getListIndexAtX(position + getScreenWidth(), optionList.size() - 1);
-		context.getMatrices().pushMatrix().translate((float) -position, 0);
+		context.pose().pushMatrix().translate((float) -position, 0);
 		int dividerBottom = scrollBarInfo == null ? getScreenHeight() : getScreenHeight() - (scrollBarThickness + 2);
 		for(int i = startIndex; i <= endIndex; ++i){
 			var list = optionList.get(i);
 			// 绘制分割线
 			if(i != 0) context.fill(list.x - 1, titleHeight, list.x, dividerBottom,
 				getDividerColor(i == selectedList || i == selectedList + 1));
-			context.getMatrices().pushMatrix().translate(list.x, titleHeight);
+			context.pose().pushMatrix().translate(list.x, titleHeight);
 			context.enableScissor(0, 0, list.getScreenWidth(), list.getScreenHeight());
 			list.renderEx(context, dMouseX + position - list.x, dMouseY - titleHeight);
 			context.disableScissor();
-			context.getMatrices().popMatrix();
+			context.pose().popMatrix();
 		}
-		context.getMatrices().popMatrix();
+		context.pose().popMatrix();
 		// 绘制横向滚动条
 		if(scrollBarInfo != null) {
 			boolean highlighted = (selectedList < 0 || selectedList >= optionList.size()) && isHoldingScrollBar;
@@ -222,15 +222,15 @@ public class SelectionScreen<T> extends GuiBase {
 			double scrollBarLeft = scrollBarInfo.currentPosition * k;
 			double scrollBarWidth = getScreenWidth() * k;
 			// 使用translate+scale，避免因为四舍五入导致的锯齿
-			context.getMatrices().pushMatrix()
+			context.pose().pushMatrix()
 				.translate((float) scrollBarLeft, getScreenHeight() - 1 - scrollBarThickness)
 				.scale((float) scrollBarWidth, 1.0f);
 			context.fill(0, 0, 1, scrollBarThickness, getScrollBarColor(highlighted));
-			context.getMatrices().popMatrix();
+			context.pose().popMatrix();
 		}
 	}
 	
-	@Override public boolean mouseClicked(@NonNull Click click, boolean doubleClick) {
+	@Override public boolean mouseClicked(@NonNull MouseButtonEvent click, boolean doubleClick) {
 		if(scrollBarInfo != null){
 			if(getScreenHeight() - 1 - scrollBarThickness <= click.y() && click.y() < getScreenHeight() - 1){
 				// 点击了横向滚动条
@@ -253,14 +253,14 @@ public class SelectionScreen<T> extends GuiBase {
 						return true;
 					}
 				}
-				if(list.mouseClicked(new Click(translatedX, click.y(), click.buttonInfo()), doubleClick))
+				if(list.mouseClicked(new MouseButtonEvent(translatedX, click.y(), click.buttonInfo()), doubleClick))
 					return true;
 			}
 		}
 		return super.mouseClicked(click, doubleClick);
 	}
 	
-	@Override public boolean mouseReleased(@NonNull Click click) {
+	@Override public boolean mouseReleased(@NonNull MouseButtonEvent click) {
 		if(isHoldingScrollBar){
 			isHoldingScrollBar = false;
 			return true;
@@ -360,7 +360,7 @@ public class SelectionScreen<T> extends GuiBase {
 		
 		int getRight(){ return x + getScreenWidth(); }
 		
-		public void renderEx(DrawContext context, double mouseX, double mouseY) {
+		public void renderEx(GuiGraphics context, double mouseX, double mouseY) {
 			tickScrollBarInfo(scrollBarInfo, millisTimer);
 			boolean highlighted = index == selectedList;
 			if(highlighted) context.fill(0, 0, getScreenWidth(), getScreenHeight(), backgroundHighlightColor.getIntegerValue());
@@ -372,14 +372,14 @@ public class SelectionScreen<T> extends GuiBase {
 				double scrollBarTop = scrollBarInfo.currentPosition * k;
 				double scrollBarHeight = getScreenHeight() * k;
 				// 使用translate+scale，避免因为四舍五入导致的锯齿
-				context.getMatrices().pushMatrix()
+				context.pose().pushMatrix()
 					.translate(getScreenWidth() - 1 - scrollBarThickness, (float) scrollBarTop)
 					.scale(1.0f, (float) scrollBarHeight);
 				context.fill(0, 0, scrollBarThickness, 1, getScrollBarColor(highlighted));
-				context.getMatrices().popMatrix();
+				context.pose().popMatrix();
 			}
 			double position = ScrollBarInfo.getPosition(scrollBarInfo);
-			context.getMatrices().translate(0.0f, (float) -position);
+			context.pose().translate(0.0f, (float) -position);
 			double translatedMouseY = mouseY + position;
 			int startIndex = (int) Math.floor(position / buttonStride);
 			int endIndex = Math.min((int) Math.ceil((position + getScreenHeight()) / buttonStride), optionButtons.length);
@@ -401,12 +401,12 @@ public class SelectionScreen<T> extends GuiBase {
 			}
 		}
 		
-		@Override public boolean mouseClicked(Click click, boolean doubleClick) {
+		@Override public boolean mouseClicked(MouseButtonEvent click, boolean doubleClick) {
 			double translatedMouseX = click.x() - x, translatedMouseY = click.y() - titleHeight + ScrollBarInfo.getPosition(scrollBarInfo);
 			int index = (int) Math.floor(translatedMouseY/ buttonStride);
 			if(index >= 0 && index < optionButtons.length){
 				var button = optionButtons[index];
-				if(button.onMouseClicked(new Click(translatedMouseX, translatedMouseY, click.buttonInfo()), doubleClick)){
+				if(button.onMouseClicked(new MouseButtonEvent(translatedMouseX, translatedMouseY, click.buttonInfo()), doubleClick)){
 					selectedIndex = index;
 					return true;
 				}
@@ -427,7 +427,7 @@ public class SelectionScreen<T> extends GuiBase {
 		public <T> OptionButton(int x, int y, int height, IOption<T> option, int yourDepth, SelectionScreen<T> screen) {
 			super(x, y, 20, height, option.getName().getString());
 			setWidth(calculateTextButtonWidth(displayString, textRenderer, buttonHeight));
-			if(option.getComment() instanceof Text comment) setHoverStrings(comment.getString());
+			if(option.getComment() instanceof Component comment) setHoverStrings(comment.getString());
 			setActionListener((button, mouseButton)->option.onSelected(yourDepth, screen));
 		}
 	}
@@ -437,13 +437,13 @@ public class SelectionScreen<T> extends GuiBase {
 		else return o;
 	}
 	
-	private static <T> OptionNode<T> generateOptionNodeFromMap(Map<String, T> sources, Map<?, ?> tree, @NotNull Text name){
+	private static <T> OptionNode<T> generateOptionNodeFromMap(Map<String, T> sources, Map<?, ?> tree, @NotNull Component name){
 		return new OptionNode<>(()->{
 			var res = new ArrayList<IOption<T>>();
 			tree.forEach((o1, o2)->{
-				Text nextName = switch (finalizeSupplier(o1)) {
-					case String s -> Text.of(s);
-					case Text t -> t;
+				Component nextName = switch (finalizeSupplier(o1)) {
+					case String s -> Component.nullToEmpty(s);
+					case Component t -> t;
 					default -> null;
 				};
 				if(nextName == null) return;

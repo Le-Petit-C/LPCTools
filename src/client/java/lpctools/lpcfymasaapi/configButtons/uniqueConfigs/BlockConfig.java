@@ -10,8 +10,8 @@ import lpctools.lpcfymasaapi.interfaces.SimpleDirtyImpl;
 import lpctools.lpcfymasaapi.screen.ChooseItemScreen;
 import lpctools.lpcfymasaapi.screen.ItemButton;
 import lpctools.util.DataUtils;
-import net.minecraft.block.Block;
-import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.Minecraft;
+import net.minecraft.world.level.block.Block;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -40,9 +40,9 @@ public class BlockConfig extends LPCUniqueConfigBase implements SimpleDirtyImpl 
 	
 	private void chooseBlock(){
 		ChooseItemScreen screen = ChooseItemScreen.ofAllBlocks(9, 6, this::setBlock);
-		MinecraftClient client = MinecraftClient.getInstance();
-		client.currentScreen = null;
-		MinecraftClient.getInstance().setScreen(screen);
+		Minecraft client = Minecraft.getInstance();
+		client.screen = null;
+		Minecraft.getInstance().setScreen(screen);
 	}
 	
 	public static JsonPrimitive getBlockConfigAsJsonElement(BlockConfig blockConfig){

@@ -4,16 +4,16 @@ import lpctools.script.CompileEnvironment;
 import lpctools.script.IScriptWithSubScript;
 import lpctools.script.runtimeInterfaces.ScriptNotNullSupplier;
 import lpctools.script.suppliers.AbstractSupplierWithTypeDeterminedSubSuppliers;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.Blocks;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.text.Text;
-import net.minecraft.util.math.BlockPos;
+import net.minecraft.client.Minecraft;
+import net.minecraft.core.BlockPos;
+import net.minecraft.network.chat.Component;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.state.BlockState;
 import org.jetbrains.annotations.NotNull;
 
 public class BlockStateInWorld extends AbstractSupplierWithTypeDeterminedSubSuppliers implements IBlockStateSupplier {
 	protected final SupplierStorage<BlockPos> blockPos = ofStorage(BlockPos.class,
-		Text.translatable("lpctools.script.suppliers.blockState.blockStateInWorld.subSuppliers.blockPos.name"), "blockPos");
+		Component.translatable("lpctools.script.suppliers.blockState.blockStateInWorld.subSuppliers.blockPos.name"), "blockPos");
 	protected final SupplierStorage<?>[] subSuppliers = ofStorages(blockPos);
 	
 	public BlockStateInWorld(IScriptWithSubScript parent) {super(parent);}
@@ -24,12 +24,12 @@ public class BlockStateInWorld extends AbstractSupplierWithTypeDeterminedSubSupp
 	compileNotNull(CompileEnvironment environment) {
 		var blockPosSupplier = blockPos.get().compileCheckedNotNull(environment);
 		return map->{
-			var world = MinecraftClient.getInstance().world;
+			var world = Minecraft.getInstance().level;
 			if(world != null) {
 				var pos = blockPosSupplier.scriptApply(map);
 				return world.getBlockState(pos);
 			}
-			else return Blocks.VOID_AIR.getDefaultState();
+			else return Blocks.VOID_AIR.defaultBlockState();
 		};
 	}
 }

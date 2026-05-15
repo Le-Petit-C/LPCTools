@@ -4,18 +4,18 @@ import lpctools.lpcfymasaapi.Registries;
 import lpctools.util.DataUtils;
 import lpctools.util.javaex.QuietAutoCloseable;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
-import net.minecraft.block.AbstractFurnaceBlock;
-import net.minecraft.block.HopperBlock;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.network.ClientPlayerEntity;
-import net.minecraft.client.network.ClientPlayerInteractionManager;
-import net.minecraft.client.world.ClientWorld;
-import net.minecraft.item.ItemStack;
-import net.minecraft.text.Text;
-import net.minecraft.util.Hand;
-import net.minecraft.util.hit.BlockHitResult;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Direction;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.multiplayer.ClientLevel;
+import net.minecraft.client.multiplayer.MultiPlayerGameMode;
+import net.minecraft.client.player.LocalPlayer;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.network.chat.Component;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.block.AbstractFurnaceBlock;
+import net.minecraft.world.level.block.HopperBlock;
+import net.minecraft.world.phys.BlockHitResult;
 import org.jetbrains.annotations.Nullable;
 import org.jspecify.annotations.NonNull;
 
@@ -31,7 +31,7 @@ public class FurnaceMaintainerRunner implements QuietAutoCloseable, ClientTickEv
     @Override public void close(){ registerAll(false); }
     private void registerAll(boolean b){Registries.END_CLIENT_TICK.register(this, b);}
     
-    @Override public void onEndTick(@NonNull MinecraftClient mc) {
+    @Override public void onEndTick(@NonNull Minecraft mc) {
         if(runner != this) {
             close();
             return;
@@ -43,9 +43,9 @@ public class FurnaceMaintainerRunner implements QuietAutoCloseable, ClientTickEv
 			return;
 		}
         
-        ClientPlayerEntity player = mc.player;
-        ClientWorld world = mc.world;
-        ClientPlayerInteractionManager itm = mc.interactionManager;
+        LocalPlayer player = mc.player;
+        ClientLevel world = mc.level;
+        MultiPlayerGameMode itm = mc.gameMode;
         if(player == null || world == null || itm == null) {
             FMConfig.setBooleanValue(false);
             return;
@@ -56,12 +56,12 @@ public class FurnaceMaintainerRunner implements QuietAutoCloseable, ClientTickEv
         if(lastInteractedPos != null){
             if(System.currentTimeMillis() - lastInteractTimeMillis > 1000) {
                 FMConfig.setBooleanValue(false);
-                DataUtils.clientMessage(Text.translatable("lpctools.configs.tools.FM.interactionMismatch"), true);
+                DataUtils.clientMessage(Component.translatable("lpctools.configs.tools.FM.interactionMismatch"), true);
             }
         }
-        if(MinecraftClient.getInstance().isShiftPressed()) return;
+        if(Minecraft.getInstance().hasShiftDown()) return;
         int requiredEmptyStackCount = includesHopperAbove.getBooleanValue() ? 5 : 1;
-        for(ItemStack stack : player.getInventory().getMainStacks()){
+        for(ItemStack stack : player.getInventory().getNonEquipmentItems()){
             if(stack.isEmpty()){
                 if(--requiredEmptyStackCount <= 0)
                     break;
@@ -69,27 +69,27 @@ public class FurnaceMaintainerRunner implements QuietAutoCloseable, ClientTickEv
         }
         if(requiredEmptyStackCount > 0) {
             FMConfig.setBooleanValue(false);
-            DataUtils.clientMessage(Text.translatable("lpctools.configs.tools.FM.notEnoughEmptyStack").getString(), true);
+            DataUtils.clientMessage(Component.translatable("lpctools.configs.tools.FM.notEnoughEmptyStack").getString(), true);
             return;
         }
         if(operationReserved < 1) return;
         if(lastInteractedPos == null) {
-            for(BlockPos pos : reachDistance.iterateFromClosest(player.getEyePos())){
+            for(BlockPos pos : reachDistance.iterateFromClosest(player.getEyePosition())){
                 if(!dataInstance.highlightInstance.containsKey(pos)) continue;
                 var state = world.getBlockState(pos);
                 var block = state.getBlock();
                 if(block instanceof AbstractFurnaceBlock) {
-                    var upperPos = pos.up();
+                    var upperPos = pos.above();
                     if(dataInstance.highlightInstance.containsKey(upperPos)) {
                         var upperState = world.getBlockState(upperPos);
-                        if(upperState.getBlock() instanceof HopperBlock && upperState.get(HopperBlock.FACING) == Direction.DOWN) continue;
+                        if(upperState.getBlock() instanceof HopperBlock && upperState.getValue(HopperBlock.FACING) == Direction.DOWN) continue;
                     }
                 }
-                else if(!(block instanceof HopperBlock) || state.get(HopperBlock.FACING) != Direction.DOWN
-					|| !(world.getBlockState(pos.down()).getBlock() instanceof AbstractFurnaceBlock)) continue;
-                BlockHitResult hitResult = new BlockHitResult(pos.toCenterPos(), Direction.DOWN, lastInteractedPos = pos.toImmutable(), false);
+                else if(!(block instanceof HopperBlock) || state.getValue(HopperBlock.FACING) != Direction.DOWN
+					|| !(world.getBlockState(pos.below()).getBlock() instanceof AbstractFurnaceBlock)) continue;
+                BlockHitResult hitResult = new BlockHitResult(pos.getCenter(), Direction.DOWN, lastInteractedPos = pos.immutable(), false);
                 isFMInteracting = true;
-                itm.interactBlock(player, Hand.MAIN_HAND, hitResult);
+                itm.useItemOn(player, InteractionHand.MAIN_HAND, hitResult);
                 isFMInteracting = false;
                 lastInteractTimeMillis = System.currentTimeMillis();
                 --operationReserved;

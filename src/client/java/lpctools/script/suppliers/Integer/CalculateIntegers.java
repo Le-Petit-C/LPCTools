@@ -6,14 +6,14 @@ import lpctools.script.exceptions.ScriptRuntimeException;
 import lpctools.script.runtimeInterfaces.ScriptIntegerSupplier;
 import lpctools.script.suppliers.AbstractOperatorResultSupplier;
 import lpctools.util.operatorUtils.Operators;
-import net.minecraft.text.Text;
+import net.minecraft.network.chat.Component;
 import org.jetbrains.annotations.NotNull;
 
 public class CalculateIntegers extends AbstractOperatorResultSupplier<Operators.IntegerCalculateSign> implements IIntegerSupplier {
 	protected final SupplierStorage<Integer> integer1 = ofStorage(Integer.class,
-		Text.translatable("lpctools.script.suppliers.integer.calculateIntegers.subSuppliers.integer1.name"), "integer1");
+		Component.translatable("lpctools.script.suppliers.integer.calculateIntegers.subSuppliers.integer1.name"), "integer1");
 	protected final SupplierStorage<Integer> integer2 = ofStorage(Integer.class,
-		Text.translatable("lpctools.script.suppliers.integer.calculateIntegers.subSuppliers.integer2.name"), "integer2");
+		Component.translatable("lpctools.script.suppliers.integer.calculateIntegers.subSuppliers.integer2.name"), "integer2");
 	protected final SupplierStorage<?>[] subSuppliers = ofStorages(integer1, integer2);
 	
 	public CalculateIntegers(IScriptWithSubScript parent) {super(parent, Operators.ADD, Operators.integerCalculateSignInfo, 1);}

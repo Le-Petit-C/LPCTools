@@ -10,7 +10,7 @@ import lpctools.script.editScreen.ScriptDisplayWidget;
 import lpctools.script.editScreen.WidthAutoAdjustTextField;
 import lpctools.script.runtimeInterfaces.ScriptNotNullSupplier;
 import lpctools.script.suppliers.AbstractSupplierWithTypeDeterminedSubSuppliers;
-import net.minecraft.text.Text;
+import net.minecraft.network.chat.Component;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -23,8 +23,8 @@ public class IterateArray extends AbstractSupplierWithTypeDeterminedSubSuppliers
 	private @NotNull String variableName = "var";
 	protected @Nullable WidthAutoAdjustTextField textField;
 	protected final SupplierStorage<Object[]> array = ofStorage(Object[].class,
-		Text.translatable("lpctools.script.suppliers.controlFlowIssue.iterateArray.subSuppliers.array.name"), "array");
-	protected final RunMultiple loopBody = new RunMultiple(this, Text.translatable("lpctools.script.suppliers.controlFlowIssue.iterateArray.loopBody.name"));
+		Component.translatable("lpctools.script.suppliers.controlFlowIssue.iterateArray.subSuppliers.array.name"), "array");
+	protected final RunMultiple loopBody = new RunMultiple(this, Component.translatable("lpctools.script.suppliers.controlFlowIssue.iterateArray.loopBody.name"));
 	protected final SupplierStorage<?>[] subSuppliers = ofStorages(array);
 	
 	public static final String variableNameJsonKey = "variableName";
@@ -35,7 +35,7 @@ public class IterateArray extends AbstractSupplierWithTypeDeterminedSubSuppliers
 	public void setVariableName(@NotNull String variableName) {
 		if(!this.variableName.equals(variableName)){
 			this.variableName = variableName;
-			if(textField != null) textField.setText(variableName);
+			if(textField != null) textField.setValue(variableName);
 		}
 	}
 	

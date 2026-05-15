@@ -1,13 +1,13 @@
 package lpctools.mixin.client.accessors;
 
-import net.minecraft.block.AbstractBlock;
-import net.minecraft.block.BlockState;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.WorldView;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.LevelReader;
+import net.minecraft.world.level.block.state.BlockBehaviour;
+import net.minecraft.world.level.block.state.BlockState;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.gen.Invoker;
 
-@Mixin(AbstractBlock.class)
+@Mixin(BlockBehaviour.class)
 public interface AbstractBlockAccessor {
-	@Invoker boolean invokeCanPlaceAt(BlockState state, WorldView world, BlockPos pos);
+	@Invoker boolean invokeCanSurvive(BlockState state, LevelReader world, BlockPos pos);
 }

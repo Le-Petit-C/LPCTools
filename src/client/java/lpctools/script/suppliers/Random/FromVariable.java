@@ -26,7 +26,7 @@ public class FromVariable<T> extends AbstractScript implements IRandomSupplier<T
 	public void setVariableName(@NotNull String variableName) {
 		if(!this.variableName.equals(variableName)){
 			this.variableName = variableName;
-			if(textField != null) textField.setText(variableName);
+			if(textField != null) textField.setValue(variableName);
 		}
 	}
 	

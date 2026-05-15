@@ -2,8 +2,8 @@ package lpctools.tools.breakRestriction;
 
 import com.google.common.collect.ImmutableList;
 import lpctools.compact.derived.ShapeList;
-import net.minecraft.block.Block;
-import net.minecraft.block.Blocks;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.Blocks;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;

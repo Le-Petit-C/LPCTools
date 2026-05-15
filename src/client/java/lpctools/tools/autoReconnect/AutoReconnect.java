@@ -4,8 +4,8 @@ import lpctools.lpcfymasaapi.configButtons.transferredConfigs.DoubleConfig;
 import lpctools.lpcfymasaapi.configButtons.transferredConfigs.IntegerConfig;
 import lpctools.lpcfymasaapi.configButtons.uniqueConfigs.BooleanHotkeyThirdListConfig;
 import lpctools.tools.ToolConfigs;
-import net.minecraft.client.gui.screen.multiplayer.ConnectScreen;
-
+import lpctools.tools.autoReconnect.AutoReconnectData.ServerData;
+import net.minecraft.client.gui.screens.ConnectScreen;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -34,7 +34,7 @@ public class AutoReconnect {
         reconnectTask = new Timer();
         reconnectTask.schedule(new TimerTask() {
             @Override public void run() {
-                serverData.mc().send(()->ConnectScreen.connect(null, serverData.mc(), serverData.address(), serverData.info(), serverData.quickPlay(), serverData.cookieStorage()));
+                serverData.mc().schedule(()->ConnectScreen.startConnecting(null, serverData.mc(), serverData.address(), serverData.info(), serverData.quickPlay(), serverData.cookieStorage()));
             }
         }, (long)(seconds * 1000));
     }

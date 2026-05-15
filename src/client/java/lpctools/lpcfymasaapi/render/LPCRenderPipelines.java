@@ -2,17 +2,17 @@ package lpctools.lpcfymasaapi.render;
 
 import com.mojang.blaze3d.pipeline.BlendFunction;
 import com.mojang.blaze3d.pipeline.RenderPipeline;
+import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 import com.mojang.blaze3d.vertex.VertexFormat;
-import net.minecraft.client.gl.RenderPipelines;
-import net.minecraft.client.render.VertexFormats;
-import net.minecraft.util.Identifier;
+import net.minecraft.client.renderer.RenderPipelines;
+import net.minecraft.resources.Identifier;
 
 public class LPCRenderPipelines {
 	public static final RenderPipeline spherePipeline =
-		RenderPipelines.register(RenderPipeline.builder(RenderPipelines.TRANSFORMS_AND_PROJECTION_SNIPPET)
-			.withVertexFormat(VertexFormats.POSITION_COLOR_LINE_WIDTH, VertexFormat.DrawMode.TRIANGLES)
-			.withVertexShader(Identifier.of("lpctools", "core/sphere"))
-			.withFragmentShader(Identifier.of("lpctools", "core/sphere"))
+		RenderPipelines.register(RenderPipeline.builder(RenderPipelines.MATRICES_PROJECTION_SNIPPET)
+			.withVertexFormat(DefaultVertexFormat.POSITION_COLOR_LINE_WIDTH, VertexFormat.Mode.TRIANGLES)
+			.withVertexShader(Identifier.fromNamespaceAndPath("lpctools", "core/sphere"))
+			.withFragmentShader(Identifier.fromNamespaceAndPath("lpctools", "core/sphere"))
 			.withBlend(BlendFunction.TRANSLUCENT)
-			.withLocation(Identifier.of("lpctools", "pipeline/sphere")).build());
+			.withLocation(Identifier.fromNamespaceAndPath("lpctools", "pipeline/sphere")).build());
 }

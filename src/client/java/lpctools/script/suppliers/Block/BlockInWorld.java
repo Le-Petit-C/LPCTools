@@ -4,16 +4,16 @@ import lpctools.script.CompileEnvironment;
 import lpctools.script.IScriptWithSubScript;
 import lpctools.script.runtimeInterfaces.ScriptNotNullSupplier;
 import lpctools.script.suppliers.AbstractSupplierWithTypeDeterminedSubSuppliers;
-import net.minecraft.block.Block;
-import net.minecraft.block.Blocks;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.text.Text;
-import net.minecraft.util.math.BlockPos;
+import net.minecraft.client.Minecraft;
+import net.minecraft.core.BlockPos;
+import net.minecraft.network.chat.Component;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.Blocks;
 import org.jetbrains.annotations.NotNull;
 
 public class BlockInWorld extends AbstractSupplierWithTypeDeterminedSubSuppliers implements IBlockSupplier {
 	protected final SupplierStorage<BlockPos> blockPos = ofStorage(BlockPos.class,
-		Text.translatable("lpctools.script.suppliers.block.blockInWorld.subSuppliers.blockPos.name"), "blockPos");
+		Component.translatable("lpctools.script.suppliers.block.blockInWorld.subSuppliers.blockPos.name"), "blockPos");
 	protected final SupplierStorage<?>[] subSuppliers = ofStorages(blockPos);
 	
 	public BlockInWorld(IScriptWithSubScript parent) {super(parent);}
@@ -24,7 +24,7 @@ public class BlockInWorld extends AbstractSupplierWithTypeDeterminedSubSuppliers
 	compileNotNull(CompileEnvironment environment) {
 		var booleanSupplier = blockPos.get().compileCheckedNotNull(environment);
 		return map->{
-			var world = MinecraftClient.getInstance().world;
+			var world = Minecraft.getInstance().level;
 			if(world != null) {
 				var pos = booleanSupplier.scriptApply(map);
 				return world.getBlockState(pos).getBlock();

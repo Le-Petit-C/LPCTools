@@ -3,7 +3,7 @@ package lpctools.lpcfymasaapi.configButtons.uniqueConfigs;
 import com.google.common.collect.ImmutableSet;
 import lpctools.lpcfymasaapi.interfaces.ILPCConfigReadable;
 import lpctools.lpcfymasaapi.interfaces.ILPCValueChangeCallback;
-import net.minecraft.entity.EntityType;
+import net.minecraft.world.entity.EntityType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 

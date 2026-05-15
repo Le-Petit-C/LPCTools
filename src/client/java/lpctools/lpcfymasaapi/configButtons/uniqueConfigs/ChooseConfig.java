@@ -9,7 +9,7 @@ import lpctools.lpcfymasaapi.interfaces.ILPCConfig;
 import lpctools.lpcfymasaapi.interfaces.ILPCConfigReadable;
 import lpctools.lpcfymasaapi.interfaces.ILPCValueChangeCallback;
 import lpctools.lpcfymasaapi.screen.ChooseScreen;
-import net.minecraft.text.Text;
+import net.minecraft.network.chat.Component;
 import org.apache.commons.lang3.function.TriFunction;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -48,7 +48,7 @@ public class ChooseConfig<T extends ILPCConfig> extends LPCUniqueConfigBase impl
 	public void openChoose(){allocators.chooseConfig(optionTree, this);}
 	@Override public void getButtonOptions(ButtonOptionArrayList res) {
 		res.add(1, (button, mouseButton)->openChoose(),
-			()->Text.translatable(chooseButtonKey).getString(), buttonGenericAllocator);
+			()->Component.translatable(chooseButtonKey).getString(), buttonGenericAllocator);
 	}
 	@Override public @Nullable JsonObject getAsJsonElement() {
 		JsonObject object = new JsonObject();
@@ -125,7 +125,7 @@ public class ChooseConfig<T extends ILPCConfig> extends LPCUniqueConfigBase impl
 				config.getPage().markNeedUpdate();
 				config.onValueChanged();
 			}));
-			ChooseScreen.openChooseScreen(Text.translatable(chooseTitle).getString(), true, options.build(), optionTree, userData);
+			ChooseScreen.openChooseScreen(Component.translatable(chooseTitle).getString(), true, options.build(), optionTree, userData);
 		}
 	}
 	private final WrappedAllocators<T, ?> allocators;

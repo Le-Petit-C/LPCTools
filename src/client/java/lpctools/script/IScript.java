@@ -3,7 +3,7 @@ package lpctools.script;
 import com.google.gson.JsonElement;
 import lpctools.script.editScreen.ScriptDisplayWidget;
 import lpctools.script.exceptions.ScriptException;
-import net.minecraft.text.Text;
+import net.minecraft.network.chat.Component;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -11,8 +11,8 @@ import java.util.Objects;
 import java.util.function.Consumer;
 
 public interface IScript {
-	@Nullable Text getName();
-	@Nullable Text getComment();
+	@Nullable Component getName();
+	@Nullable Component getComment();
 	//获取Buttons, Widgets和TextFields
 	default @Nullable Iterable<?> getWidgets(){return null;}
 	@Nullable JsonElement getAsJsonElement();

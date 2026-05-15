@@ -1,10 +1,10 @@
 package lpctools.script.suppliers.BlockProperty.IntegerBlockProperty.EnumBlockProperty;
 
 import lpctools.script.suppliers.IScriptSupplierNotNull;
-import net.minecraft.state.property.IntProperty;
+import net.minecraft.world.level.block.state.properties.IntegerProperty;
 
-public interface IIntegerBlockPropertySupplier extends IScriptSupplierNotNull<IntProperty> {
-	@Override default Class<IntProperty> getSuppliedClass() {
-		return IntProperty.class;
+public interface IIntegerBlockPropertySupplier extends IScriptSupplierNotNull<IntegerProperty> {
+	@Override default Class<IntegerProperty> getSuppliedClass() {
+		return IntegerProperty.class;
 	}
 }

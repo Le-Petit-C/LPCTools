@@ -1,8 +1,7 @@
 package lpctools.script.suppliers.TagKey;
 
 import lpctools.script.suppliers.IScriptSupplierNotNull;
-import net.minecraft.registry.tag.TagKey;
-
+import net.minecraft.tags.TagKey;
 import java.util.HashSet;
 
 @SuppressWarnings("rawtypes")

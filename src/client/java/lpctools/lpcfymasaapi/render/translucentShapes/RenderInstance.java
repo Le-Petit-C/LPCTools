@@ -17,13 +17,13 @@ import lpctools.lpcfymasaapi.Registries;
 import lpctools.lpcfymasaapi.render.IPositionVertex;
 import lpctools.util.CachedSupplier;
 import lpctools.util.javaex.QuietAutoCloseable;
-import net.minecraft.client.render.Frustum;
-import net.minecraft.client.render.RawProjectionMatrix;
+import net.minecraft.client.renderer.PerspectiveProjectionMatrixBuffer;
+import net.minecraft.client.renderer.culling.Frustum;
+import net.minecraft.core.SectionPos;
+import net.minecraft.util.Mth;
 import net.minecraft.util.Util;
-import net.minecraft.util.math.Box;
-import net.minecraft.util.math.ChunkSectionPos;
-import net.minecraft.util.math.MathHelper;
-import net.minecraft.util.math.Vec3d;
+import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.Nullable;
 import org.joml.*;
@@ -64,22 +64,22 @@ public class RenderInstance implements QuietAutoCloseable, Registries.WorldPreMa
 	
 	// 比ChunkSection大一圈的Section，叫做Greater Section没什么不妥吧？
 	private static final int greaterExponent = 1;
-	private static final int greaterSectionSideLength = ChunkSectionPos.getBlockCoord(1) << greaterExponent;
-	private static long asLongGreater(int x, int y, int z){ return ChunkSectionPos.asLong(x, y, z); }
-	private static int getGreaterSectionCoord(double k){return ChunkSectionPos.getSectionCoord(k) >> greaterExponent;}
-	private static int getBlockCoordGreater(int greaterSectionCoord){return ChunkSectionPos.getBlockCoord(greaterSectionCoord) << greaterExponent;}
+	private static final int greaterSectionSideLength = SectionPos.sectionToBlockCoord(1) << greaterExponent;
+	private static long asLongGreater(int x, int y, int z){ return SectionPos.asLong(x, y, z); }
+	private static int getGreaterSectionCoord(double k){return SectionPos.posToSectionCoord(k) >> greaterExponent;}
+	private static int getBlockCoordGreater(int greaterSectionCoord){return SectionPos.sectionToBlockCoord(greaterSectionCoord) << greaterExponent;}
 	private static long getPackedGreaterSectionPos(double x, double y, double z)
 	{ return asLongGreater(getGreaterSectionCoord(x), getGreaterSectionCoord(y), getGreaterSectionCoord(z)); }
-	private static int unpackGreaterSectionX(long packed){ return ChunkSectionPos.unpackX(packed); }
-	private static int unpackGreaterSectionY(long packed){ return ChunkSectionPos.unpackY(packed); }
-	private static int unpackGreaterSectionZ(long packed){ return ChunkSectionPos.unpackZ(packed); }
+	private static int unpackGreaterSectionX(long packed){ return SectionPos.x(packed); }
+	private static int unpackGreaterSectionY(long packed){ return SectionPos.y(packed); }
+	private static int unpackGreaterSectionZ(long packed){ return SectionPos.z(packed); }
 	private static int getBlockCoordXGreater(long packed){ return getBlockCoordGreater(unpackGreaterSectionX(packed)); }
 	private static int getBlockCoordYGreater(long packed){ return getBlockCoordGreater(unpackGreaterSectionY(packed)); }
 	private static int getBlockCoordZGreater(long packed){ return getBlockCoordGreater(unpackGreaterSectionZ(packed)); }
 	private static long toPackedGreaterSectionPos(Vector3d pos){ return getPackedGreaterSectionPos(pos.x, pos.y, pos.z); }
 	
 	private final RenderOption renderOption;
-	private final RawProjectionMatrix rawProjectionMatrixBuffer = new RawProjectionMatrix("LPCToolsRenderInstance");
+	private final PerspectiveProjectionMatrixBuffer rawProjectionMatrixBuffer = new PerspectiveProjectionMatrixBuffer("LPCToolsRenderInstance");
 	// 变换基点，所有vertex以此为基点进行变换
 	private final Vector3d basePoint = new Vector3d();
 	private final ArrayList<SubChunk> subChunks = new ArrayList<>();
@@ -156,9 +156,9 @@ public class RenderInstance implements QuietAutoCloseable, Registries.WorldPreMa
 			subChunksNeedUpload.clear();
 		}
 		var fb = context.fb();
-		GpuTextureView colorAttachmentView = renderOption.useColorBuffer() ? fb.getColorAttachmentView() : null;
-		GpuTextureView depthAttachmentView = renderOption.useDepthBuffer() ? (fb.useDepthAttachment ? fb.getDepthAttachmentView() : null) : null;
-		var camPos = context.camera().getCameraPos();
+		GpuTextureView colorAttachmentView = renderOption.useColorBuffer() ? fb.getColorTextureView() : null;
+		GpuTextureView depthAttachmentView = renderOption.useDepthBuffer() ? (fb.useDepth ? fb.getDepthTextureView() : null) : null;
+		var camPos = context.camera().position();
 		Vector3f offset = new Vector3f();
 		Matrix4f modelViewMatrix = new Matrix4f(RenderSystem.getModelViewMatrix());
 		Matrix4f projectionMatrix = new Matrix4f(worldBasicProjectionMatrix);
@@ -178,11 +178,11 @@ public class RenderInstance implements QuietAutoCloseable, Registries.WorldPreMa
 			case OFFSET -> offset.add((float) (basePoint.x - camPos.x), (float) (basePoint.y - camPos.y), (float) (basePoint.z - camPos.z));
 		}
 		GpuBufferSlice dynamicTransforms = RenderSystem.getDynamicUniforms()
-			.write(modelViewMatrix, new Vector4f(1.0F, 1.0F, 1.0F, 1.0F), offset, new Matrix4f());
+			.writeTransform(modelViewMatrix, new Vector4f(1.0F, 1.0F, 1.0F, 1.0F), offset, new Matrix4f());
 		// z-fighting解决方案
 		// 或许可以把具有相似配置的RenderInstance一起绘制从而避免频繁的重设数据？
 		if(depthAttachmentView != null) projectionMatrix.m23(projectionMatrix.m23() - GenericUtils.zFightBias());
-		GpuBufferSlice projection = rawProjectionMatrixBuffer.set(projectionMatrix);
+		GpuBufferSlice projection = rawProjectionMatrixBuffer.getBuffer(projectionMatrix);
 		try (RenderPass renderPass = commandEncoder
 			.createRenderPass(renderPassLabel, colorAttachmentView, OptionalInt.empty(), depthAttachmentView, OptionalDouble.empty())) {
 			renderPass.setPipeline(renderOption.pipeline());
@@ -197,7 +197,7 @@ public class RenderInstance implements QuietAutoCloseable, Registries.WorldPreMa
 	
 	@Override public void onRenderWorldPreMain(Registries.MASAWorldRenderContext context) {
 		recordedWorldRenderContext = context;
-		prepareRenderDataAsync(Util.getMainWorkerExecutor(), true);
+		prepareRenderDataAsync(Util.backgroundExecutor(), true);
 	}
 	
 	public void prepareRenderDataAsync(Executor executor, boolean recordData) {
@@ -206,7 +206,7 @@ public class RenderInstance implements QuietAutoCloseable, Registries.WorldPreMa
 		waitForTasks();
 		if (context != null) {
 			final Frustum frustum = recordData ? new Frustum(context.frustum()) : context.frustum();
-			dispatchTask = CompletableFuture.supplyAsync(() -> dispatchPrepareTasks(frustum, context.camera().getCameraPos(), executor), executor);
+			dispatchTask = CompletableFuture.supplyAsync(() -> dispatchPrepareTasks(frustum, context.camera().position(), executor), executor);
 			prepareTasks = dispatchTask.thenCompose(tasks -> tasks);
 		}
 	}
@@ -238,7 +238,7 @@ public class RenderInstance implements QuietAutoCloseable, Registries.WorldPreMa
 		dispatchTask = null;
 	}
 	
-	private CompletableFuture<Void> dispatchPrepareTasks(Frustum frustum, Vec3d camPos, Executor executor) {
+	private CompletableFuture<Void> dispatchPrepareTasks(Frustum frustum, Vec3 camPos, Executor executor) {
 		ArrayList<CompletableFuture<Void>> tasks = new ArrayList<>();
 		double dstMax = Math.max(Math.max(Math.abs(camPos.x - basePoint.x), Math.abs(camPos.z - basePoint.z)), Math.abs(camPos.y - basePoint.y));
 		if(dstMax > 1024) basePoint.set(camPos.x, camPos.y, camPos.z);
@@ -273,7 +273,7 @@ public class RenderInstance implements QuietAutoCloseable, Registries.WorldPreMa
 		final Vector3d basePoint = new Vector3d();
 		
 		long packedGreaterSectionPos;
-		Box sectionBox;
+		AABB sectionBox;
 		GpuBuffer vertexBuffer = null;
 		GpuBuffer indexBuffer = null;
 		VertexFormat.IndexType indexType = null;
@@ -355,7 +355,7 @@ public class RenderInstance implements QuietAutoCloseable, Registries.WorldPreMa
 		
 		void setSectionPos(long packedGreaterSectionPos) {
 			this.packedGreaterSectionPos = packedGreaterSectionPos;
-			sectionBox = new Box(
+			sectionBox = new AABB(
 				getBlockCoordXGreater(packedGreaterSectionPos),
 				getBlockCoordYGreater(packedGreaterSectionPos),
 				getBlockCoordZGreater(packedGreaterSectionPos),
@@ -379,7 +379,7 @@ public class RenderInstance implements QuietAutoCloseable, Registries.WorldPreMa
 			return res;
 		}
 		
-		void updateIfVisible(ArrayList<CompletableFuture<Void>> taskOutput, RenderInstance caller, Frustum frustum, Vec3d camPos, Executor executor) {
+		void updateIfVisible(ArrayList<CompletableFuture<Void>> taskOutput, RenderInstance caller, Frustum frustum, Vec3 camPos, Executor executor) {
 			if(shapes.isEmpty() || !frustum.isVisible(sectionBox)) return;
 			caller.sortedRenderSubChunks.add(this);
 			if(!basePoint.equals(caller.basePoint)){
@@ -401,7 +401,7 @@ public class RenderInstance implements QuietAutoCloseable, Registries.WorldPreMa
 			}
 		}
 		
-		boolean updateMarkerPos(Vec3d camPos){
+		boolean updateMarkerPos(Vec3 camPos){
 			double mx = Math.clamp(camPos.x, sectionBox.minX, sectionBox.maxX);
 			double my = Math.clamp(camPos.y, sectionBox.minY, sectionBox.maxY);
 			double mz = Math.clamp(camPos.z, sectionBox.minZ, sectionBox.maxZ);
@@ -409,12 +409,12 @@ public class RenderInstance implements QuietAutoCloseable, Registries.WorldPreMa
 			if(markerPos.x == mx && markerPos.y == my && markerPos.z == mz) res = false;
 			else {
 				double asq = 0, hsq = 0;
-				if(markerPos.x == mx) asq += MathHelper.square(camPos.x - markerPos.x);
-				else hsq += MathHelper.square(camPos.x - markerPos.x);
-				if(markerPos.y == my) asq += MathHelper.square(camPos.y - markerPos.y);
-				else hsq += MathHelper.square(camPos.y - markerPos.y);
-				if(markerPos.z == mz) asq += MathHelper.square(camPos.z - markerPos.z);
-				else hsq += MathHelper.square(camPos.z - markerPos.z);
+				if(markerPos.x == mx) asq += Mth.square(camPos.x - markerPos.x);
+				else hsq += Mth.square(camPos.x - markerPos.x);
+				if(markerPos.y == my) asq += Mth.square(camPos.y - markerPos.y);
+				else hsq += Mth.square(camPos.y - markerPos.y);
+				if(markerPos.z == mz) asq += Mth.square(camPos.z - markerPos.z);
+				else hsq += Mth.square(camPos.z - markerPos.z);
 				res = hsq  > resortTanSquare * asq;
 			}
 			if(res) markerPos.set(mx, my, mz);
@@ -441,16 +441,16 @@ public class RenderInstance implements QuietAutoCloseable, Registries.WorldPreMa
 			vertexBufferToUpload.flip();
 		}
 		
-		void resort(Vec3d camPos) {
+		void resort(Vec3 camPos) {
 			// 更新摄像机距离
 			for(var shape : shapes){
 				for(int i = 0; i < shape.elementReferences.length; ++i){
 					var elementRef = shape.elementReferences[i];
 					var center = shape.shape.centers[i];
 					elementRef.distanceSquared
-						= MathHelper.square((float)(center.x - camPos.x))
-						+ MathHelper.square((float)(center.y - camPos.y))
-						+ MathHelper.square((float)(center.z - camPos.z));
+						= Mth.square((float)(center.x - camPos.x))
+						+ Mth.square((float)(center.y - camPos.y))
+						+ Mth.square((float)(center.z - camPos.z));
 					// 排序默认是从小到大排序，但是我们需要从远到近绘制，乘以-1以适配二者
 					elementRef.distanceSquared *= -1;
 				}
@@ -465,7 +465,7 @@ public class RenderInstance implements QuietAutoCloseable, Registries.WorldPreMa
 		
 		void buildIndexByteBuffer(){
 			if(indexBufferToUpload != null) MemoryUtil.memFree(indexBufferToUpload);
-			indexBufferToUpload = MemoryUtil.memAlloc(elements_size * indexType.size);
+			indexBufferToUpload = MemoryUtil.memAlloc(elements_size * indexType.bytes);
 			IntConsumer indexConsumer = switch(indexType){
 				case SHORT -> i->indexBufferToUpload.putShort((short)i);
 				case INT -> i->indexBufferToUpload.putInt(i);
@@ -508,7 +508,7 @@ public class RenderInstance implements QuietAutoCloseable, Registries.WorldPreMa
 			}
 			verticesChanged = false;
 			veryInitialized = true;
-			uploadedSize = requiredIndexSize / indexType.size;
+			uploadedSize = requiredIndexSize / indexType.bytes;
 		}
 		
 		void render(RenderPass renderPass) {

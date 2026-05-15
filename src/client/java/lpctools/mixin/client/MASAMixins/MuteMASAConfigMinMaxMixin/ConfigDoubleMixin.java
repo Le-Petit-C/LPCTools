@@ -1,6 +1,7 @@
 package lpctools.mixin.client.MASAMixins.MuteMASAConfigMinMaxMixin;
 
 import fi.dy.masa.malilib.config.options.ConfigDouble;
+import lpctools.mixinInterfaces.MASAMixins.MuteMASAConfigMinMaxMixin.MuteMASAConfigMinMaxDouble;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Mutable;

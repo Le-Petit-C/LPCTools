@@ -2,7 +2,7 @@ package lpctools.script;
 
 import lpctools.script.editScreen.ScriptDisplayWidget;
 import lpctools.script.editScreen.ScriptWithSubScriptDisplayWidget;
-import net.minecraft.text.Text;
+import net.minecraft.network.chat.Component;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -16,5 +16,5 @@ public interface IScriptWithSubScript extends IScript{
 	@Override default void applyToDisplayWidgetIfNotNull(Consumer<? super ScriptDisplayWidget> consumer){
 		applyToDisplayWidgetWithSubScriptIfNotNull(consumer);
 	}
-	default @Nullable Text getSubScriptNamePrefix(IScript script){return null;}
+	default @Nullable Component getSubScriptNamePrefix(IScript script){return null;}
 }

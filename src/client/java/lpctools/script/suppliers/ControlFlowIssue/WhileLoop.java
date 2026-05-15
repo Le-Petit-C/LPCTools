@@ -8,7 +8,7 @@ import lpctools.script.IScript;
 import lpctools.script.IScriptWithSubScript;
 import lpctools.script.runtimeInterfaces.ScriptNotNullSupplier;
 import lpctools.script.suppliers.Boolean.And;
-import net.minecraft.text.Text;
+import net.minecraft.network.chat.Component;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -17,8 +17,8 @@ import java.util.List;
 import static lpctools.lpcfymasaapi.LPCConfigUtils.warnFailedLoadingConfig;
 
 public class WhileLoop extends AbstractScriptWithSubScript implements IControlFlowIssueSupplier {
-	public final And condition = new And(this, Text.translatable("lpctools.script.suppliers.controlFlowIssue.whileLoop.condition.name"));
-	public final RunMultiple loopBody = new RunMultiple(this, Text.translatable("lpctools.script.suppliers.controlFlowIssue.whileLoop.loopBody.name"));
+	public final And condition = new And(this, Component.translatable("lpctools.script.suppliers.controlFlowIssue.whileLoop.condition.name"));
+	public final RunMultiple loopBody = new RunMultiple(this, Component.translatable("lpctools.script.suppliers.controlFlowIssue.whileLoop.loopBody.name"));
 	public static final String conditionJsonKey = "condition";
 	public static final String loopBodyJsonKey = "loopBody";
 	

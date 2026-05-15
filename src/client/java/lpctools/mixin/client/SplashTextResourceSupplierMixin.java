@@ -1,10 +1,5 @@
 package lpctools.mixin.client;
 
-import net.minecraft.client.resource.SplashTextResourceSupplier;
-import net.minecraft.resource.ResourceManager;
-import net.minecraft.text.Text;
-import net.minecraft.util.Identifier;
-import net.minecraft.util.profiler.Profiler;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
@@ -15,17 +10,22 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import net.minecraft.client.resources.SplashManager;
+import net.minecraft.network.chat.Component;
+import net.minecraft.resources.Identifier;
+import net.minecraft.server.packs.resources.ResourceManager;
+import net.minecraft.util.profiling.ProfilerFiller;
 
-@Mixin(SplashTextResourceSupplier.class)
+@Mixin(SplashManager.class)
 public class SplashTextResourceSupplierMixin {
-    @Unique private static final Identifier RESOURCE_ID = Identifier.of("lpctools", "texts/splashes.txt");
-    @Inject(method = "prepare(Lnet/minecraft/resource/ResourceManager;Lnet/minecraft/util/profiler/Profiler;)Ljava/util/List;",
+    @Unique private static final Identifier RESOURCE_ID = Identifier.fromNamespaceAndPath("lpctools", "texts/splashes.txt");
+    @Inject(method = "prepare(Lnet/minecraft/server/packs/resources/ResourceManager;Lnet/minecraft/util/profiling/ProfilerFiller;)Ljava/util/List;",
     at = @At("RETURN"), cancellable = true)
-    void injectPrepare(ResourceManager resourceManager, Profiler profiler, CallbackInfoReturnable<List<Text>> cir){
+    void injectPrepare(ResourceManager resourceManager, ProfilerFiller profiler, CallbackInfoReturnable<List<Component>> cir){
 		try (BufferedReader bufferedReader = resourceManager.openAsReader(RESOURCE_ID)) {
-			List<Text> extra;
+			List<Component> extra;
 			if (bufferedReader == null) return;
-			extra = bufferedReader.lines().map(s -> (Text) Text.literal(s.trim())).toList();
+			extra = bufferedReader.lines().map(s -> (Component) Component.literal(s.trim())).toList();
 			if (cir.getReturnValue() != null) {
 				try {
 					cir.getReturnValue().addAll(extra);

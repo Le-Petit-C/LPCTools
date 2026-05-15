@@ -1,8 +1,8 @@
 package lpctools.script.suppliers.Entity.PlayerEntity;
 
 import lpctools.script.suppliers.IScriptSupplier;
-import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.world.entity.player.Player;
 
-public interface IPlayerEntitySupplier extends IScriptSupplier<PlayerEntity> {
-	@Override default Class<? extends PlayerEntity> getSuppliedClass(){return PlayerEntity.class;}
+public interface IPlayerEntitySupplier extends IScriptSupplier<Player> {
+	@Override default Class<? extends Player> getSuppliedClass(){return Player.class;}
 }

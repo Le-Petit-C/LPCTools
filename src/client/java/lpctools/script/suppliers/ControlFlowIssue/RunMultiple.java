@@ -6,7 +6,7 @@ import lpctools.script.CompileEnvironment;
 import lpctools.script.IScriptWithSubScript;
 import lpctools.script.runtimeInterfaces.ScriptNotNullSupplier;
 import lpctools.script.suppliers.AbstractSupplierWithSubScriptMutable;
-import net.minecraft.text.Text;
+import net.minecraft.network.chat.Component;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -17,9 +17,9 @@ import static lpctools.lpcfymasaapi.LPCConfigUtils.warnFailedLoadingConfig;
 
 public class RunMultiple extends AbstractSupplierWithSubScriptMutable<ControlFlowIssue, ControlFlowIssue> implements IControlFlowIssueSupplier {
 	private @Nullable Iterable<?> widgets;
-	protected final @Nullable Text name;
+	protected final @Nullable Component name;
 	
-	public RunMultiple(IScriptWithSubScript parent, @Nullable Text name) {
+	public RunMultiple(IScriptWithSubScript parent, @Nullable Component name) {
 		super(parent);
 		this.name = name;
 	}
@@ -49,7 +49,7 @@ public class RunMultiple extends AbstractSupplierWithSubScriptMutable<ControlFlo
 		if(widgets == null) widgets = List.of(createAddButton());
 		return widgets;
 	}
-	@Override @Nullable public Text getName() {
+	@Override @Nullable public Component getName() {
 		if(name != null) return name;
 		else return super.getName();
 	}

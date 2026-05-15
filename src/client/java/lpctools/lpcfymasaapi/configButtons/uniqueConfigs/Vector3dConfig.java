@@ -5,11 +5,11 @@ import lpctools.lpcfymasaapi.configButtons.transferredConfigs.DoubleConfig;
 import lpctools.lpcfymasaapi.interfaces.ILPCConfigReadable;
 import lpctools.lpcfymasaapi.interfaces.ILPCUniqueConfigBase;
 import lpctools.lpcfymasaapi.interfaces.ILPCValueChangeCallback;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.network.ClientPlayerEntity;
-import net.minecraft.text.Text;
-import net.minecraft.util.hit.BlockHitResult;
-import net.minecraft.util.math.Vec3d;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.player.LocalPlayer;
+import net.minecraft.network.chat.Component;
+import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Vector3d;
@@ -21,13 +21,13 @@ public class Vector3dConfig extends ThirdListConfig implements IConfigResettable
         super.getButtonOptions(res);
         if(expanded){
             res.add(new ButtonOption(1, (button, mouseButton)->{
-                ClientPlayerEntity player = MinecraftClient.getInstance().player;
-                if(player != null) setPos(player.getEntityPos());
-            }, ()->Text.translatable("lpctools.configs.utils.blockPosConfig.setToPlayer").getString(), buttonGenericAllocator));
+                LocalPlayer player = Minecraft.getInstance().player;
+                if(player != null) setPos(player.position());
+            }, ()->Component.translatable("lpctools.configs.utils.blockPosConfig.setToPlayer").getString(), buttonGenericAllocator));
             res.add(new ButtonOption(1, (button, mouseButton)->{
-                if(MinecraftClient.getInstance().crosshairTarget instanceof BlockHitResult hitResult)
-                    setPos(hitResult.getPos());
-            }, ()->Text.translatable("lpctools.configs.utils.blockPosConfig.setToTarget").getString(), buttonGenericAllocator));
+                if(Minecraft.getInstance().hitResult instanceof BlockHitResult hitResult)
+                    setPos(hitResult.getLocation());
+            }, ()->Component.translatable("lpctools.configs.utils.blockPosConfig.setToTarget").getString(), buttonGenericAllocator));
         }
         else {
             res.add(ILPCUniqueConfigBase.textFieldConfigValuePreset(1, x));
@@ -36,28 +36,28 @@ public class Vector3dConfig extends ThirdListConfig implements IConfigResettable
         }
     }
     
-    public Vector3dConfig(ILPCConfigReadable parent, String nameKey, Vec3d defaultPos, @Nullable ILPCValueChangeCallback callback) {
+    public Vector3dConfig(ILPCConfigReadable parent, String nameKey, Vec3 defaultPos, @Nullable ILPCValueChangeCallback callback) {
         super(parent, nameKey, callback);
-        x = addConfig(new _DoubleConfig(this, "x", defaultPos.getX()));
-        y = addConfig(new _DoubleConfig(this, "y", defaultPos.getX()));
-        z = addConfig(new _DoubleConfig(this, "z", defaultPos.getX()));
+        x = addConfig(new _DoubleConfig(this, "x", defaultPos.x()));
+        y = addConfig(new _DoubleConfig(this, "y", defaultPos.x()));
+        z = addConfig(new _DoubleConfig(this, "z", defaultPos.x()));
     }
     public Vector3d getPos(Vector3d res){
         return res.set(x.getAsDouble(), y.getAsDouble(), z.getAsDouble());
     }
-    public Vec3d getPos(){
-        return new Vec3d(x.getAsDouble(), y.getAsDouble(), z.getAsDouble());
+    public Vec3 getPos(){
+        return new Vec3(x.getAsDouble(), y.getAsDouble(), z.getAsDouble());
     }
     public Vector3d getDefaultPos(Vector3d res){
         return res.set(x.getDefaultDoubleValue(), y.getDefaultDoubleValue(), z.getDefaultDoubleValue());
     }
-    public Vec3d getDefaultPos(){
-        return new Vec3d(x.getDefaultDoubleValue(), y.getDefaultDoubleValue(), z.getDefaultDoubleValue());
+    public Vec3 getDefaultPos(){
+        return new Vec3(x.getDefaultDoubleValue(), y.getDefaultDoubleValue(), z.getDefaultDoubleValue());
     }
-    public void setPos(Vec3d pos){
-        x.setDoubleValue(pos.getX());
-        y.setDoubleValue(pos.getY());
-        z.setDoubleValue(pos.getZ());
+    public void setPos(Vec3 pos){
+        x.setDoubleValue(pos.x());
+        y.setDoubleValue(pos.y());
+        z.setDoubleValue(pos.z());
     }
     public void setPos(Vector3d pos){
         x.setDoubleValue(pos.x);
@@ -75,7 +75,7 @@ public class Vector3dConfig extends ThirdListConfig implements IConfigResettable
             return getName();
         }
         @Override public String getComment() {
-            return getName() + ' ' + Text.translatable("lpctools.configs.utils.blockPosConfig.coordinate").getString();
+            return getName() + ' ' + Component.translatable("lpctools.configs.utils.blockPosConfig.coordinate").getString();
         }
         @Override public void onValueChanged() {
             super.onValueChanged();
