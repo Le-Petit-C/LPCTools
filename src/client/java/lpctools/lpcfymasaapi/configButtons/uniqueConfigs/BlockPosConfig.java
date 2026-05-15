@@ -5,12 +5,12 @@ import lpctools.lpcfymasaapi.configButtons.transferredConfigs.IntegerConfig;
 import lpctools.lpcfymasaapi.interfaces.ILPCConfigReadable;
 import lpctools.lpcfymasaapi.interfaces.ILPCUniqueConfigBase;
 import lpctools.lpcfymasaapi.interfaces.ILPCValueChangeCallback;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.network.ClientPlayerEntity;
-import net.minecraft.text.Text;
-import net.minecraft.util.hit.BlockHitResult;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Vec3i;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.player.LocalPlayer;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Vec3i;
+import net.minecraft.network.chat.Component;
+import net.minecraft.world.phys.BlockHitResult;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Vector3i;
@@ -22,13 +22,13 @@ public class BlockPosConfig extends ThirdListConfig implements IConfigResettable
         super.getButtonOptions(res);
         if(expanded){
             res.add(new ButtonOption(1, (button, mouseButton)->{
-                ClientPlayerEntity player = MinecraftClient.getInstance().player;
-                if(player != null) setPos(player.getBlockPos());
-            }, ()->Text.translatable("lpctools.configs.utils.blockPosConfig.setToPlayer").getString(), buttonGenericAllocator));
+                LocalPlayer player = Minecraft.getInstance().player;
+                if(player != null) setPos(player.blockPosition());
+            }, ()->Component.translatable("lpctools.configs.utils.blockPosConfig.setToPlayer").getString(), buttonGenericAllocator));
             res.add(new ButtonOption(1, (button, mouseButton)->{
-                if(MinecraftClient.getInstance().crosshairTarget instanceof BlockHitResult hitResult)
+                if(Minecraft.getInstance().hitResult instanceof BlockHitResult hitResult)
                     setPos(hitResult.getBlockPos());
-            }, ()->Text.translatable("lpctools.configs.utils.blockPosConfig.setToTarget").getString(), buttonGenericAllocator));
+            }, ()->Component.translatable("lpctools.configs.utils.blockPosConfig.setToTarget").getString(), buttonGenericAllocator));
         }
         else {
             res.add(ILPCUniqueConfigBase.textFieldConfigValuePreset(1, x));
@@ -46,7 +46,7 @@ public class BlockPosConfig extends ThirdListConfig implements IConfigResettable
     public Vector3i getPos(Vector3i res){
         return res.set(x.getAsInt(), y.getAsInt(), z.getAsInt());
     }
-    public BlockPos.Mutable getPos(BlockPos.Mutable res){
+    public BlockPos.MutableBlockPos getPos(BlockPos.MutableBlockPos res){
         return res.set(x.getAsInt(), y.getAsInt(), z.getAsInt());
     }
     public BlockPos getPos(){
@@ -55,7 +55,7 @@ public class BlockPosConfig extends ThirdListConfig implements IConfigResettable
     public Vector3i getDefaultPos(Vector3i res){
         return res.set(x.getDefaultIntegerValue(), y.getDefaultIntegerValue(), z.getDefaultIntegerValue());
     }
-    public BlockPos.Mutable getDefaultPos(BlockPos.Mutable res){
+    public BlockPos.MutableBlockPos getDefaultPos(BlockPos.MutableBlockPos res){
         return res.set(x.getDefaultIntegerValue(), y.getDefaultIntegerValue(), z.getDefaultIntegerValue());
     }
     public BlockPos getDefaultPos(){
@@ -83,7 +83,7 @@ public class BlockPosConfig extends ThirdListConfig implements IConfigResettable
             return getName();
         }
         @Override public String getComment() {
-            return getName() + ' ' + Text.translatable("lpctools.configs.utils.blockPosConfig.coordinate").getString();
+            return getName() + ' ' + Component.translatable("lpctools.configs.utils.blockPosConfig.coordinate").getString();
         }
         @Override public void onValueChanged() {
             super.onValueChanged();

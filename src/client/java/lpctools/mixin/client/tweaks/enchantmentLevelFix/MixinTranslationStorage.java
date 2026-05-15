@@ -1,6 +1,5 @@
 package lpctools.mixin.client.tweaks.enchantmentLevelFix;
 
-import net.minecraft.client.resource.language.TranslationStorage;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
@@ -9,6 +8,8 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import static lpctools.tweaks.EnchantmentLevelFix.*;
 import static lpctools.util.MathUtils.romanNumerals;
+
+import net.minecraft.client.resources.language.ClientLanguage;
 
 /*
 * 目前的修复方案有一个问题
@@ -20,17 +21,17 @@ import static lpctools.util.MathUtils.romanNumerals;
 * 在附魔相关类里面找到最终请求翻译的位置Mixin进去直接处理
 */
 
-@Mixin(TranslationStorage.class)
+@Mixin(ClientLanguage.class)
 public abstract class MixinTranslationStorage {
-	@Shadow public abstract boolean hasTranslation(String key);
-	@Inject(method = "get(Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;", at = @At("HEAD"), cancellable = true)
+	@Shadow public abstract boolean has(String key);
+	@Inject(method = "getOrDefault(Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;", at = @At("HEAD"), cancellable = true)
 	private void mixinTranslateHead(String key, String fallback, CallbackInfoReturnable<String> cir){
 		if(enchantmentLevelFix.getBooleanValue()){
 			if(suppressedRomanNumerals.containsKey(key)){
 				cir.setReturnValue(suppressedRomanNumerals.get(key));
 				return;
 			}
-			if(hasTranslation(key)) return;
+			if(has(key)) return;
 			if(cachedRomanNumerals.containsKey(key)){
 				cir.setReturnValue(cachedRomanNumerals.get(key));
 				return;

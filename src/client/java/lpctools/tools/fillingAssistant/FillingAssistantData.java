@@ -2,12 +2,13 @@ package lpctools.tools.fillingAssistant;
 
 import com.google.common.collect.ImmutableList;
 import lpctools.LPCTools;
+import lpctools.tools.fillingAssistant.FillingAssistant.OuterRangeBlockMethod;
 import lpctools.util.DataUtils;
-import net.minecraft.block.Block;
-import net.minecraft.block.Blocks;
-import net.minecraft.item.BlockItem;
-import net.minecraft.item.Item;
-import net.minecraft.item.Items;
+import net.minecraft.world.item.BlockItem;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.Blocks;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Map;

@@ -5,7 +5,7 @@ import lpctools.script.AbstractScript;
 import lpctools.script.CompileEnvironment;
 import lpctools.script.IScriptWithSubScript;
 import lpctools.script.runtimeInterfaces.ScriptNotNullSupplier;
-import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.Minecraft;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -14,8 +14,8 @@ public class ClientEntities extends AbstractScript implements IIterableSupplier 
 	@Override public @NotNull ScriptNotNullSupplier<ObjectIterable>
 	compileNotNull(CompileEnvironment environment) {
 		return map->{
-			var world = MinecraftClient.getInstance().world;
-			if (world != null) return ObjectIterable.of(world.getEntities());
+			var world = Minecraft.getInstance().level;
+			if (world != null) return ObjectIterable.of(world.entitiesForRendering());
 			else return ObjectIterable.empty;
 		};
 	}

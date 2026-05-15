@@ -4,18 +4,17 @@ import fi.dy.masa.malilib.gui.widgets.WidgetBase;
 import fi.dy.masa.malilib.render.GuiContext;
 import it.unimi.dsi.fastutil.objects.Object2LongOpenHashMap;
 import lpctools.lpcfymasaapi.widgets.WHAutoAdjustStringWidget;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.gui.DrawContext;
-
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.GuiGraphics;
 import java.util.ArrayList;
 
 public class GuiUtils {
     public static boolean isInTextOrGui(){
-        MinecraftClient client = MinecraftClient.getInstance();
-        return client.currentScreen != null && /*client.getOverlay() == null &&*/ client.player != null;
+        Minecraft client = Minecraft.getInstance();
+        return client.screen != null && /*client.getOverlay() == null &&*/ client.player != null;
     }
     
-    public static void renderInfoWidgets(Object2LongOpenHashMap<WidgetBase> infoWidgets, DrawContext drawContext, int mouseX, int mouseY){
+    public static void renderInfoWidgets(Object2LongOpenHashMap<WidgetBase> infoWidgets, GuiGraphics drawContext, int mouseX, int mouseY){
         ArrayList<WidgetBase> removedWidgets = null;
         long currentTimeMillis = System.currentTimeMillis();
         for(var entry : infoWidgets.object2LongEntrySet()){
@@ -30,10 +29,10 @@ public class GuiUtils {
     }
     
     public static void cursorInfo(Object2LongOpenHashMap<WidgetBase> infoWidgets, String text, int sustainMillis, int screenWidth){
-        var mouse = MinecraftClient.getInstance().mouse;
-        var window = MinecraftClient.getInstance().getWindow();
+        var mouse = Minecraft.getInstance().mouseHandler;
+        var window = Minecraft.getInstance().getWindow();
         WHAutoAdjustStringWidget widget = new WHAutoAdjustStringWidget(
-            (int)mouse.getScaledX(window), (int)mouse.getScaledY(window),
+            (int)mouse.getScaledXPos(window), (int)mouse.getScaledYPos(window),
             WHAutoAdjustStringWidget.Align.RIGHT_UP, text
         );
         if(widget.getX() + widget.getWidth() > screenWidth) widget.setAlign(widget.getAlign().XOpposite());

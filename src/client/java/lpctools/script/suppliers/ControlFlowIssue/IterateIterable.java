@@ -12,7 +12,7 @@ import lpctools.script.runtimeInterfaces.ScriptNotNullSupplier;
 import lpctools.script.suppliers.AbstractSupplierWithTypeDeterminedSubSuppliers;
 import lpctools.script.suppliers.Iterable.ObjectIterable;
 import lpctools.script.suppliers.ScriptSupplierLake;
-import net.minecraft.text.Text;
+import net.minecraft.network.chat.Component;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -25,8 +25,8 @@ public class IterateIterable extends AbstractSupplierWithTypeDeterminedSubSuppli
 	private @NotNull String variableName = "var";
 	protected @Nullable WidthAutoAdjustTextField textField;
 	protected final SupplierStorage<ObjectIterable> iterable = ofStorage(ObjectIterable.class,
-		Text.translatable("lpctools.script.suppliers.controlFlowIssue.iterateIterable.subSuppliers.iterable.name"), iterableJsonKey);
-	protected final RunMultiple loopBody = new RunMultiple(this, Text.translatable("lpctools.script.suppliers.controlFlowIssue.iterateIterable.loopBody.name"));
+		Component.translatable("lpctools.script.suppliers.controlFlowIssue.iterateIterable.subSuppliers.iterable.name"), iterableJsonKey);
+	protected final RunMultiple loopBody = new RunMultiple(this, Component.translatable("lpctools.script.suppliers.controlFlowIssue.iterateIterable.loopBody.name"));
 	protected final SupplierStorage<?>[] subSuppliers = ofStorages(iterable);
 	
 	public static final String variableNameJsonKey = "variableName";
@@ -38,7 +38,7 @@ public class IterateIterable extends AbstractSupplierWithTypeDeterminedSubSuppli
 	public void setVariableName(@NotNull String variableName) {
 		if(!this.variableName.equals(variableName)){
 			this.variableName = variableName;
-			if(textField != null) textField.setText(variableName);
+			if(textField != null) textField.setValue(variableName);
 		}
 	}
 	

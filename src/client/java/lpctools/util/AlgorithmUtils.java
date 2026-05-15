@@ -6,10 +6,14 @@ import it.unimi.dsi.fastutil.longs.LongArrayList;
 import it.unimi.dsi.fastutil.longs.LongIterable;
 import it.unimi.dsi.fastutil.longs.LongIterator;
 import lpctools.util.javaex.Object2BooleanFunction;
-import net.minecraft.util.math.*;
-import net.minecraft.world.World;
-import net.minecraft.world.chunk.Chunk;
-import net.minecraft.world.chunk.ChunkStatus;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.SectionPos;
+import net.minecraft.util.Mth;
+import net.minecraft.world.level.ChunkPos;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.chunk.ChunkAccess;
+import net.minecraft.world.level.chunk.status.ChunkStatus;
+import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Vector2d;
@@ -26,8 +30,8 @@ import static lpctools.util.MathUtils.*;
 
 @SuppressWarnings("unused")
 public class AlgorithmUtils {
-    public static final BiFunction<Vec3d, BlockPos, PriorityQueue<BlockPos>> euclideanClosestQueueContainerGenerator =
-        (center, bCenter)->new PriorityQueue<>(Comparator.comparingDouble(pos->pos.getSquaredDistance(center)));
+    public static final BiFunction<Vec3, BlockPos, PriorityQueue<BlockPos>> euclideanClosestQueueContainerGenerator =
+        (center, bCenter)->new PriorityQueue<>(Comparator.comparingDouble(pos->pos.distToCenterSqr(center)));
     //遍历长方体形状内的方块坐标
     public static Iterable<BlockPos> iterateInBox(int minX, int minY, int minZ, int maxX, int maxY, int maxZ){
         return new InBoxIterable(minX, minY, minZ, maxX, maxY, maxZ);
@@ -40,17 +44,17 @@ public class AlgorithmUtils {
         return new ManhattanIterable(center, distance);
     }
     //从近到远遍历方块坐标
-    public static Iterable<BlockPos> iterateFromClosest(Vec3d center){
+    public static Iterable<BlockPos> iterateFromClosest(Vec3 center){
         return () -> new ClosestIterator3D(center, euclideanClosestQueueContainerGenerator);
     }
-    public static Iterable<BlockPos> iterateFromClosestInDistance(Vec3d center, double distance){
+    public static Iterable<BlockPos> iterateFromClosestInDistance(Vec3 center, double distance){
         return () -> new EuclideanInClosestIterator3D(center, distance);
     }
     //从远到近遍历方块坐标
-    public static Iterable<BlockPos> iterateFromFurthestInDistance(Vec3d center, double distance){
+    public static Iterable<BlockPos> iterateFromFurthestInDistance(Vec3 center, double distance){
         ArrayList<BlockPos> list = new ArrayList<>();
         for(BlockPos pos : iterateFromClosestInDistance(center, distance))
-            list.add(pos.mutableCopy());
+            list.add(pos.mutable());
         Collections.reverse(list);
         return list;
     }
@@ -70,9 +74,9 @@ public class AlgorithmUtils {
         return result;
     }
     //从近到远遍历已加载的区块
-    public static Iterable<Chunk> iterateLoadedChunksFromClosest(World world, Vector2d center){
+    public static Iterable<ChunkAccess> iterateLoadedChunksFromClosest(Level world, Vector2d center){
         return new Iterable<>() {
-            @Override public @NotNull Iterator<Chunk> iterator() {
+            @Override public @NotNull Iterator<ChunkAccess> iterator() {
                 return new Iterator<>() {
                     private final Vector2d compareCenter = center.mul(1.0 / 16, new Vector2d());
                     private double getSquaredDistance(ChunkPos pos){
@@ -81,11 +85,11 @@ public class AlgorithmUtils {
                         return dx * dx + dy * dy;
                     }
                     private final HashSet<ChunkPos> remainingPoses = new HashSet<>();
-                    private final PriorityQueue<Chunk> remainingChunks = initRemainingChunks();
-                    private PriorityQueue<Chunk> initRemainingChunks(){
-                        PriorityQueue<Chunk> ret = new PriorityQueue<>(Comparator.comparingDouble(v->getSquaredDistance(v.getPos())));
+                    private final PriorityQueue<ChunkAccess> remainingChunks = initRemainingChunks();
+                    private PriorityQueue<ChunkAccess> initRemainingChunks(){
+                        PriorityQueue<ChunkAccess> ret = new PriorityQueue<>(Comparator.comparingDouble(v->getSquaredDistance(v.getPos())));
                         ChunkPos chunkPos = new ChunkPos((int)Math.floor(compareCenter.x + 0.5), (int)Math.floor(compareCenter.y + 0.5));
-                        Chunk chunk;
+                        ChunkAccess chunk;
                         chunk = world.getChunk(chunkPos.x, chunkPos.z, ChunkStatus.FULL, false);
                         if(chunk != null) {ret.add(chunk);remainingPoses.add(chunk.getPos());}
                         chunk = world.getChunk(chunkPos.x + 1, chunkPos.z, ChunkStatus.FULL, false);
@@ -99,23 +103,23 @@ public class AlgorithmUtils {
                     @Override public boolean hasNext() {
                         return !remainingChunks.isEmpty();
                     }
-                    @Override public Chunk next() {
-                        Chunk chunk = remainingChunks.remove();
+                    @Override public ChunkAccess next() {
+                        ChunkAccess chunk = remainingChunks.remove();
                         ChunkPos pos = chunk.getPos();
                         remainingPoses.remove(pos);
                         double distanceSquared = getSquaredDistance(pos);
                         ChunkPos pos1;
                         pos1 = new ChunkPos(pos.x - 1, pos.z);
-                        if(getSquaredDistance(pos1) > distanceSquared && world.getChunk(pos1.x, pos1.z, ChunkStatus.FULL, false) instanceof Chunk chunk1 && remainingPoses.add(chunk1.getPos()))
+                        if(getSquaredDistance(pos1) > distanceSquared && world.getChunk(pos1.x, pos1.z, ChunkStatus.FULL, false) instanceof ChunkAccess chunk1 && remainingPoses.add(chunk1.getPos()))
                             remainingChunks.add(chunk1);
                         pos1 = new ChunkPos(pos.x + 1, pos.z);
-                        if(getSquaredDistance(pos1) > distanceSquared && world.getChunk(pos1.x, pos1.z, ChunkStatus.FULL, false) instanceof Chunk chunk1 && remainingPoses.add(chunk1.getPos()))
+                        if(getSquaredDistance(pos1) > distanceSquared && world.getChunk(pos1.x, pos1.z, ChunkStatus.FULL, false) instanceof ChunkAccess chunk1 && remainingPoses.add(chunk1.getPos()))
                             remainingChunks.add(chunk1);
                         pos1 = new ChunkPos(pos.x, pos.z - 1);
-                        if(getSquaredDistance(pos1) > distanceSquared && world.getChunk(pos1.x, pos1.z, ChunkStatus.FULL, false) instanceof Chunk chunk1 && remainingPoses.add(chunk1.getPos()))
+                        if(getSquaredDistance(pos1) > distanceSquared && world.getChunk(pos1.x, pos1.z, ChunkStatus.FULL, false) instanceof ChunkAccess chunk1 && remainingPoses.add(chunk1.getPos()))
                             remainingChunks.add(chunk1);
                         pos1 = new ChunkPos(pos.x, pos.z + 1);
-                        if(getSquaredDistance(pos1) > distanceSquared && world.getChunk(pos1.x, pos1.z, ChunkStatus.FULL, false) instanceof Chunk chunk1 && remainingPoses.add(chunk1.getPos()))
+                        if(getSquaredDistance(pos1) > distanceSquared && world.getChunk(pos1.x, pos1.z, ChunkStatus.FULL, false) instanceof ChunkAccess chunk1 && remainingPoses.add(chunk1.getPos()))
                             remainingChunks.add(chunk1);
                         return chunk;
                     }
@@ -123,7 +127,7 @@ public class AlgorithmUtils {
             }
         };
     }
-    public static Iterable<Chunk> iterateLoadedChunksFromClosest(World world, Vec3d center){
+    public static Iterable<ChunkAccess> iterateLoadedChunksFromClosest(Level world, Vec3 center){
         return iterateLoadedChunksFromClosest(world, new Vector2d(center.x, center.z));
     }
     //数据中是否有null
@@ -143,7 +147,7 @@ public class AlgorithmUtils {
     public record InBoxIterable(int minX, int minY, int minZ, int maxX, int maxY, int maxZ) implements Iterable<BlockPos>{
         @Override public @NotNull Iterator<BlockPos> iterator() {
             return new Iterator<>() {
-                private final BlockPos.Mutable mutable = new BlockPos.Mutable(maxX, maxY, minZ - 1);
+                private final BlockPos.MutableBlockPos mutable = new BlockPos.MutableBlockPos(maxX, maxY, minZ - 1);
                 @Override public boolean hasNext() {
                     return mutable.getZ() < maxZ || mutable.getY() < maxY || mutable.getX() < maxX;
                 }
@@ -166,8 +170,8 @@ public class AlgorithmUtils {
     public record ManhattanIterable(BlockPos center, int distance) implements Iterable<BlockPos>{
         @Override public @NotNull Iterator<BlockPos> iterator() {
             return new Iterator<>() {
-                final BlockPos.Mutable currentPos = new BlockPos.Mutable(-distance - 1, 0, 0);
-                final BlockPos.Mutable returnPos = new BlockPos.Mutable();
+                final BlockPos.MutableBlockPos currentPos = new BlockPos.MutableBlockPos(-distance - 1, 0, 0);
+                final BlockPos.MutableBlockPos returnPos = new BlockPos.MutableBlockPos();
                 @Override public boolean hasNext() {
                     return currentPos.getX() < distance;
                 }
@@ -195,17 +199,17 @@ public class AlgorithmUtils {
     }
     
     public static class ClosestIterator3D implements Iterator<BlockPos>{
-        private final @NotNull Vec3d center;
+        private final @NotNull Vec3 center;
         private final BlockPos startPos;
         protected final Queue<BlockPos> poses;
-        ClosestIterator3D(@NotNull Vec3d center, BiFunction<Vec3d, BlockPos, ? extends Queue<BlockPos>> containerGenerator){
+        ClosestIterator3D(@NotNull Vec3 center, BiFunction<Vec3, BlockPos, ? extends Queue<BlockPos>> containerGenerator){
             this.center = center;
-            startPos = BlockPos.ofFloored(center);
+            startPos = BlockPos.containing(center);
             poses = containerGenerator.apply(center, startPos);
             poses.add(startPos);
         }
         public double getSquaredDistance(BlockPos pos) {
-            return pos.getSquaredDistance(center);
+            return pos.distToCenterSqr(center);
         }
         public double getNextDistance(){
             assert !poses.isEmpty();
@@ -217,28 +221,28 @@ public class AlgorithmUtils {
             BlockPos res = poses.remove();
             int opIndex;
             if(res.getX() != startPos.getX()) {
-                poses.add(res.add(res.getX() < startPos.getX() ? -1 : 1, 0, 0));
+                poses.add(res.offset(res.getX() < startPos.getX() ? -1 : 1, 0, 0));
                 // 热点代码，直接返回可以省下跳过else{}代码块的“跳转开销”
                 return res;
             }
             else {
-                poses.add(res.add(-1, 0, 0));
-                poses.add(res.add( 1, 0, 0));
+                poses.add(res.offset(-1, 0, 0));
+                poses.add(res.offset( 1, 0, 0));
                 if(res.getY() != startPos.getY()) {
-                    poses.add(res.add(0, res.getY() < startPos.getY() ? -1 : 1, 0));
+                    poses.add(res.offset(0, res.getY() < startPos.getY() ? -1 : 1, 0));
                     return res;
                 }
                 else {
-                    poses.add(res.add( 0,-1, 0));
-                    poses.add(res.add( 0, 1, 0));
+                    poses.add(res.offset( 0,-1, 0));
+                    poses.add(res.offset( 0, 1, 0));
 					//noinspection IfStatementWithIdenticalBranches
 					if(res.getZ() != startPos.getZ()) {
-                        poses.add(res.add(0, 0, res.getZ() < startPos.getZ() ? -1 : 1));
+                        poses.add(res.offset(0, 0, res.getZ() < startPos.getZ() ? -1 : 1));
                         return res;
                     }
                     else {
-                        poses.add(res.add( 0, 0,-1));
-                        poses.add(res.add( 0, 0, 1));
+                        poses.add(res.offset( 0, 0,-1));
+                        poses.add(res.offset( 0, 0, 1));
                         return res;
 					}
 				}
@@ -247,7 +251,7 @@ public class AlgorithmUtils {
     }
     public static class EuclideanInClosestIterator3D extends ClosestIterator3D {
         public final double maxSquaredDistance;
-        EuclideanInClosestIterator3D(@NotNull Vec3d center, double maxDistance) {
+        EuclideanInClosestIterator3D(@NotNull Vec3 center, double maxDistance) {
             super(center, euclideanClosestQueueContainerGenerator);
             maxSquaredDistance = maxDistance * maxDistance;
         }
@@ -414,15 +418,15 @@ public class AlgorithmUtils {
     }
     
     // 遍历的是packed ChunkSectionPos，使用时注意解包
-    public static LongIterable renderIterate(Vec3d cameraPos, int bottomY, int topY, int renderDistance){
+    public static LongIterable renderIterate(Vec3 cameraPos, int bottomY, int topY, int renderDistance){
         return new RenderIterable(cameraPos, bottomY, topY, renderDistance);
     }
     public static class RenderIterable implements LongIterable {
         private final double chunkedCamX, chunkedCamZ, squaredRenderDistance;
-        private final ChunkSectionPos startPos;
+        private final SectionPos startPos;
         private final int bottomY, topY, renderDistance;
         private final int bottomZ, topZ;
-        public RenderIterable(Vec3d cameraPos, int bottomY, int topY, int renderDistance) {
+        public RenderIterable(Vec3 cameraPos, int bottomY, int topY, int renderDistance) {
             if(bottomY >= topY || renderDistance <= 0) throw new IllegalArgumentException();
             this.chunkedCamX = cameraPos.x / 16;
             this.chunkedCamZ = cameraPos.z / 16;
@@ -430,20 +434,20 @@ public class AlgorithmUtils {
             this.bottomY = bottomY;
             this.topY = topY;
             this.renderDistance = renderDistance;
-            this.startPos = ChunkSectionPos.from(MathHelper.floor(chunkedCamX),
-                Math.clamp(MathHelper.floor(cameraPos.y / 16), bottomY, topY - 1), MathHelper.floor(chunkedCamZ));
-            this.bottomZ = MathHelper.floor(chunkedCamZ - renderDistance);
-            this.topZ = MathHelper.ceil(chunkedCamZ + renderDistance);
+            this.startPos = SectionPos.of(Mth.floor(chunkedCamX),
+                Math.clamp(Mth.floor(cameraPos.y / 16), bottomY, topY - 1), Mth.floor(chunkedCamZ));
+            this.bottomZ = Mth.floor(chunkedCamZ - renderDistance);
+            this.topZ = Mth.ceil(chunkedCamZ + renderDistance);
         }
         @Override public @NotNull LongIterator iterator() { return new RenderIterator(); }
         
         private class RenderIterator implements LongIterator {
             int x = startPos.getX(), y = startPos.getY(), z = startPos.getZ();
-            int bottomX = MathHelper.floor(chunkedCamX - renderDistance);
-            int topX = MathHelper.ceil(chunkedCamX + renderDistance);
+            int bottomX = Mth.floor(chunkedCamX - renderDistance);
+            int topX = Mth.ceil(chunkedCamX + renderDistance);
             @Override public boolean hasNext() { return z >= bottomZ; }
             @Override public long nextLong() {
-                var res = ChunkSectionPos.asLong(x, y, z);
+                var res = SectionPos.asLong(x, y, z);
                 if(y < startPos.getY()) --y;
                 else {
                     ++y;
@@ -466,8 +470,8 @@ public class AlgorithmUtils {
 						double dz = z < startPos.getZ() ? chunkedCamZ - z - 1 : z - chunkedCamZ;
                         double v = squaredRenderDistance - dz * dz;
                         double dx = v > 0 ? Math.sqrt(v) : 0;
-                        bottomX = MathHelper.floor(chunkedCamX - dx);
-                        topX = MathHelper.ceil(chunkedCamX + dx);
+                        bottomX = Mth.floor(chunkedCamX - dx);
+                        topX = Mth.ceil(chunkedCamX + dx);
                     }
                 }
                 return res;

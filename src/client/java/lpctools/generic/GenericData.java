@@ -2,8 +2,8 @@ package lpctools.generic;
 
 import com.google.common.collect.ImmutableList;
 import lpctools.util.javaex.PriorityThreadPoolExecutor;
-import net.minecraft.block.Block;
-import net.minecraft.block.Blocks;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.Blocks;
 
 public class GenericData {
     public static final ImmutableList<Block> defaultExtraSpawnBlocks = ImmutableList.of();

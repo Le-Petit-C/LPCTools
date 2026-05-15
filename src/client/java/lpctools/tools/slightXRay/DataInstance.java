@@ -11,18 +11,18 @@ import lpctools.util.DataUtils;
 import lpctools.util.Packed;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientChunkEvents;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientWorldEvents;
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.Blocks;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.world.ClientWorld;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.ChunkPos;
-import net.minecraft.util.math.Direction;
-import net.minecraft.world.World;
-import net.minecraft.world.chunk.Chunk;
-import net.minecraft.world.chunk.ChunkStatus;
-import net.minecraft.world.chunk.WorldChunk;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.multiplayer.ClientLevel;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.world.level.ChunkPos;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.chunk.ChunkAccess;
+import net.minecraft.world.level.chunk.LevelChunk;
+import net.minecraft.world.level.chunk.status.ChunkStatus;
 import org.apache.commons.lang3.mutable.MutableInt;
 import org.jetbrains.annotations.Nullable;
 import org.jspecify.annotations.NonNull;
@@ -53,17 +53,17 @@ class DataInstance implements AutoCloseable, ClientChunkEvents.Load, ClientWorld
         Registries.BETWEEN_RENDER_FRAMES.register(this, b);
     }
     
-    @Override public void onClientWorldChunkSetBlockState(WorldChunk chunk, BlockPos pos, @Nullable BlockState lastState, @Nullable BlockState newState) {
-        if(newState == null) newState = Blocks.AIR.getDefaultState();
+    @Override public void onClientWorldChunkSetBlockState(LevelChunk chunk, BlockPos pos, @Nullable BlockState lastState, @Nullable BlockState newState) {
+        if(newState == null) newState = Blocks.AIR.defaultBlockState();
         if(isFluid(newState.getBlock())) return;
         if(doShowAround(newState)){
             for(BlockPos pos1 : iterateInManhattanDistance(pos, 2))
-                testPos(chunk.getWorld(), pos1);
+                testPos(chunk.getLevel(), pos1);
         }
-        else testPos(chunk.getWorld(), pos);
+        else testPos(chunk.getLevel(), pos);
     }
     
-    @Override public void onChunkLoad(@NonNull ClientWorld world, @NonNull WorldChunk chunk) {
+    @Override public void onChunkLoad(@NonNull ClientLevel world, @NonNull LevelChunk chunk) {
         ChunkPos pos = chunk.getPos();
         testChunkAsync(pos.x, pos.z, world);
         testChunkAsync(pos.x - 1, pos.z, world);
@@ -72,7 +72,7 @@ class DataInstance implements AutoCloseable, ClientChunkEvents.Load, ClientWorld
         testChunkAsync(pos.x, pos.z + 1, world);
     }
     
-    @Override public void afterWorldChange(@NonNull MinecraftClient minecraftClient, @NonNull ClientWorld clientWorld) {
+    @Override public void afterWorldChange(@NonNull Minecraft minecraftClient, @NonNull ClientLevel clientWorld) {
         testWorldAsync(clientWorld);
     }
     
@@ -82,7 +82,7 @@ class DataInstance implements AutoCloseable, ClientChunkEvents.Load, ClientWorld
         taskInstance.close();
     }
     
-    private static boolean doShowAround(BlockState state){ return !state.isOpaque() || state.isTransparent(); }
+    private static boolean doShowAround(BlockState state){ return !state.canOcclude() || state.propagatesSkylightDown(); }
     
     void setRangeLimit(ShapeList rangeLimit) {
         highlightInstance.setRangeLimit(rangeLimit);
@@ -96,7 +96,7 @@ class DataInstance implements AutoCloseable, ClientChunkEvents.Load, ClientWorld
     void updateUseCullFace() { setUseCullFace(useCullFace.getAsBoolean()); }
     
     // 检测pos处是否需要进行标记并更新标记
-    private void testPos(World world, BlockPos pos){
+    private void testPos(Level world, BlockPos pos){
         long packedBlockPos = pos.asLong();
         BlockState state = world.getBlockState(pos);
         MutableInt color;
@@ -114,7 +114,7 @@ class DataInstance implements AutoCloseable, ClientChunkEvents.Load, ClientWorld
         highlightInstance.mark(packedBlockPos, res);
     }
     
-    private void testChunkAsync(int chunkX, int chunkZ, ClientWorld world){
+    private void testChunkAsync(int chunkX, int chunkZ, ClientLevel world){
         long packedChunkPos = Packed.ChunkPos.pack(chunkX, chunkZ);
         ChunkData task = ChunkData.buildData(chunkX, chunkZ, world);
         if(task != null) taskInstance.scheduleTask(packedChunkPos, callback->buildAsyncTask(packedChunkPos, task, callback));
@@ -132,10 +132,10 @@ class DataInstance implements AutoCloseable, ClientChunkEvents.Load, ClientWorld
         };
     }
 	
-	public void resetData() { testWorldAsync(MinecraftClient.getInstance().world); }
+	public void resetData() { testWorldAsync(Minecraft.getInstance().level); }
     public void refreshColor() { highlightInstance.reshapesAsync(); }
     
-    private void testWorldAsync(ClientWorld world){
+    private void testWorldAsync(ClientLevel world){
         highlightInstance.clearData();
         taskInstance.clearTasks();
         if(world == null) return;
@@ -153,11 +153,11 @@ class DataInstance implements AutoCloseable, ClientChunkEvents.Load, ClientWorld
     @Override public void betweenFrames() {
         SlightXRay.tryRefreshXRayBlocks();
         DataUtils.executeWithRenderCenterPos((x, z, r)->clearChunksOutOfRange(x, z, r * r),
-            2 * MinecraftClient.getInstance().options.getViewDistance().getValue());
+            2 * Minecraft.getInstance().options.renderDistance().get());
     }
     
-    private record ChunkData(Chunk current, Chunk west, Chunk east, Chunk north, Chunk south){
-        static @Nullable ChunkData buildData(int chunkX, int chunkZ, ClientWorld world){
+    private record ChunkData(ChunkAccess current, ChunkAccess west, ChunkAccess east, ChunkAccess north, ChunkAccess south){
+        static @Nullable ChunkData buildData(int chunkX, int chunkZ, ClientLevel world){
             ChunkData task = new ChunkData(
                 world.getChunk(chunkX, chunkZ, ChunkStatus.FULL, false),
                 world.getChunk(chunkX - 1, chunkZ, ChunkStatus.FULL, false),
@@ -172,7 +172,7 @@ class DataInstance implements AutoCloseable, ClientChunkEvents.Load, ClientWorld
     
     private static Int2ObjectOpenHashMap<MutableInt> testChunkData(ChunkData data, HashMap<Block, MutableInt> colorMap, Int2ObjectOpenHashMap<MutableInt> recordedMarkedPoses){
         var res = new Int2ObjectOpenHashMap<MutableInt>();
-        int bottom = data.current.getBottomY(), height = data.current.getHeight(), top = bottom + height;
+        int bottom = data.current.getMinY(), height = data.current.getHeight(), top = bottom + height;
         ChunkTestData displaysNear = new ChunkTestData(bottom, height);
         for(BlockPos pos1 : AlgorithmUtils.iterateInBox(0, bottom, 0, 15, top - 1, 15))
             displaysNear.set(pos1, doShowAround(data.current.getBlockState(pos1)));
@@ -188,7 +188,7 @@ class DataInstance implements AutoCloseable, ClientChunkEvents.Load, ClientWorld
             displaysNear.set(pos1, true);
         for(BlockPos pos1 : AlgorithmUtils.iterateInBox(0, top, 0, 15, top, 15))
             displaysNear.set(pos1, true);
-        BlockPos.Mutable posCache = new BlockPos.Mutable();
+        BlockPos.MutableBlockPos posCache = new BlockPos.MutableBlockPos();
         for(BlockPos pos1 : AlgorithmUtils.iterateInBox(0, bottom, 0, 15, top - 1, 15)){
             BlockState state = data.current.getBlockState(pos1);
             boolean hasDisplayNear;

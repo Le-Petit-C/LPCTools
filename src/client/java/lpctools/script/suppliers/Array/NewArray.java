@@ -4,12 +4,12 @@ import lpctools.script.CompileEnvironment;
 import lpctools.script.IScriptWithSubScript;
 import lpctools.script.runtimeInterfaces.ScriptNotNullSupplier;
 import lpctools.script.suppliers.AbstractSupplierWithTypeDeterminedSubSuppliers;
-import net.minecraft.text.Text;
+import net.minecraft.network.chat.Component;
 import org.jetbrains.annotations.NotNull;
 
 public class NewArray extends AbstractSupplierWithTypeDeterminedSubSuppliers implements IArraySupplier {
 	protected final SupplierStorage<Integer> size = ofStorage(Integer.class,
-		Text.translatable("lpctools.script.suppliers.array.newArray.subSuppliers.size.name"), "size");
+		Component.translatable("lpctools.script.suppliers.array.newArray.subSuppliers.size.name"), "size");
 	protected final SupplierStorage<?>[] subSuppliers = ofStorages(size);
 	
 	public NewArray(IScriptWithSubScript parent) {super(parent);}

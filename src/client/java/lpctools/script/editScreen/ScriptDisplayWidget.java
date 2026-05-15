@@ -7,12 +7,12 @@ import fi.dy.masa.malilib.gui.widgets.WidgetBase;
 import fi.dy.masa.malilib.gui.wrappers.TextFieldWrapper;
 import fi.dy.masa.malilib.render.GuiContext;
 import lpctools.script.IScript;
-import net.minecraft.client.gui.Click;
-import net.minecraft.client.gui.DrawContext;
-import net.minecraft.client.gui.screen.narration.NarrationMessageBuilder;
-import net.minecraft.client.gui.widget.ClickableWidget;
-import net.minecraft.client.gui.widget.Widget;
-import net.minecraft.text.Text;
+import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.components.AbstractWidget;
+import net.minecraft.client.gui.layouts.LayoutElement;
+import net.minecraft.client.gui.narration.NarrationElementOutput;
+import net.minecraft.client.input.MouseButtonEvent;
+import net.minecraft.network.chat.Component;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -21,13 +21,13 @@ import java.util.List;
 
 import static lpctools.lpcfymasaapi.LPCConfigUtils.calculateTextButtonWidth;
 
-public class ScriptDisplayWidget extends ClickableWidget{
+public class ScriptDisplayWidget extends AbstractWidget{
 	public final @Nullable ScriptWithSubScriptDisplayWidget parent;
 	public final ScriptEditScreen editScreen;
 	public final int depth;
 	protected final @NotNull IScript script;
 	protected final @Nullable ButtonGeneric nameButton;
-	protected final @NotNull ArrayList<ClickableWidget> widgets = new ArrayList<>();
+	protected final @NotNull ArrayList<AbstractWidget> widgets = new ArrayList<>();
 	private int right; //此widget及其子widget的最大right
 	private boolean needUpdate = true;
 	private boolean updating = false;
@@ -35,26 +35,26 @@ public class ScriptDisplayWidget extends ClickableWidget{
 	/* 构造函数 */
 	
 	public ScriptDisplayWidget(IScript script) {
-		super(0, 0, 22, 22, Text.of(""));
+		super(0, 0, 22, 22, Component.nullToEmpty(""));
 		this.script = script;
 		var parentScript = script.getParent();
 		this.parent = parentScript != null ? parentScript.getDisplayWidget() : null;
 		this.editScreen = script.getScript().getEditScreen();
 		if(parent != null) depth = parent.depth + 1;
 		else depth = 0;
-		Text name = script.getName();
-		Text comment = script.getComment();
-		Text prefix = parentScript != null ? parentScript.getSubScriptNamePrefix(script) : null;
+		Component name = script.getName();
+		Component comment = script.getComment();
+		Component prefix = parentScript != null ? parentScript.getSubScriptNamePrefix(script) : null;
 		String nameStr = (prefix == null ? "" : prefix.getString() + ": ") + (name == null ? "" : name.getString());
 		if(!nameStr.isEmpty())
-			nameButton = new ButtonGeneric(0, 0, calculateTextButtonWidth(nameStr, editScreen.getTextRenderer(), 20),
+			nameButton = new ButtonGeneric(0, 0, calculateTextButtonWidth(nameStr, editScreen.getFont(), 20),
 				20, nameStr, comment == null ? null : comment.getString())
 				.setRenderDefaultBackground(false);
 		else nameButton = null;
 	}
 	
 	/* 成员方法 */
-	@Override public boolean mouseClicked(Click click, boolean doubleClick) {
+	@Override public boolean mouseClicked(MouseButtonEvent click, boolean doubleClick) {
 		for(var widget : getAllWidgets()){
 			if(widget.isMouseOver(click.x(), click.y())){
 				var res = widget.mouseClicked(click, doubleClick);
@@ -64,7 +64,7 @@ public class ScriptDisplayWidget extends ClickableWidget{
 		return false;
 	}
 	
-	@Override public boolean mouseReleased(Click click) {
+	@Override public boolean mouseReleased(MouseButtonEvent click) {
 		for(var widget : getAllWidgets()){
 			if(widget.isMouseOver(click.x(), click.y())){
 				var res = widget.mouseReleased(click);
@@ -74,7 +74,7 @@ public class ScriptDisplayWidget extends ClickableWidget{
 		return false;
 	}
 	
-	@Override public boolean mouseDragged(Click click, double offsetX, double offsetY) {
+	@Override public boolean mouseDragged(MouseButtonEvent click, double offsetX, double offsetY) {
 		for(var widget : getAllWidgets()){
 			if(widget.isMouseOver(click.x(), click.y())){
 				var res = widget.mouseDragged(click, offsetX, offsetY);
@@ -188,22 +188,22 @@ public class ScriptDisplayWidget extends ClickableWidget{
 	}
 	
 	//渲染时并不渲染所有而是只渲染自己这一行，应当由ScriptEditScreen来决定具体渲染哪些行
-	@Override public void renderWidget(DrawContext context, int mouseX, int mouseY, float deltaTicks) {
+	@Override public void renderWidget(GuiGraphics context, int mouseX, int mouseY, float deltaTicks) {
 		updateDisplayWidgets();
 		if (nameButton != null) {
 			boolean isOver = nameButton.isMouseOver(mouseX, mouseY);
 			nameButton.render(GuiContext.fromGuiGraphics(context), mouseX, mouseY, isOver);
 			if(nameButton.hasHoverText() && nameButton.isMouseOver(mouseX, mouseY))
-				editScreen.setHover(nameButton, mouseX, mouseY, context.getMatrices());
+				editScreen.setHover(nameButton, mouseX, mouseY, context.pose());
 		}
 		for (var widget : widgets) {
 			widget.render(context, mouseX, mouseY, deltaTicks);
 			if(widget.isMouseOver(mouseX, mouseY) && widget instanceof HoveredClickableWidget hoveredClickableWidget)
-				editScreen.setHover(hoveredClickableWidget, mouseX, mouseY, context.getMatrices());
+				editScreen.setHover(hoveredClickableWidget, mouseX, mouseY, context.pose());
 		}
 	}
 	
-	protected Iterable<ClickableWidget> getAllWidgets(){
+	protected Iterable<AbstractWidget> getAllWidgets(){
 		if (nameButton != null) return Iterables.concat(List.of(WidgetWrapper.wrap(nameButton, editScreen)), widgets);
 		else return widgets;
 	}
@@ -213,11 +213,11 @@ public class ScriptDisplayWidget extends ClickableWidget{
 		return line == 0 ? this : null;
 	}
 	
-	@Override protected void appendClickableNarrations(NarrationMessageBuilder builder) {}
+	@Override protected void updateWidgetNarration(NarrationElementOutput builder) {}
 	
 	/* 静态函数 */
 	
-	protected static int buildWidget(int left, int midY, Widget widget){
+	protected static int buildWidget(int left, int midY, LayoutElement widget){
 		widget.setPosition(left + 1, midY - (widget.getHeight() >> 1));
 		return widget.getWidth() + 2;
 	}

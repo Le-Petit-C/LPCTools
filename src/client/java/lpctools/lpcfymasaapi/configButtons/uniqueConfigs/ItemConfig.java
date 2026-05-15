@@ -9,8 +9,8 @@ import lpctools.lpcfymasaapi.interfaces.ILPCValueChangeCallback;
 import lpctools.lpcfymasaapi.screen.ChooseItemScreen;
 import lpctools.lpcfymasaapi.screen.ItemButton;
 import lpctools.util.DataUtils;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.item.Item;
+import net.minecraft.client.Minecraft;
+import net.minecraft.world.item.Item;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -39,9 +39,9 @@ public class ItemConfig extends LPCUniqueConfigBase {
 			this.item = item;
 			onValueChanged();
 		});
-		MinecraftClient client = MinecraftClient.getInstance();
-		client.currentScreen = null;
-		MinecraftClient.getInstance().setScreen(screen);
+		Minecraft client = Minecraft.getInstance();
+		client.screen = null;
+		Minecraft.getInstance().setScreen(screen);
 	}
 	
 	@Override public @Nullable JsonElement getAsJsonElement() {return new JsonPrimitive(DataUtils.getItemId(item));}

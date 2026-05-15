@@ -5,12 +5,12 @@ import lpctools.script.IScriptWithSubScript;
 import lpctools.script.runtimeInterfaces.ScriptIntegerSupplier;
 import lpctools.script.suppliers.AbstractOperatorResultSupplier;
 import lpctools.util.operatorUtils.Operators;
-import net.minecraft.text.Text;
+import net.minecraft.network.chat.Component;
 import org.jetbrains.annotations.NotNull;
 
 public class IntegerFunction extends AbstractOperatorResultSupplier<Operators.IntegerFunction> implements IIntegerSupplier {
 	protected final SupplierStorage<Integer> integer = ofStorage(Integer.class,
-		Text.translatable("lpctools.script.suppliers.integer.integerFunction.subSuppliers.integer.name"), "integer");
+		Component.translatable("lpctools.script.suppliers.integer.integerFunction.subSuppliers.integer.name"), "integer");
 	protected final SupplierStorage<?>[] subSuppliers = ofStorages(integer);
 	
 	public IntegerFunction(IScriptWithSubScript parent) {super(parent, Operators.NEGATIVE, Operators.integerFunctionInfo, 0);}

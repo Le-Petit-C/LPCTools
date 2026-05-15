@@ -9,7 +9,7 @@ import lpctools.script.IScriptWithSubScript;
 import lpctools.script.editScreen.ScriptDisplayWidget;
 import lpctools.script.editScreen.WidthAutoAdjustTextField;
 import lpctools.script.runtimeInterfaces.ScriptNotNullSupplier;
-import net.minecraft.util.math.BlockPos;
+import net.minecraft.core.BlockPos;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -43,7 +43,7 @@ public class ConstantBlockPos extends AbstractScript implements IBlockPosSupplie
 		for(int i = 0; i < 3; ++i){
 			if(arrSize > i && array.get(i) instanceof JsonPrimitive primitive && primitive.isNumber()){
 				val[i] = primitive.getAsInt();
-				if(textFields != null) textFields[i].setText(String.valueOf(val[i]));
+				if(textFields != null) textFields[i].setValue(String.valueOf(val[i]));
 			}
 			else warnFailedLoadingConfig("ConstantVec3d." + valDesc[i], element);
 		}
@@ -60,7 +60,7 @@ public class ConstantBlockPos extends AbstractScript implements IBlockPosSupplie
 					try {val[idx] = Integer.parseInt(text);
 					} catch (NumberFormatException ignored) {}
 					applyToDisplayWidgetIfNotNull(ScriptDisplayWidget::markUpdateChain);
-					textFields[idx].setText(String.valueOf(val[idx]));
+					textFields[idx].setValue(String.valueOf(val[idx]));
 				});
 			}
 		}

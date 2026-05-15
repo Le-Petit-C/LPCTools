@@ -8,9 +8,9 @@ import lpctools.script.IScriptWithSubScript;
 import lpctools.script.editScreen.WidthAutoAdjustButtonGeneric;
 import lpctools.script.runtimeInterfaces.ScriptNotNullSupplier;
 import lpctools.script.suppliers.AbstractSupplierWithTypeDeterminedSubSuppliers;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.screen.slot.SlotActionType;
-import net.minecraft.text.Text;
+import net.minecraft.client.Minecraft;
+import net.minecraft.network.chat.Component;
+import net.minecraft.world.inventory.ClickType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -20,10 +20,10 @@ import static lpctools.lpcfymasaapi.LPCConfigUtils.warnFailedLoadingConfig;
 
 public class ClickSlot extends AbstractSupplierWithTypeDeterminedSubSuppliers implements IControlFlowIssueSupplier {
 	protected final SupplierStorage<Integer> slotId = ofStorage(Integer.class,
-		Text.translatable("lpctools.script.suppliers.controlFlowIssue.clickSlot.subSuppliers.slotId.name"), "slotId");
+		Component.translatable("lpctools.script.suppliers.controlFlowIssue.clickSlot.subSuppliers.slotId.name"), "slotId");
 	protected final SupplierStorage<Integer> button = ofStorage(Integer.class,
-		Text.translatable("lpctools.script.suppliers.controlFlowIssue.clickSlot.subSuppliers.button.name"), "button");
-	protected SlotActionType slotActionType = SlotActionType.PICKUP;
+		Component.translatable("lpctools.script.suppliers.controlFlowIssue.clickSlot.subSuppliers.button.name"), "button");
+	protected ClickType slotActionType = ClickType.PICKUP;
 	protected @Nullable WidthAutoAdjustButtonGeneric actionTypeButton;
 	protected final SupplierStorage<?>[] subSuppliers = ofStorages(slotId, button);
 	
@@ -39,8 +39,8 @@ public class ClickSlot extends AbstractSupplierWithTypeDeterminedSubSuppliers im
 			var finalButton = new WidthAutoAdjustButtonGeneric(
 				getDisplayWidget(), 0, 0, 20, slotActionType.name(), null);
 			finalButton.setActionListener((button, mouseButton)->{
-				int idx = slotActionType.getIndex();
-				var arr = SlotActionType.values();
+				int idx = slotActionType.id();
+				var arr = ClickType.values();
 				if(mouseButton == 0) slotActionType = (idx >= arr.length - 1) ? arr[0] : arr[idx + 1];
 				else slotActionType = (idx <= 0) ? arr[arr.length - 1] : arr[idx - 1];
 				finalButton.setDisplayString(slotActionType.name());
@@ -66,7 +66,7 @@ public class ClickSlot extends AbstractSupplierWithTypeDeterminedSubSuppliers im
 		if(object.get(slotActionTypeJsonKey) instanceof JsonElement element1){
 			if(element1 instanceof JsonPrimitive primitive){
 				try {
-					slotActionType = SlotActionType.valueOf(SlotActionType.class, primitive.getAsString());
+					slotActionType = ClickType.valueOf(ClickType.class, primitive.getAsString());
 				} catch (IllegalArgumentException ignored){
 					warnFailedLoadingConfig("ClickSlot.slotActionType", primitive);
 				}
@@ -81,11 +81,11 @@ public class ClickSlot extends AbstractSupplierWithTypeDeterminedSubSuppliers im
 		var compiledSlotIdSupplier = slotId.get().compileCheckedNotNull(environment);
 		var compiledButtonSupplier = button.get().compileCheckedNotNull(environment);
 		return map->{
-			var client = MinecraftClient.getInstance();
+			var client = Minecraft.getInstance();
 			var player = client.player;
-			var itm = client.interactionManager;
+			var itm = client.gameMode;
 			if (itm != null && player != null)
-				itm.clickSlot(player.currentScreenHandler.syncId,
+				itm.handleInventoryMouseClick(player.containerMenu.containerId,
 					compiledSlotIdSupplier.scriptApply(map),
 					compiledButtonSupplier.scriptApply(map),
 					slotActionType,

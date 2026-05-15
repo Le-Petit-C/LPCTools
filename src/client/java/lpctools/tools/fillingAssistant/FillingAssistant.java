@@ -9,13 +9,13 @@ import lpctools.lpcfymasaapi.configButtons.uniqueConfigs.BlockItemListConfig;
 import lpctools.lpcfymasaapi.configButtons.uniqueConfigs.BlockListConfig;
 import lpctools.lpcfymasaapi.configButtons.uniqueConfigs.BooleanHotkeyThirdListConfig;
 import lpctools.tools.ToolConfigs;
-import net.minecraft.block.Block;
-import net.minecraft.block.Blocks;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.world.ClientWorld;
-import net.minecraft.item.BlockItem;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.BlockView;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.multiplayer.ClientLevel;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.item.BlockItem;
+import net.minecraft.world.level.BlockGetter;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.Blocks;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -67,12 +67,12 @@ public class FillingAssistant {
     }
     public static @NotNull ImmutableSet<BlockItem> getPlaceableItems(){return placeableItemsConfig.getBlockItems();}
     public static boolean isBlockUnpassable(Block block){
-        if(transparentAsPassableConfig.getAsBoolean() && block.getDefaultState().isTransparent()) return false;
-        if(notOpaqueAsPassableConfig.getAsBoolean() && !block.getDefaultState().isOpaque()) return false;
+        if(transparentAsPassableConfig.getAsBoolean() && block.defaultBlockState().propagatesSkylightDown()) return false;
+        if(notOpaqueAsPassableConfig.getAsBoolean() && !block.defaultBlockState().canOcclude()) return false;
         return !passableBlocksConfig.contains(block);
     }
     public static boolean isUnpassable(BlockPos pos){
-        ClientWorld world = MinecraftClient.getInstance().world;
+        ClientLevel world = Minecraft.getInstance().level;
         if (world != null){
             Block block = world.getBlockState(pos).getBlock();
             return isBlockUnpassable(block);
@@ -81,13 +81,13 @@ public class FillingAssistant {
     }
     public static boolean required(Block block){return requiredBlocksConfig.contains(block);}
     public static boolean required(BlockPos pos){
-        ClientWorld world = MinecraftClient.getInstance().world;
+        ClientLevel world = Minecraft.getInstance().level;
         if (world != null) return required(world.getBlockState(pos).getBlock());
         else return false;
     }
     public interface OuterRangeBlockMethod {
         boolean isBlockUnpassable(Block block);
-        default boolean isUnpassable(BlockPos pos, @Nullable BlockView world){
+        default boolean isUnpassable(BlockPos pos, @Nullable BlockGetter world){
             if(world != null) return isBlockUnpassable(world.getBlockState(pos).getBlock());
             else return isBlockUnpassable(Blocks.VOID_AIR);
         }

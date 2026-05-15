@@ -4,7 +4,7 @@ import lpctools.lpcfymasaapi.configButtons.uniqueConfigs.ButtonConfig;
 import lpctools.lpcfymasaapi.configButtons.uniqueConfigs.ThirdListConfig;
 import lpctools.lpcfymasaapi.render.translucentShapes.Quad;
 import lpctools.lpcfymasaapi.render.translucentShapes.TranslucentShapes;
-import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.Minecraft;
 import org.joml.Vector3d;
 
 import java.util.Random;
@@ -23,7 +23,7 @@ public class TranslucentQuadsTest {
 	static {listStack.pop();}
 	
 	private static void addQuad(){
-		var player = MinecraftClient.getInstance().player;
+		var player = Minecraft.getInstance().player;
 		if(player == null) return;
 		Vector3d pos = new Vector3d(player.getX(), player.getY(), player.getZ());
 		Random rand = new Random();

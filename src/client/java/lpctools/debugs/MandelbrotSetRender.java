@@ -4,19 +4,20 @@ import com.mojang.blaze3d.buffers.GpuBuffer;
 import com.mojang.blaze3d.buffers.GpuBufferSlice;
 import com.mojang.blaze3d.pipeline.BlendFunction;
 import com.mojang.blaze3d.pipeline.RenderPipeline;
+import com.mojang.blaze3d.shaders.UniformType;
 import com.mojang.blaze3d.systems.RenderPass;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.textures.GpuTextureView;
+import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 import com.mojang.blaze3d.vertex.VertexFormat;
+import lpctools.lpcfymasaapi.LPCConfigStatics.ConfigListLayer;
 import lpctools.lpcfymasaapi.Registries;
 import lpctools.lpcfymasaapi.configButtons.uniqueConfigs.BooleanThirdListConfig;
 import lpctools.lpcfymasaapi.configButtons.transferredConfigs.DoubleConfig;
 import lpctools.lpcfymasaapi.configButtons.transferredConfigs.IntegerConfig;
 import lpctools.lpcfymasaapi.interfaces.ILPCConfigReadable;
 import lpctools.util.CachedSupplier;
-import net.minecraft.client.gl.UniformType;
-import net.minecraft.client.render.VertexFormats;
-import net.minecraft.util.Identifier;
+import net.minecraft.resources.Identifier;
 import org.joml.*;
 import org.lwjgl.system.MemoryUtil;
 
@@ -25,7 +26,7 @@ import java.util.OptionalDouble;
 import java.util.OptionalInt;
 
 import static lpctools.lpcfymasaapi.LPCConfigStatics.*;
-import static net.minecraft.client.gl.RenderPipelines.TRANSFORMS_AND_PROJECTION_SNIPPET;
+import static net.minecraft.client.renderer.RenderPipelines.MATRICES_PROJECTION_SNIPPET;
 
 public class MandelbrotSetRender extends BooleanThirdListConfig implements Registries.WorldLastRender {
     public final IntegerConfig maxDepth;
@@ -33,23 +34,23 @@ public class MandelbrotSetRender extends BooleanThirdListConfig implements Regis
     public final CachedSupplier<RenderSources> renderSources = new CachedSupplier<>(RenderSources::new);
     public class RenderSources implements AutoCloseable {
         public static final RenderPipeline mandelbrotSetPipeline
-            = RenderPipeline.builder(TRANSFORMS_AND_PROJECTION_SNIPPET)
+            = RenderPipeline.builder(MATRICES_PROJECTION_SNIPPET)
             .withUniform("Mandelbrot", UniformType.UNIFORM_BUFFER)
             .withVertexShader("core/position_tex")
-            .withFragmentShader(Identifier.of("lpctools", "core/mandelbrot_set"))
-            .withVertexFormat(VertexFormats.POSITION_TEXTURE, VertexFormat.DrawMode.QUADS)
-            .withLocation(Identifier.of("lpctools", "pipeline/mandelbrot"))
+            .withFragmentShader(Identifier.fromNamespaceAndPath("lpctools", "core/mandelbrot_set"))
+            .withVertexFormat(DefaultVertexFormat.POSITION_TEX, VertexFormat.Mode.QUADS)
+            .withLocation(Identifier.fromNamespaceAndPath("lpctools", "pipeline/mandelbrot"))
             .withBlend(BlendFunction.TRANSLUCENT)
             .withCull(false)
             .build();
-        public static final RenderSystem.ShapeIndexBuffer mandelbrotSetShapeIndexBuffer = RenderSystem.getSequentialBuffer(VertexFormat.DrawMode.QUADS);
+        public static final RenderSystem.AutoStorageIndexBuffer mandelbrotSetShapeIndexBuffer = RenderSystem.getSequentialBuffer(VertexFormat.Mode.QUADS);
         private final GpuBuffer mandelbrotUniformBuffer = RenderSystem.getDevice()
             .createBuffer(() -> "Mandelbrot Uniform",
                 GpuBuffer.USAGE_UNIFORM | GpuBuffer.USAGE_COPY_DST, 48);
         private int lastMaxDepth = -1;
         private final GpuBuffer vertexBuffer = RenderSystem.getDevice()
             .createBuffer(() -> "Mandelbrot Vertex Buffer",
-                GpuBuffer.USAGE_VERTEX | GpuBuffer.USAGE_COPY_DST, (long)VertexFormats.POSITION_TEXTURE.getVertexSize() * Float.BYTES);
+                GpuBuffer.USAGE_VERTEX | GpuBuffer.USAGE_COPY_DST, (long)DefaultVertexFormat.POSITION_TEX.getVertexSize() * Float.BYTES);
         private float lastStretch = Float.NaN;
         public GpuBuffer getUpdatedMandelbrotUniformBuffer(){
             int maxDepth = MandelbrotSetRender.this.maxDepth.getAsInt();
@@ -72,7 +73,7 @@ public class MandelbrotSetRender extends BooleanThirdListConfig implements Regis
             boolean needUpdate = lastStretch != stretch;
             if(needUpdate){
                 var encoder = RenderSystem.getDevice().createCommandEncoder();
-                ByteBuffer buffer = MemoryUtil.memAlloc(VertexFormats.POSITION_TEXTURE.getVertexSize() * Float.BYTES);
+                ByteBuffer buffer = MemoryUtil.memAlloc(DefaultVertexFormat.POSITION_TEX.getVertexSize() * Float.BYTES);
                 // 四个顶点，覆盖整个屏幕
                 float sp = stretch * 2.0f;
                 buffer.putFloat(-sp).putFloat(0.0f).putFloat(-sp).putFloat(-2.0f).putFloat(-2.0f); // north-west
@@ -107,18 +108,18 @@ public class MandelbrotSetRender extends BooleanThirdListConfig implements Regis
     
     @Override public void onLast(Registries.MASAWorldRenderContext context) {
         var fb = context.fb();
-        GpuTextureView colorAttachmentView = fb.getColorAttachmentView();
-        GpuTextureView depthAttachmentView = fb.useDepthAttachment ? fb.getDepthAttachmentView() : null;
+        GpuTextureView colorAttachmentView = fb.getColorTextureView();
+        GpuTextureView depthAttachmentView = fb.useDepth ? fb.getDepthTextureView() : null;
         GpuBufferSlice dynamicTransforms = RenderSystem.getDynamicUniforms()
-            .write(RenderSystem.getModelViewMatrix().translate(context.camera().getCameraPos().toVector3f().mul(-1),
+            .writeTransform(RenderSystem.getModelViewMatrix().translate(context.camera().position().toVector3f().mul(-1),
                 new Matrix4f()), new Vector4f(1.0F, 1.0F, 1.0F, 1.0F), new Vector3f(), new Matrix4f());
         GpuBufferSlice projection = RenderSystem.getProjectionMatrixBuffer();
         var renderSources = this.renderSources.get();
         GpuBuffer mandelbrotUniformBuffer = renderSources.getUpdatedMandelbrotUniformBuffer();
         GpuBuffer vertexBuffer = renderSources.getUpdatedVertexBuffer();
-        RenderSystem.ShapeIndexBuffer shapeIndexBuffer = RenderSources.mandelbrotSetShapeIndexBuffer;
-        GpuBuffer indexBuffer = shapeIndexBuffer.getIndexBuffer(6);
-        VertexFormat.IndexType indexType = shapeIndexBuffer.getIndexType();
+        RenderSystem.AutoStorageIndexBuffer shapeIndexBuffer = RenderSources.mandelbrotSetShapeIndexBuffer;
+        GpuBuffer indexBuffer = shapeIndexBuffer.getBuffer(6);
+        VertexFormat.IndexType indexType = shapeIndexBuffer.type();
         try(RenderPass renderPass = RenderSystem.getDevice()
             .createCommandEncoder()
             .createRenderPass(() -> "LPCTools Mandelbrot Set",

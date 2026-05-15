@@ -12,12 +12,12 @@ import lpctools.lpcfymasaapi.configButtons.transferredConfigs.BooleanConfig;
 import lpctools.lpcfymasaapi.configButtons.transferredConfigs.HotkeyConfig;
 import lpctools.lpcfymasaapi.configButtons.uniqueConfigs.*;
 import lpctools.lpcfymasaapi.interfaces.ILPCUniqueConfigBase;
-import net.minecraft.block.BlockState;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.network.ClientPlayerEntity;
-import net.minecraft.client.world.ClientWorld;
-import net.minecraft.text.Text;
-import net.minecraft.util.math.BlockPos;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.multiplayer.ClientLevel;
+import net.minecraft.client.player.LocalPlayer;
+import net.minecraft.core.BlockPos;
+import net.minecraft.network.chat.Component;
+import net.minecraft.world.level.block.state.BlockState;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.function.BiFunction;
@@ -61,35 +61,35 @@ public class DebugConfigs {
     
     private static void buttonConfigTestCallback(ButtonBase button, int mouseButton){
         clientMessage("❤Ahh❤It's❤Button❤" + mouseButton + "❤", false);
-        if(buttonConfigTest.buttonName == null) buttonConfigTest.buttonName = Text.translatable("lpctools.mew~").getString();
+        if(buttonConfigTest.buttonName == null) buttonConfigTest.buttonName = Component.translatable("lpctools.mew~").getString();
         else buttonConfigTest.buttonName = "❤" + buttonConfigTest.buttonName + "❤";
     }
     
     private static boolean keyActDebugCallback(KeyAction action, IKeybind bind){
-        ClientPlayerEntity player = MinecraftClient.getInstance().player;
+        LocalPlayer player = Minecraft.getInstance().player;
         if(player == null) return false;
-        player.setPitch(0);
-        player.setYaw(0);
+        player.setXRot(0);
+        player.setYRot(0);
         return true;
     }
     private static boolean getBlockStateHotkeyCallback(KeyAction action, IKeybind keybind){
-        MinecraftClient client = MinecraftClient.getInstance();
-        ClientWorld world = client.world;
-        ClientPlayerEntity player = client.player;
+        Minecraft client = Minecraft.getInstance();
+        ClientLevel world = client.level;
+        LocalPlayer player = client.player;
         if(world == null || player == null) return false;
-        BlockPos pos = player.getBlockPos();
+        BlockPos pos = player.blockPosition();
         BlockState state = world.getBlockState(pos);
         BlockState finalState;
-        if(state.isAir()) finalState = world.getBlockState(pos.down());
+        if(state.isAir()) finalState = world.getBlockState(pos.below());
         else finalState = state;
         if(briefBlockState.getAsBoolean()){
-            String msg = "isOpaque:" + finalState.isOpaque() + '\n' +
-                "isTransparent:" + finalState.isTransparent() + '\n' +
-                "isOpaqueFullCube:" + finalState.isOpaqueFullCube() + '\n' +
+            String msg = "isOpaque:" + finalState.canOcclude() + '\n' +
+                "isTransparent:" + finalState.propagatesSkylightDown() + '\n' +
+                "isOpaqueFullCube:" + finalState.isSolidRender() + '\n' +
                 "mayMobSpawnOn:" + mayMobSpawnOn(finalState) + '\n';
-            player.sendMessage(Text.of(msg), false);
+            player.displayClientMessage(Component.nullToEmpty(msg), false);
         }
-        else player.sendMessage(Text.of(finalState.toString()), false);
+        else player.displayClientMessage(Component.nullToEmpty(finalState.toString()), false);
         return true;
     }
 }

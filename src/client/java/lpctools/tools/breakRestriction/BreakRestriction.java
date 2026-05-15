@@ -8,7 +8,7 @@ import lpctools.lpcfymasaapi.interfaces.ILPCConfigList;
 import lpctools.tools.ToolConfigs;
 import lpctools.tools.ToolUtils;
 import lpctools.util.javaex.ToBooleanFunction;
-import net.minecraft.block.Block;
+import net.minecraft.world.level.block.Block;
 import org.jetbrains.annotations.NotNull;
 
 import static lpctools.lpcfymasaapi.LPCConfigStatics.*;

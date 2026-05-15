@@ -28,7 +28,7 @@ public class ConstantInteger extends AbstractScript implements IIntegerSupplier 
 	public void setIntegerValue(int value){
 		if(this.value != value){
 			this.value = value;
-			if(textField != null) textField.setText(String.valueOf(value));
+			if(textField != null) textField.setValue(String.valueOf(value));
 		}
 	}
 	
@@ -49,7 +49,7 @@ public class ConstantInteger extends AbstractScript implements IIntegerSupplier 
 				getDisplayWidget(), 100, String.valueOf(value), text->{
 				try {value = Integer.parseInt(text);
 				} catch (NumberFormatException ignored) {}
-				textField.setText(String.valueOf(value));
+				textField.setValue(String.valueOf(value));
 				applyToDisplayWidgetIfNotNull(ScriptDisplayWidget::markUpdateChain);
 			});
 		}

@@ -11,11 +11,11 @@ import fi.dy.masa.malilib.gui.widgets.WidgetKeybindSettings;
 import fi.dy.masa.malilib.hotkeys.IHotkey;
 import it.unimi.dsi.fastutil.floats.FloatArrayList;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
-import net.minecraft.text.Text;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.function.Supplier;
+import net.minecraft.network.chat.Component;
 
 public interface ILPCUniqueConfigBase extends ILPCUniqueConfig, SimpleDirtyImpl{
     @Override
@@ -58,10 +58,10 @@ public interface ILPCUniqueConfigBase extends ILPCUniqueConfig, SimpleDirtyImpl{
             IButtonActionListener _listener = (button, mouseButton) -> {
                 if(listener != null) listener.actionPerformedWithButton(button, mouseButton);
                 String key = supplier == null ? null : supplier.get();
-                if(key != null) button.setDisplayString(Text.translatable(key).getString());
+                if(key != null) button.setDisplayString(Component.translatable(key).getString());
             };
             String key = supplier == null ? null : supplier.get();
-            String str = key == null ? "" : Text.translatable(key).getString();
+            String str = key == null ? "" : Component.translatable(key).getString();
             if(option.allocator != null)
                 option.allocator.create(lastX, y, currentX - lastX - 2, 20, str, _listener, consumer, resetButton);
             lastX = currentX;
@@ -144,17 +144,17 @@ public interface ILPCUniqueConfigBase extends ILPCUniqueConfig, SimpleDirtyImpl{
                 @Override public void setFocused(boolean focused) {
                     super.setFocused(focused);
                     if(!focused){
-                        try{ config.setValueFromString(getText());
+                        try{ config.setValueFromString(getValue());
                         } catch (NumberFormatException ignored){}
-                        setText(config.getStringValue());
+                        setValue(config.getStringValue());
                     }
                 }
             };
             field.setMaxLength(consumer.getMaxTextFieldTextLength());
-            field.setText(config.getStringValue());
+            field.setValue(config.getStringValue());
             ConfigOptionChangeListenerTextField listenerChange = new ConfigOptionChangeListenerTextField(config, field, reset){
                 @Override public boolean onTextChange(GuiTextFieldGeneric textField) {
-                    if(buttonReset != null) buttonReset.setEnabled(this.config.isModified(this.textField.getText()));
+                    if(buttonReset != null) buttonReset.setEnabled(this.config.isModified(this.textField.getValue()));
                     return false;
                 }
             };

@@ -20,7 +20,7 @@ import lpctools.lpcfymasaapi.interfaces.ButtonBaseProvider;
 import lpctools.lpcfymasaapi.interfaces.ButtonConsumer;
 import lpctools.lpcfymasaapi.interfaces.ILPCConfigBase;
 import lpctools.mixinInterfaces.MASAMixins.IWidgetConfigOptionBaseEx;
-import net.minecraft.client.font.TextRenderer;
+import net.minecraft.client.gui.Font;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -69,7 +69,7 @@ public abstract class WidgetConfigOptionMixin extends WidgetConfigOptionBase<Gui
                 @Override public WidgetListConfigOptionsBase<?, ?> getWidgetListConfigOptionsBase() {
                     return parent;
                 }
-                @Override public TextRenderer getTextRenderer() {
+                @Override public Font getTextRenderer() {
                     return textRenderer;
                 }
             });

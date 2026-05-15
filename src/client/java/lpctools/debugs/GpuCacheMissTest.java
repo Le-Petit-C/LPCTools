@@ -11,7 +11,7 @@ import lpctools.lpcfymasaapi.Registries;
 import lpctools.lpcfymasaapi.configButtons.derivedConfigs.ArrayOptionListConfig;
 import lpctools.lpcfymasaapi.configButtons.uniqueConfigs.BooleanHotkeyThirdListConfig;
 import lpctools.lpcfymasaapi.configButtons.uniqueConfigs.UniqueIntegerConfig;
-import net.minecraft.client.gl.RenderPipelines;
+import net.minecraft.client.renderer.RenderPipelines;
 import org.jetbrains.annotations.Contract;
 import org.joml.Matrix4f;
 import org.joml.Quaternionf;
@@ -188,12 +188,12 @@ public class GpuCacheMissTest {
 			ByteBuffer indexByteBuffer;
 			if(indexCount <= 65536) {
 				indexType = VertexFormat.IndexType.SHORT;
-				indexByteBuffer = MemoryUtil.memAlloc(indexType.size * indexCount);
+				indexByteBuffer = MemoryUtil.memAlloc(indexType.bytes * indexCount);
 				for(int i = 0; i < indexCount; ++i) indexByteBuffer.putShort((short)indexes[i]);
 			}
 			else {
 				indexType = VertexFormat.IndexType.INT;
-				indexByteBuffer = MemoryUtil.memAlloc(indexType.size * indexCount);
+				indexByteBuffer = MemoryUtil.memAlloc(indexType.bytes * indexCount);
 				for(int i = 0; i < indexCount; ++i) indexByteBuffer.putInt(indexes[i]);
 			}
 			indexByteBuffer.flip();
@@ -212,10 +212,10 @@ public class GpuCacheMissTest {
 		
 		@Override public void onLast(Registries.MASAWorldRenderContext context) {
 			var fb = context.fb();
-			GpuTextureView colorAttachmentView = fb.getColorAttachmentView();
-			GpuTextureView depthAttachmentView = fb.useDepthAttachment ? fb.getDepthAttachmentView() : null;
+			GpuTextureView colorAttachmentView = fb.getColorTextureView();
+			GpuTextureView depthAttachmentView = fb.useDepth ? fb.getDepthTextureView() : null;
 			GpuBufferSlice dynamicTransforms = RenderSystem.getDynamicUniforms()
-				.write(RenderSystem.getModelViewMatrix().translate(context.camera().getCameraPos().toVector3f().mul(-1),
+				.writeTransform(RenderSystem.getModelViewMatrix().translate(context.camera().position().toVector3f().mul(-1),
 					new Matrix4f()), new Vector4f(1.0F, 1.0F, 1.0F, 1.0F), new Vector3f(), new Matrix4f());
 			GpuBufferSlice projection = RenderSystem.getProjectionMatrixBuffer();
 			try(RenderPass renderPass = RenderSystem.getDevice()

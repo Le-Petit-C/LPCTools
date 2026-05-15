@@ -1,13 +1,13 @@
 package lpctools.lpcfymasaapi;
 
 import net.fabricmc.loader.api.FabricLoader;
-import net.minecraft.MinecraftVersion;
+import net.minecraft.DetectedVersion;
 
 public class Reference {
     public final String modName;
     public final String modId;
 
-    public static String getMCVersion(){return MinecraftVersion.create().name();}
+    public static String getMCVersion(){return DetectedVersion.tryDetectVersion().name();}
     public static String getModType(){return "fabric";}
     public Reference(String modName){
         this(modName, modName.toLowerCase());

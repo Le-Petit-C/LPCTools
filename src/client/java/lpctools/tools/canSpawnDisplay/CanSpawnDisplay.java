@@ -7,7 +7,7 @@ import lpctools.lpcfymasaapi.configButtons.transferredConfigs.BooleanConfig;
 import lpctools.lpcfymasaapi.configButtons.transferredConfigs.ColorConfig;
 import lpctools.lpcfymasaapi.configButtons.uniqueConfigs.BooleanHotkeyThirdListConfig;
 import lpctools.tools.ToolConfigs;
-import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.Minecraft;
 
 import static lpctools.lpcfymasaapi.LPCConfigStatics.*;
 import static lpctools.tools.ToolUtils.*;
@@ -39,7 +39,7 @@ public class CanSpawnDisplay{
     public static void switchCallback() {
         if(CSConfig.getBooleanValue()) {
             if(dataInstance == null)
-                dataInstance = new DataInstance(MinecraftClient.getInstance());
+                dataInstance = new DataInstance(Minecraft.getInstance());
         }
         else {
             if(dataInstance != null){

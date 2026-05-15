@@ -1,7 +1,7 @@
 package lpctools.lpcfymasaapi.render.translucentShapes;
 
 import lpctools.lpcfymasaapi.render.PositionColorLineWidthVertex;
-import net.minecraft.util.math.BlockPos;
+import net.minecraft.core.BlockPos;
 import org.joml.Vector3d;
 
 public class LineQuad extends PositionedShape<PositionColorLineWidthVertex> {

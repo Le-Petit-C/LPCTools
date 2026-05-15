@@ -9,10 +9,10 @@ import lpctools.script.editScreen.WidthAutoAdjustButtonGeneric;
 import lpctools.script.runtimeInterfaces.ScriptNotNullSupplier;
 import lpctools.script.suppliers.AbstractSupplierWithTypeDeterminedSubSuppliers;
 import lpctools.script.utils.StackGetter;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.item.ItemStack;
-import net.minecraft.text.Text;
+import net.minecraft.network.chat.Component;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -22,7 +22,7 @@ import static lpctools.lpcfymasaapi.LPCConfigUtils.warnFailedLoadingConfig;
 
 public class SlotItemStack extends AbstractSupplierWithTypeDeterminedSubSuppliers implements IItemStackSupplier{
 	protected final SupplierStorage<Entity> entity = ofStorage(Entity.class,
-		Text.translatable("lpctools.script.suppliers.itemStack.slotItemStack.subSuppliers.entity.name"), "entity");
+		Component.translatable("lpctools.script.suppliers.itemStack.slotItemStack.subSuppliers.entity.name"), "entity");
 	protected @NotNull StackGetter getter = StackGetter.values()[0];
 	protected @Nullable WidthAutoAdjustButtonGeneric cycleButton;
 	protected final SupplierStorage<?>[] subSuppliers = ofStorages(entity);

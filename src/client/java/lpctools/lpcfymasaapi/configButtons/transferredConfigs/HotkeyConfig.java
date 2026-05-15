@@ -12,8 +12,8 @@ import lpctools.lpcfymasaapi.interfaces.IButtonDisplay;
 import lpctools.lpcfymasaapi.interfaces.ILPCConfigReadable;
 import lpctools.lpcfymasaapi.interfaces.ILPC_MASAConfigWrapper;
 import lpctools.lpcfymasaapi.interfaces.data.LPCConfigData;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.text.Text;
+import net.minecraft.client.Minecraft;
+import net.minecraft.network.chat.Component;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -53,7 +53,7 @@ public class HotkeyConfig extends ConfigHotkey implements ILPC_MASAConfigWrapper
         @Override public boolean onKeyAction(KeyAction action, IKeybind key){
             if(enabled != null && !enabled.getAsBoolean()) return false;
             valueToChange.accept(valueToChange.getAsInt() + changeValue);
-            MinecraftClient.getInstance().getMessageHandler().onGameMessage(Text.of(
+            Minecraft.getInstance().getChatListener().handleSystemMessage(Component.nullToEmpty(
                 StringUtils.translate("lpcfymalilib.hotkeyValueDisplay", valueToChange.getDisplayName().trim()) + " " + valueToChange.getAsInt()
             ), true);
             return true;
