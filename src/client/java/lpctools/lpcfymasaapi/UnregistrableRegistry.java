@@ -1,6 +1,7 @@
 package lpctools.lpcfymasaapi;
 
 import lpctools.lpcfymasaapi.interfaces.IUnregistrableRegistry;
+import net.fabricmc.fabric.api.event.Event;
 
 import java.util.Iterator;
 import java.util.LinkedHashSet;
@@ -16,6 +17,10 @@ public class UnregistrableRegistry<T> implements IUnregistrableRegistry<T> {
     }
     public UnregistrableRegistry(Function<IterableEx<T>, T> runner){
         this.runner = runner.apply(this::generateIterator);
+    }
+    public UnregistrableRegistry(Function<IterableEx<T>, T> runner, Event<T> autoRegisterEvent){
+        this(runner);
+        autoRegisterEvent.register(runner());
     }
     private void applyNewRegistrable() {
         if(newRegistrables.isEmpty()) return;
