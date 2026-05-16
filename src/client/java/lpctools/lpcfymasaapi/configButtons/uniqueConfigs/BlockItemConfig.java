@@ -25,8 +25,8 @@ public class BlockItemConfig extends LPCUniqueConfigBase {
 	}
 	@Override public void getButtonOptions(ButtonOptionArrayList res) {
 		res.add(-1, (IButtonActionListener) null, null, (x, y, w, h, key, listener, consumer, reset)->
-			consumer.addButton(new ItemButton(blockItem, x + w / 2, y + h / 2, List.of(blockItem.getName().getString(), DataUtils.getItemId(blockItem))), null));
-		res.add(1, (b, m)->chooseBlock(), blockItem.getName()::getString, buttonGenericAllocator);
+			consumer.addButton(new ItemButton(blockItem, x + w / 2, y + h / 2, List.of(blockItem.getName(blockItem.getDefaultInstance()).getString(), DataUtils.getItemId(blockItem))), null));
+		res.add(1, (_, _)->chooseBlock(), blockItem.getName(blockItem.getDefaultInstance())::getString, buttonGenericAllocator);
 	}
 	public BlockItem getBlockItem(){return blockItem;}
 	

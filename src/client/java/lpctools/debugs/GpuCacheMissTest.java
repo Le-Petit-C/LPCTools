@@ -11,6 +11,7 @@ import lpctools.lpcfymasaapi.Registries;
 import lpctools.lpcfymasaapi.configButtons.derivedConfigs.ArrayOptionListConfig;
 import lpctools.lpcfymasaapi.configButtons.uniqueConfigs.BooleanHotkeyThirdListConfig;
 import lpctools.lpcfymasaapi.configButtons.uniqueConfigs.UniqueIntegerConfig;
+import lpctools.util.RenderUtils;
 import net.minecraft.client.renderer.RenderPipelines;
 import org.jetbrains.annotations.Contract;
 import org.joml.Matrix4f;
@@ -212,7 +213,7 @@ public class GpuCacheMissTest {
 		
 		@Override public void onLast(Registries.MASAWorldRenderContext context) {
 			var fb = context.fb();
-			GpuTextureView colorAttachmentView = fb.getColorTextureView();
+			GpuTextureView colorAttachmentView = RenderUtils.colorAttachmentViewOrDef(fb);
 			GpuTextureView depthAttachmentView = fb.useDepth ? fb.getDepthTextureView() : null;
 			GpuBufferSlice dynamicTransforms = RenderSystem.getDynamicUniforms()
 				.writeTransform(RenderSystem.getModelViewMatrix().translate(context.camera().position().toVector3f().mul(-1),
@@ -224,7 +225,9 @@ public class GpuCacheMissTest {
 					colorAttachmentView, OptionalInt.empty(), depthAttachmentView, OptionalDouble.empty())){
 				renderPass.setPipeline(renderPipeline);
 				renderPass.setUniform("DynamicTransforms", dynamicTransforms);
-				renderPass.setUniform("Projection", projection);
+				if (projection != null) {
+					renderPass.setUniform("Projection", projection);
+				}
 				renderPass.setVertexBuffer(0, vertexBuffer);
 				renderPass.setIndexBuffer(indexBuffer, indexType);
 				renderPass.drawIndexed(0, 0, shapeCount * indexPerShape, 1);

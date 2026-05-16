@@ -1,6 +1,7 @@
 package lpctools.lpcfymasaapi.render;
 
 import com.mojang.blaze3d.pipeline.BlendFunction;
+import com.mojang.blaze3d.pipeline.ColorTargetState;
 import com.mojang.blaze3d.pipeline.RenderPipeline;
 import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 import com.mojang.blaze3d.vertex.VertexFormat;
@@ -13,6 +14,6 @@ public class LPCRenderPipelines {
 			.withVertexFormat(DefaultVertexFormat.POSITION_COLOR_LINE_WIDTH, VertexFormat.Mode.TRIANGLES)
 			.withVertexShader(Identifier.fromNamespaceAndPath("lpctools", "core/sphere"))
 			.withFragmentShader(Identifier.fromNamespaceAndPath("lpctools", "core/sphere"))
-			.withBlend(BlendFunction.TRANSLUCENT)
+			.withColorTargetState(new ColorTargetState(BlendFunction.TRANSLUCENT))
 			.withLocation(Identifier.fromNamespaceAndPath("lpctools", "pipeline/sphere")).build());
 }

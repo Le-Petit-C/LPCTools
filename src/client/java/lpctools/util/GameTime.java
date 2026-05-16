@@ -18,7 +18,8 @@ public class GameTime {
 		var world = Minecraft.getInstance().level;
 		if(world != null) {
 			worldTicks = world.getGameTime();
-			dayTicks = world.getDayTime();
+			dayTicks = world.getDefaultClockTime();//world.getDayTime();
+			// TODO
 		}
 		else dayTicks = worldTicks = -1;
 		return this;

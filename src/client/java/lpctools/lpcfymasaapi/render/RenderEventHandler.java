@@ -35,7 +35,9 @@ public class RenderEventHandler {
 				GpuBufferSlice fog = RenderSystem.getShaderFog();
 				RenderTarget fb = handleMain.get();
 				Registries.PRE_MAIN.runner().onRenderWorldPreMain(new Registries.MASAWorldRenderContext(fb, posMatrix, projMatrix, frustum, camera, buffers, profiler));
-				RenderSystem.setShaderFog(fog);
+				if (fog != null) {
+					RenderSystem.setShaderFog(fog);
+				}
 			});
 			if (!Registries.PRE_MAIN.isEmpty())
 				pass.disableCulling();

@@ -13,7 +13,7 @@ import lpctools.util.DataUtils;
 import lpctools.util.LPCMathHelper;
 import lpctools.util.Packed;
 import lpctools.util.javaex.QuietAutoCloseable;
-import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientWorldEvents;
+import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientLevelEvents;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.core.BlockPos;
@@ -38,7 +38,7 @@ import java.util.function.Supplier;
 
 import static lpctools.tools.ToolUtils.clearMapDataOutOfRange;
 
-public class DataInstance implements AutoCloseable, Registries.ClientWorldChunkLightUpdated, Registries.BetweenRenderFrames, Registries.ClientWorldChunkSetBlockState, GenericRegistry.SpawnConditionChanged, ClientWorldEvents.AfterClientWorldChange {
+public class DataInstance implements AutoCloseable, Registries.ClientWorldChunkLightUpdated, Registries.BetweenRenderFrames, Registries.ClientWorldChunkSetBlockState, GenericRegistry.SpawnConditionChanged, ClientLevelEvents.AfterClientLevelChange {
     
     private record DelayedTask(long packedChunkPos, Supplier<RunningTask> task){}
     private record RunningTask(long packedChunkPos, CompletableFuture<TaskResult> task){}
@@ -62,7 +62,7 @@ public class DataInstance implements AutoCloseable, Registries.ClientWorldChunkL
         Registries.CLIENT_CHUNK_LIGHT_LOAD.register(this, b);
         Registries.BETWEEN_RENDER_FRAMES.register(this, b);
         Registries.CLIENT_WORLD_CHUNK_SET_BLOCK_STATE.register(this, b);
-        Registries.AFTER_CLIENT_WORLD_CHANGE.register(this, b);
+        Registries.AFTER_CLIENT_LEVEL_CHANGE.register(this, b);
         GenericRegistry.SPAWN_CONDITION_CHANGED.register(this, b);
     }
     void reshapesAsync(){
@@ -115,7 +115,7 @@ public class DataInstance implements AutoCloseable, Registries.ClientWorldChunkL
         canSpawnPoses.clear();
     }
     private void addDelayedTask(ChunkAccess chunk, LevelLightEngine light){
-        long packedChunkPos = chunk.getPos().toLong();
+        long packedChunkPos = chunk.getPos().pack();
         delayedTasks.add(new DelayedTask(packedChunkPos, ()->testChunkAsync(chunk, light, packedChunkPos)));
     }
     public void resetData(@NotNull Level world, @NotNull Vec3 playerPos){
@@ -195,7 +195,7 @@ public class DataInstance implements AutoCloseable, Registries.ClientWorldChunkL
         if(client.level != null && client.player != null)
             resetData(client.level, client.player.position());
     }
-    @Override public void afterWorldChange(@NonNull Minecraft minecraftClient, @NonNull ClientLevel clientWorld) {clearData();}
+    @Override public void afterLevelChange(@NonNull Minecraft minecraftClient, @NonNull ClientLevel clientWorld) {clearData();}
     
     private void tryPutDelayed(Level world, int x, int z){
         for(int dz = -1; dz <= 1; ++dz)

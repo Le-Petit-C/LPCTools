@@ -89,7 +89,7 @@ public class Script extends AbstractScriptWithSubScript implements IScriptWithSu
 			return;
 		}
 		if(!this.id.isEmpty()) {
-			Path scriptDirectoryPath = FileUtils.getConfigDirectoryAsPath().resolve(scriptDirectoryName);
+			Path scriptDirectoryPath = FileUtils.getConfigDirectory().resolve(scriptDirectoryName);
 			Path oldPath = scriptDirectoryPath.resolve(this.id + ".json");
 			Path newPath = scriptDirectoryPath.resolve(id + ".json");
 			FileUtils.renameFile(oldPath, newPath, s->{});

@@ -43,7 +43,7 @@ public interface Packed {
 		}
 	}
 	interface ChunkPos {
-		static long pack(int x, int z) { return net.minecraft.world.level.ChunkPos.asLong(x, z); }
+		static long pack(int x, int z) { return net.minecraft.world.level.ChunkPos.pack(x, z); }
 		static int unpackX(long packed) { return net.minecraft.world.level.ChunkPos.getX(packed); }
 		static int unpackZ(long packed) { return net.minecraft.world.level.ChunkPos.getZ(packed); }
 		static long packCoords(int x, int z) { return pack(getSectionCoord(x), getSectionCoord(z)); }

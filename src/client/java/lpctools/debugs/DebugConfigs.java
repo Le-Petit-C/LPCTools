@@ -87,9 +87,9 @@ public class DebugConfigs {
                 "isTransparent:" + finalState.propagatesSkylightDown() + '\n' +
                 "isOpaqueFullCube:" + finalState.isSolidRender() + '\n' +
                 "mayMobSpawnOn:" + mayMobSpawnOn(finalState) + '\n';
-            player.displayClientMessage(Component.nullToEmpty(msg), false);
+            player.sendSystemMessage(Component.nullToEmpty(msg));
         }
-        else player.displayClientMessage(Component.nullToEmpty(finalState.toString()), false);
+        else player.sendSystemMessage(Component.nullToEmpty(finalState.toString()));
         return true;
     }
 }

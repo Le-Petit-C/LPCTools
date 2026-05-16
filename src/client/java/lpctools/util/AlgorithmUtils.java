@@ -80,8 +80,8 @@ public class AlgorithmUtils {
                 return new Iterator<>() {
                     private final Vector2d compareCenter = center.mul(1.0 / 16, new Vector2d());
                     private double getSquaredDistance(ChunkPos pos){
-                        double dx = (pos.x - compareCenter.x);
-                        double dy = (pos.z - compareCenter.y);
+                        double dx = (pos.x() - compareCenter.x);
+                        double dy = (pos.z() - compareCenter.y);
                         return dx * dx + dy * dy;
                     }
                     private final HashSet<ChunkPos> remainingPoses = new HashSet<>();
@@ -90,13 +90,13 @@ public class AlgorithmUtils {
                         PriorityQueue<ChunkAccess> ret = new PriorityQueue<>(Comparator.comparingDouble(v->getSquaredDistance(v.getPos())));
                         ChunkPos chunkPos = new ChunkPos((int)Math.floor(compareCenter.x + 0.5), (int)Math.floor(compareCenter.y + 0.5));
                         ChunkAccess chunk;
-                        chunk = world.getChunk(chunkPos.x, chunkPos.z, ChunkStatus.FULL, false);
+                        chunk = world.getChunk(chunkPos.x(), chunkPos.z(), ChunkStatus.FULL, false);
                         if(chunk != null) {ret.add(chunk);remainingPoses.add(chunk.getPos());}
-                        chunk = world.getChunk(chunkPos.x + 1, chunkPos.z, ChunkStatus.FULL, false);
+                        chunk = world.getChunk(chunkPos.x() + 1, chunkPos.z(), ChunkStatus.FULL, false);
                         if(chunk != null) {ret.add(chunk);remainingPoses.add(chunk.getPos());}
-                        chunk = world.getChunk(chunkPos.x, chunkPos.z + 1, ChunkStatus.FULL, false);
+                        chunk = world.getChunk(chunkPos.x(), chunkPos.z() + 1, ChunkStatus.FULL, false);
                         if(chunk != null) {ret.add(chunk);remainingPoses.add(chunk.getPos());}
-                        chunk = world.getChunk(chunkPos.x + 1, chunkPos.z + 1, ChunkStatus.FULL, false);
+                        chunk = world.getChunk(chunkPos.x() + 1, chunkPos.z() + 1, ChunkStatus.FULL, false);
                         if(chunk != null) {ret.add(chunk);remainingPoses.add(chunk.getPos());}
                         return ret;
                     }
@@ -109,17 +109,17 @@ public class AlgorithmUtils {
                         remainingPoses.remove(pos);
                         double distanceSquared = getSquaredDistance(pos);
                         ChunkPos pos1;
-                        pos1 = new ChunkPos(pos.x - 1, pos.z);
-                        if(getSquaredDistance(pos1) > distanceSquared && world.getChunk(pos1.x, pos1.z, ChunkStatus.FULL, false) instanceof ChunkAccess chunk1 && remainingPoses.add(chunk1.getPos()))
+                        pos1 = new ChunkPos(pos.x() - 1, pos.z());
+                        if(getSquaredDistance(pos1) > distanceSquared && world.getChunk(pos1.x(), pos1.z(), ChunkStatus.FULL, false) instanceof ChunkAccess chunk1 && remainingPoses.add(chunk1.getPos()))
                             remainingChunks.add(chunk1);
-                        pos1 = new ChunkPos(pos.x + 1, pos.z);
-                        if(getSquaredDistance(pos1) > distanceSquared && world.getChunk(pos1.x, pos1.z, ChunkStatus.FULL, false) instanceof ChunkAccess chunk1 && remainingPoses.add(chunk1.getPos()))
+                        pos1 = new ChunkPos(pos.x() + 1, pos.z());
+                        if(getSquaredDistance(pos1) > distanceSquared && world.getChunk(pos1.x(), pos1.z(), ChunkStatus.FULL, false) instanceof ChunkAccess chunk1 && remainingPoses.add(chunk1.getPos()))
                             remainingChunks.add(chunk1);
-                        pos1 = new ChunkPos(pos.x, pos.z - 1);
-                        if(getSquaredDistance(pos1) > distanceSquared && world.getChunk(pos1.x, pos1.z, ChunkStatus.FULL, false) instanceof ChunkAccess chunk1 && remainingPoses.add(chunk1.getPos()))
+                        pos1 = new ChunkPos(pos.x(), pos.z() - 1);
+                        if(getSquaredDistance(pos1) > distanceSquared && world.getChunk(pos1.x(), pos1.z(), ChunkStatus.FULL, false) instanceof ChunkAccess chunk1 && remainingPoses.add(chunk1.getPos()))
                             remainingChunks.add(chunk1);
-                        pos1 = new ChunkPos(pos.x, pos.z + 1);
-                        if(getSquaredDistance(pos1) > distanceSquared && world.getChunk(pos1.x, pos1.z, ChunkStatus.FULL, false) instanceof ChunkAccess chunk1 && remainingPoses.add(chunk1.getPos()))
+                        pos1 = new ChunkPos(pos.x(), pos.z() + 1);
+                        if(getSquaredDistance(pos1) > distanceSquared && world.getChunk(pos1.x(), pos1.z(), ChunkStatus.FULL, false) instanceof ChunkAccess chunk1 && remainingPoses.add(chunk1.getPos()))
                             remainingChunks.add(chunk1);
                         return chunk;
                     }
@@ -138,7 +138,7 @@ public class AlgorithmUtils {
     }
     //只是转化而已
     public static Vector2i toVector2i(ChunkPos chunkPos){
-        return new Vector2i(chunkPos.x, chunkPos.z);
+        return new Vector2i(chunkPos.x(), chunkPos.z());
     }
     public static ChunkPos toChunkPos(Vector2i vec){
         return new ChunkPos(vec.x, vec.y);

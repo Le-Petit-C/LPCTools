@@ -11,7 +11,7 @@ import lpctools.script.*;
 import lpctools.util.GuiUtils;
 import lpctools.util.data.Rect2d;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.events.GuiEventListener;
 import net.minecraft.client.input.CharacterEvent;
 import net.minecraft.client.input.KeyEvent;
@@ -238,7 +238,7 @@ public class ScriptEditScreen extends GuiConfigsBase {
 		return super.keyPressed(key);
 	}
 	
-	@Override public boolean keyReleased(KeyEvent key) {
+	@Override public boolean keyReleased(@NonNull KeyEvent key) {
 		if(scriptFocused != null && scriptFocused.keyReleased(key)) return true;
 		return super.keyReleased(key);
 	}
@@ -249,11 +249,11 @@ public class ScriptEditScreen extends GuiConfigsBase {
 	}
 	
 	//以父screen为背景
-	@Override public void render(@NonNull GuiGraphics drawContext, int mouseX, int mouseY, float partialTicks) {
+	@Override public void extractRenderState(@NonNull GuiGraphicsExtractor drawContext, int mouseX, int mouseY, float partialTicks) {
 		hoveredRenderer.clear();
 		if(getParent() != null)
-			getParent().render(drawContext, -1, -1, partialTicks);
-		super.render(drawContext, mouseX, mouseY, partialTicks);
+			getParent().extractRenderState(drawContext, -1, -1, partialTicks);
+		super.extractRenderState(drawContext, mouseX, mouseY, partialTicks);
 	}
 	//渲染内容，选择重载drawTitle只是因为渲染顺序
 	@Override public void drawTitle(GuiContext context, int mouseX, int mouseY, float partialTicks) {
@@ -285,7 +285,7 @@ public class ScriptEditScreen extends GuiConfigsBase {
 			if(w == null) break;
 			if(line >= hideMinLineIndex && line < hideMaxLineIndex)
 				context.fill(w.getX() + 1, w.getY() + 1, w.getX() + w.getWidth() - 1, w.getY() + w.getHeight() - 1, moveHighlightColor.getIntegerValue());
-			else w.render(context, fixedMouseX, fixedMouseY, partialTicks);
+			else w.extractRenderState(context, fixedMouseX, fixedMouseY, partialTicks);
 			++line;
 		}
 		//绘制左侧引导线
@@ -323,7 +323,7 @@ public class ScriptEditScreen extends GuiConfigsBase {
 			for(int i = 0; startY < getScreenHeight(); ++i){
 				var w = hoverWidget.getByLine(i);
 				if(w == null) break;
-				w.render(context, fixedMouseX, fixedMouseY, partialTicks);
+				w.extractRenderState(context, fixedMouseX, fixedMouseY, partialTicks);
 				startY += 22;
 			}
 		}
@@ -437,7 +437,7 @@ public class ScriptEditScreen extends GuiConfigsBase {
 			tempWidgetWrapper = new WidgetWrapper(null, screen);
 		}
 		
-		public void tryRender(GuiGraphics context){
+		public void tryRender(GuiGraphicsExtractor context){
 			if(hoveredWidget != null){
 				context.pose().pushMatrix().set(renderMatrix);
 				hoveredWidget.postRenderHovered(context, storedMouseX, storedMouseY, false);

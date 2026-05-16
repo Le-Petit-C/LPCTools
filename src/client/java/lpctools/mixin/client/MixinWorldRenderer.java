@@ -8,9 +8,12 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.LevelRenderer;
 import net.minecraft.client.renderer.LevelTargetBundle;
 import net.minecraft.client.renderer.RenderBuffers;
+import net.minecraft.client.renderer.chunk.ChunkSectionsToRender;
 import net.minecraft.client.renderer.culling.Frustum;
+import net.minecraft.client.renderer.state.level.CameraRenderState;
 import net.minecraft.util.profiling.ProfilerFiller;
 import org.joml.Matrix4f;
+import org.joml.Matrix4fc;
 import org.joml.Vector4f;
 
 import com.mojang.blaze3d.buffers.GpuBufferSlice;
@@ -32,15 +35,16 @@ public abstract class MixinWorldRenderer
 	
 	@SuppressWarnings("DiscouragedShift") @Inject(method = "renderLevel",
 		at = @At(value = "INVOKE",
-			target = "Lnet/minecraft/client/renderer/LevelRenderer;addMainPass(Lcom/mojang/blaze3d/framegraph/FrameGraphBuilder;Lnet/minecraft/client/renderer/culling/Frustum;Lorg/joml/Matrix4f;Lcom/mojang/blaze3d/buffers/GpuBufferSlice;ZLnet/minecraft/client/renderer/state/LevelRenderState;Lnet/minecraft/client/DeltaTracker;Lnet/minecraft/util/profiling/ProfilerFiller;)V",
+			target = "Lnet/minecraft/client/renderer/LevelRenderer;addMainPass(Lcom/mojang/blaze3d/framegraph/FrameGraphBuilder;Lnet/minecraft/client/renderer/culling/Frustum;Lorg/joml/Matrix4fc;Lcom/mojang/blaze3d/buffers/GpuBufferSlice;ZLnet/minecraft/client/renderer/state/level/LevelRenderState;Lnet/minecraft/client/DeltaTracker;Lnet/minecraft/util/profiling/ProfilerFiller;Lnet/minecraft/client/renderer/chunk/ChunkSectionsToRender;)V",
 			shift = At.Shift.BEFORE))
-	private void lpctools_onRenderWorldMain(GraphicsResourceAllocator allocator, DeltaTracker tickCounter, boolean renderBlockOutline, Camera camera,
-												 Matrix4f positionMatrix, Matrix4f matrix4f, Matrix4f projectionMatrix,
-												 GpuBufferSlice fogBuffer, Vector4f fogColor, boolean renderSky, CallbackInfo ci,
-												 @Local ProfilerFiller profiler,
-												 @Local Frustum frustum,
-												 @Local FrameGraphBuilder frameGraphBuilder)
+	private void lpctools_onRenderWorldMain(GraphicsResourceAllocator resourceAllocator, DeltaTracker deltaTracker, boolean renderOutline, CameraRenderState cameraState,
+											Matrix4fc modelViewMatrix, GpuBufferSlice terrainFog, Vector4f fogColor, boolean shouldRenderSky, ChunkSectionsToRender chunkSectionsToRender,
+											CallbackInfo ci,
+											@Local(name = "profiler") ProfilerFiller profiler,
+											@Local(name = "cullFrustum") Frustum cullFrustum,
+											@Local(name = "frame") FrameGraphBuilder frame)
 	{
-		RenderEventHandler.runRenderWorldPreMain(matrix4f, projectionMatrix, this.minecraft, frameGraphBuilder, this.targets, frustum, camera, this.renderBuffers, profiler);
+		Camera camera = Minecraft.getInstance().gameRenderer.getMainCamera();
+		RenderEventHandler.runRenderWorldPreMain(new Matrix4f(), cameraState.projectionMatrix, this.minecraft, frame, this.targets, cullFrustum, camera, this.renderBuffers, profiler);
 	}
 }

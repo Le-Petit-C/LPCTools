@@ -5,7 +5,8 @@ import fi.dy.masa.malilib.render.GuiContext;
 import it.unimi.dsi.fastutil.objects.Object2LongOpenHashMap;
 import lpctools.lpcfymasaapi.widgets.WHAutoAdjustStringWidget;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
+
 import java.util.ArrayList;
 
 public class GuiUtils {
@@ -14,7 +15,7 @@ public class GuiUtils {
         return client.screen != null && /*client.getOverlay() == null &&*/ client.player != null;
     }
     
-    public static void renderInfoWidgets(Object2LongOpenHashMap<WidgetBase> infoWidgets, GuiGraphics drawContext, int mouseX, int mouseY){
+    public static void renderInfoWidgets(Object2LongOpenHashMap<WidgetBase> infoWidgets, GuiGraphicsExtractor drawContext, int mouseX, int mouseY){
         ArrayList<WidgetBase> removedWidgets = null;
         long currentTimeMillis = System.currentTimeMillis();
         for(var entry : infoWidgets.object2LongEntrySet()){

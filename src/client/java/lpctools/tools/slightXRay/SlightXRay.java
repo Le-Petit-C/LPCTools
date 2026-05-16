@@ -11,7 +11,7 @@ import lpctools.mixin.client.SpriteContentsMixin;
 import lpctools.tools.ToolConfigs;
 import lpctools.util.DataUtils;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.block.model.BlockStateModel;
+import net.minecraft.client.renderer.block.dispatch.BlockStateModel;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.world.level.block.Block;
 import org.apache.commons.lang3.mutable.MutableInt;
@@ -63,9 +63,8 @@ public class SlightXRay{
     private static int getColorByTextureColor(Block block) {
         int alphaMask = defaultAlpha.getAsInt() << 24;
         try{ // TODO: 延迟获取颜色（应该等到材质包加载完成之后。。。），否则会引发一大堆NullPointerException
-            BlockStateModel model = Minecraft.getInstance().getBlockRenderer()
-                .getBlockModel(block.defaultBlockState());
-            TextureAtlasSprite particleSprite = model.particleIcon();
+            BlockStateModel model = Minecraft.getInstance().getModelManager().getBlockStateModelSet().get(block.defaultBlockState());
+            TextureAtlasSprite particleSprite = model.particleMaterial().sprite();
             float r = 0, g = 0, b = 0;
             float t = 0;
             for(NativeImage image : ((SpriteContentsMixin)particleSprite.contents()).getMipmapLevelsImages()){

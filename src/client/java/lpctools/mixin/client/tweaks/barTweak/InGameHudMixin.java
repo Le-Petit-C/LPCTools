@@ -18,14 +18,14 @@ import java.util.function.Supplier;
 @Mixin(Gui.class)
 public class InGameHudMixin {
     @Shadow @Final private Map<Gui.ContextualInfo, Supplier<ContextualBarRenderer>> contextualInfoBarRenderers;
-    @ModifyExpressionValue(method = "renderHotbarAndDecorations",
+    @ModifyExpressionValue(method = "extractHotbarAndDecorations",
         at = @At(value = "INVOKE", target = "Lorg/apache/commons/lang3/tuple/Pair;getValue()Ljava/lang/Object;", ordinal = 0, remap = false))
     Object modifyValue0(Object original){
         if(BarTweaks.locatorBarUsesExpBackground.getAsBoolean() && original instanceof LocatorBarRenderer)
             return contextualInfoBarRenderers.get(Gui.ContextualInfo.EXPERIENCE).get();
         return original;
     }
-    @ModifyExpressionValue(method = "renderHotbarAndDecorations",
+    @ModifyExpressionValue(method = "extractHotbarAndDecorations",
         at = @At(value = "INVOKE", target = "Lorg/apache/commons/lang3/tuple/Pair;getValue()Ljava/lang/Object;", ordinal = 1, remap = false))
     Object modifyValue1(Object original){
         if(BarTweaks.expBarDisplaysLocatorPoints.getAsBoolean() && original instanceof ExperienceBarRenderer)

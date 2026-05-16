@@ -23,12 +23,11 @@ import lpctools.lpcfymasaapi.interfaces.ILPCConfigBase;
 import lpctools.lpcfymasaapi.interfaces.ILPCConfigReadable;
 import lpctools.util.GuiUtils;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jspecify.annotations.NonNull;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -94,13 +93,13 @@ public class LPCConfigPage implements IConfigHandler, Supplier<GuiBase>, ILPCCon
     //保存和加载已有的全部配置文件内容
     //如果文件中有目前未注册的配置项，不理它但是保留
     @Override public void load() {
-        Path configFile = FileUtils.getConfigDirectoryAsPath().resolve(configFileName);
+        Path configFile = FileUtils.getConfigDirectory().resolve(configFileName);
         if (Files.exists(configFile) && Files.isReadable(configFile)
             && JsonUtils.parseJsonFile(configFile) instanceof JsonElement pageJson)
             setValueFromJsonElement(pageJson);
     }
     @Override public void save() {
-        Path configFile = FileUtils.getConfigDirectoryAsPath().resolve(configFileName);
+        Path configFile = FileUtils.getConfigDirectory().resolve(configFileName);
         JsonObject pageJson = null;
         if (Files.exists(configFile) && Files.isReadable(configFile)){
             JsonElement element = JsonUtils.parseJsonFile(configFile);
@@ -110,7 +109,7 @@ public class LPCConfigPage implements IConfigHandler, Supplier<GuiBase>, ILPCCon
         if(pageJson == null) pageJson = new JsonObject();
         for(Map.Entry<String, JsonElement> pair : getAsJsonElement().entrySet())
             pageJson.add(pair.getKey(), pair.getValue());
-        Path dir = FileUtils.getConfigDirectoryAsPath();
+        Path dir = FileUtils.getConfigDirectory();
         if (!Files.exists(dir))
             FileUtils.createDirectoriesIfMissing(dir);
         if (Files.isDirectory(dir)) {
@@ -227,12 +226,13 @@ public class LPCConfigPage implements IConfigHandler, Supplier<GuiBase>, ILPCCon
                 widget.markConfigsModified();
         }
         
-        @Override public void render(@NonNull GuiGraphics drawContext, int mouseX, int mouseY, float partialTicks) {
+        @Override
+        public void extractRenderState(@NotNull GuiGraphicsExtractor drawContext, int mouseX, int mouseY, float partialTicks) {
             if(needUpdate) {
                 initGui();
                 needUpdate = false;
             }
-            super.render(drawContext, mouseX, mouseY, partialTicks);
+            super.extractRenderState(drawContext, mouseX, mouseY, partialTicks);
             
             GuiUtils.renderInfoWidgets(infoWidgets, drawContext, mouseX, mouseY);
         }

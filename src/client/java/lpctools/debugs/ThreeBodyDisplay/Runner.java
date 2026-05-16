@@ -2,6 +2,7 @@ package lpctools.debugs.ThreeBodyDisplay;
 
 import com.mojang.blaze3d.buffers.GpuBuffer;
 import com.mojang.blaze3d.buffers.GpuBufferSlice;
+import com.mojang.blaze3d.pipeline.RenderTarget;
 import com.mojang.blaze3d.systems.RenderPass;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.textures.GpuTextureView;
@@ -11,10 +12,11 @@ import lpctools.LPCTools;
 import lpctools.lpcfymasaapi.Registries;
 import lpctools.lpcfymasaapi.render.LPCRenderPipelines;
 import lpctools.lpcfymasaapi.render.translucentShapes.*;
+import lpctools.util.RenderUtils;
 import lpctools.util.javaex.QuietAutoCloseable;
-import net.fabricmc.fabric.api.client.rendering.v1.world.WorldRenderContext;
-import net.fabricmc.fabric.api.client.rendering.v1.world.WorldRenderEvents;
-import net.minecraft.client.renderer.PerspectiveProjectionMatrixBuffer;
+import net.fabricmc.fabric.api.client.rendering.v1.level.LevelRenderContext;
+import net.fabricmc.fabric.api.client.rendering.v1.level.LevelRenderEvents;
+import net.minecraft.client.renderer.ProjectionMatrixBuffer;
 import net.minecraft.util.Mth;
 import org.joml.*;
 import org.jspecify.annotations.NonNull;
@@ -30,7 +32,7 @@ import static lpctools.debugs.ThreeBodyDisplay.ThreeBodyDisplay.*;
 import static lpctools.debugs.ThreeBodyDisplay.Utils.getBrightness;
 import static lpctools.debugs.ThreeBodyDisplay.Utils.vector3d2Color;
 
-class Runner implements QuietAutoCloseable, Registries.WorldPreMainRender, WorldRenderEvents.BeforeTranslucent {
+class Runner implements QuietAutoCloseable, Registries.WorldPreMainRender, LevelRenderEvents.BeforeTranslucentTerrain {
 	private static final String baseLabel = "LPCTools TranslucentQuadsRenderInstance";
 	private static final Supplier<String> indexBufferLabel = () -> appendLabel("IndexBuffer");
 	private static final Supplier<String> vertexBufferLabel = () -> appendLabel("VertexBuffer");
@@ -43,10 +45,11 @@ class Runner implements QuietAutoCloseable, Registries.WorldPreMainRender, World
 	
 	private final Star[] stars = new Star[3];
 	private final StarRenderData[] starsRenderData = new StarRenderData[3];
-	private final PerspectiveProjectionMatrixBuffer rawProjectionMatrixBuffer = new PerspectiveProjectionMatrixBuffer("LPCTools ThreeBodyDisplay");
+	private final ProjectionMatrixBuffer rawProjectionMatrixBuffer = new ProjectionMatrixBuffer("LPCTools ThreeBodyDisplay");
 	private final ByteBuffer dataBuffer;
 	private final GpuBuffer indexBuffer;
 	private final GpuBuffer vertexBuffer;
+	
 	
 	private volatile boolean running = true;
 	private volatile RunnerDataPack runnerDataPack;
@@ -115,7 +118,7 @@ class Runner implements QuietAutoCloseable, Registries.WorldPreMainRender, World
 			star.close();
 	}
 	
-	@Override public void beforeTranslucent(@NonNull WorldRenderContext ignored) {
+	@Override public void beforeTranslucentTerrain(@NonNull LevelRenderContext ignored) {
 		var context = recordedContext;
 		dataBuffer.clear();
 		var camPos = context.camera().position();
@@ -144,8 +147,8 @@ class Runner implements QuietAutoCloseable, Registries.WorldPreMainRender, World
 		dataBuffer.flip();
 		var commandEncoder = RenderSystem.getDevice().createCommandEncoder();
 		commandEncoder.writeToBuffer(vertexBuffer.slice(), dataBuffer);
-		var fb = context.fb();
-		GpuTextureView colorAttachmentView = fb.getColorTextureView();
+		RenderTarget fb = context.fb();
+		GpuTextureView colorAttachmentView = RenderUtils.colorAttachmentViewOrDef(fb);
 		GpuTextureView depthAttachmentView = fb.useDepth ? fb.getDepthTextureView() : null;
 		Vector3f offset = new Vector3f();
 		Matrix4f modelViewMatrix = new Matrix4f(RenderSystem.getModelViewMatrix());
@@ -220,6 +223,6 @@ class Runner implements QuietAutoCloseable, Registries.WorldPreMainRender, World
 	
 	private void registerAll(boolean b) {
 		Registries.PRE_MAIN.register(this, b);
-		Registries.BEFORE_TRANSLUCENT.register(this, b);
+		Registries.BEFORE_TRANSLUCENT_TERRAIN.register(this, b);
 	}
 }

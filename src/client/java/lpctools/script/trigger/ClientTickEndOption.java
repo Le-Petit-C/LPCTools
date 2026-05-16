@@ -4,6 +4,7 @@ import lpctools.lpcfymasaapi.Registries;
 import lpctools.script.Script;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.minecraft.client.Minecraft;
+import org.jspecify.annotations.NonNull;
 
 class ClientTickEndOption extends TriggerOptionBase implements ClientTickEvents.EndTick {
 	private final Script script;
@@ -12,5 +13,5 @@ class ClientTickEndOption extends TriggerOptionBase implements ClientTickEvents.
 		script = trigger.getScript();
 	}
 	@Override public void registerScript(boolean b) {Registries.END_CLIENT_TICK.register(this, b);}
-	@Override public void onEndTick(Minecraft minecraftClient) {script.runScript();}
+	@Override public void onEndTick(@NonNull Minecraft minecraftClient) {script.runScript();}
 }

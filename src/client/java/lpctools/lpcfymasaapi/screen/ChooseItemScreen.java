@@ -4,7 +4,7 @@ import fi.dy.masa.malilib.gui.GuiBase;
 import fi.dy.masa.malilib.gui.GuiTextFieldGeneric;
 import lpctools.util.javaex.ToBooleanFunction;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.Identifier;
@@ -12,6 +12,7 @@ import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.Block;
 import org.jetbrains.annotations.Nullable;
+import org.jspecify.annotations.NonNull;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -54,7 +55,7 @@ public class ChooseItemScreen extends GuiBase {
 		data.refreshSearchedItems("", searchedItems);
 	}
 	public static <T extends Item> ChooseItemScreen ofItems(@Nullable Screen parent, List<T> items, int width, int height, Consumer<T> callback){
-		return new ChooseItemScreen(parent, items, item->item, BuiltInRegistries.ITEM::getKey, item->item.getName().getString(), width, height, callback);
+		return new ChooseItemScreen(parent, items, item->item, BuiltInRegistries.ITEM::getKey, item->item.getName(item.getDefaultInstance()).getString(), width, height, callback);
 	}
 	public static <T extends Block> ChooseItemScreen ofBlocks(@Nullable Screen parent, List<T> items, int width, int height, Consumer<T> callback){
 		return new ChooseItemScreen(parent, items, Block::asItem, BuiltInRegistries.BLOCK::getKey, block->block.getName().getString(), width, height, callback);
@@ -118,14 +119,14 @@ public class ChooseItemScreen extends GuiBase {
 		if(shift != lastShift) needInitGui = true;
 		return true;
 	}
-	@Override public void render(GuiGraphics drawContext, int mouseX, int mouseY, float partialTicks) {
+	@Override public void extractRenderState(@NonNull GuiGraphicsExtractor drawContext, int mouseX, int mouseY, float partialTicks) {
 		if(needInitGui){
 			initGui();
 			needInitGui = false;
 		}
 		Screen parent = getParent();
-		if(parent != null) parent.render(drawContext, 0, 0, partialTicks);
-		super.render(drawContext, mouseX, mouseY, partialTicks);
+		if(parent != null) parent.extractRenderState(drawContext, 0, 0, partialTicks);
+		super.extractRenderState(drawContext, mouseX, mouseY, partialTicks);
 	}
 	@Override public boolean isPauseScreen() {
 		var parent = getParent();

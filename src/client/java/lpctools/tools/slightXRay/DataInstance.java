@@ -10,7 +10,7 @@ import lpctools.util.AlgorithmUtils;
 import lpctools.util.DataUtils;
 import lpctools.util.Packed;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientChunkEvents;
-import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientWorldEvents;
+import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientLevelEvents;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.core.BlockPos;
@@ -35,7 +35,7 @@ import static lpctools.util.AlgorithmUtils.iterateInManhattanDistance;
 import static lpctools.util.BlockUtils.isFluid;
 import static lpctools.util.DataUtils.loadedChunks;
 
-class DataInstance implements AutoCloseable, ClientChunkEvents.Load, ClientWorldEvents.AfterClientWorldChange, Registries.ClientWorldChunkSetBlockState, Registries.BetweenRenderFrames {
+class DataInstance implements AutoCloseable, ClientChunkEvents.Load, ClientLevelEvents.AfterClientLevelChange, Registries.ClientWorldChunkSetBlockState, Registries.BetweenRenderFrames {
     private final BlockOuterEdgeHighlightInstance highlightInstance = new BlockOuterEdgeHighlightInstance();
     private final ChunkedTaskInstance taskInstance = new ChunkedTaskInstance();
     
@@ -47,7 +47,7 @@ class DataInstance implements AutoCloseable, ClientChunkEvents.Load, ClientWorld
     }
     
     void registerAll(boolean b){
-        Registries.AFTER_CLIENT_WORLD_CHANGE.register(this, b);
+        Registries.AFTER_CLIENT_LEVEL_CHANGE.register(this, b);
         Registries.CLIENT_CHUNK_LOAD.register(this, b);
         Registries.CLIENT_WORLD_CHUNK_SET_BLOCK_STATE.register(this, b);
         Registries.BETWEEN_RENDER_FRAMES.register(this, b);
@@ -65,14 +65,14 @@ class DataInstance implements AutoCloseable, ClientChunkEvents.Load, ClientWorld
     
     @Override public void onChunkLoad(@NonNull ClientLevel world, @NonNull LevelChunk chunk) {
         ChunkPos pos = chunk.getPos();
-        testChunkAsync(pos.x, pos.z, world);
-        testChunkAsync(pos.x - 1, pos.z, world);
-        testChunkAsync(pos.x + 1, pos.z, world);
-        testChunkAsync(pos.x, pos.z - 1, world);
-        testChunkAsync(pos.x, pos.z + 1, world);
+        testChunkAsync(pos.x(), pos.z(), world);
+        testChunkAsync(pos.x() - 1, pos.z(), world);
+        testChunkAsync(pos.x() + 1, pos.z(), world);
+        testChunkAsync(pos.x(), pos.z() - 1, world);
+        testChunkAsync(pos.x(), pos.z() + 1, world);
     }
     
-    @Override public void afterWorldChange(@NonNull Minecraft minecraftClient, @NonNull ClientLevel clientWorld) {
+    @Override public void afterLevelChange(@NonNull Minecraft minecraftClient, @NonNull ClientLevel clientWorld) {
         testWorldAsync(clientWorld);
     }
     
@@ -141,7 +141,7 @@ class DataInstance implements AutoCloseable, ClientChunkEvents.Load, ClientWorld
         if(world == null) return;
         for(var worldChunk : loadedChunks(world)) {
             var pos = worldChunk.getPos();
-            testChunkAsync(pos.x, pos.z, world);
+            testChunkAsync(pos.x(), pos.z(), world);
         }
     }
     

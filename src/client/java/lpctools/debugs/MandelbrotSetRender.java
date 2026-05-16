@@ -3,7 +3,9 @@ package lpctools.debugs;
 import com.mojang.blaze3d.buffers.GpuBuffer;
 import com.mojang.blaze3d.buffers.GpuBufferSlice;
 import com.mojang.blaze3d.pipeline.BlendFunction;
+import com.mojang.blaze3d.pipeline.ColorTargetState;
 import com.mojang.blaze3d.pipeline.RenderPipeline;
+import com.mojang.blaze3d.pipeline.RenderTarget;
 import com.mojang.blaze3d.shaders.UniformType;
 import com.mojang.blaze3d.systems.RenderPass;
 import com.mojang.blaze3d.systems.RenderSystem;
@@ -16,13 +18,12 @@ import lpctools.lpcfymasaapi.configButtons.transferredConfigs.DoubleConfig;
 import lpctools.lpcfymasaapi.configButtons.transferredConfigs.IntegerConfig;
 import lpctools.lpcfymasaapi.interfaces.ILPCConfigReadable;
 import lpctools.util.CachedSupplier;
-import net.minecraft.client.Minecraft;
+import lpctools.util.RenderUtils;
 import net.minecraft.resources.Identifier;
 import org.joml.*;
 import org.lwjgl.system.MemoryUtil;
 
 import java.nio.ByteBuffer;
-import java.util.Objects;
 import java.util.OptionalDouble;
 import java.util.OptionalInt;
 
@@ -41,7 +42,7 @@ public class MandelbrotSetRender extends BooleanThirdListConfig implements Regis
             .withFragmentShader(Identifier.fromNamespaceAndPath("lpctools", "core/mandelbrot_set"))
             .withVertexFormat(DefaultVertexFormat.POSITION_TEX, VertexFormat.Mode.QUADS)
             .withLocation(Identifier.fromNamespaceAndPath("lpctools", "pipeline/mandelbrot"))
-            .withBlend(BlendFunction.TRANSLUCENT)
+            .withColorTargetState(new ColorTargetState(BlendFunction.TRANSLUCENT))
             .withCull(false)
             .build();
         public static final RenderSystem.AutoStorageIndexBuffer mandelbrotSetShapeIndexBuffer = RenderSystem.getSequentialBuffer(VertexFormat.Mode.QUADS);
@@ -108,14 +109,14 @@ public class MandelbrotSetRender extends BooleanThirdListConfig implements Regis
     }
     
     @Override public void onLast(Registries.MASAWorldRenderContext context) {
-        var fb = context.fb();
-        GpuTextureView colorAttachmentView = Objects.requireNonNullElse(fb.getColorTextureView(), Minecraft.getInstance().getMainRenderTarget().getColorTextureView());
+        RenderTarget fb = context.fb();
+        GpuTextureView colorAttachmentView = RenderUtils.colorAttachmentViewOrDef(fb);
         GpuTextureView depthAttachmentView = fb.useDepth ? fb.getDepthTextureView() : null;
         GpuBufferSlice dynamicTransforms = RenderSystem.getDynamicUniforms()
             .writeTransform(RenderSystem.getModelViewMatrix().translate(context.camera().position().toVector3f().mul(-1),
                 new Matrix4f()), new Vector4f(1.0F, 1.0F, 1.0F, 1.0F), new Vector3f(), new Matrix4f());
         GpuBufferSlice projection = RenderSystem.getProjectionMatrixBuffer();
-        var renderSources = this.renderSources.get();
+        RenderSources renderSources = this.renderSources.get();
         GpuBuffer mandelbrotUniformBuffer = renderSources.getUpdatedMandelbrotUniformBuffer();
         GpuBuffer vertexBuffer = renderSources.getUpdatedVertexBuffer();
         RenderSystem.AutoStorageIndexBuffer shapeIndexBuffer = RenderSources.mandelbrotSetShapeIndexBuffer;
