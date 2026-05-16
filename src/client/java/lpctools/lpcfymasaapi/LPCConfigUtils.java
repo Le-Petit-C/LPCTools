@@ -4,8 +4,8 @@ import com.google.gson.JsonElement;
 import fi.dy.masa.malilib.config.options.ConfigDouble;
 import fi.dy.masa.malilib.config.options.ConfigInteger;
 import lpctools.lpcfymasaapi.interfaces.ILPCConfigBase;
-import net.minecraft.client.font.TextRenderer;
-import net.minecraft.text.Text;
+import net.minecraft.client.gui.Font;
+import net.minecraft.network.chat.Component;
 import org.jetbrains.annotations.NotNull;
 
 import static lpctools.mixinInterfaces.MASAMixins.MuteMASAConfigMinMaxMixin.*;
@@ -26,13 +26,13 @@ public interface LPCConfigUtils {
     static void warnFailedLoadingConfig(String configKey, @NotNull JsonElement element){
         LPCAPIInit.LOGGER.warn("Failed to set config value for '{}' from the JSON element '{}'", configKey, element);
     }
-    static void warnFailedLoadingConfig(Text configKey, @NotNull JsonElement element){
+    static void warnFailedLoadingConfig(Component configKey, @NotNull JsonElement element){
         warnFailedLoadingConfig(configKey == null ? null : configKey.getString(), element);
     }
     static void warnFailedLoadingConfig(ILPCConfigBase configThis, @NotNull JsonElement element){
         warnFailedLoadingConfig(configThis.getNameKey(), element);
     }
-    static int calculateTextButtonWidth(String str, TextRenderer textRenderer, int barHeight){
-		return (int)Math.round((textRenderer.getWidth(str) + ((barHeight - textRenderer.fontHeight) * 1.414213562)) / 2) * 2;
+    static int calculateTextButtonWidth(String str, Font textRenderer, int barHeight){
+		return (int)Math.round((textRenderer.width(str) + ((barHeight - textRenderer.lineHeight) * 1.414213562)) / 2) * 2;
     }
 }

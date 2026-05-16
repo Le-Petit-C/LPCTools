@@ -14,7 +14,7 @@ public abstract class LPCUniqueConfigBase implements ILPCUniqueConfigBase {
     public @NotNull String translatedName = "";
     public @NotNull String comment = "";
     public @NotNull String prettyName;
-    DirtyState dirty = new DirtyState();
+    final DirtyState dirty = new DirtyState();
     @Override public DirtyState getDirty() { return dirty; }
     public LPCUniqueConfigBase(@NotNull ILPCConfigReadable parent, @NotNull String nameKey, @Nullable ILPCValueChangeCallback callback){
         this.parent = parent;

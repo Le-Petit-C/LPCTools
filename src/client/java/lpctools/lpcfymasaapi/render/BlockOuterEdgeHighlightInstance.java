@@ -9,12 +9,14 @@ import lpctools.lpcfymasaapi.Registries;
 import lpctools.lpcfymasaapi.render.translucentShapes.Quad;
 import lpctools.lpcfymasaapi.render.translucentShapes.ShapeReference;
 import lpctools.lpcfymasaapi.render.translucentShapes.ShapeRegister;
-import lpctools.tools.ToolUtils;
+import lpctools.util.DataUtils;
 import lpctools.util.Packed;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientWorldEvents;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.world.ClientWorld;
-import net.minecraft.util.math.*;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.multiplayer.ClientLevel;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.util.Mth;
 import org.apache.commons.lang3.mutable.MutableInt;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -76,6 +78,7 @@ public class BlockOuterEdgeHighlightInstance implements AutoCloseable, ClientWor
                     if(ref != null) ref.close();
         posQuads.clear();
         posesNeedToUpdateRender.clear();
+        renderingPoses.clear();
         markedPoses.clear();
     }
     
@@ -92,7 +95,7 @@ public class BlockOuterEdgeHighlightInstance implements AutoCloseable, ClientWor
         if(oldChanged || color != null) {
             chunkedAdd(posesNeedToUpdateRender, x, y, z);
             for(var d : Direction.values())
-                chunkedAdd(posesNeedToUpdateRender, x + d.getOffsetX(), y + d.getOffsetY(), z + d.getOffsetZ());
+                chunkedAdd(posesNeedToUpdateRender, x + d.getStepX(), y + d.getStepY(), z + d.getStepZ());
         }
     }
     
@@ -112,18 +115,22 @@ public class BlockOuterEdgeHighlightInstance implements AutoCloseable, ClientWor
         });
     }
     
+    public @Nullable Int2ObjectOpenHashMap<MutableInt> getChunkMarks(long packedChunkPos) {
+        return markedPoses.get(packedChunkPos);
+    }
+    
     @Override public void close(){
         registerAll(false);
         clearData();
         taskInstance.close();
     }
     
-    @Override public void afterWorldChange(@NonNull MinecraftClient mc, @NonNull ClientWorld world) {clearData();}
+    @Override public void afterWorldChange(@NonNull Minecraft mc, @NonNull ClientLevel world) {clearData();}
     
     @Override public void betweenFrames() {
-        var camPos = MinecraftClient.getInstance().gameRenderer.getCamera().getCameraPos();
-        double chunkedCamX = ToolUtils.chunkedCoord(camPos.x);
-        double chunkedCamZ = ToolUtils.chunkedCoord(camPos.z);
+        var camPos = Minecraft.getInstance().gameRenderer.getMainCamera().position();
+        double chunkedCamX = DataUtils.chunkedCoord(camPos.x);
+        double chunkedCamZ = DataUtils.chunkedCoord(camPos.z);
         updatePosesNeedToUpdate(chunkedCamX, chunkedCamZ);
     }
     
@@ -147,9 +154,9 @@ public class BlockOuterEdgeHighlightInstance implements AutoCloseable, ClientWor
     // 更新某pos的渲染面状态
     private void updatePosRender(long packedBlockPos){
         UpdateCounter.updated();
-        int x = BlockPos.unpackLongX(packedBlockPos);
-        int y = BlockPos.unpackLongY(packedBlockPos);
-        int z = BlockPos.unpackLongZ(packedBlockPos);
+        int x = BlockPos.getX(packedBlockPos);
+        int y = BlockPos.getY(packedBlockPos);
+        int z = BlockPos.getZ(packedBlockPos);
         ShapeReference[] old = chunkedRemoveKey(posQuads, x, y, z);
         if(!chunkedContains(renderingPoses, x, y, z)) {
             if(old != null) {
@@ -171,12 +178,12 @@ public class BlockOuterEdgeHighlightInstance implements AutoCloseable, ClientWor
         class Temp{
             static final int[][] quadOffsets = new int[Direction.values().length][];
             static {
-                quadOffsets[Direction.WEST .getIndex()] = new int[]{Direction.WEST .getIndex(),-1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0};
-                quadOffsets[Direction.EAST .getIndex()] = new int[]{Direction.EAST .getIndex(), 1, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1};
-                quadOffsets[Direction.DOWN .getIndex()] = new int[]{Direction.DOWN .getIndex(), 0,-1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1};
-                quadOffsets[Direction.UP   .getIndex()] = new int[]{Direction.UP   .getIndex(), 0, 1, 0, 0, 1, 0, 0, 0, 1, 1, 0, 0};
-                quadOffsets[Direction.NORTH.getIndex()] = new int[]{Direction.NORTH.getIndex(), 0, 0,-1, 0, 0, 0, 0, 1, 0, 1, 0, 0};
-                quadOffsets[Direction.SOUTH.getIndex()] = new int[]{Direction.SOUTH.getIndex(), 0, 0, 1, 0, 0, 1, 1, 0, 0, 0, 1, 0};
+                quadOffsets[Direction.WEST .get3DDataValue()] = new int[]{Direction.WEST .get3DDataValue(),-1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0};
+                quadOffsets[Direction.EAST .get3DDataValue()] = new int[]{Direction.EAST .get3DDataValue(), 1, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1};
+                quadOffsets[Direction.DOWN .get3DDataValue()] = new int[]{Direction.DOWN .get3DDataValue(), 0,-1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1};
+                quadOffsets[Direction.UP   .get3DDataValue()] = new int[]{Direction.UP   .get3DDataValue(), 0, 1, 0, 0, 1, 0, 0, 0, 1, 1, 0, 0};
+                quadOffsets[Direction.NORTH.get3DDataValue()] = new int[]{Direction.NORTH.get3DDataValue(), 0, 0,-1, 0, 0, 0, 0, 1, 0, 1, 0, 0};
+                quadOffsets[Direction.SOUTH.get3DDataValue()] = new int[]{Direction.SOUTH.get3DDataValue(), 0, 0, 1, 0, 0, 1, 1, 0, 0, 0, 1, 0};
             }
         }
         for(var o : Temp.quadOffsets){
@@ -184,9 +191,9 @@ public class BlockOuterEdgeHighlightInstance implements AutoCloseable, ClientWor
 				//noinspection resource
 				quads[o[0]] = shapeRegister.register(new Quad(x + o[4], y + o[5], z + o[6], o[7], o[8], o[9], o[10], o[11], o[12], color, useCullFace));
             else {
-                Direction attachedDirection = Direction.byIndex(o[0]);
+                Direction attachedDirection = Direction.from3DDataValue(o[0]);
                 Direction oppositeDirection = attachedDirection.getOpposite();
-                int oppositeIndex = oppositeDirection.getIndex();
+                int oppositeIndex = oppositeDirection.get3DDataValue();
                 long attachedBlockPos = BlockPos.offset(packedBlockPos, attachedDirection);
                 var attached = chunkedGet(posQuads, attachedBlockPos);
                 if(attached != null && attached[oppositeIndex] != null) {
@@ -229,7 +236,7 @@ public class BlockOuterEdgeHighlightInstance implements AutoCloseable, ClientWor
                 LongComparator.comparingDouble(packedChunkPos->{
                 int x = Packed.ChunkPos.unpackX(packedChunkPos);
                 int z = Packed.ChunkPos.unpackZ(packedChunkPos);
-                return MathHelper.square(x - chunkedCamX) + MathHelper.square(z - chunkedCamZ);
+                return Mth.square(x - chunkedCamX) + Mth.square(z - chunkedCamZ);
             }));
             while(!chunksNeedToUpdate.isEmpty()){
                 long packedChunkPos = chunksNeedToUpdate.firstLong();
@@ -286,7 +293,7 @@ public class BlockOuterEdgeHighlightInstance implements AutoCloseable, ClientWor
             int y = Packed.ChunkLocal.unpackY(pos);
             int z = Packed.ChunkLocal.unpackZ(pos);
             for(var direction : Direction.values()){
-                if(!poses.contains(Packed.ChunkLocal.pack(x + direction.getOffsetX(), y + direction.getOffsetY(), z + direction.getOffsetZ()))){
+                if(!poses.contains(Packed.ChunkLocal.pack(x + direction.getStepX(), y + direction.getStepY(), z + direction.getStepZ()))){
                     markedPoses.add(pos);
                     break;
                 }

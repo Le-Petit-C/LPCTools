@@ -7,25 +7,26 @@ import lpctools.lpcfymasaapi.LPCAPIInit;
 import lpctools.mixin.client.accessors.ClientChunkAccessor;
 import lpctools.mixin.client.accessors.ClientChunkMapAccessor;
 import lpctools.util.javaex.Object2BooleanFunction;
-import net.minecraft.block.Block;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.world.ClientChunkManager;
-import net.minecraft.client.world.ClientWorld;
-import net.minecraft.entity.EntityType;
-import net.minecraft.item.BlockItem;
-import net.minecraft.item.Item;
-import net.minecraft.registry.Registries;
-import net.minecraft.registry.Registry;
-import net.minecraft.registry.entry.RegistryEntry;
-import net.minecraft.resource.Resource;
-import net.minecraft.resource.ResourceManager;
-import net.minecraft.text.Text;
-import net.minecraft.util.Identifier;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.ChunkSectionPos;
-import net.minecraft.util.math.Vec3d;
-import net.minecraft.util.math.Vec3i;
-import net.minecraft.world.chunk.WorldChunk;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.multiplayer.ClientChunkCache;
+import net.minecraft.client.multiplayer.ClientLevel;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Holder;
+import net.minecraft.core.Registry;
+import net.minecraft.core.SectionPos;
+import net.minecraft.core.Vec3i;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.network.chat.Component;
+import net.minecraft.resources.Identifier;
+import net.minecraft.server.packs.resources.Resource;
+import net.minecraft.server.packs.resources.ResourceManager;
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.item.BlockItem;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.level.ChunkPos;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.chunk.LevelChunk;
+import net.minecraft.world.phys.Vec3;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.Contract;
@@ -38,6 +39,7 @@ import org.jspecify.annotations.NonNull;
 import org.lwjgl.opengl.GL30;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -48,17 +50,18 @@ public class DataUtils {
     public static @Nullable String getTextFileResource(ResourceManager manager, Identifier resId){
         Optional<Resource> res = manager.getResource(resId);
         if(res.isEmpty()) return null;
-        try {return new String(res.get().getInputStream().readAllBytes());
-        } catch (IOException ignored) {return null;}
+        try(InputStream stream = res.get().open()) {
+            return new String(stream.readAllBytes());
+        } catch (IOException ignored) { return null; }
     }
-    public static void clientMessage(String message, boolean overlay){MinecraftClient.getInstance().getMessageHandler().onGameMessage(Text.of(message), overlay);}
-    public static void clientMessage(Text message, boolean overlay){MinecraftClient.getInstance().getMessageHandler().onGameMessage(message, overlay);}
+    public static void clientMessage(String message, boolean overlay){Minecraft.getInstance().getChatListener().handleSystemMessage(Component.nullToEmpty(message), overlay);}
+    public static void clientMessage(Component message, boolean overlay){Minecraft.getInstance().getChatListener().handleSystemMessage(message, overlay);}
     public static <T> void notifyPlayerIf(T value, Function<T, String> converter, Object2BooleanFunction<T> condition, boolean overlay){
         if(condition.getBoolean(value)) clientMessage(converter.apply(value), overlay);
     }
-    public static String getItemId(Item item){return Registries.ITEM.getId(item).toString();}
-    public static String getBlockId(Block block){return Registries.BLOCK.getId(block).toString();}
-    public static String getEntityTypeId(EntityType<?> entityType){return Registries.ENTITY_TYPE.getId(entityType).toString();}
+    public static String getItemId(Item item){return BuiltInRegistries.ITEM.getKey(item).toString();}
+    public static String getBlockId(Block block){return BuiltInRegistries.BLOCK.getKey(block).toString();}
+    public static String getEntityTypeId(EntityType<?> entityType){return BuiltInRegistries.ENTITY_TYPE.getKey(entityType).toString();}
     public static @NotNull ImmutableList<String> idListFromBlockList(@Nullable Iterable<Block> list){
         ImmutableList.Builder<String> builder = new ImmutableList.Builder<>();
         if(list != null) list.forEach(block->builder.add(getBlockId(block)));
@@ -85,17 +88,22 @@ public class DataUtils {
         if(list != null) list.forEach(entityType->builder.add(getEntityTypeId(entityType)));
         return builder.build();
     }
+    
+    public static double chunkedCoord(double origin) {
+        return origin / 16 - 0.5;
+    }
+    
     public interface ClassCaster<T, U>{U cast(T v) throws ClassCastException;}
     public static @Nullable <T, U> U getObjectFromId(@NotNull String loggerInfo, @NotNull String id, Registry<T> registry, @NotNull ClassCaster<T, U> caster, boolean notifies){
         try{
-            T ret = registry.get(Identifier.of(id));
-            Optional<RegistryEntry.Reference<T>> defOpt = registry.getDefaultEntry();
-            RegistryEntry.Reference<T> defRef = defOpt.orElse(null);
+            T ret = registry.getValue(Identifier.parse(id));
+            Optional<Holder.Reference<T>> defOpt = registry.getAny();
+            Holder.Reference<T> defRef = defOpt.orElse(null);
             T def = defRef != null ? defRef.value() : null;
             break1:
             if(Objects.equals(def, ret)){
                 if(defRef == null) throw new Exception();
-                String defId = defRef.getIdAsString();
+                String defId = defRef.getRegisteredName();
                 if(id.equals(defId)) break break1;
                 if(id.contains(":")) throw new Exception();
                 String[] splitDef = defId.split(":");
@@ -111,16 +119,16 @@ public class DataUtils {
         }
     }
     public static @Nullable Block getBlockFromId(@NotNull String id, boolean notifies){
-        return getObjectFromId("getBlockFromId", id, Registries.BLOCK, v->v, notifies);
+        return getObjectFromId("getBlockFromId", id, BuiltInRegistries.BLOCK, v->v, notifies);
     }
     public static @Nullable Item getItemFromId(@NotNull String id, boolean notifies){
-        return getObjectFromId("getItemFromId", id, Registries.ITEM, v->v, notifies);
+        return getObjectFromId("getItemFromId", id, BuiltInRegistries.ITEM, v->v, notifies);
     }
     public static @Nullable BlockItem getBlockItemFromId(@NotNull String id, boolean notifies){
-        return getObjectFromId("getItemFromId", id, Registries.ITEM, v->(BlockItem)v, notifies);
+        return getObjectFromId("getItemFromId", id, BuiltInRegistries.ITEM, v->(BlockItem)v, notifies);
     }
     public static @Nullable EntityType<?> getEntityTypeFromId(@NotNull String id, boolean notifies){
-        return getObjectFromId("getEntityTypeFromId", id, Registries.ENTITY_TYPE, v->(EntityType<?>)v, notifies);
+        return getObjectFromId("getEntityTypeFromId", id, BuiltInRegistries.ENTITY_TYPE, v->(EntityType<?>)v, notifies);
     }
     public static @NotNull ArrayList<@NotNull Block> blockListFromIds(Iterable<String> ids){
         ArrayList<Block> res = new ArrayList<>();
@@ -171,7 +179,7 @@ public class DataUtils {
         String info = ofGLError(err, null);
         if(info == null) return err;
         String formatted = String.format("%s:%x:%s", pos, err, info);
-        clientMessage(Text.of(formatted), false);
+        clientMessage(Component.nullToEmpty(formatted), false);
         LPCTools.LOGGER.info(formatted);
         return err;
     }
@@ -239,19 +247,19 @@ public class DataUtils {
     
     @Contract(pure = true)
     public static long toPackedChunkSectionPos(Vector3d pos){
-        return ChunkSectionPos.asLong(
-            ChunkSectionPos.getSectionCoord(pos.x),
-            ChunkSectionPos.getSectionCoord(pos.y),
-            ChunkSectionPos.getSectionCoord(pos.z)
+        return SectionPos.asLong(
+            SectionPos.posToSectionCoord(pos.x),
+            SectionPos.posToSectionCoord(pos.y),
+            SectionPos.posToSectionCoord(pos.z)
         );
     }
     
     @Contract(pure = true)
-    public static long toPackedChunkSectionPos(Vec3d pos){
-        return ChunkSectionPos.asLong(
-            ChunkSectionPos.getSectionCoord(pos.x),
-            ChunkSectionPos.getSectionCoord(pos.y),
-            ChunkSectionPos.getSectionCoord(pos.z)
+    public static long toPackedChunkSectionPos(Vec3 pos){
+        return SectionPos.asLong(
+            SectionPos.posToSectionCoord(pos.x),
+            SectionPos.posToSectionCoord(pos.y),
+            SectionPos.posToSectionCoord(pos.z)
         );
     }
     
@@ -266,23 +274,23 @@ public class DataUtils {
         );
     }
     
-    public static Iterable<WorldChunk> loadedChunks(ClientWorld world){
-        ClientChunkManager chunkManager = world.getChunkManager();
-        ClientChunkManager.ClientChunkMap chunkMap = ((ClientChunkAccessor)chunkManager).getChunks();
+    public static Iterable<LevelChunk> loadedChunks(ClientLevel world){
+        ClientChunkCache chunkManager = world.getChunkSource();
+        ClientChunkCache.Storage chunkMap = ((ClientChunkAccessor)chunkManager).getStorage();
         var chunks = ((ClientChunkMapAccessor)(Object)chunkMap).getChunks();
         int length = chunks.length();
         int startIndex = 0;
         while (startIndex < length && chunks.get(startIndex) == null) ++startIndex;
         int finalStartIndex = startIndex;
         return new Iterable<>() {
-            @Override public @NonNull Iterator<WorldChunk> iterator() {
+            @Override public @NonNull Iterator<LevelChunk> iterator() {
                 return new Iterator<>() {
                     int nextIndex = finalStartIndex;
                     @Override public boolean hasNext() {
                         return nextIndex < length;
                     }
                     
-                    @Override public WorldChunk next() {
+                    @Override public LevelChunk next() {
                         var res = chunks.get(nextIndex++);
                         while (nextIndex < length && chunks.get(nextIndex) == null) ++nextIndex;
                         return res;
@@ -367,5 +375,46 @@ public class DataUtils {
     }
     public static int fRGB2iRGB(float r, float g, float b) {
         return 0xff000000 | ((int) (r * 255 + 0.5f)) | ((int) (g * 255 + 0.5f) << 8) | ((int) (b * 255 + 0.5f) << 16);
+    }
+    
+    public static ChunkPos getCenterChunkPos(ClientLevel world) {
+        ClientChunkMapAccessor accessor = (ClientChunkMapAccessor)(Object)((ClientChunkAccessor)world.getChunkSource()).getStorage();
+		//noinspection DataFlowIssue
+		return new ChunkPos(accessor.getViewCenterX(), accessor.getViewCenterZ());
+    }
+    
+    public interface CameraCenterPosConsumer {
+        void acceptPos(double chunkedCenterX, double chunkedCenterZ);
+    }
+    
+    public static void executeWithCameraCenterPos(CameraCenterPosConsumer consumer) {
+        Vec3 camPos = Minecraft.getInstance().gameRenderer.getMainCamera().position();
+        consumer.acceptPos(chunkedCoord(camPos.x), chunkedCoord(camPos.z));
+    }
+    
+    public interface RenderCenterPosConsumer {
+        void acceptPos(double chunkedCenterX, double chunkedCenterZ, double radius);
+    }
+    
+    public static void executeWithRenderCenterPos(RenderCenterPosConsumer consumer, double expandRadius) {
+        Minecraft mc = Minecraft.getInstance();
+        Vec3 camPos = mc.gameRenderer.getMainCamera().position();
+        double chunkedCamX = chunkedCoord(camPos.x);
+        double chunkedCamZ = chunkedCoord(camPos.z);
+        double chunkedX, chunkedZ, radius;
+        if(mc.level instanceof ClientLevel world) {
+            ChunkPos worldCenterChunkPos = getCenterChunkPos(world);
+            chunkedX = (worldCenterChunkPos.x + chunkedCamX) * 0.5;
+            chunkedZ = (worldCenterChunkPos.z + chunkedCamZ) * 0.5;
+            double XOffset = chunkedX - chunkedCamX;
+            double ZOffset = chunkedZ - chunkedCamZ;
+            radius = Math.sqrt(XOffset * XOffset + ZOffset * ZOffset) + expandRadius;
+        }
+        else {
+            chunkedX = chunkedCamX;
+            chunkedZ = chunkedCamZ;
+            radius = expandRadius;
+        }
+        consumer.acceptPos(chunkedX, chunkedZ, radius);
     }
 }

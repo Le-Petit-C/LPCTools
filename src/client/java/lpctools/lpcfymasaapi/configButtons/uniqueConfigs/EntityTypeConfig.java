@@ -6,10 +6,10 @@ import lpctools.lpcfymasaapi.interfaces.ILPCConfigReadable;
 import lpctools.lpcfymasaapi.interfaces.ILPCValueChangeCallback;
 import lpctools.lpcfymasaapi.screen.ChooseScreen;
 import lpctools.util.DataUtils;
-import net.minecraft.entity.EntityType;
-import net.minecraft.registry.Registries;
-import net.minecraft.text.Text;
-import net.minecraft.util.Identifier;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.network.chat.Component;
+import net.minecraft.resources.Identifier;
+import net.minecraft.world.entity.EntityType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -31,7 +31,7 @@ public class EntityTypeConfig extends UniqueStringConfig{
 	public void setEntityType(EntityType<?> entity){
 		if(!this.entity.equals(entity)){
 			this.entity = entity;
-			stringValue = Registries.ENTITY_TYPE.getId(entity).toString();
+			stringValue = BuiltInRegistries.ENTITY_TYPE.getKey(entity).toString();
 			onValueChanged();
 		}
 	}
@@ -41,21 +41,21 @@ public class EntityTypeConfig extends UniqueStringConfig{
 	private static void choose(Consumer<EntityType<?>> consumer){
 		HashMap<String, ChooseScreen.OptionCallback<Consumer<EntityType<?>>>> map = new LinkedHashMap<>();
 		LinkedHashMap<String, String> tree = new LinkedHashMap<>();
-		for(EntityType<?> entityType : Registries.ENTITY_TYPE){
-			map.put(entityType.getTranslationKey(), (button, mouseButton, userData)->userData.accept(entityType));
-			tree.put(entityType.getTranslationKey(), entityType.getTranslationKey());
+		for(EntityType<?> entityType : BuiltInRegistries.ENTITY_TYPE){
+			map.put(entityType.getDescriptionId(), (button, mouseButton, userData)->userData.accept(entityType));
+			tree.put(entityType.getDescriptionId(), entityType.getDescriptionId());
 		}
 		ChooseScreen.openChooseScreen(
-			Text.translatable("lpctools.configs.utils.entityConfig.chooseTitle").getString(),
+			Component.translatable("lpctools.configs.utils.entityConfig.chooseTitle").getString(),
 			true, true, map, tree, consumer
 		);
 	}
 	@Override public void setValueFromString(String s) {
 		Identifier id = Identifier.tryParse(s);
 		if(id != null){
-			Identifier defId = Registries.ENTITY_TYPE.getDefaultId();
-			EntityType<?> defEntity = Registries.ENTITY_TYPE.get(defId);
-			EntityType<?> newEntity = Registries.ENTITY_TYPE.get(id);
+			Identifier defId = BuiltInRegistries.ENTITY_TYPE.getDefaultKey();
+			EntityType<?> defEntity = BuiltInRegistries.ENTITY_TYPE.getValue(defId);
+			EntityType<?> newEntity = BuiltInRegistries.ENTITY_TYPE.getValue(id);
 			if(!defEntity.equals(newEntity) || defId.equals(id)){
 				entity = newEntity;
 				super.setValueFromString(s);
@@ -66,7 +66,7 @@ public class EntityTypeConfig extends UniqueStringConfig{
 	@Override public UpdateTodo setValueFromJsonElementEx(@NotNull JsonElement element) {
 		 UpdateTodo todo = super.setValueFromJsonElementEx(element);
 		 Identifier id = Identifier.tryParse(stringValue);
-		 if(id != null) entity = Registries.ENTITY_TYPE.get(id);
+		 if(id != null) entity = BuiltInRegistries.ENTITY_TYPE.getValue(id);
 		 return todo;
 	}
 }

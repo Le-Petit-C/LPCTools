@@ -1,7 +1,7 @@
 package lpctools.script.suppliers.BlockProperty;
 
 import lpctools.script.suppliers.IScriptSupplierNotNull;
-import net.minecraft.state.property.Property;
+import net.minecraft.world.level.block.state.properties.Property;
 
 @SuppressWarnings("rawtypes")
 public interface IBlockPropertySupplier extends IScriptSupplierNotNull<Property> {

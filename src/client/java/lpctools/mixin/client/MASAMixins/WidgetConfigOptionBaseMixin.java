@@ -7,9 +7,9 @@ import fi.dy.masa.malilib.gui.widgets.WidgetListConfigOptionsBase;
 import fi.dy.masa.malilib.gui.wrappers.TextFieldWrapper;
 import fi.dy.masa.malilib.render.GuiContext;
 import lpctools.mixinInterfaces.MASAMixins.IWidgetConfigOptionBaseEx;
-import net.minecraft.client.gui.Click;
-import net.minecraft.client.input.CharInput;
-import net.minecraft.client.input.KeyInput;
+import net.minecraft.client.input.CharacterEvent;
+import net.minecraft.client.input.KeyEvent;
+import net.minecraft.client.input.MouseButtonEvent;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -24,7 +24,8 @@ import java.util.ArrayList;
 @Mixin(value = WidgetConfigOptionBase.class, remap = false)
 public class WidgetConfigOptionBaseMixin implements IWidgetConfigOptionBaseEx {
     @Shadow @Final protected WidgetListConfigOptionsBase<?, ?> parent;
-    @Unique ArrayList<TextFieldWrapper<? extends GuiTextFieldGeneric>> extraTextFieldWrappers = new ArrayList<>();
+    @Unique
+	final ArrayList<TextFieldWrapper<? extends GuiTextFieldGeneric>> extraTextFieldWrappers = new ArrayList<>();
     @Unique @Override public void lPCTools$addExtraTextField(GuiTextFieldGeneric field, ConfigOptionChangeListenerTextField listener) {
         TextFieldWrapper<? extends GuiTextFieldGeneric> wrapper = new TextFieldWrapper<>(field, listener);
         extraTextFieldWrappers.add(wrapper);
@@ -36,7 +37,7 @@ public class WidgetConfigOptionBaseMixin implements IWidgetConfigOptionBaseEx {
             textFieldWrapper.textField().render(context, mouseX, mouseY, 0f);
     }
     @Inject(method = "onMouseClickedImpl", at = @At("RETURN"), cancellable = true)
-    void onMouseClickedImpl(Click click, boolean doubleClick, CallbackInfoReturnable<Boolean> cir){
+    void onMouseClickedImpl(MouseButtonEvent click, boolean doubleClick, CallbackInfoReturnable<Boolean> cir){
         if(cir.getReturnValue()) return;
         for(TextFieldWrapper<? extends GuiTextFieldGeneric> textFieldWrapper : extraTextFieldWrappers){
             if(textFieldWrapper.mouseClicked(click, doubleClick)) {
@@ -46,7 +47,7 @@ public class WidgetConfigOptionBaseMixin implements IWidgetConfigOptionBaseEx {
         }
     }
     @Inject(method = "onKeyTypedImpl", at = @At("RETURN"), cancellable = true)
-    void onKeyTypedImpl(KeyInput input, CallbackInfoReturnable<Boolean> cir){
+    void onKeyTypedImpl(KeyEvent input, CallbackInfoReturnable<Boolean> cir){
         if(cir.getReturnValue()) return;
         for(TextFieldWrapper<? extends GuiTextFieldGeneric> textFieldWrapper : extraTextFieldWrappers){
             if(textFieldWrapper.onKeyTyped(input)) {
@@ -56,7 +57,7 @@ public class WidgetConfigOptionBaseMixin implements IWidgetConfigOptionBaseEx {
         }
     }
     @Inject(method = "onCharTypedImpl", at = @At("RETURN"), cancellable = true)
-    void onCharTypedImpl(CharInput input, CallbackInfoReturnable<Boolean> cir){
+    void onCharTypedImpl(CharacterEvent input, CallbackInfoReturnable<Boolean> cir){
         if(cir.getReturnValue()) return;
         for(TextFieldWrapper<? extends GuiTextFieldGeneric> textFieldWrapper : extraTextFieldWrappers){
             if(textFieldWrapper.onCharTyped(input)) {

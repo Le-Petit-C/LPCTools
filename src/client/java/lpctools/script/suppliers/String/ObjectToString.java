@@ -4,13 +4,13 @@ import lpctools.script.CompileEnvironment;
 import lpctools.script.IScriptWithSubScript;
 import lpctools.script.runtimeInterfaces.ScriptNotNullSupplier;
 import lpctools.script.suppliers.AbstractSupplierWithTypeDeterminedSubSuppliers;
-import net.minecraft.text.Text;
+import net.minecraft.network.chat.Component;
 import org.jetbrains.annotations.NotNull;
 
 public class ObjectToString extends AbstractSupplierWithTypeDeterminedSubSuppliers implements IStringSupplier {
 	
 	protected final SupplierStorage<Object> object = ofStorage(Object.class,
-		Text.translatable("lpctools.script.suppliers.string.objectToString.subSuppliers.object.name"), "object");
+		Component.translatable("lpctools.script.suppliers.string.objectToString.subSuppliers.object.name"), "object");
 	protected final SupplierStorage<?>[] subSuppliers = ofStorages(object);
 	
 	public ObjectToString(IScriptWithSubScript parent) {super(parent);}

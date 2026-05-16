@@ -1,9 +1,9 @@
 package lpctools.mixin.client.ModMenuMixin;
 
 import com.terraformersmc.modmenu.gui.ModsScreen;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.sound.PositionedSoundInstance;
-import net.minecraft.sound.SoundEvents;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.resources.sounds.SimpleSoundInstance;
+import net.minecraft.sounds.SoundEvents;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Pseudo;
 import org.spongepowered.asm.mixin.injection.At;
@@ -17,6 +17,6 @@ public class ModsScreenMixin {
 	@Inject(method = "safelyOpenConfigScreen", at = @At("HEAD"), remap = false)
 	void injectSafelyOpenConfigScreenHead(String modId, CallbackInfo ci){
 		if(modMenuPlayClickSound.getAsBoolean())
-			MinecraftClient.getInstance().getSoundManager().play(PositionedSoundInstance.ui(SoundEvents.UI_BUTTON_CLICK, 1.0F));
+			Minecraft.getInstance().getSoundManager().play(SimpleSoundInstance.forUI(SoundEvents.UI_BUTTON_CLICK, 1.0F));
 	}
 }

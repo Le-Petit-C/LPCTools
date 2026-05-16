@@ -4,7 +4,7 @@ import fi.dy.masa.malilib.config.IConfigOptionListEntry;
 import lpctools.lpcfymasaapi.configButtons.transferredConfigs.OptionListConfig;
 import lpctools.lpcfymasaapi.interfaces.ILPCConfigReadable;
 import lpctools.lpcfymasaapi.interfaces.ILPCValueChangeCallback;
-import net.minecraft.text.Text;
+import net.minecraft.network.chat.Component;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -23,7 +23,7 @@ public class ArrayOptionListConfig<T> extends OptionListConfig implements Suppli
     }
     public record OptionData<T>(@NotNull OptionList<T> options, @NotNull String translationKey, @NotNull String storageKey, T userData, int index) implements IArrayConfigOptionListEntry<T>{
         @Override public String getStringValue() {return storageKey;}
-        @Override public String getDisplayName() {return Text.translatable(translationKey).getString();}
+        @Override public String getDisplayName() {return Component.translatable(translationKey).getString();}
         @Override public IConfigOptionListEntry cycle(boolean forward) {
             int n = index;
             if(forward){if(++n >= options.size()) n = 0;}
@@ -39,8 +39,8 @@ public class ArrayOptionListConfig<T> extends OptionListConfig implements Suppli
         }
         @Override public boolean equals(Object obj) {
             if(obj == this) return true;
-            if(obj instanceof ArrayOptionListConfig.EmptyOptionData<?> emptyOptionData){
-                return Objects.equals(options, emptyOptionData.options)
+            if(obj instanceof EmptyOptionData<?>(ArrayOptionListConfig.OptionList<?> options1)){
+                return Objects.equals(options, options1)
                     && options.getFirst().equals(this);
             }
             else if(obj instanceof ArrayOptionListConfig.OptionData<?> data){
@@ -74,8 +74,8 @@ public class ArrayOptionListConfig<T> extends OptionListConfig implements Suppli
             else return options.getFirst().userData;}
         @Override public boolean equals(Object obj) {
             if(this == obj) return true;
-            if(obj instanceof ArrayOptionListConfig.EmptyOptionData<?> emptyOptionData)
-                return Objects.equals(this.options(), emptyOptionData.options());
+            if(obj instanceof EmptyOptionData<?>(ArrayOptionListConfig.OptionList<?> options1))
+                return Objects.equals(this.options(), options1);
             if(options.isEmpty()) return false;
             else return options.getFirst().equals(obj);
         }

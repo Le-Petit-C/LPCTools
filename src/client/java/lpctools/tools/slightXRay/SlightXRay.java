@@ -10,21 +10,21 @@ import lpctools.lpcfymasaapi.interfaces.ILPCConfigList;
 import lpctools.mixin.client.SpriteContentsMixin;
 import lpctools.tools.ToolConfigs;
 import lpctools.util.DataUtils;
-import net.minecraft.block.Block;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.render.model.BlockStateModel;
-import net.minecraft.client.texture.NativeImage;
-import net.minecraft.client.texture.Sprite;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.block.model.BlockStateModel;
+import net.minecraft.client.renderer.texture.TextureAtlasSprite;
+import net.minecraft.world.level.block.Block;
 import org.apache.commons.lang3.mutable.MutableInt;
 
 import java.awt.*;
-import java.util.*;
 import java.util.function.ToIntFunction;
 
 import static lpctools.lpcfymasaapi.LPCConfigStatics.*;
 import static lpctools.tools.ToolUtils.*;
 import static lpctools.tools.slightXRay.SlightXRayData.*;
 import static lpctools.util.DataUtils.*;
+
+import com.mojang.blaze3d.platform.NativeImage;
 
 // TODO
 //  bug:开着SlightXRay同时渲染范围限制有效，此时进入世界时会有一些期望的范围外的方块被标注
@@ -63,13 +63,13 @@ public class SlightXRay{
     private static int getColorByTextureColor(Block block) {
         int alphaMask = defaultAlpha.getAsInt() << 24;
         try{ // TODO: 延迟获取颜色（应该等到材质包加载完成之后。。。），否则会引发一大堆NullPointerException
-            BlockStateModel model = MinecraftClient.getInstance().getBlockRenderManager()
-                .getModel(block.getDefaultState());
-            Sprite particleSprite = model.particleSprite();
+            BlockStateModel model = Minecraft.getInstance().getBlockRenderer()
+                .getBlockModel(block.defaultBlockState());
+            TextureAtlasSprite particleSprite = model.particleIcon();
             float r = 0, g = 0, b = 0;
             float t = 0;
-            for(NativeImage image : ((SpriteContentsMixin)particleSprite.getContents()).getMipmapLevelsImages()){
-                for(int color : image.copyPixelsArgb()){
+            for(NativeImage image : ((SpriteContentsMixin)particleSprite.contents()).getMipmapLevelsImages()){
+                for(int color : image.getPixels()){
                     float k = (color >>> 24) / 255.0f;
                     r += (color & 0xff) * k;
                     g += ((color >>> 8) & 0xff) * k;

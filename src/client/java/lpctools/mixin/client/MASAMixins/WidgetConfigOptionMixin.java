@@ -20,7 +20,7 @@ import lpctools.lpcfymasaapi.interfaces.ButtonBaseProvider;
 import lpctools.lpcfymasaapi.interfaces.ButtonConsumer;
 import lpctools.lpcfymasaapi.interfaces.ILPCConfigBase;
 import lpctools.mixinInterfaces.MASAMixins.IWidgetConfigOptionBaseEx;
-import net.minecraft.client.font.TextRenderer;
+import net.minecraft.client.gui.Font;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -39,7 +39,7 @@ public abstract class WidgetConfigOptionMixin extends WidgetConfigOptionBase<Gui
     }
     @Unique WidgetConfigOption getThis(){return (WidgetConfigOption)(Object)this;}
     @Inject(method = "addConfigOption", at = @At(value = "TAIL"), remap = false, cancellable = true)
-    void test(int x, int y, int labelWidth, int configWidth, IConfigBase config, CallbackInfo ci){
+    void buttonCustomizeInjection(int x, int y, int labelWidth, int configWidth, IConfigBase config, CallbackInfo ci){
         if(config instanceof ButtonBaseProvider buttonConsumer){
             buttonConsumer.addButtons(x, y, zLevel, labelWidth, configWidth, new ButtonConsumer() {
                 @Override public <T extends ButtonBase> T addButton(T button, IButtonActionListener listener) {
@@ -69,7 +69,7 @@ public abstract class WidgetConfigOptionMixin extends WidgetConfigOptionBase<Gui
                 @Override public WidgetListConfigOptionsBase<?, ?> getWidgetListConfigOptionsBase() {
                     return parent;
                 }
-                @Override public TextRenderer getTextRenderer() {
+                @Override public Font getTextRenderer() {
                     return textRenderer;
                 }
             });

@@ -5,18 +5,17 @@ import lpctools.lpcfymasaapi.configButtons.uniqueConfigs.*;
 import lpctools.tools.ToolConfigs;
 import lpctools.tools.ToolUtils;
 import lpctools.util.DataUtils;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.gui.screen.Screen;
-import net.minecraft.client.gui.screen.ingame.AbstractFurnaceScreen;
-import net.minecraft.client.gui.screen.ingame.HopperScreen;
-import net.minecraft.client.network.ClientPlayerEntity;
-import net.minecraft.client.network.ClientPlayerInteractionManager;
-import net.minecraft.screen.slot.SlotActionType;
-import net.minecraft.text.Text;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.gui.screens.inventory.AbstractFurnaceScreen;
+import net.minecraft.client.gui.screens.inventory.HopperScreen;
+import net.minecraft.client.multiplayer.MultiPlayerGameMode;
+import net.minecraft.client.player.LocalPlayer;
+import net.minecraft.network.chat.Component;
+import net.minecraft.world.inventory.ClickType;
 
 import static lpctools.lpcfymasaapi.LPCConfigStatics.*;
 import static lpctools.tools.furnaceMaintainer.FurnaceMaintainerData.*;
-import static lpctools.tools.furnaceMaintainer.FurnaceMaintainerData.applyToDataInstanceCallback;
 
 public class FurnaceMaintainer {
     public static final BooleanHotkeyThirdListConfig FMConfig = new BooleanHotkeyThirdListConfig(ToolConfigs.toolConfigs, "FM", FurnaceMaintainer::switchCallback);
@@ -58,14 +57,14 @@ public class FurnaceMaintainer {
         }
     }
     private static void clearClientScreen(Screen screen){
-        var mc = MinecraftClient.getInstance();
-        if(mc.currentScreen == screen) mc.setScreen(null);
+        var mc = Minecraft.getInstance();
+        if(mc.screen == screen) mc.setScreen(null);
     }
     public static boolean screenCallback(Screen screen) {
         if(!FMConfig.getBooleanValue() || dataInstance == null || runner == null || runner.lastInteractedPos == null) return false;
-        MinecraftClient client = MinecraftClient.getInstance();
-        ClientPlayerEntity player = client.player;
-        ClientPlayerInteractionManager itm = client.interactionManager;
+        Minecraft client = Minecraft.getInstance();
+        LocalPlayer player = client.player;
+        MultiPlayerGameMode itm = client.gameMode;
         if(player == null || itm == null) {
             FMConfig.setBooleanValue(false);
             return false;
@@ -73,11 +72,11 @@ public class FurnaceMaintainer {
         // DataUtils.clientMessage(String.valueOf(player.currentScreenHandler.syncId), false);
         boolean operated;
         if(screen instanceof AbstractFurnaceScreen<?> screen1) {
-            itm.clickSlot(screen1.getScreenHandler().syncId, 0, 0, SlotActionType.QUICK_MOVE, player);
+            itm.handleInventoryMouseClick(screen1.getMenu().containerId, 0, 0, ClickType.QUICK_MOVE, player);
             operated = true;
         }
         else if(screen instanceof HopperScreen screen1) {
-            for(int i = 0; i < 5; ++i) itm.clickSlot(screen1.getScreenHandler().syncId, i, 0, SlotActionType.QUICK_MOVE, player);
+            for(int i = 0; i < 5; ++i) itm.handleInventoryMouseClick(screen1.getMenu().containerId, i, 0, ClickType.QUICK_MOVE, player);
             operated = true;
         }
         else operated = false;
@@ -92,6 +91,6 @@ public class FurnaceMaintainer {
         if(!FMConfig.getBooleanValue()) return;
         if(isFMInteracting) return;
         FMConfig.setBooleanValue(false);
-        DataUtils.clientMessage(Text.translatable("lpctools.configs.tools.FM.unexpectedInteractBlock"), true);
+        DataUtils.clientMessage(Component.translatable("lpctools.configs.tools.FM.unexpectedInteractBlock"), true);
     }
 }

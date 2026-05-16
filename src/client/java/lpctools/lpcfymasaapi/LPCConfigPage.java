@@ -10,7 +10,7 @@ import fi.dy.masa.malilib.gui.widgets.WidgetBase;
 import fi.dy.masa.malilib.gui.widgets.WidgetListConfigOptions;
 import fi.dy.masa.malilib.registry.Registry;
 import fi.dy.masa.malilib.util.FileUtils;
-import fi.dy.masa.malilib.util.JsonUtils;
+import fi.dy.masa.malilib.util.data.json.JsonUtils;
 import fi.dy.masa.malilib.util.data.ModInfo;
 import fi.dy.masa.malilib.gui.GuiConfigsBase;
 import fi.dy.masa.malilib.gui.button.IButtonActionListener;
@@ -22,12 +22,13 @@ import lpctools.lpcfymasaapi.interfaces.ILPCConfig;
 import lpctools.lpcfymasaapi.interfaces.ILPCConfigBase;
 import lpctools.lpcfymasaapi.interfaces.ILPCConfigReadable;
 import lpctools.util.GuiUtils;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.gui.DrawContext;
-import net.minecraft.client.gui.screen.Screen;
-import net.minecraft.text.Text;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.network.chat.Component;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jspecify.annotations.NonNull;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -69,10 +70,10 @@ public class LPCConfigPage implements IConfigHandler, Supplier<GuiBase>, ILPCCon
     @Override public void onConfigsChanged() {save();}
     //显示当前页面
     public void showPage(Screen parent){
-        if(pageInstance != null) pageInstance.close();
+        if(pageInstance != null) pageInstance.onClose();
         pageInstance = new ConfigPageInstance();
         pageInstance.setParent(parent);
-        if(MinecraftClient.getInstance().currentScreen != pageInstance)
+        if(Minecraft.getInstance().screen != pageInstance)
             GuiBase.openGui(pageInstance);
     }
     private boolean needUpdate = true;
@@ -95,14 +96,14 @@ public class LPCConfigPage implements IConfigHandler, Supplier<GuiBase>, ILPCCon
     @Override public void load() {
         Path configFile = FileUtils.getConfigDirectoryAsPath().resolve(configFileName);
         if (Files.exists(configFile) && Files.isReadable(configFile)
-            && JsonUtils.parseJsonFileAsPath(configFile) instanceof JsonElement pageJson)
+            && JsonUtils.parseJsonFile(configFile) instanceof JsonElement pageJson)
             setValueFromJsonElement(pageJson);
     }
     @Override public void save() {
         Path configFile = FileUtils.getConfigDirectoryAsPath().resolve(configFileName);
         JsonObject pageJson = null;
         if (Files.exists(configFile) && Files.isReadable(configFile)){
-            JsonElement element = JsonUtils.parseJsonFileAsPath(configFile);
+            JsonElement element = JsonUtils.parseJsonFile(configFile);
             if(element != null && element.isJsonObject())
                 pageJson = element.getAsJsonObject();
         }
@@ -114,7 +115,7 @@ public class LPCConfigPage implements IConfigHandler, Supplier<GuiBase>, ILPCCon
             FileUtils.createDirectoriesIfMissing(dir);
         if (Files.isDirectory(dir)) {
             Path file = dir.resolve(configFileName);
-            JsonUtils.writeJsonToFileAsPath(pageJson, file);
+            JsonUtils.writeJsonToFile(pageJson, file);
         }
     }
     @Override public @NotNull JsonObject getAsJsonElement() {
@@ -178,7 +179,7 @@ public class LPCConfigPage implements IConfigHandler, Supplier<GuiBase>, ILPCCon
 
             for (int a = 0; a < lists.size(); ++a) {
                 String listName = lists.get(a).getTitleDisplayName();
-                ButtonGeneric button = new ButtonGeneric(x, y, calculateTextButtonWidth(listName, textRenderer, 20), 20, listName);
+                ButtonGeneric button = new ButtonGeneric(x, y, calculateTextButtonWidth(listName, font, 20), 20, listName);
                 button.setEnabled(selectedIndex != a);
                 this.addButton(button, new ButtonListener(a, this));
                 x += button.getWidth() + 2;
@@ -197,7 +198,7 @@ public class LPCConfigPage implements IConfigHandler, Supplier<GuiBase>, ILPCCon
         public void cursorInfo(String text, int sustainMillis){
             GuiUtils.cursorInfo(infoWidgets, text, sustainMillis, getScreenWidth());
         }
-        public void cursorInfo(Text text, int sustainMillis){
+        public void cursorInfo(Component text, int sustainMillis){
             cursorInfo(text.getString(), sustainMillis);
         }
 
@@ -207,7 +208,7 @@ public class LPCConfigPage implements IConfigHandler, Supplier<GuiBase>, ILPCCon
             super(10, 50, modReference.modId, null, "");
         }
         
-        @Override public boolean shouldPause() {return shouldPause;}
+        @Override public boolean isPauseScreen() {return shouldPause;}
         
         void select(int index){
             if(index == selectedIndex) return;
@@ -226,7 +227,7 @@ public class LPCConfigPage implements IConfigHandler, Supplier<GuiBase>, ILPCCon
                 widget.markConfigsModified();
         }
         
-        @Override public void render(DrawContext drawContext, int mouseX, int mouseY, float partialTicks) {
+        @Override public void render(@NonNull GuiGraphics drawContext, int mouseX, int mouseY, float partialTicks) {
             if(needUpdate) {
                 initGui();
                 needUpdate = false;

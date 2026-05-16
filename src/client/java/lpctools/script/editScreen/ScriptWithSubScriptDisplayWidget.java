@@ -10,8 +10,8 @@ import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import lpctools.mixinInterfaces.MASAMixins.IButtonGenericMixin;
 import lpctools.script.IScriptWithSubScript;
 import lpctools.script.ScriptConfigs;
-import net.minecraft.client.gui.DrawContext;
-import net.minecraft.client.gui.widget.ClickableWidget;
+import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.components.AbstractWidget;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -98,7 +98,7 @@ public class ScriptWithSubScriptDisplayWidget extends ScriptDisplayWidget{
 		updateIcon();
 	}
 	
-	public void renderExpandGuidelines(DrawContext context){
+	public void renderExpandGuidelines(GuiGraphics context){
 		tryUpdate();
 		if(extended && !subWidgets.isEmpty()){
 			int thickness = ScriptConfigs.guidelineThickness.getIntegerValue();
@@ -120,14 +120,14 @@ public class ScriptWithSubScriptDisplayWidget extends ScriptDisplayWidget{
 		}
 	}
 	
-	@Override public void renderWidget(DrawContext context, int mouseX, int mouseY, float deltaTicks) {
+	@Override public void renderWidget(GuiGraphics context, int mouseX, int mouseY, float deltaTicks) {
 		tryUpdate();
 		super.renderWidget(context, mouseX, mouseY, deltaTicks);
 		expandButton.render(GuiContext.fromGuiGraphics(context), mouseX, mouseY, expandButton.isMouseOver(mouseX, mouseY));
 		renderExpandGuidelines(context);
 	}
 	
-	@Override protected Iterable<ClickableWidget> getAllWidgets() {
+	@Override protected Iterable<AbstractWidget> getAllWidgets() {
 		tryUpdate();
 		if (nameButton != null) return Iterables.concat(List.of(WidgetWrapper.wrap(expandButton, editScreen), WidgetWrapper.wrap(nameButton, editScreen)), widgets);
 		else return Iterables.concat(List.of(WidgetWrapper.wrap(expandButton, editScreen)), widgets);

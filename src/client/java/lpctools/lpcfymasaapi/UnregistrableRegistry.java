@@ -1,23 +1,28 @@
 package lpctools.lpcfymasaapi;
 
 import lpctools.lpcfymasaapi.interfaces.IUnregistrableRegistry;
+import net.fabricmc.fabric.api.event.Event;
 
 import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.function.Function;
 
 public class UnregistrableRegistry<T> implements IUnregistrableRegistry<T> {
-    public final LinkedHashSet<T> callbacks = new LinkedHashSet<>();
+    private final LinkedHashSet<T> callbacks = new LinkedHashSet<>();
     private final LinkedHashSet<T> newRegistrables = new LinkedHashSet<>();
     public final T runner;
     private Iterator<T> generateIterator() {
-        applyNewRegistrable();
+        applyNewRegistrables();
         return callbacks.iterator();
     }
     public UnregistrableRegistry(Function<IterableEx<T>, T> runner){
         this.runner = runner.apply(this::generateIterator);
     }
-    private void applyNewRegistrable() {
+    public UnregistrableRegistry(Function<IterableEx<T>, T> runner, Event<T> autoRegisterEvent){
+        this(runner);
+        autoRegisterEvent.register(runner());
+    }
+    private void applyNewRegistrables() {
         if(newRegistrables.isEmpty()) return;
         for(var callback : newRegistrables) {
             if(callbacks.contains(callback)) callbacks.remove(callback);
@@ -33,7 +38,7 @@ public class UnregistrableRegistry<T> implements IUnregistrableRegistry<T> {
         return newRegistrable(callback, register != callbacks.contains(callback));
     }
     @Override public boolean isEmpty(){
-        applyNewRegistrable();
+        applyNewRegistrables();
         return callbacks.isEmpty();
     }
     @Override public T runner(){ return runner; }

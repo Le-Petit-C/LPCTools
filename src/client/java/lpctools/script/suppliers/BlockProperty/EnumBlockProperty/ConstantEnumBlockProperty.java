@@ -4,7 +4,7 @@ import lpctools.script.CompileEnvironment;
 import lpctools.script.IScriptWithSubScript;
 import lpctools.script.runtimeInterfaces.ScriptNotNullSupplier;
 import lpctools.script.suppliers.AbstractOperatorResultSupplier;
-import net.minecraft.state.property.EnumProperty;
+import net.minecraft.world.level.block.state.properties.EnumProperty;
 import org.jetbrains.annotations.NotNull;
 
 import static lpctools.script.suppliers.BlockPropertyOperators.*;

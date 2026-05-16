@@ -1,15 +1,15 @@
 package lpctools.util;
 
-import net.minecraft.client.MinecraftClient;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.HashMap;
 import java.util.HashSet;
+import net.minecraft.client.Minecraft;
 
 //TODO 可能需要测试一下ClientModInitializer初始化的时候MinecraftClient中的send是不是已经能用了
 public class TaskUtils {
 	public static void queueATaskInRenderThread(Runnable runnable){
-		MinecraftClient.getInstance().send(runnable);
+		Minecraft.getInstance().schedule(runnable);
 	}
 	public static TaskKey registerTask(Runnable runnable){
 		TaskKey key;

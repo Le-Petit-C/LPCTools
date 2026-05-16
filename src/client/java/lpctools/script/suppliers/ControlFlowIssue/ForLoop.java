@@ -9,7 +9,7 @@ import lpctools.script.IScriptWithSubScript;
 import lpctools.script.exceptions.ScriptRuntimeException;
 import lpctools.script.runtimeInterfaces.ScriptNotNullSupplier;
 import lpctools.script.suppliers.Boolean.And;
-import net.minecraft.text.Text;
+import net.minecraft.network.chat.Component;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -18,10 +18,10 @@ import java.util.List;
 import static lpctools.lpcfymasaapi.LPCConfigUtils.warnFailedLoadingConfig;
 
 public class ForLoop extends AbstractScriptWithSubScript implements IControlFlowIssueSupplier {
-	public final RunMultiple initialization = new RunMultiple(this, Text.translatable("lpctools.script.suppliers.controlFlowIssue.forLoop.initialization.name"));
-	public final And condition = new And(this, Text.translatable("lpctools.script.suppliers.controlFlowIssue.forLoop.condition.name"));
-	public final RunMultiple update = new RunMultiple(this, Text.translatable("lpctools.script.suppliers.controlFlowIssue.forLoop.update.name"));
-	public final RunMultiple loopBody = new RunMultiple(this, Text.translatable("lpctools.script.suppliers.controlFlowIssue.forLoop.loopBody.name"));
+	public final RunMultiple initialization = new RunMultiple(this, Component.translatable("lpctools.script.suppliers.controlFlowIssue.forLoop.initialization.name"));
+	public final And condition = new And(this, Component.translatable("lpctools.script.suppliers.controlFlowIssue.forLoop.condition.name"));
+	public final RunMultiple update = new RunMultiple(this, Component.translatable("lpctools.script.suppliers.controlFlowIssue.forLoop.update.name"));
+	public final RunMultiple loopBody = new RunMultiple(this, Component.translatable("lpctools.script.suppliers.controlFlowIssue.forLoop.loopBody.name"));
 	public static final String initializationJsonKey = "initialization";
 	public static final String conditionJsonKey = "condition";
 	public static final String updateJsonKey = "update";

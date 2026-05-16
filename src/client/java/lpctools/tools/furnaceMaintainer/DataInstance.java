@@ -9,16 +9,16 @@ import lpctools.util.DataUtils;
 import lpctools.util.Packed;
 import lpctools.util.javaex.QuietAutoCloseable;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
-import net.minecraft.block.AbstractFurnaceBlock;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.HopperBlock;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.world.ClientWorld;
-import net.minecraft.text.Text;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Direction;
-import net.minecraft.world.chunk.Chunk;
-import net.minecraft.world.chunk.WorldChunk;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.multiplayer.ClientLevel;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.network.chat.Component;
+import net.minecraft.world.level.block.AbstractFurnaceBlock;
+import net.minecraft.world.level.block.HopperBlock;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.chunk.ChunkAccess;
+import net.minecraft.world.level.chunk.LevelChunk;
 import org.apache.commons.lang3.mutable.MutableInt;
 import org.jetbrains.annotations.Nullable;
 import org.jspecify.annotations.NonNull;
@@ -55,7 +55,7 @@ public class DataInstance implements QuietAutoCloseable, Registries.ClientWorldC
 		boolean includesHopperAbove = FurnaceMaintainer.includesHopperAbove.getBooleanValue();
 		detectTasks.clearTasks();
 		highlightInstance.clearData();
-		ClientWorld world = MinecraftClient.getInstance().world;
+		ClientLevel world = Minecraft.getInstance().level;
 		if(world == null) return;
 		for(var chunk : DataUtils.loadedChunks(world)) {
 			long packedChunkPos = chunk.getPos().toLong();
@@ -69,10 +69,10 @@ public class DataInstance implements QuietAutoCloseable, Registries.ClientWorldC
 		}
 	}
 	
-	@Override public void onClientWorldChunkSetBlockState(WorldChunk chunk, BlockPos pos, @Nullable BlockState lastState, @Nullable BlockState newState) {
+	@Override public void onClientWorldChunkSetBlockState(LevelChunk chunk, BlockPos pos, @Nullable BlockState lastState, @Nullable BlockState newState) {
 		if(lastState != null && lastState.getBlock() instanceof AbstractFurnaceBlock && (newState == null || !(newState.getBlock() instanceof AbstractFurnaceBlock))) {
 			highlightInstance.mark(pos.asLong(), null);
-			var upperPos = pos.up();
+			var upperPos = pos.above();
 			if(!(chunk.getBlockState(upperPos).getBlock() instanceof AbstractFurnaceBlock))
 				highlightInstance.mark(upperPos, null);
 		}
@@ -80,9 +80,9 @@ public class DataInstance implements QuietAutoCloseable, Registries.ClientWorldC
 			highlightInstance.mark(pos.asLong(), null);
 	}
 	
-	@Override public void onEndTick(@NonNull MinecraftClient client) {
+	@Override public void onEndTick(@NonNull Minecraft client) {
 		if(dataInstance != this || isEmpty()) {
-			DataUtils.clientMessage(Text.translatable("lpctools.configs.tools.FM.markedBlocksCleared"), true);
+			DataUtils.clientMessage(Component.translatable("lpctools.configs.tools.FM.markedBlocksCleared"), true);
 			if(dataInstance == this) {
 				if(runner != null) {
 					runner.close();
@@ -105,16 +105,16 @@ public class DataInstance implements QuietAutoCloseable, Registries.ClientWorldC
 		Registries.END_CLIENT_TICK.register(this, b);
 	}
 	
-	private Int2ObjectOpenHashMap<MutableInt> detectFurnace(Chunk chunk, boolean includesHopperAbove){
+	private Int2ObjectOpenHashMap<MutableInt> detectFurnace(ChunkAccess chunk, boolean includesHopperAbove){
 		Int2ObjectOpenHashMap<MutableInt> result = new Int2ObjectOpenHashMap<>();
-		for(BlockPos pos : AlgorithmUtils.iterateInBox(0, chunk.getBottomY(), 0, 15, chunk.getBottomY() + chunk.getHeight() - 1, 15)){
+		for(BlockPos pos : AlgorithmUtils.iterateInBox(0, chunk.getMinY(), 0, 15, chunk.getMinY() + chunk.getHeight() - 1, 15)){
 			if(chunk.getBlockState(pos).getBlock() instanceof AbstractFurnaceBlock) {
 				result.put(Packed.ChunkLocal.pack(pos), color);
 				if(includesHopperAbove) {
-					var up = pos.up();
+					var up = pos.above();
 					var upperBlockState = chunk.getBlockState(up);
 					if(upperBlockState.getBlock() instanceof HopperBlock) {
-						var facing = upperBlockState.get(HopperBlock.FACING);
+						var facing = upperBlockState.getValue(HopperBlock.FACING);
 						if(facing == Direction.DOWN)
 							result.put(Packed.ChunkLocal.pack(up), color);
 					}

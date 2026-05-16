@@ -6,17 +6,17 @@ import lpctools.util.HandRestock;
 import lpctools.util.MathUtils;
 import lpctools.util.javaex.Object2BooleanFunction;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
-import net.minecraft.block.Block;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.network.ClientPlayerEntity;
-import net.minecraft.client.network.ClientPlayerInteractionManager;
-import net.minecraft.client.world.ClientWorld;
-import net.minecraft.item.BlockItem;
-import net.minecraft.util.Hand;
-import net.minecraft.util.hit.BlockHitResult;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Direction;
-import net.minecraft.util.math.Vec3i;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.multiplayer.ClientLevel;
+import net.minecraft.client.multiplayer.MultiPlayerGameMode;
+import net.minecraft.client.player.LocalPlayer;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.core.Vec3i;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.item.BlockItem;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.phys.BlockHitResult;
 import org.apache.commons.lang3.mutable.MutableObject;
 import org.jspecify.annotations.NonNull;
 
@@ -36,7 +36,7 @@ public class TilingToolExecutor implements AutoCloseable, ClientTickEvents.EndTi
     private void registerAll(boolean b){
         Registries.END_CLIENT_TICK.register(this, b);
     }
-    @Override public void onEndTick(@NonNull MinecraftClient mc) {
+    @Override public void onEndTick(@NonNull Minecraft mc) {
         if(storedData == null) {
             if(autoRefresh.get().refreshOnExecuteNull)
                 autoRefreshOperation.get().run();
@@ -47,16 +47,16 @@ public class TilingToolExecutor implements AutoCloseable, ClientTickEvents.EndTi
             int count = 0;
         }
         Data data = new Data();
-        ClientPlayerEntity player = mc.player;
-        ClientPlayerInteractionManager itm = mc.interactionManager;
-        ClientWorld world = mc.world;
+        LocalPlayer player = mc.player;
+        MultiPlayerGameMode itm = mc.gameMode;
+        ClientLevel world = mc.level;
         if(player == null || itm == null || world == null) return;
         Vec3i cuboidSize = storedData.cuboidSize();
         BlockPos startPos = storedData.startPos();
         Block[][][] storedBlocks = storedData.storedBlocks();
         MutableObject<Block> block = new MutableObject<>();
         Object2BooleanFunction<Block> condition = b ->{
-            Block storedBlock = block.getValue();
+            Block storedBlock = block.get();
             if(b == storedBlock) return true;
             ArrayList<ImmutableSet<Block>> list = vagueBlocks.get(storedBlock);
             if(list == null) return false;
@@ -69,10 +69,10 @@ public class TilingToolExecutor implements AutoCloseable, ClientTickEvents.EndTi
             return condition.getBoolean(blockItem.getBlock());
         };
         limitOperationSpeed.resetOperationTimes();
-        limitOperationSpeed.iterableOperate(reachDistance.iterateFromClosest(player.getEyePos()), pos->{
+        limitOperationSpeed.iterableOperate(reachDistance.iterateFromClosest(player.getEyePosition()), pos->{
             if(!shapeList.testPos(pos)) return NO_OPERATION;
-            if(!world.getBlockState(pos).isReplaceable()) return NO_OPERATION;
-            BlockPos.Mutable shiftPos = new BlockPos.Mutable();
+            if(!world.getBlockState(pos).canBeReplaced()) return NO_OPERATION;
+            BlockPos.MutableBlockPos shiftPos = new BlockPos.MutableBlockPos();
             shiftPos.set(pos.subtract(startPos));
             if(!tilingDirection.booleans.get(0).getBooleanValue() && (shiftPos.getX() < 0 || shiftPos.getX() >= cuboidSize.getX())) return NO_OPERATION;
             if(!tilingDirection.booleans.get(1).getBooleanValue() && (shiftPos.getY() < 0 || shiftPos.getY() >= cuboidSize.getY())) return NO_OPERATION;
@@ -82,11 +82,11 @@ public class TilingToolExecutor implements AutoCloseable, ClientTickEvents.EndTi
             if(data.block == null){
                 data.count = HandRestock.restock(restockTest, offhandOperate.getAsBoolean() ? -1 : 0);
                 if(data.count == 0) return NO_OPERATION;
-                data.block = block.getValue();
+                data.block = block.get();
             }
             if(!condition.getBoolean(data.block)) return NO_OPERATION;
-            BlockHitResult hitResult = new BlockHitResult(pos.toCenterPos(), Direction.DOWN, pos.toImmutable(), false);
-            itm.interactBlock(player, offhandOperate.getAsBoolean() ? Hand.OFF_HAND : Hand.MAIN_HAND, hitResult);
+            BlockHitResult hitResult = new BlockHitResult(pos.getCenter(), Direction.DOWN, pos.immutable(), false);
+            itm.useItemOn(player, offhandOperate.getAsBoolean() ? InteractionHand.OFF_HAND : InteractionHand.MAIN_HAND, hitResult);
             if(--data.count == 0) return SHOULD_BREAK;
             else return OPERATED;
         });

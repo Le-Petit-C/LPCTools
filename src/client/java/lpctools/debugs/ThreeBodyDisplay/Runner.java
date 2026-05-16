@@ -5,6 +5,7 @@ import com.mojang.blaze3d.buffers.GpuBufferSlice;
 import com.mojang.blaze3d.systems.RenderPass;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.textures.GpuTextureView;
+import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 import com.mojang.blaze3d.vertex.VertexFormat;
 import lpctools.LPCTools;
 import lpctools.lpcfymasaapi.Registries;
@@ -13,9 +14,8 @@ import lpctools.lpcfymasaapi.render.translucentShapes.*;
 import lpctools.util.javaex.QuietAutoCloseable;
 import net.fabricmc.fabric.api.client.rendering.v1.world.WorldRenderContext;
 import net.fabricmc.fabric.api.client.rendering.v1.world.WorldRenderEvents;
-import net.minecraft.client.render.RawProjectionMatrix;
-import net.minecraft.client.render.VertexFormats;
-import net.minecraft.util.math.MathHelper;
+import net.minecraft.client.renderer.PerspectiveProjectionMatrixBuffer;
+import net.minecraft.util.Mth;
 import org.joml.*;
 import org.jspecify.annotations.NonNull;
 import org.lwjgl.system.MemoryUtil;
@@ -43,7 +43,7 @@ class Runner implements QuietAutoCloseable, Registries.WorldPreMainRender, World
 	
 	private final Star[] stars = new Star[3];
 	private final StarRenderData[] starsRenderData = new StarRenderData[3];
-	private final RawProjectionMatrix rawProjectionMatrixBuffer = new RawProjectionMatrix("LPCTools ThreeBodyDisplay");
+	private final PerspectiveProjectionMatrixBuffer rawProjectionMatrixBuffer = new PerspectiveProjectionMatrixBuffer("LPCTools ThreeBodyDisplay");
 	private final ByteBuffer dataBuffer;
 	private final GpuBuffer indexBuffer;
 	private final GpuBuffer vertexBuffer;
@@ -74,7 +74,7 @@ class Runner implements QuietAutoCloseable, Registries.WorldPreMainRender, World
 		indexBuffer = RenderSystem.getDevice().createBuffer(indexBufferLabel,
 			GpuBuffer.USAGE_INDEX | GpuBuffer.USAGE_COPY_DST, indexDataBuffer);
 		MemoryUtil.memFree(indexDataBuffer);
-		dataBuffer = MemoryUtil.memAlloc(VertexFormats.POSITION_COLOR_LINE_WIDTH.getVertexSize() * 24);
+		dataBuffer = MemoryUtil.memAlloc(DefaultVertexFormat.POSITION_COLOR_LINE_WIDTH.getVertexSize() * 24);
 		vertexBuffer = RenderSystem.getDevice().createBuffer(vertexBufferLabel,
 			GpuBuffer.USAGE_INDEX | GpuBuffer.USAGE_COPY_DST, dataBuffer.capacity());
 		updateTracks();
@@ -84,7 +84,7 @@ class Runner implements QuietAutoCloseable, Registries.WorldPreMainRender, World
 	void updateRandomizeDataPack() {
 		runnerDataPack = new RunnerDataPack(
 			maxTrackSpeed.getDoubleValue(),
-			MathHelper.square(distanceLimit.getDoubleValue()),
+			Mth.square(distanceLimit.getDoubleValue()),
 			timeSpeed.getDoubleValue(),
 			spreadRadius.getDoubleValue(),
 			spreadSpeed.getDoubleValue(),
@@ -118,7 +118,7 @@ class Runner implements QuietAutoCloseable, Registries.WorldPreMainRender, World
 	@Override public void beforeTranslucent(@NonNull WorldRenderContext ignored) {
 		var context = recordedContext;
 		dataBuffer.clear();
-		var camPos = context.camera().getCameraPos();
+		var camPos = context.camera().position();
 		double deltaSeconds = System.currentTimeMillis() * 0.001 - lastTimeSeconds;
 		lastTimeSeconds += deltaSeconds;
 		double brightness = 0;
@@ -145,8 +145,8 @@ class Runner implements QuietAutoCloseable, Registries.WorldPreMainRender, World
 		var commandEncoder = RenderSystem.getDevice().createCommandEncoder();
 		commandEncoder.writeToBuffer(vertexBuffer.slice(), dataBuffer);
 		var fb = context.fb();
-		GpuTextureView colorAttachmentView = fb.getColorAttachmentView();
-		GpuTextureView depthAttachmentView = fb.useDepthAttachment ? fb.getDepthAttachmentView() : null;
+		GpuTextureView colorAttachmentView = fb.getColorTextureView();
+		GpuTextureView depthAttachmentView = fb.useDepth ? fb.getDepthTextureView() : null;
 		Vector3f offset = new Vector3f();
 		Matrix4f modelViewMatrix = new Matrix4f(RenderSystem.getModelViewMatrix());
 		Matrix4f projectionMatrix = new Matrix4f(RenderInstance.worldBasicProjectionMatrix);
@@ -157,8 +157,8 @@ class Runner implements QuietAutoCloseable, Registries.WorldPreMainRender, World
 		offset.mul(-1);
 		offset.add((float) (basePoint.x - camPos.x), (float) (basePoint.y - camPos.y), (float) (basePoint.z - camPos.z));
 		GpuBufferSlice dynamicTransforms = RenderSystem.getDynamicUniforms()
-			.write(modelViewMatrix, new Vector4f(1.0F, 1.0F, 1.0F, 1.0F), offset, new Matrix4f());
-		GpuBufferSlice projection = rawProjectionMatrixBuffer.set(projectionMatrix);
+			.writeTransform(modelViewMatrix, new Vector4f(1.0F, 1.0F, 1.0F, 1.0F), offset, new Matrix4f());
+		GpuBufferSlice projection = rawProjectionMatrixBuffer.getBuffer(projectionMatrix);
 		try (RenderPass renderPass = commandEncoder
 			.createRenderPass(renderPassLabel, colorAttachmentView, OptionalInt.empty(), depthAttachmentView, OptionalDouble.empty())) {
 			renderPass.setPipeline(LPCRenderPipelines.spherePipeline);

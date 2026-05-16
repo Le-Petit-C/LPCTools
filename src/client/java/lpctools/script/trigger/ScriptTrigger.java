@@ -6,7 +6,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 import lpctools.lpcfymasaapi.screen.ChooseScreen;
 import lpctools.script.*;
-import net.minecraft.text.Text;
+import net.minecraft.network.chat.Component;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -30,8 +30,8 @@ public class ScriptTrigger extends AbstractScriptWithSubScriptMutable<TriggerOpt
 	public static final String triggerKeyJsonKey = "key";
 	public static final String triggerValueJsonKey = "value";
 	
-	@Override public @Nullable Text getName() {return Text.translatable("lpctools.script.trigger.name");}
-	@Override public @Nullable Text getComment() {return Text.translatable("lpctools.script.trigger.comment");}
+	@Override public @Nullable Component getName() {return Component.translatable("lpctools.script.trigger.name");}
+	@Override public @Nullable Component getComment() {return Component.translatable("lpctools.script.trigger.comment");}
 	@Override public @Nullable JsonElement getAsJsonElement() {
 		JsonArray array = new JsonArray();
 		for(var trigger : getSubScripts()){
@@ -90,7 +90,7 @@ public class ScriptTrigger extends AbstractScriptWithSubScriptMutable<TriggerOpt
 			chooseTree.put(factory.name().getString(), key);
 		});
 		ChooseScreen.openChooseScreen(
-			Text.translatable("lpctools.script.trigger.chooseScreen.title").getString(),
+			Component.translatable("lpctools.script.trigger.chooseScreen.title").getString(),
 			true, true, options, chooseTree, this
 		);
 	}

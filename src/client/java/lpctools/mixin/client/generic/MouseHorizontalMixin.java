@@ -1,6 +1,5 @@
 package lpctools.mixin.client.generic;
 
-import net.minecraft.client.Mouse;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
@@ -8,7 +7,9 @@ import org.spongepowered.asm.mixin.injection.ModifyVariable;
 
 import static lpctools.generic.GenericConfigs.horizontalScrollButton;
 
-@Mixin(Mouse.class)
+import net.minecraft.client.MouseHandler;
+
+@Mixin(MouseHandler.class)
 public class MouseHorizontalMixin {
 	@Unique private double lpctools$originalVertical;
 	
@@ -17,7 +18,7 @@ public class MouseHorizontalMixin {
 	}
 	
 	@ModifyVariable(
-		method = "onMouseScroll",
+		method = "onScroll",
 		at = @At("HEAD"),
 		index = 5,
 		argsOnly = true,
@@ -29,7 +30,7 @@ public class MouseHorizontalMixin {
 	}
 	
 	@ModifyVariable(
-		method = "onMouseScroll",
+		method = "onScroll",
 		at = @At("HEAD"),
 		index = 3,
 		argsOnly = true,
@@ -42,7 +43,7 @@ public class MouseHorizontalMixin {
 	}
 	
 	@ModifyVariable(
-		method = "onMouseScroll",
+		method = "onScroll",
 		at = @At("HEAD"),
 		index = 5,
 		argsOnly = true,

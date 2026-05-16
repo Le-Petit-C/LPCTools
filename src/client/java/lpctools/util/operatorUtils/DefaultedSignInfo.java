@@ -4,7 +4,7 @@ import com.google.common.collect.ImmutableMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import lpctools.lpcfymasaapi.screen.SelectionScreen;
 import lpctools.util.CachedSupplier;
-import net.minecraft.text.Text;
+import net.minecraft.network.chat.Component;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
@@ -112,7 +112,7 @@ public class DefaultedSignInfo<T extends Operators.SignBase> implements Operator
 		}
 		else {
 			SelectionScreen.openSelectionScreen(SelectionScreen.OptionNode.ofOptions(
-				sortedList.get(), sign->Text.of(getDisplayString(sign)), Text.of("")
+				sortedList.get(), sign->Component.nullToEmpty(getDisplayString(sign)), Component.nullToEmpty("")
 			), callback);
 			//ChooseScreen.openSelectionScreen("Choose an option", true, true, chooseTree.get())
 		}

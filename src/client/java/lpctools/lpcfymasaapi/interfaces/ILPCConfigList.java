@@ -3,7 +3,7 @@ package lpctools.lpcfymasaapi.interfaces;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import lpctools.lpcfymasaapi.configButtons.UpdateTodo;
-import net.minecraft.text.Text;
+import net.minecraft.network.chat.Component;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -25,7 +25,7 @@ public interface ILPCConfigList extends ILPCConfigBase, ILPCConfigReadable{
     }
 
     default String getTitleFullTranslationKey(){return getFullTranslationKey() + ".title";}
-    default String getTitleDisplayName(){return Text.translatable(getTitleFullTranslationKey()).getString();}
+    default String getTitleDisplayName(){return Component.translatable(getTitleFullTranslationKey()).getString();}
     @Override default UpdateTodo setValueFromJsonElementEx(@NotNull JsonElement data){
         UpdateTodo todo = new UpdateTodo();
         if(data instanceof JsonObject jsonObject)

@@ -5,15 +5,15 @@ import lpctools.script.IScriptWithSubScript;
 import lpctools.script.runtimeInterfaces.ScriptIntegerSupplier;
 import lpctools.script.suppliers.AbstractOperatorResultSupplier;
 import lpctools.util.operatorUtils.Operators;
-import net.minecraft.text.Text;
-import net.minecraft.util.math.BlockPos;
+import net.minecraft.core.BlockPos;
+import net.minecraft.network.chat.Component;
 import org.jetbrains.annotations.NotNull;
 
 public class IntegerFromBlockPoses extends AbstractOperatorResultSupplier<Operators.IntegerFromBlockPosesSign> implements IIntegerSupplier {
 	protected final SupplierStorage<BlockPos> pos1 = ofStorage(BlockPos.class,
-		Text.translatable("lpctools.script.suppliers.integer.integerFromBlockPoses.subSuppliers.pos1.name"), "pos1");
+		Component.translatable("lpctools.script.suppliers.integer.integerFromBlockPoses.subSuppliers.pos1.name"), "pos1");
 	protected final SupplierStorage<BlockPos> pos2 = ofStorage(BlockPos.class,
-		Text.translatable("lpctools.script.suppliers.integer.integerFromBlockPoses.subSuppliers.pos2.name"), "pos2");
+		Component.translatable("lpctools.script.suppliers.integer.integerFromBlockPoses.subSuppliers.pos2.name"), "pos2");
 	protected final SupplierStorage<?>[] subSuppliers = ofStorages(pos1, pos2);
 	
 	public IntegerFromBlockPoses(IScriptWithSubScript parent) {super(parent, Operators.DOT, Operators.intFromBlockPosesSignInfo, 1);}

@@ -9,7 +9,7 @@ import lpctools.script.IScriptWithSubScript;
 import lpctools.script.editScreen.ScriptDisplayWidget;
 import lpctools.script.editScreen.WidthAutoAdjustTextField;
 import lpctools.script.runtimeInterfaces.ScriptNotNullSupplier;
-import net.minecraft.util.math.Vec3d;
+import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -22,9 +22,9 @@ public class ConstantVec3d extends AbstractScript implements IVec3dSupplier {
 	private static final char[] valDesc = {'x', 'y', 'z'};
 	private WidthAutoAdjustTextField@Nullable [] textFields = null;
 	public ConstantVec3d(IScriptWithSubScript parent) {super(parent);}
-	@Override public @NotNull ScriptNotNullSupplier<Vec3d>
+	@Override public @NotNull ScriptNotNullSupplier<Vec3>
 	compileNotNull(CompileEnvironment environment) {
-		Vec3d res = new Vec3d(val[0], val[1], val[2]);
+		Vec3 res = new Vec3(val[0], val[1], val[2]);
 		return map->res;
 	}
 	
@@ -43,7 +43,7 @@ public class ConstantVec3d extends AbstractScript implements IVec3dSupplier {
 		for(int i = 0; i < 3; ++i){
 			if(arrSize > i && array.get(i) instanceof JsonPrimitive primitive && primitive.isNumber()){
 				val[i] = primitive.getAsDouble();
-				if(textFields != null) textFields[i].setText(String.valueOf(val[i]));
+				if(textFields != null) textFields[i].setValue(String.valueOf(val[i]));
 			}
 			else warnFailedLoadingConfig("ConstantVec3d." + valDesc[i], element);
 		}
@@ -59,7 +59,7 @@ public class ConstantVec3d extends AbstractScript implements IVec3dSupplier {
 					getDisplayWidget(), 50, String.valueOf(val[idx]), text->{
 					try {val[idx] = Double.parseDouble(text);
 					} catch (NumberFormatException ignored) {}
-					textFields[idx].setText(String.valueOf(val[idx]));
+					textFields[idx].setValue(String.valueOf(val[idx]));
 					applyToDisplayWidgetIfNotNull(ScriptDisplayWidget::markUpdateChain);
 				});
 			}

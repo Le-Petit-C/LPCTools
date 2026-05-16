@@ -6,7 +6,7 @@ import lpctools.lpcfymasaapi.configButtons.uniqueConfigs.UniqueDoubleConfig;
 import lpctools.lpcfymasaapi.configButtons.uniqueConfigs.UniqueIntegerConfig;
 import lpctools.lpcfymasaapi.configButtons.uniqueConfigs.Vector3dConfig;
 import lpctools.lpcfymasaapi.interfaces.ILPCValueChangeCallback;
-import net.minecraft.util.math.Vec3d;
+import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.function.Consumer;
@@ -14,11 +14,11 @@ import java.util.function.Consumer;
 import static lpctools.lpcfymasaapi.LPCConfigStatics.*;
 
 public class ThreeBodyDisplay {
-	public static BooleanThirdListConfig threeBody = new BooleanThirdListConfig(DebugConfigs.debugs,
+	public static final BooleanThirdListConfig threeBody = new BooleanThirdListConfig(DebugConfigs.debugs,
 		"threeBody", false, ThreeBodyDisplay::mainCallback);
 	static { listStack.push(threeBody); }
 	private static final ILPCValueChangeCallback dataPackUpdater = consumeRunnerCallback(Runner::updateRandomizeDataPack);
-	public static final Vector3dConfig massCenter = addConfigEx(l->new Vector3dConfig(l, "massCenter", new Vec3d(0, 0, 0), null));
+	public static final Vector3dConfig massCenter = addConfigEx(l->new Vector3dConfig(l, "massCenter", new Vec3(0, 0, 0), null));
 	public static final UniqueIntegerConfig renderTrackCount = addConfigEx(l->new UniqueIntegerConfig(l, "renderTrackCount", 1200, 0, 65536, consumeRunnerCallback(Runner::updateTracks)));
 	public static final UniqueDoubleConfig maxTrackSpeed = addConfigEx(l->new UniqueDoubleConfig(l, "maxTrackSpeed", 60, 0, Double.MAX_VALUE, dataPackUpdater));
 	public static final UniqueDoubleConfig distanceLimit = addConfigEx(l->new UniqueDoubleConfig(l, "distanceLimit", 16, 0, Double.MAX_VALUE, dataPackUpdater));

@@ -4,7 +4,8 @@ import lpctools.lpcfymasaapi.configButtons.transferredConfigs.DoubleConfig;
 import lpctools.lpcfymasaapi.configButtons.transferredConfigs.IntegerConfig;
 import lpctools.lpcfymasaapi.configButtons.uniqueConfigs.BooleanHotkeyThirdListConfig;
 import lpctools.tools.ToolConfigs;
-import net.minecraft.client.gui.screen.multiplayer.ConnectScreen;
+import net.minecraft.client.gui.screens.ConnectScreen;
+import net.minecraft.client.gui.screens.TitleScreen;
 
 import java.util.Timer;
 import java.util.TimerTask;
@@ -20,9 +21,7 @@ public class AutoReconnect {
     public static final DoubleConfig delayExpFactor = addDoubleConfig("delayExpFactor", 1.6180339887, 1, 10);
     public static final IntegerConfig maxAttemptTimes = addIntegerConfig("maxAttemptTimes", -1, -1, Integer.MAX_VALUE);
     static {listStack.pop();}
-    public static void resetAttemptTimes(){
-        attemptTimes = 0;
-    }
+    public static void resetAttemptTimes(){ attemptTimes = 0; }
     public static void cancelReconnect(){
         if(reconnectTask != null){
             reconnectTask.cancel();
@@ -34,7 +33,7 @@ public class AutoReconnect {
         reconnectTask = new Timer();
         reconnectTask.schedule(new TimerTask() {
             @Override public void run() {
-                serverData.mc().send(()->ConnectScreen.connect(null, serverData.mc(), serverData.address(), serverData.info(), serverData.quickPlay(), serverData.cookieStorage()));
+                serverData.mc().schedule(()->ConnectScreen.startConnecting(new TitleScreen(), serverData.mc(), serverData.address(), serverData.info(), serverData.quickPlay(), serverData.cookieStorage()));
             }
         }, (long)(seconds * 1000));
     }

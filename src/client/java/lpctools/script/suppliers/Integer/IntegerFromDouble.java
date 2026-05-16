@@ -5,12 +5,12 @@ import lpctools.script.IScriptWithSubScript;
 import lpctools.script.runtimeInterfaces.ScriptIntegerSupplier;
 import lpctools.script.suppliers.AbstractOperatorResultSupplier;
 import lpctools.util.operatorUtils.Operators;
-import net.minecraft.text.Text;
+import net.minecraft.network.chat.Component;
 import org.jetbrains.annotations.NotNull;
 
 public class IntegerFromDouble extends AbstractOperatorResultSupplier<Operators.Double2IntFunction> implements IIntegerSupplier {
 	protected final SupplierStorage<Double> _double = ofStorage(Double.class,
-		Text.translatable("lpctools.script.suppliers.integer.integerFromDouble.subSuppliers.double.name"), "double");
+		Component.translatable("lpctools.script.suppliers.integer.integerFromDouble.subSuppliers.double.name"), "double");
 	protected final SupplierStorage<?>[] subSuppliers = ofStorages(_double);
 	
 	public IntegerFromDouble(IScriptWithSubScript parent) {super(parent, Operators.FLOOR, Operators.double2IntFunctionInfo, 0);}

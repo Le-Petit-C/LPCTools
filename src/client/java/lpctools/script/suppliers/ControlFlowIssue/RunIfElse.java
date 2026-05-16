@@ -5,7 +5,7 @@ import com.google.gson.JsonObject;
 import lpctools.script.*;
 import lpctools.script.runtimeInterfaces.ScriptNotNullSupplier;
 import lpctools.script.suppliers.Boolean.And;
-import net.minecraft.text.Text;
+import net.minecraft.network.chat.Component;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -14,9 +14,9 @@ import java.util.List;
 import static lpctools.lpcfymasaapi.LPCConfigUtils.warnFailedLoadingConfig;
 
 public class RunIfElse extends AbstractScriptWithSubScript implements IControlFlowIssueSupplier {
-	protected final And condition = new And(this, Text.translatable("lpctools.script.suppliers.controlFlowIssue.runIfElse.condition.name"));
-	protected final RunMultiple ifTrue = new RunMultiple(this, Text.translatable("lpctools.script.suppliers.controlFlowIssue.runIfElse.ifTrue.name"));
-	protected final RunMultiple ifFalse = new RunMultiple(this, Text.translatable("lpctools.script.suppliers.controlFlowIssue.runIfElse.ifFalse.name"));
+	protected final And condition = new And(this, Component.translatable("lpctools.script.suppliers.controlFlowIssue.runIfElse.condition.name"));
+	protected final RunMultiple ifTrue = new RunMultiple(this, Component.translatable("lpctools.script.suppliers.controlFlowIssue.runIfElse.ifTrue.name"));
+	protected final RunMultiple ifFalse = new RunMultiple(this, Component.translatable("lpctools.script.suppliers.controlFlowIssue.runIfElse.ifFalse.name"));
 	public static final String conditionJsonKey = "condition";
 	public static final String ifTrueJsonKey = "ifTrue";
 	public static final String ifFalseJsonKey = "ifFalse";

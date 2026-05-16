@@ -9,22 +9,23 @@ import lpctools.generic.GenericUtils;
 import lpctools.lpcfymasaapi.Registries;
 import lpctools.lpcfymasaapi.render.translucentShapes.ShapeReference;
 import lpctools.util.AlgorithmUtils;
+import lpctools.util.DataUtils;
 import lpctools.util.LPCMathHelper;
 import lpctools.util.Packed;
 import lpctools.util.javaex.QuietAutoCloseable;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientWorldEvents;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.Blocks;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.world.ClientWorld;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.MathHelper;
-import net.minecraft.util.math.Vec3d;
-import net.minecraft.world.World;
-import net.minecraft.world.chunk.Chunk;
-import net.minecraft.world.chunk.ChunkStatus;
-import net.minecraft.world.chunk.WorldChunk;
-import net.minecraft.world.chunk.light.LightingProvider;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.multiplayer.ClientLevel;
+import net.minecraft.core.BlockPos;
+import net.minecraft.util.Mth;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.chunk.ChunkAccess;
+import net.minecraft.world.level.chunk.LevelChunk;
+import net.minecraft.world.level.chunk.status.ChunkStatus;
+import net.minecraft.world.level.lighting.LevelLightEngine;
+import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jspecify.annotations.NonNull;
@@ -37,13 +38,14 @@ import java.util.function.Supplier;
 
 import static lpctools.tools.ToolUtils.clearMapDataOutOfRange;
 
-public class DataInstance implements AutoCloseable, Registries.ClientWorldChunkLightUpdated, Registries.WorldLastRender, Registries.ClientWorldChunkSetBlockState, GenericRegistry.SpawnConditionChanged, ClientWorldEvents.AfterClientWorldChange {
+public class DataInstance implements AutoCloseable, Registries.ClientWorldChunkLightUpdated, Registries.BetweenRenderFrames, Registries.ClientWorldChunkSetBlockState, GenericRegistry.SpawnConditionChanged, ClientWorldEvents.AfterClientWorldChange {
+    
     private record DelayedTask(long packedChunkPos, Supplier<RunningTask> task){}
     private record RunningTask(long packedChunkPos, CompletableFuture<TaskResult> task){}
     private record TaskResult(long packedChunkPos, ArrayList<BlockPos> result){}
     
     public final Long2ObjectOpenHashMap<HashMap<BlockPos, ShapeReference>> canSpawnPoses = new Long2ObjectOpenHashMap<>();
-    public final @NotNull MinecraftClient client;
+    public final @NotNull Minecraft client;
     
     private final ArrayList<RunningTask> runningTasks = new ArrayList<>();
     private final ArrayList<DelayedTask> delayedTasks = new ArrayList<>();
@@ -58,7 +60,7 @@ public class DataInstance implements AutoCloseable, Registries.ClientWorldChunkL
     
     protected void registerAll(boolean b){
         Registries.CLIENT_CHUNK_LIGHT_LOAD.register(this, b);
-        Registries.MASA_WORLD_RENDER_LAST.register(this, b);
+        Registries.BETWEEN_RENDER_FRAMES.register(this, b);
         Registries.CLIENT_WORLD_CHUNK_SET_BLOCK_STATE.register(this, b);
         Registries.AFTER_CLIENT_WORLD_CHANGE.register(this, b);
         GenericRegistry.SPAWN_CONDITION_CHANGED.register(this, b);
@@ -94,16 +96,16 @@ public class DataInstance implements AutoCloseable, Registries.ClientWorldChunkL
     }
     void updateRenderRange(){ setRenderRange(CanSpawnDisplay.rangeLimit.buildShapeList()); }
     
-    DataInstance(@NotNull MinecraftClient client){
+    DataInstance(@NotNull Minecraft client){
         this.client = client;
         registerAll(true);
         updateRenderMethod();
         updateRenderColor();
         updateRenderRange();
         updateRenderXRays();
-        if(client.world == null || client.player == null) return;
-        Vec3d playerPos = client.player.getEntityPos();
-        resetData(client.world, playerPos);
+        if(client.level == null || client.player == null) return;
+        Vec3 playerPos = client.player.position();
+        resetData(client.level, playerPos);
     }
     
     public void clearData(){
@@ -112,42 +114,45 @@ public class DataInstance implements AutoCloseable, Registries.ClientWorldChunkL
         canSpawnPoses.values().forEach(c->c.values().forEach(QuietAutoCloseable::closeIfNotNull));
         canSpawnPoses.clear();
     }
-    private void addDelayedTask(Chunk chunk, LightingProvider light){
+    private void addDelayedTask(ChunkAccess chunk, LevelLightEngine light){
         long packedChunkPos = chunk.getPos().toLong();
         delayedTasks.add(new DelayedTask(packedChunkPos, ()->testChunkAsync(chunk, light, packedChunkPos)));
     }
-    public void resetData(@NotNull World world, @NotNull Vec3d playerPos){
-        for(Chunk chunk : AlgorithmUtils.iterateLoadedChunksFromClosest(world, playerPos))
-            addDelayedTask(chunk, world.getLightingProvider());
+    public void resetData(@NotNull Level world, @NotNull Vec3 playerPos){
+        for(ChunkAccess chunk : AlgorithmUtils.iterateLoadedChunksFromClosest(world, playerPos))
+            addDelayedTask(chunk, world.getLightEngine());
     }
-    @Override public void onClientWorldChunkLightUpdated(@NotNull ClientWorld world, @NotNull WorldChunk chunk) {
-        addDelayedTask(chunk, world.getLightingProvider());
+    @Override public void onClientWorldChunkLightUpdated(@NotNull ClientLevel world, @NotNull LevelChunk chunk) {
+        addDelayedTask(chunk, world.getLightEngine());
     }
     @Override public void close() {
         clearData();
         registerAll(false);
     }
-    @Override public void onLast(Registries.MASAWorldRenderContext context) {
-        updateCounter = GenericConfigs.updateLimitPerFrame.getAsInt() + Math.min(updateCounter, 0);
-        
-        double squaredDistanceLimit = MathHelper.square((double)MinecraftClient.getInstance().options.getViewDistance().getValue() * 2);
-        var camPos = context.camera().getCameraPos();
-        double chunkedCamX = camPos.x / 16 - 0.5, chunkedCamZ = camPos.z / 16 - 0.5;
-        
+    
+    void clearDataOutOfRange(double chunkedX, double chunkedZ, double radius){
+        double radiusSquared = radius * radius;
         // 先清理超出范围的delayedTask
         AlgorithmUtils.fastRemove(delayedTasks, task->{
             double squaredDistance = LPCMathHelper.squaredLength(
-                Packed.ChunkPos.unpackX(task.packedChunkPos) - chunkedCamX
-                , Packed.ChunkPos.unpackZ(task.packedChunkPos) - chunkedCamZ);
-            return squaredDistance > squaredDistanceLimit;
+                Packed.ChunkPos.unpackX(task.packedChunkPos) - chunkedX
+                , Packed.ChunkPos.unpackZ(task.packedChunkPos) - chunkedZ);
+            return squaredDistance > radiusSquared;
         });
         
-        clearMapDataOutOfRange(chunkedCamX, chunkedCamZ, squaredDistanceLimit, canSpawnPoses, HashMap::isEmpty, data->data.values().forEach(QuietAutoCloseable::closeIfNotNull));
+        clearMapDataOutOfRange(chunkedX, chunkedZ, radiusSquared, canSpawnPoses, HashMap::isEmpty, data->data.values().forEach(QuietAutoCloseable::closeIfNotNull));
         
         runningTasks.sort(Comparator.comparingDouble(task->(
-            MathHelper.square(Packed.ChunkPos.unpackX(task.packedChunkPos) - chunkedCamX)
-                + MathHelper.square(Packed.ChunkPos.unpackZ(task.packedChunkPos) - chunkedCamZ)
+            Mth.square(Packed.ChunkPos.unpackX(task.packedChunkPos) - chunkedX)
+                + Mth.square(Packed.ChunkPos.unpackZ(task.packedChunkPos) - chunkedZ)
         )));
+    }
+    
+    @Override public void betweenFrames() {
+        updateCounter = GenericConfigs.updateLimitPerFrame.getAsInt() + Math.min(updateCounter, 0);
+        
+        DataUtils.executeWithRenderCenterPos(this::clearDataOutOfRange, Minecraft.getInstance().options.renderDistance().get() * 2);
+        
         LongOpenHashSet completedTasks = null;
         if(updateCounter <= 0) return;
         for(var task : runningTasks) {
@@ -170,29 +175,34 @@ public class DataInstance implements AutoCloseable, Registries.ClientWorldChunkL
             AlgorithmUtils.fastRemove(runningTasks, task->finalCompletedTasks.contains(task.packedChunkPos));
         }
         
+        DataUtils.executeWithCameraCenterPos(this::scheduleDelayedTasksToRunningTasks);
+        
+        // if(updateCounter <= 0) return;
+    }
+    
+    void scheduleDelayedTasksToRunningTasks(double chunkedX, double chunkedZ) {
         if(runningTasks.size() < runningTasksLimit){
             delayedTasks.sort(Comparator.comparingDouble(task->-(
-                MathHelper.square(Packed.ChunkPos.unpackX(task.packedChunkPos) - chunkedCamX)
-                + MathHelper.square(Packed.ChunkPos.unpackZ(task.packedChunkPos) - chunkedCamZ)
+                Mth.square(Packed.ChunkPos.unpackX(task.packedChunkPos) - chunkedX)
+                    + Mth.square(Packed.ChunkPos.unpackZ(task.packedChunkPos) - chunkedZ)
             )));
             while (runningTasks.size() < runningTasksLimit && !delayedTasks.isEmpty())
                 runningTasks.add(delayedTasks.removeLast().task.get());
         }
-        // if(updateCounter <= 0) return;
     }
     
     @Override public void onSpawnConditionChanged() {
-        if(client.world != null && client.player != null)
-            resetData(client.world, client.player.getEntityPos());
+        if(client.level != null && client.player != null)
+            resetData(client.level, client.player.position());
     }
-    @Override public void afterWorldChange(@NonNull MinecraftClient minecraftClient, @NonNull ClientWorld clientWorld) {clearData();}
+    @Override public void afterWorldChange(@NonNull Minecraft minecraftClient, @NonNull ClientLevel clientWorld) {clearData();}
     
-    private void tryPutDelayed(World world, int x, int z){
+    private void tryPutDelayed(Level world, int x, int z){
         for(int dz = -1; dz <= 1; ++dz)
             for(int dx = -1; dx <= 1; ++dx)
-                if(!world.isChunkLoaded(x + dx, z + dz)) return;
+                if(!world.hasChunk(x + dx, z + dz)) return;
         long packedChunkPos = Packed.ChunkPos.pack(x, z);
-        Chunk chunk = world.getChunk(x, z, ChunkStatus.FULL, false);
+        ChunkAccess chunk = world.getChunk(x, z, ChunkStatus.FULL, false);
         if(chunk == null) return;
         AlgorithmUtils.fastRemove(runningTasks, task->{
             boolean res = task.packedChunkPos == packedChunkPos;
@@ -200,32 +210,32 @@ public class DataInstance implements AutoCloseable, Registries.ClientWorldChunkL
             return res;
         });
         AlgorithmUtils.fastRemove(delayedTasks, task->task.packedChunkPos == packedChunkPos);
-        var light = world.getLightingProvider();
+        var light = world.getLightEngine();
         delayedTasks.add(new DelayedTask(packedChunkPos, ()->testChunkAsync(chunk, light, packedChunkPos)));
     }
-    @Override public void onClientWorldChunkSetBlockState(WorldChunk chunk, BlockPos pos, @Nullable BlockState lastState, @Nullable BlockState newState) {
+    @Override public void onClientWorldChunkSetBlockState(LevelChunk chunk, BlockPos pos, @Nullable BlockState lastState, @Nullable BlockState newState) {
         if(newState != null && newState.getBlock() == Blocks.WATER) return;
         int x = pos.getX() >> 4, z = pos.getZ() >> 4;
-        World world = chunk.getWorld();
+        Level world = chunk.getLevel();
         for(int dx = -1; dx <= 1; ++dx)
             for(int dz = -1; dz <= 1; ++dz)
                 tryPutDelayed(world, x + dx, z + dz);
     }
     
-    private RunningTask testChunkAsync(@NotNull Chunk chunk, @NotNull LightingProvider lightingProvider, long packedChunkPos){
+    private RunningTask testChunkAsync(@NotNull ChunkAccess chunk, @NotNull LevelLightEngine lightingProvider, long packedChunkPos){
         return new RunningTask(packedChunkPos, GenericUtils.supplyAsync(()->AsyncChunkTest(chunk, lightingProvider, packedChunkPos)));
     }
     
-    private TaskResult AsyncChunkTest(@NotNull Chunk chunk, @NotNull LightingProvider light, long packedChunkPos){
+    private TaskResult AsyncChunkTest(@NotNull ChunkAccess chunk, @NotNull LevelLightEngine light, long packedChunkPos){
         TaskResult result = new TaskResult(packedChunkPos, new ArrayList<>());
         int x = Packed.getBlockCoord(Packed.ChunkPos.unpackX(packedChunkPos));
         int z = Packed.getBlockCoord(Packed.ChunkPos.unpackZ(packedChunkPos));
         Iterable<BlockPos> blockPoses = AlgorithmUtils.iterateInBox(
-            x, chunk.getBottomY(), z,
-            x + 15, chunk.getBottomY() + chunk.getHeight() - 1, z + 15);
+            x, chunk.getMinY(), z,
+            x + 15, chunk.getMinY() + chunk.getHeight() - 1, z + 15);
         for(BlockPos pos1 : blockPoses){
             if(GenericUtils.mayMobSpawnAt(chunk, light, pos1))
-                result.result.add(pos1.toImmutable());
+                result.result.add(pos1.immutable());
         }
         return result;
     }

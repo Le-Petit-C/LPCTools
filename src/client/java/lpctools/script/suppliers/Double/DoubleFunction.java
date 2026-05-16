@@ -5,12 +5,12 @@ import lpctools.script.IScriptWithSubScript;
 import lpctools.script.runtimeInterfaces.ScriptDoubleSupplier;
 import lpctools.script.suppliers.AbstractOperatorResultSupplier;
 import lpctools.util.operatorUtils.Operators;
-import net.minecraft.text.Text;
+import net.minecraft.network.chat.Component;
 import org.jetbrains.annotations.NotNull;
 
 public class DoubleFunction extends AbstractOperatorResultSupplier<Operators.DoubleFunction> implements IDoubleSupplier {
 	protected final SupplierStorage<Double> _double = ofStorage(Double.class,
-		Text.translatable("lpctools.script.suppliers.double.doubleFunction.subSuppliers.double.name"), "double");
+		Component.translatable("lpctools.script.suppliers.double.doubleFunction.subSuppliers.double.name"), "double");
 	protected final SupplierStorage<?>[] subSuppliers = ofStorages(_double);
 	
 	public DoubleFunction(IScriptWithSubScript parent) {super(parent, Operators.NEGATIVE, Operators.doubleFunctionInfo, 0);}

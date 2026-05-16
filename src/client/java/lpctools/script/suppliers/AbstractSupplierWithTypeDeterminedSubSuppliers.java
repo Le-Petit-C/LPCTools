@@ -9,7 +9,7 @@ import lpctools.script.IScriptWithSubScript;
 import lpctools.script.editScreen.ScriptDisplayWidget;
 import lpctools.script.editScreen.WidthAutoAdjustButtonGeneric;
 import lpctools.script.suppliers.Random.Null;
-import net.minecraft.text.Text;
+import net.minecraft.network.chat.Component;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -42,7 +42,7 @@ public abstract class AbstractSupplierWithTypeDeterminedSubSuppliers extends Abs
 		return widgets;
 	}
 	
-	@Override public @Nullable Text getSubScriptNamePrefix(IScript subScript) {
+	@Override public @Nullable Component getSubScriptNamePrefix(IScript subScript) {
 		var entry = storageMap.get(subScript);
 		if(entry != null) return entry.argumentName;
 		else return null;
@@ -85,14 +85,14 @@ public abstract class AbstractSupplierWithTypeDeterminedSubSuppliers extends Abs
 		return res;
 	}
 	
-	protected final <T> SupplierStorage<T> ofStorage(Class<T> clazz, Text argumentName, String jsonKey){
+	protected final <T> SupplierStorage<T> ofStorage(Class<T> clazz, Component argumentName, String jsonKey){
 		return new SupplierStorage<>(clazz, argumentName, jsonKey);
 	}
 	
 	protected class SupplierStorage<T> {
 		private IScriptSupplier<? extends T> supplier;
 		public final Class<T> clazz;
-		public final Text argumentName;
+		public final Component argumentName;
 		public final String jsonKey;
 		public void set(IScriptSupplier<? extends T> supplier){
 			storageMap.remove(this.supplier);
@@ -100,7 +100,7 @@ public abstract class AbstractSupplierWithTypeDeterminedSubSuppliers extends Abs
 			storageMap.put(supplier, this);
 		}
 		public IScriptSupplier<? extends T> get(){return supplier;}
-		public SupplierStorage(Class<T> clazz, Text argumentName, String jsonKey) {
+		public SupplierStorage(Class<T> clazz, Component argumentName, String jsonKey) {
 			this.clazz = clazz;
 			var typeGeneric = ScriptType.getType(clazz).generics().checkType(clazz);
 			if(typeGeneric != null) this.supplier = typeGeneric.allocateDefault(AbstractSupplierWithTypeDeterminedSubSuppliers.this);
