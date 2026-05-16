@@ -11,21 +11,18 @@ import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientChunkEvents;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientLevelEvents;
 import net.fabricmc.fabric.api.client.rendering.v1.level.LevelRenderEvents;
-import net.fabricmc.fabric.api.client.rendering.v1.world.WorldRenderEvents;
 import net.fabricmc.fabric.api.resource.v1.ResourceLoader;
 import net.minecraft.client.Camera;
 import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.render.GuiRenderer;
 import net.minecraft.client.gui.render.pip.PictureInPictureRenderer;
-import net.minecraft.client.gui.render.state.pip.PictureInPictureRenderState;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.input.MouseButtonInfo;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderBuffers;
 import net.minecraft.client.renderer.culling.Frustum;
-import net.minecraft.client.renderer.state.gui.pip.PictureInPictureRenderState;
 import net.minecraft.client.renderer.state.level.CameraRenderState;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
@@ -48,8 +45,8 @@ import java.util.function.Consumer;
 
 @SuppressWarnings("unused")
 public class Registries {
-    public static final UnregistrableRegistry<ClientLevelEvents.AfterClientLevelChange> AFTER_CLIENT_WORLD_CHANGE = new UnregistrableRegistry<>(
-        callbacks->(client, world)->callbacks.forEach(screen->screen.afterLevelChange(client, world)), ClientWorldEvents.AFTER_CLIENT_WORLD_CHANGE);
+    public static final UnregistrableRegistry<ClientLevelEvents.AfterClientLevelChange> AFTER_CLIENT_LEVEL_CHANGE = new UnregistrableRegistry<>(
+        callbacks->(client, world)->callbacks.forEach(screen->screen.afterLevelChange(client, world)), ClientLevelEvents.AFTER_CLIENT_LEVEL_CHANGE);
     public static final UnregistrableRegistry<ScreenChangeCallback> ON_SCREEN_CHANGED = new UnregistrableRegistry<>(
         callbacks->newScreen->callbacks.forEach(screen->screen.onScreenChanged(newScreen)));
     public static final UnregistrableRegistry<ClientTickEvents.StartTick> START_CLIENT_TICK = new UnregistrableRegistry<>(
@@ -63,24 +60,27 @@ public class Registries {
     public static final UnregistrableRegistry<WorldPreMainRender> PRE_MAIN = new UnregistrableRegistry<>(
         callbacks->context->callbacks.forEach(callback->callback.onRenderWorldPreMain(context)));
     public static final UnregistrableRegistry<LevelRenderEvents.AfterBlockOutlineExtraction> AFTER_BLOCK_OUTLINE_EXTRACTION = new UnregistrableRegistry<>(
-        callbacks->(context, result)->callbacks.forEach(callback->callback.afterBlockOutlineExtraction(context, result)), WorldRenderEvents.AFTER_BLOCK_OUTLINE_EXTRACTION);
+        callbacks->(context, result)->callbacks.forEach(callback->callback.afterBlockOutlineExtraction(context, result)), LevelRenderEvents.AFTER_BLOCK_OUTLINE_EXTRACTION);
     public static final UnregistrableRegistry<LevelRenderEvents.EndExtraction> END_EXTRACTION = new UnregistrableRegistry<>(
-        callbacks->(context)->callbacks.forEach(callback->callback.endExtraction(context)), WorldRenderEvents.END_EXTRACTION);
+        callbacks->(context)->callbacks.forEach(callback->callback.endExtraction(context)), LevelRenderEvents.END_EXTRACTION);
     public static final UnregistrableRegistry<LevelRenderEvents.StartMain> START_MAIN = new UnregistrableRegistry<>(
-        callbacks->(context)->callbacks.forEach(callback->callback.startMain(context)), WorldRenderEvents.START_MAIN);
-    public static final UnregistrableRegistry<LevelRenderEvents.BeforeEntities> BEFORE_ENTITIES = new UnregistrableRegistry<>(
-        callbacks->(context)->callbacks.forEach(callback->callback.beforeEntities(context)), WorldRenderEvents.BEFORE_ENTITIES);
-    public static final UnregistrableRegistry<LevelRenderEvents.AfterEntities> AFTER_ENTITIES = new UnregistrableRegistry<>(
-        callbacks->(context)->callbacks.forEach(callback->callback.afterEntities(context)), WorldRenderEvents.AFTER_ENTITIES);
-    public static final UnregistrableRegistry<LevelRenderEvents.DebugRender> BEFORE_DEBUG_RENDER = new UnregistrableRegistry<>(
-        callbacks->(context)->callbacks.forEach(callback->callback.beforeDebugRender(context)), WorldRenderEvents.BEFORE_DEBUG_RENDER);
-    public static final UnregistrableRegistry<LevelRenderEvents.BeforeTranslucent> BEFORE_TRANSLUCENT = new UnregistrableRegistry<>(
-        callbacks->(context)->callbacks.forEach(callback->callback.beforeTranslucent(context)), WorldRenderEvents.BEFORE_TRANSLUCENT);
+        callbacks->(context)->callbacks.forEach(callback->callback.startMain(context)), LevelRenderEvents.START_MAIN);
+    public static final UnregistrableRegistry<LevelRenderEvents.AfterOpaqueTerrain> AFTER_OPAQUE_TERRAIN = new UnregistrableRegistry<>(
+        callbacks->(context)->callbacks.forEach(callback->callback.afterOpaqueTerrain(context)), LevelRenderEvents.AFTER_OPAQUE_TERRAIN);
+    public static final UnregistrableRegistry<LevelRenderEvents.AfterSolidFeatures> AFTER_SOLID_FEATURES = new UnregistrableRegistry<>(
+        callbacks->(context)->callbacks.forEach(callback->callback.afterSolidFeatures(context)), LevelRenderEvents.AFTER_SOLID_FEATURES);
+    public static final UnregistrableRegistry<LevelRenderEvents.AfterTranslucentFeatures> AFTER_TRANSLUCENT_FEATURES = new UnregistrableRegistry<>(
+        callbacks->(context)->callbacks.forEach(callback->callback.afterTranslucentFeatures(context)), LevelRenderEvents.AFTER_TRANSLUCENT_FEATURES);
     public static final UnregistrableRegistry<LevelRenderEvents.BeforeBlockOutline> BEFORE_BLOCK_OUTLINE = new UnregistrableRegistry<>(
-        callbacks->(context, outlineRenderState)->callbacks.andNonCircuit(callback->callback.beforeBlockOutline(context, outlineRenderState)),
-        WorldRenderEvents.BEFORE_BLOCK_OUTLINE);
+        callbacks->(context, outlineRenderState)->callbacks.andNonCircuit(callback->callback.beforeBlockOutline(context, outlineRenderState)), LevelRenderEvents.BEFORE_BLOCK_OUTLINE);
+    public static final UnregistrableRegistry<LevelRenderEvents.BeforeGizmos> BEFORE_GIZMOS = new UnregistrableRegistry<>(
+        callbacks->(context)->callbacks.forEach(callback->callback.beforeGizmos(context)), LevelRenderEvents.BEFORE_GIZMOS);
+    public static final UnregistrableRegistry<LevelRenderEvents.BeforeTranslucentTerrain> BEFORE_TRANSLUCENT_TERRAIN = new UnregistrableRegistry<>(
+        callbacks->(context)->callbacks.forEach(callback->callback.beforeTranslucentTerrain(context)), LevelRenderEvents.BEFORE_TRANSLUCENT_TERRAIN);
+    public static final UnregistrableRegistry<LevelRenderEvents.AfterTranslucentTerrain> AFTER_TRANSLUCENT_TERRAIN = new UnregistrableRegistry<>(
+        callbacks->(context)->callbacks.forEach(callback->callback.afterTranslucentTerrain(context)), LevelRenderEvents.AFTER_TRANSLUCENT_TERRAIN);
     public static final UnregistrableRegistry<LevelRenderEvents.EndMain> END_MAIN = new UnregistrableRegistry<>(
-        callbacks->(context)->callbacks.forEach(callback->callback.endMain(context)), WorldRenderEvents.END_MAIN);
+        callbacks->(context)->callbacks.forEach(callback->callback.endMain(context)), LevelRenderEvents.END_MAIN);
     public static final UnregistrableRegistry<ClientWorldChunkSetBlockState> CLIENT_WORLD_CHUNK_SET_BLOCK_STATE = new UnregistrableRegistry<>(
         callbacks->(chunk, pos, lastState, newState)->callbacks.forEach(screen->screen.onClientWorldChunkSetBlockState(chunk, pos, lastState, newState)));
     public static final UnregistrableRegistry<GameOverlayRender> MASA_RENDER_GAME_OVERLAY = new UnregistrableRegistry<>(
@@ -159,7 +159,7 @@ public class Registries {
     }
     static {
         Identifier lpcRegistryClientResourceReloadCallbackId = Identifier.fromNamespaceAndPath("lpctools", "lpcfymasaapi_reload");
-        ResourceLoader.get(PackType.CLIENT_RESOURCES).registerReloader(lpcRegistryClientResourceReloadCallbackId,
+        ResourceLoader.get(PackType.CLIENT_RESOURCES).registerReloadListener(lpcRegistryClientResourceReloadCallbackId,
             (ResourceManagerReloadListener) manager -> CLIENT_RESOURCE_RELOAD.runner().onResourceReload(manager));
     }
     

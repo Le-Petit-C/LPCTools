@@ -96,7 +96,7 @@ public class PlaceBlockTick implements ClientTickEvents.EndTick, Registries.InGa
 
     private boolean put(BlockPos blockPos, HandRestock.IRestockTest restockTest){
         Minecraft client = Minecraft.getInstance();
-        if(client.gameMode == null) return false;
+        if(client.gameMode == null || client.player == null) return false;
         limitPlaceSpeedConfig.limitWithRestock(restockTest, offhandFillingConfig.getAsBoolean() ? -1 : 0);
         BlockHitResult hit = new BlockHitResult(blockPos.getCenter(), Direction.UP, blockPos.mutable(), false);
         return client.gameMode.useItemOn(

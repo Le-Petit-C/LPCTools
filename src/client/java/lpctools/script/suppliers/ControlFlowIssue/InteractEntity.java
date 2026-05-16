@@ -8,6 +8,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.phys.EntityHitResult;
 import org.jetbrains.annotations.NotNull;
 
 public class InteractEntity extends AbstractSupplierWithTypeDeterminedSubSuppliers implements IControlFlowIssueSupplier {
@@ -30,7 +31,9 @@ public class InteractEntity extends AbstractSupplierWithTypeDeterminedSubSupplie
 			var itm = mc.gameMode;
 			var player = mc.player;
 			if(itm == null || player == null) return ControlFlowIssue.NO_ISSUE;
-			itm.interact(player, compiledEntitySupplier.scriptApply(map), compiledUseOffhandSupplier.scriptApply(map) ? InteractionHand.OFF_HAND : InteractionHand.MAIN_HAND);
+			Entity e = compiledEntitySupplier.scriptApply(map);
+			EntityHitResult entityHitResult = new EntityHitResult(e);
+			itm.interact(player, e, entityHitResult, compiledUseOffhandSupplier.scriptApply(map) ? InteractionHand.OFF_HAND : InteractionHand.MAIN_HAND);
 			return ControlFlowIssue.NO_ISSUE;
 		};
 	}

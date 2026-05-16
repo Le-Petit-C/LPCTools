@@ -2,6 +2,8 @@ package lpctools.mixin.client;
 
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
+import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.world.inventory.ContainerInput;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
@@ -16,18 +18,17 @@ import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.core.Holder;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Inventory;
-import net.minecraft.world.inventory.ClickType;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.item.enchantment.ItemEnchantments;
 
-@Mixin(GrindstoneScreen.class)
+@Mixin(Minecraft.class)
 public class AutoGrindstone {
-    @Inject(method = "render", at = @At("HEAD"), cancellable = true)
-    void mixinScreenRender(CallbackInfo ci){
+    @Inject(method = "setScreen", at = @At("RETURN"))
+    void mixinScreenRender(Screen screen, CallbackInfo ci){
+        if(!(screen instanceof GrindstoneScreen)) return;
         if(!lpctools.tools.autoGrindstone.AutoGrindstone.AGConfig.getBooleanValue()) return;
-        ci.cancel();
         Minecraft client = Minecraft.getInstance();
         LocalPlayer player = client.player;
         MultiPlayerGameMode itm = client.gameMode;
@@ -81,13 +82,13 @@ public class AutoGrindstone {
             }
             if(canErase){
                 int slot = n < 9 ? n + 30 : n - 6;
-                itm.handleInventoryMouseClick(player.containerMenu.containerId, slot, 0, ClickType.QUICK_MOVE, player);
-                itm.handleInventoryMouseClick(player.containerMenu.containerId, 2, 0, ClickType.THROW, player);
+                itm.handleContainerInput(player.containerMenu.containerId, slot, 0, ContainerInput.QUICK_MOVE, player);
+                itm.handleContainerInput(player.containerMenu.containerId, 2, 0, ContainerInput.THROW, player);
             }
         }
         client.setScreen(null);
     }
     @Unique private static void warnInvalidEnchantment(String key, LocalPlayer player){
-        player.displayClientMessage(Component.nullToEmpty(String.format("§eInvalid enchantment string: %s", key)), false);
+        player.sendSystemMessage(Component.nullToEmpty(String.format("§eInvalid enchantment string: %s", key)));
     }
 }

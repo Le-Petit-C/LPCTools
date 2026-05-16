@@ -10,10 +10,11 @@ import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import lpctools.mixinInterfaces.MASAMixins.IButtonGenericMixin;
 import lpctools.script.IScriptWithSubScript;
 import lpctools.script.ScriptConfigs;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.AbstractWidget;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jspecify.annotations.NonNull;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -98,7 +99,7 @@ public class ScriptWithSubScriptDisplayWidget extends ScriptDisplayWidget{
 		updateIcon();
 	}
 	
-	public void renderExpandGuidelines(GuiGraphics context){
+	public void renderExpandGuidelines(GuiGraphicsExtractor context){
 		tryUpdate();
 		if(extended && !subWidgets.isEmpty()){
 			int thickness = ScriptConfigs.guidelineThickness.getIntegerValue();
@@ -120,9 +121,9 @@ public class ScriptWithSubScriptDisplayWidget extends ScriptDisplayWidget{
 		}
 	}
 	
-	@Override public void renderWidget(GuiGraphics context, int mouseX, int mouseY, float deltaTicks) {
+	@Override public void extractWidgetRenderState(@NonNull GuiGraphicsExtractor context, int mouseX, int mouseY, float deltaTicks) {
 		tryUpdate();
-		super.renderWidget(context, mouseX, mouseY, deltaTicks);
+		super.extractWidgetRenderState(context, mouseX, mouseY, deltaTicks);
 		expandButton.render(GuiContext.fromGuiGraphics(context), mouseX, mouseY, expandButton.isMouseOver(mouseX, mouseY));
 		renderExpandGuidelines(context);
 	}

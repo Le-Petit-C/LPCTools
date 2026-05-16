@@ -404,8 +404,8 @@ public class DataUtils {
         double chunkedX, chunkedZ, radius;
         if(mc.level instanceof ClientLevel world) {
             ChunkPos worldCenterChunkPos = getCenterChunkPos(world);
-            chunkedX = (worldCenterChunkPos.x + chunkedCamX) * 0.5;
-            chunkedZ = (worldCenterChunkPos.z + chunkedCamZ) * 0.5;
+            chunkedX = (worldCenterChunkPos.x() + chunkedCamX) * 0.5;
+            chunkedZ = (worldCenterChunkPos.z() + chunkedCamZ) * 0.5;
             double XOffset = chunkedX - chunkedCamX;
             double ZOffset = chunkedZ - chunkedCamZ;
             radius = Math.sqrt(XOffset * XOffset + ZOffset * ZOffset) + expandRadius;

@@ -40,7 +40,7 @@ public class MathUtils {
     }
     @Contract(pure = true)
     public static double squaredDistance(Vec3 pos, ChunkPos chunkPos){
-        return Mth.square(chunkPos.x * 16 + 8.0 - pos.x) + Mth.square(chunkPos.z * 16 + 8.0 - pos.z);
+        return Mth.square(chunkPos.x() * 16 + 8.0 - pos.x) + Mth.square(chunkPos.z() * 16 + 8.0 - pos.z);
     }
     @Contract(pure = true)
     public static Vector3i getSubChunkPos(BlockPos pos){

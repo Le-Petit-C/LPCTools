@@ -5,6 +5,7 @@ import fi.dy.masa.malilib.gui.GuiBase;
 import fi.dy.masa.malilib.gui.GuiTextFieldGeneric;
 import fi.dy.masa.malilib.gui.button.ButtonBase;
 import fi.dy.masa.malilib.gui.button.ButtonGeneric;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import org.apache.commons.lang3.mutable.MutableInt;
 import org.jetbrains.annotations.NotNull;
 
@@ -12,9 +13,9 @@ import java.util.Map;
 import java.util.function.Supplier;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
-import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
+import org.jspecify.annotations.NonNull;
 
 import static lpctools.lpcfymasaapi.LPCConfigUtils.calculateTextButtonWidth;
 
@@ -140,12 +141,12 @@ public class ChooseScreen extends GuiBase {
 		int w = calculateTextButtonWidth(text, textRenderer, 20);
 		return new ButtonGeneric(centerX - w / 2, centerY - buttonHeight / 2, w, buttonHeight, text);
 	}
-	private void renderChooseParents(GuiGraphics drawContext, int mouseX, int mouseY, float partialTicks){
+	private void renderChooseParents(GuiGraphicsExtractor drawContext, int mouseX, int mouseY, float partialTicks){
 		if(chooseParent != null) chooseParent.renderChooseParents(drawContext, 0, 0, partialTicks);
-		super.render(drawContext, mouseX, mouseY, partialTicks);
+		super.extractRenderState(drawContext, mouseX, mouseY, partialTicks);
 	}
-	@Override public void render(GuiGraphics drawContext, int mouseX, int mouseY, float partialTicks) {
-		if (this.getParent() != null) this.getParent().render(drawContext, 0, 0, partialTicks);
+	@Override public void extractRenderState(@NonNull GuiGraphicsExtractor drawContext, int mouseX, int mouseY, float partialTicks) {
+		if (this.getParent() != null) this.getParent().extractRenderState(drawContext, 0, 0, partialTicks);
 		renderChooseParents(drawContext, mouseX, mouseY, partialTicks);
 	}
 	@Override public boolean isPauseScreen() {

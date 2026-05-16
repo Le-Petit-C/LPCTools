@@ -5,6 +5,7 @@ import lpctools.mixin.client.accessors.TextFieldWidgetAccessor;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.input.MouseButtonEvent;
 import org.jetbrains.annotations.Nullable;
+import org.jspecify.annotations.NonNull;
 
 import java.util.function.Consumer;
 
@@ -31,7 +32,7 @@ public class WidthAutoAdjustTextField extends GuiTextFieldGeneric{
 			callback.accept(getValue());
 		lastText = getValue();
 	}
-	@Override public void insertText(String text) {
+	@Override public void insertText(@NonNull String text) {
 		super.insertText(text);
 		recalculateWidth(getValue());
 	}
@@ -41,7 +42,7 @@ public class WidthAutoAdjustTextField extends GuiTextFieldGeneric{
 		recalculateWidth(getValue());
 	}
 	
-	@Override public void setValue(String text) {
+	@Override public void setValue(@NonNull String text) {
 		recalculateWidth(text);
 		super.setValue(text);
 		recalculateWidth(getValue());

@@ -1,29 +1,37 @@
 package lpctools.mixin.client.utils;
 
-import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
 import com.llamalad7.mixinextras.injector.ModifyReceiver;
 import com.mojang.blaze3d.vertex.PoseStack;
+import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.renderer.GameRenderer;
+import net.minecraft.client.renderer.state.GameRenderState;
 import org.joml.Matrix4f;
 import org.joml.Quaternionf;
 import org.joml.Vector3fc;
+import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.ModifyArg;
 import org.spongepowered.asm.mixin.injection.ModifyArgs;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.invoke.arg.Args;
 
 import static lpctools.lpcfymasaapi.render.translucentShapes.RenderInstance.*;
 
 @Mixin(GameRenderer.class)
 public class RenderInstance {
-	@ModifyExpressionValue(method = "renderLevel", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/GameRenderer;getProjectionMatrix(F)Lorg/joml/Matrix4f;"))
-	Matrix4f recordBasicProjectionMatrix(Matrix4f original) {
-		worldBasicProjectionMatrix.set(original);
-		return original;
+	@Shadow
+	@Final
+	private GameRenderState gameRenderState;
+	
+	@Inject(method = "renderLevel", at = @At(value = "HEAD"))
+	void recordBasicProjectionMatrix(DeltaTracker deltaTracker, CallbackInfo ci) {
+		worldBasicProjectionMatrix.set(gameRenderState.levelRenderState.cameraRenderState.projectionMatrix);
 	}
-	@ModifyArg(method = "renderLevel", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/PerspectiveProjectionMatrixBuffer;getBuffer(Lorg/joml/Matrix4f;)Lcom/mojang/blaze3d/buffers/GpuBufferSlice;"))
+	@ModifyArg(method = "renderLevel", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/ProjectionMatrixBuffer;getBuffer(Lorg/joml/Matrix4f;)Lcom/mojang/blaze3d/buffers/GpuBufferSlice;"))
 	Matrix4f recordWorldProjectionMatrix(Matrix4f projectionMatrix) {
 		worldProjectionMatrix.set(projectionMatrix);
 		return projectionMatrix;

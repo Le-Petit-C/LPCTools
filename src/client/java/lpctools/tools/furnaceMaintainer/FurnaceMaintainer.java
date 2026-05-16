@@ -12,7 +12,7 @@ import net.minecraft.client.gui.screens.inventory.HopperScreen;
 import net.minecraft.client.multiplayer.MultiPlayerGameMode;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.network.chat.Component;
-import net.minecraft.world.inventory.ClickType;
+import net.minecraft.world.inventory.ContainerInput;
 
 import static lpctools.lpcfymasaapi.LPCConfigStatics.*;
 import static lpctools.tools.furnaceMaintainer.FurnaceMaintainerData.*;
@@ -72,11 +72,11 @@ public class FurnaceMaintainer {
         // DataUtils.clientMessage(String.valueOf(player.currentScreenHandler.syncId), false);
         boolean operated;
         if(screen instanceof AbstractFurnaceScreen<?> screen1) {
-            itm.handleInventoryMouseClick(screen1.getMenu().containerId, 0, 0, ClickType.QUICK_MOVE, player);
+            itm.handleContainerInput(screen1.getMenu().containerId, 0, 0, ContainerInput.QUICK_MOVE, player);
             operated = true;
         }
         else if(screen instanceof HopperScreen screen1) {
-            for(int i = 0; i < 5; ++i) itm.handleInventoryMouseClick(screen1.getMenu().containerId, i, 0, ClickType.QUICK_MOVE, player);
+            for(int i = 0; i < 5; ++i) itm.handleContainerInput(screen1.getMenu().containerId, i, 0, ContainerInput.QUICK_MOVE, player);
             operated = true;
         }
         else operated = false;

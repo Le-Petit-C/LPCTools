@@ -11,7 +11,7 @@ import lpctools.lpcfymasaapi.render.translucentShapes.ShapeReference;
 import lpctools.lpcfymasaapi.render.translucentShapes.ShapeRegister;
 import lpctools.util.DataUtils;
 import lpctools.util.Packed;
-import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientWorldEvents;
+import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientLevelEvents;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.core.BlockPos;
@@ -24,7 +24,7 @@ import org.jspecify.annotations.NonNull;
 
 import static lpctools.tools.ToolUtils.*;
 
-public class BlockOuterEdgeHighlightInstance implements AutoCloseable, ClientWorldEvents.AfterClientWorldChange, Registries.BetweenRenderFrames {
+public class BlockOuterEdgeHighlightInstance implements AutoCloseable, ClientLevelEvents.AfterClientLevelChange, Registries.BetweenRenderFrames {
     private final ChunkedTaskInstance taskInstance = new ChunkedTaskInstance(-2);
     
     // 为方便清理操作，给markedPoses分块，区块坐标->区块local坐标->颜色
@@ -125,7 +125,7 @@ public class BlockOuterEdgeHighlightInstance implements AutoCloseable, ClientWor
         taskInstance.close();
     }
     
-    @Override public void afterWorldChange(@NonNull Minecraft mc, @NonNull ClientLevel world) {clearData();}
+    @Override public void afterLevelChange(@NonNull Minecraft mc, @NonNull ClientLevel world) {clearData();}
     
     @Override public void betweenFrames() {
         var camPos = Minecraft.getInstance().gameRenderer.getMainCamera().position();
@@ -260,7 +260,7 @@ public class BlockOuterEdgeHighlightInstance implements AutoCloseable, ClientWor
     }
     
     void registerAll(boolean b){
-        Registries.AFTER_CLIENT_WORLD_CHANGE.register(this, b);
+        Registries.AFTER_CLIENT_LEVEL_CHANGE.register(this, b);
         Registries.BETWEEN_RENDER_FRAMES.register(this, b);
     }
     

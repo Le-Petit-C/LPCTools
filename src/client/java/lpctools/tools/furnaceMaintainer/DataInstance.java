@@ -58,7 +58,7 @@ public class DataInstance implements QuietAutoCloseable, Registries.ClientWorldC
 		ClientLevel world = Minecraft.getInstance().level;
 		if(world == null) return;
 		for(var chunk : DataUtils.loadedChunks(world)) {
-			long packedChunkPos = chunk.getPos().toLong();
+			long packedChunkPos = chunk.getPos().pack();
 			detectTasks.scheduleTask(packedChunkPos, callback->callback.task = ()->{
 				var res = detectFurnace(chunk, includesHopperAbove);
 				return ()->{

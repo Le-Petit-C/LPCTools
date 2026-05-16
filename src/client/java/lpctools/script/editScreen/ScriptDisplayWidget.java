@@ -7,7 +7,7 @@ import fi.dy.masa.malilib.gui.widgets.WidgetBase;
 import fi.dy.masa.malilib.gui.wrappers.TextFieldWrapper;
 import fi.dy.masa.malilib.render.GuiContext;
 import lpctools.script.IScript;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.layouts.LayoutElement;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
@@ -15,6 +15,7 @@ import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.network.chat.Component;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jspecify.annotations.NonNull;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -54,7 +55,7 @@ public class ScriptDisplayWidget extends AbstractWidget{
 	}
 	
 	/* 成员方法 */
-	@Override public boolean mouseClicked(MouseButtonEvent click, boolean doubleClick) {
+	@Override public boolean mouseClicked(@NonNull MouseButtonEvent click, boolean doubleClick) {
 		for(var widget : getAllWidgets()){
 			if(widget.isMouseOver(click.x(), click.y())){
 				var res = widget.mouseClicked(click, doubleClick);
@@ -64,7 +65,7 @@ public class ScriptDisplayWidget extends AbstractWidget{
 		return false;
 	}
 	
-	@Override public boolean mouseReleased(MouseButtonEvent click) {
+	@Override public boolean mouseReleased(@NonNull MouseButtonEvent click) {
 		for(var widget : getAllWidgets()){
 			if(widget.isMouseOver(click.x(), click.y())){
 				var res = widget.mouseReleased(click);
@@ -74,7 +75,7 @@ public class ScriptDisplayWidget extends AbstractWidget{
 		return false;
 	}
 	
-	@Override public boolean mouseDragged(MouseButtonEvent click, double offsetX, double offsetY) {
+	@Override public boolean mouseDragged(@NonNull MouseButtonEvent click, double offsetX, double offsetY) {
 		for(var widget : getAllWidgets()){
 			if(widget.isMouseOver(click.x(), click.y())){
 				var res = widget.mouseDragged(click, offsetX, offsetY);
@@ -188,7 +189,7 @@ public class ScriptDisplayWidget extends AbstractWidget{
 	}
 	
 	//渲染时并不渲染所有而是只渲染自己这一行，应当由ScriptEditScreen来决定具体渲染哪些行
-	@Override public void renderWidget(GuiGraphics context, int mouseX, int mouseY, float deltaTicks) {
+	@Override public void extractWidgetRenderState(@NonNull GuiGraphicsExtractor context, int mouseX, int mouseY, float deltaTicks) {
 		updateDisplayWidgets();
 		if (nameButton != null) {
 			boolean isOver = nameButton.isMouseOver(mouseX, mouseY);
@@ -197,7 +198,7 @@ public class ScriptDisplayWidget extends AbstractWidget{
 				editScreen.setHover(nameButton, mouseX, mouseY, context.pose());
 		}
 		for (var widget : widgets) {
-			widget.render(context, mouseX, mouseY, deltaTicks);
+			widget.extractRenderState(context, mouseX, mouseY, deltaTicks);
 			if(widget.isMouseOver(mouseX, mouseY) && widget instanceof HoveredClickableWidget hoveredClickableWidget)
 				editScreen.setHover(hoveredClickableWidget, mouseX, mouseY, context.pose());
 		}
@@ -213,7 +214,7 @@ public class ScriptDisplayWidget extends AbstractWidget{
 		return line == 0 ? this : null;
 	}
 	
-	@Override protected void updateWidgetNarration(NarrationElementOutput builder) {}
+	@Override protected void updateWidgetNarration(@NonNull NarrationElementOutput builder) {}
 	
 	/* 静态函数 */
 	

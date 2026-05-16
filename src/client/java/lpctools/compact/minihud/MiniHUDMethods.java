@@ -44,7 +44,7 @@ public class MiniHUDMethods{
             else return false;
         }
         ShapeSphereTester(ShapeSphereBlocky sphere){
-            this(sphere.getEffectiveCenter(), sphere.getSquaredRadius());
+            this(sphere.getEffectiveCenter().toVanilla(), sphere.getSquaredRadius());
         }
     }
     private record ShapeCircleTester(Vec3 effectiveCenter, double squaredRadius, int height) implements SimpleTestableShape.ShapeTester {
@@ -59,7 +59,7 @@ public class MiniHUDMethods{
             else return false;
         }
         ShapeCircleTester(ShapeCircle circle){
-            this(circle.getEffectiveCenter(), circle.getSquaredRadius(), circle.getHeight());
+            this(circle.getEffectiveCenter().toVanilla(), circle.getSquaredRadius(), circle.getHeight());
         }
     }
 }

@@ -40,7 +40,7 @@ public class ScriptsConfig extends ConfigListConfig<ScriptConfig> {
 			}, null);
 		setRemoveCallback(config->{
 			existScript.remove(config.script.getId());
-			try { Files.delete(FileUtils.getConfigDirectoryAsPath().resolve(scriptDirectoryName).resolve(config.script.getId() + ".json"));
+			try { Files.delete(FileUtils.getConfigDirectory().resolve(scriptDirectoryName).resolve(config.script.getId() + ".json"));
 			} catch (IOException ignored) {}
 		});
 	}
@@ -50,7 +50,7 @@ public class ScriptsConfig extends ConfigListConfig<ScriptConfig> {
 	}
 	
 	public static void saveScript(ScriptConfig script){
-		Path scriptDirectoryPath = FileUtils.getConfigDirectoryAsPath().resolve(scriptDirectoryName);
+		Path scriptDirectoryPath = FileUtils.getConfigDirectory().resolve(scriptDirectoryName);
 		if(!FileUtils.createDirectoriesIfMissing(scriptDirectoryPath)) return;
 		Path scriptPath = scriptDirectoryPath.resolve(script.script.getId() + ".json");
 		JsonUtils.writeJsonToFile(script.getAsJsonElement(), scriptPath);
@@ -92,7 +92,7 @@ public class ScriptsConfig extends ConfigListConfig<ScriptConfig> {
 	//加载特定id的script
 	void loadScript(String scriptId){
 		if(existScript.contains(scriptId)) return;
-		Path scriptPath = FileUtils.getConfigDirectoryAsPath().resolve(scriptDirectoryName).resolve(scriptId + ".json");
+		Path scriptPath = FileUtils.getConfigDirectory().resolve(scriptDirectoryName).resolve(scriptId + ".json");
 		JsonElement scriptJson = JsonUtils.parseJsonFile(scriptPath);
 		if(scriptJson != null){
 			@SuppressWarnings("resource")
@@ -104,7 +104,7 @@ public class ScriptsConfig extends ConfigListConfig<ScriptConfig> {
 	
 	//加载不在列表中但是在文件夹中的Script
 	void loadRestScripts(){
-		Path scriptDirectoryPath = FileUtils.getConfigDirectoryAsPath().resolve(scriptDirectoryName);
+		Path scriptDirectoryPath = FileUtils.getConfigDirectory().resolve(scriptDirectoryName);
 		File scriptDirectory = scriptDirectoryPath.toFile();
 		if(scriptDirectory.isDirectory()){
 			File[] scriptFiles = scriptDirectory.listFiles();

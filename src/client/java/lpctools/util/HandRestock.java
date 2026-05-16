@@ -1,5 +1,6 @@
 package lpctools.util;
 
+import net.minecraft.world.inventory.ContainerInput;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Set;
@@ -8,7 +9,6 @@ import net.minecraft.client.multiplayer.MultiPlayerGameMode;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.inventory.ClickType;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -58,21 +58,20 @@ public class HandRestock {
         if (player == null) return 0;
         var slots = player.containerMenu.slots;
         Inventory inventory = player.getInventory();
-        if(inventory == null) return 0;
-        MultiPlayerGameMode itm = Minecraft.getInstance().gameMode;
+		MultiPlayerGameMode itm = Minecraft.getInstance().gameMode;
         if(itm == null) return 0;
         int count;
         if(i == -2) count = inventory.getItem(Inventory.SLOT_OFFHAND).getCount();
         else count = slots.get(i).getItem().getCount();
         if(offhandPriority == -1){
-            if(i != -2) itm.handleInventoryMouseClick(player.containerMenu.containerId, i, Inventory.SLOT_OFFHAND, ClickType.SWAP, player);
+            if(i != -2) itm.handleContainerInput(player.containerMenu.containerId, i, Inventory.SLOT_OFFHAND, ContainerInput.SWAP, player);
         }
         else{
-            if(i == -2) itm.handleInventoryMouseClick(player.containerMenu.containerId, getHotbarStartSlotIndex(player) + inventory.getSelectedSlot(), Inventory.SLOT_OFFHAND, ClickType.SWAP, player);
+            if(i == -2) itm.handleContainerInput(player.containerMenu.containerId, getHotbarStartSlotIndex(player) + inventory.getSelectedSlot(), Inventory.SLOT_OFFHAND, ContainerInput.SWAP, player);
             else {
                 int hotbarStart = getHotbarStartSlotIndex(player);
                 if(i >= hotbarStart && i < hotbarStart + 9) inventory.setSelectedSlot(i - hotbarStart);
-                else itm.handleInventoryMouseClick(player.containerMenu.containerId, i, inventory.getSelectedSlot(), ClickType.SWAP, player);
+                else itm.handleContainerInput(player.containerMenu.containerId, i, inventory.getSelectedSlot(), ContainerInput.SWAP, player);
             }
         }
         return player.isCreative() ? 64 : count;

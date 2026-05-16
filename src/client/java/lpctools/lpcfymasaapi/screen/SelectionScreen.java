@@ -3,6 +3,7 @@ package lpctools.lpcfymasaapi.screen;
 import fi.dy.masa.malilib.gui.GuiBase;
 import fi.dy.masa.malilib.gui.button.ButtonGeneric;
 import fi.dy.masa.malilib.render.GuiContext;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jspecify.annotations.NonNull;
@@ -13,7 +14,6 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.network.chat.Component;
@@ -188,14 +188,14 @@ public class SelectionScreen<T> extends GuiBase {
 		this.callback = callback;
 	}
 	
-	@Override public void render(@NonNull GuiGraphics context, int mouseX, int mouseY, float deltaTicks) {
+	@Override public void extractRenderState(@NonNull GuiGraphicsExtractor context, int mouseX, int mouseY, float deltaTicks) {
 		var client = Minecraft.getInstance();
 		double dMouseX = client.mouseHandler.getScaledXPos(client.getWindow());
 		double dMouseY = client.mouseHandler.getScaledYPos(client.getWindow());
 		tickScrollBarInfo(scrollBarInfo, millisTimer);
 		var parent = getParent();
-		if(parent != null) parent.render(context, -1, -1, deltaTicks);
-		super.render(context, mouseX, mouseY, deltaTicks);
+		if(parent != null) parent.extractRenderState(context, -1, -1, deltaTicks);
+		super.extractRenderState(context, mouseX, mouseY, deltaTicks);
 		double position = ScrollBarInfo.getPosition(scrollBarInfo);
 		int startIndex = getListIndexAtX(position, 0), endIndex = getListIndexAtX(position + getScreenWidth(), optionList.size() - 1);
 		context.pose().pushMatrix().translate((float) -position, 0);
@@ -360,7 +360,7 @@ public class SelectionScreen<T> extends GuiBase {
 		
 		int getRight(){ return x + getScreenWidth(); }
 		
-		public void renderEx(GuiGraphics context, double mouseX, double mouseY) {
+		public void renderEx(GuiGraphicsExtractor context, double mouseX, double mouseY) {
 			tickScrollBarInfo(scrollBarInfo, millisTimer);
 			boolean highlighted = index == selectedList;
 			if(highlighted) context.fill(0, 0, getScreenWidth(), getScreenHeight(), backgroundHighlightColor.getIntegerValue());

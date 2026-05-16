@@ -8,7 +8,7 @@ import net.minecraft.client.Minecraft;
 public interface ExtraBindings {
 	@SuppressWarnings("unused")
 	ExtraBindings LIGHT_MAP = pass->pass.bindTexture("Sampler2",
-		Minecraft.getInstance().gameRenderer.lightTexture().getTextureView(),
+		Minecraft.getInstance().gameRenderer.levelLightmap(),
 		RenderSystem.getSamplerCache().getClampToEdge(FilterMode.LINEAR)
 	);
 	
