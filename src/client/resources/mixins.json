@@ -54,6 +54,7 @@
 		"scriptMixins.propertiesMixin.EnumPropertyMixin",
 		"scriptMixins.propertiesMixin.IntegerPropertyRegisterMixin",
 		"scriptMixins.propertiesMixin.PropertyRegisterMixin",
+		"tools.antiLeak.PlayerMixin",
 		"tools.entityHighlight.EntityMixin",
 		"TweakerooMixin.ConfigsListsMixin",
 		"TweakerooMixin.ConfigsMixin",

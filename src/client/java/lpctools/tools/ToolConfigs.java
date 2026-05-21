@@ -4,6 +4,7 @@ import fi.dy.masa.malilib.config.IConfigBoolean;
 import lpctools.LPCTools;
 import lpctools.lpcfymasaapi.LPCConfigList;
 import lpctools.lpcfymasaapi.configButtons.uniqueConfigs.ButtonConfig;
+import lpctools.tools.antiLeak.AntiLeak;
 import lpctools.tools.autoGrindstone.AutoGrindstone;
 import lpctools.tools.antiSpawner.AntiSpawner;
 import lpctools.tools.autoReconnect.AutoReconnect;
@@ -19,7 +20,7 @@ import lpctools.tools.tilingTool.TilingTool;
 
 public class ToolConfigs {
     public static final LPCConfigList toolConfigs = new LPCConfigList(LPCTools.page, "tools");
-    public static final ButtonConfig closeAll = new ButtonConfig(toolConfigs, "closeAll", (button, mouseButton)->
+    public static final ButtonConfig closeAll = new ButtonConfig(toolConfigs, "closeAll", (_, _)->
         toolConfigs.getConfigs().forEach(config->{
 		if(config instanceof IConfigBoolean configBoolean)
 			configBoolean.setBooleanValue(false);
@@ -38,7 +39,8 @@ public class ToolConfigs {
             FurnaceMaintainer.FMConfig,
             MossBorer.MBConfig,
             AutoReconnect.ARConfig,
-            EntityHighlight.EHConfig
+            EntityHighlight.EHConfig,
+			AntiLeak.ALConfig
         );
     }
 }
