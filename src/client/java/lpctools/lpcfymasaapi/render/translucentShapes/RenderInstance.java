@@ -3,7 +3,6 @@ package lpctools.lpcfymasaapi.render.translucentShapes;
 import com.google.common.collect.ImmutableSet;
 import com.mojang.blaze3d.buffers.GpuBuffer;
 import com.mojang.blaze3d.buffers.GpuBufferSlice;
-import com.mojang.blaze3d.pipeline.RenderPipeline;
 import com.mojang.blaze3d.systems.CommandEncoder;
 import com.mojang.blaze3d.systems.RenderPass;
 import com.mojang.blaze3d.systems.RenderSystem;
@@ -106,14 +105,10 @@ public class RenderInstance implements QuietAutoCloseable, Registries.WorldPreMa
 		return renderInstances.computeIfAbsent(renderOption, RenderInstance::new);
 	}
 	
-	public static final RenderPipeline shapePipeline = MaLiLibPipelines.POSITION_COLOR_TRANSLUCENT;
-	
-	public static final RenderPipeline linePipeline = MaLiLibPipelines.DEBUG_LINES_TRANSLUCENT;
-	
-	public static final RenderOption shapeOptionWithDepth = new RenderOption(shapePipeline, true, PROJECTION__MODEL_VIEW, RenderTiming.BEFORE_TRANSLUCENT, ImmutableSet.of());
-	public static final RenderOption shapeOptionDepthless = new RenderOption(shapePipeline, false, PROJECTION__MODEL_VIEW, RenderTiming.END_MAIN, ImmutableSet.of());
-	public static final RenderOption lineOptionWithDepth = new RenderOption(linePipeline, true, PROJECTION__MODEL_VIEW, RenderTiming.BEFORE_TRANSLUCENT, ImmutableSet.of());
-	public static final RenderOption lineOptionDepthless = new RenderOption(linePipeline, false, PROJECTION__MODEL_VIEW, RenderTiming.END_MAIN, ImmutableSet.of());
+	public static final RenderOption shapeOptionWithDepth = new RenderOption(MaLiLibPipelines.POSITION_COLOR_TRANSLUCENT_LEQUAL_DEPTH, true, true, PROJECTION__MODEL_VIEW, RenderTiming.BEFORE_TRANSLUCENT, ImmutableSet.of());
+	public static final RenderOption shapeOptionDepthless = new RenderOption(MaLiLibPipelines.POSITION_COLOR_TRANSLUCENT_NO_DEPTH, false, false, PROJECTION__MODEL_VIEW, RenderTiming.END_MAIN, ImmutableSet.of());
+	public static final RenderOption lineOptionWithDepth = new RenderOption(MaLiLibPipelines.DEBUG_LINES_TRANSLUCENT_LEQUAL_DEPTH, true, true, PROJECTION__MODEL_VIEW, RenderTiming.BEFORE_TRANSLUCENT, ImmutableSet.of());
+	public static final RenderOption lineOptionDepthless = new RenderOption(MaLiLibPipelines.DEBUG_LINES_TRANSLUCENT_NO_DEPTH, false, false, PROJECTION__MODEL_VIEW, RenderTiming.END_MAIN, ImmutableSet.of());
 	
 	public static RenderInstance shapeInstanceWithDepth() { return getRenderInstance(shapeOptionWithDepth); }
 	public static RenderInstance shapeInstanceDepthless() { return getRenderInstance(shapeOptionDepthless); }
@@ -182,7 +177,9 @@ public class RenderInstance implements QuietAutoCloseable, Registries.WorldPreMa
 			.writeTransform(modelViewMatrix, new Vector4f(1.0F, 1.0F, 1.0F, 1.0F), offset, new Matrix4f());
 		// z-fighting解决方案
 		// 或许可以把具有相似配置的RenderInstance一起绘制从而避免频繁的重设数据？
-		if(depthAttachmentView != null) projectionMatrix.m23(projectionMatrix.m23() - GenericUtils.zFightBias());
+		// if(depthAttachmentView != null)
+		if(renderOption.doBias())
+			projectionMatrix.m23(projectionMatrix.m23() - GenericUtils.zFightBias());
 		GpuBufferSlice projection = rawProjectionMatrixBuffer.getBuffer(projectionMatrix);
 		try (RenderPass renderPass = commandEncoder
 			.createRenderPass(renderPassLabel, colorAttachmentView, OptionalInt.empty(), depthAttachmentView, OptionalDouble.empty())) {
