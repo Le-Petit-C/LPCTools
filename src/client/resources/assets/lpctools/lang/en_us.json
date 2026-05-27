@@ -286,6 +286,8 @@
 	"lpctools.configs.tools.EH.entityList.comment": "Entities that will be highlighted",
 	"lpctools.configs.tools.EH.entityList.entity.name": "Entity",
 	"lpctools.configs.tools.EH.entityList.entity.comment": "A entity option",
+	"lpctools.configs.tools.LP.name": "Leak Preventer",
+	"lpctools.configs.tools.LP.comment": "Helps prevent accidental fluid leaks while mining or digging",
 	"lpctools.configs.tweaks.title": "Tweaks",
 	"lpctools.configs.tweaks.blockReplaceHotkey.name": "blockReplaceHotkey",
 	"lpctools.configs.tweaks.blockReplaceHotkey.comment": "Define an extra hotkey used to replace blocks, which reacts the same as pressing both mouse buttons.",

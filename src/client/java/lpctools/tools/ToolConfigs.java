@@ -4,7 +4,7 @@ import fi.dy.masa.malilib.config.IConfigBoolean;
 import lpctools.LPCTools;
 import lpctools.lpcfymasaapi.LPCConfigList;
 import lpctools.lpcfymasaapi.configButtons.uniqueConfigs.ButtonConfig;
-import lpctools.tools.antiLeak.AntiLeak;
+import lpctools.tools.leakPreventer.LeakPreventer;
 import lpctools.tools.autoGrindstone.AutoGrindstone;
 import lpctools.tools.antiSpawner.AntiSpawner;
 import lpctools.tools.autoReconnect.AutoReconnect;
@@ -40,7 +40,7 @@ public class ToolConfigs {
             MossBorer.MBConfig,
             AutoReconnect.ARConfig,
             EntityHighlight.EHConfig,
-			AntiLeak.ALConfig
+			LeakPreventer.LPConfig
         );
     }
 }

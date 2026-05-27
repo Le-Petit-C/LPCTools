@@ -1,6 +1,6 @@
 package lpctools.mixin.client.tools.antiLeak;
 
-import lpctools.tools.antiLeak.AntiLeak;
+import lpctools.tools.leakPreventer.LeakPreventer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.GameType;
@@ -15,6 +15,6 @@ public class PlayerMixin {
 	@Inject(method = "blockActionRestricted", at = @At("RETURN"), cancellable = true)
 	void injectBlockActionRestrictedReturn(Level level, BlockPos pos, GameType gameType, CallbackInfoReturnable<Boolean> cir) {
 		if(cir.getReturnValue()) return;
-		if(AntiLeak.testLeak(level, pos)) cir.setReturnValue(true);
+		if(LeakPreventer.testLeak(level, pos)) cir.setReturnValue(true);
 	}
 }

@@ -201,10 +201,15 @@ public class DataUtils {
         };
     }
     
-    public static int argb2agbr(int color){
+    /**
+     * Swaps red and blue channels in a 32-bit color integer.
+     * Commonly used for ARGB <-> ABGR conversion.
+     */
+    public static int swapRedBlue(int color){
         int s = color & 0x00ff00ff;
         return (color & 0xff00ff00) | (s >> 16) | (s << 16);
     }
+    
     public static Vector4f argb2VectorABGRf(int color){
         return new Vector4f(
             ((color >>> 16) & 0xff) / 255.0f,
