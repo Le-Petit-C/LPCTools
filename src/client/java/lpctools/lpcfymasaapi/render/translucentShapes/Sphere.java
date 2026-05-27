@@ -27,7 +27,7 @@ public class Sphere extends PositionedShape<PositionColorLineWidthVertex> {
 	
 	public static ShapeRegister<Sphere> register(boolean xrays) {
 		return new ShapeRegister<>(RenderInstance.getRenderInstance(new RenderOption(
-			LPCRenderPipelines.spherePipeline, !xrays, TranslateMethod.PROJECTION__MODEL_VIEW__BIASED_OFFSET,
+			LPCRenderPipelines.spherePipeline, !xrays, !xrays, TranslateMethod.PROJECTION__MODEL_VIEW__BIASED_OFFSET,
 			xrays ? RenderTiming.END_MAIN : RenderTiming.BEFORE_TRANSLUCENT,
 			ImmutableSet.of()
 		)));
