@@ -34,6 +34,8 @@
 	"lpctools.configs.generic.extraNoSpawnBlocks.comment": "Basic determinant is not always correct\nUse these lists to tweak spawn-able determinant",
 	"lpctools.configs.generic.extraNoSpawnBlocks.block.name": "",
 	"lpctools.configs.generic.extraNoSpawnBlocks.block.comment": "Extra No Spawn Block",
+	"lpctools.configs.generic.hitBoxRequirement.name": "Mob Spawn Hitbox Requirement",
+	"lpctools.configs.generic.hitBoxRequirement.comment": "Determines mob spawning based on this hitbox. Spawning will fail if the hitbox intersects with another block collision box. Defaults to the hitbox of a regular zombie (not a baby zombie).",
 	"lpctools.configs.generic.reachDistanceAlwaysUnlimited.name": "Reach Distance Always Unlimited",
 	"lpctools.configs.generic.reachDistanceAlwaysUnlimited.comment": "Always set Reach Distance config maximum value as Double.MAX_VALUE\n§eWatch out! Some tools may iterate all the blocks in reach distance\n§eAnd game may be not responding if reach distance was too big",
 	"lpctools.configs.generic.playClickSoundFromModMenu.name": "Play ClickSound From ModMenu",

@@ -34,6 +34,8 @@
 	"lpctools.configs.generic.extraNoSpawnBlocks.comment": "基础的刷怪判定不总是准确\n所以加了这两个列表以微调刷怪判定",
 	"lpctools.configs.generic.extraNoSpawnBlocks.block.name": "",
 	"lpctools.configs.generic.extraNoSpawnBlocks.block.comment": "一个额外不可刷怪方块",
+	"lpctools.configs.generic.hitBoxRequirement.name": "刷怪碰撞箱判定",
+	"lpctools.configs.generic.hitBoxRequirement.comment": "基于此碰撞箱判定刷怪，碰撞箱会碰到别的方块碰撞箱时会判定为无法刷关。默认为僵尸（不是小僵尸）的碰撞箱。",
 	"lpctools.configs.generic.reachDistanceAlwaysUnlimited.name": "不限制交互距离",
 	"lpctools.configs.generic.reachDistanceAlwaysUnlimited.comment": "交互距离配置上限总是设为Double.MAX_VALUE\n§e小心！有的工具会遍历范围内所有方块，如果距离设的太大可能会让Minecraft未响应",
 	"lpctools.configs.generic.playClickSoundFromModMenu.name": "来自ModMenu时播放点击声",
