@@ -292,6 +292,8 @@
 	"lpctools.configs.tools.LP.comment": "这个工具能帮你避免挖掘时挖穿水体或熔岩",
 	"lpctools.configs.tools.LP.markingColor.name": "标记颜色",
 	"lpctools.configs.tools.LP.markingColor.comment": "阻止挖掘后会在被阻止挖掘的方块位置添加一个此颜色的方块标记",
+	"lpctools.configs.tools.BK.name": "基岩破坏工具",
+	"lpctools.configs.tools.BK.comment": "添加了一些破坏基岩的辅助功能\n目前是开启后进行破坏后会额外执行一次破坏和一次放置\n至于怎么用就看你了",
 	"lpctools.configs.tweaks.title": "微调",
 	"lpctools.configs.tweaks.blockReplaceHotkey.name": "方块替换操作键",
 	"lpctools.configs.tweaks.blockReplaceHotkey.comment": "定义一个额外的热键，按下后实现同时按下鼠标左右键替换方块的效果",

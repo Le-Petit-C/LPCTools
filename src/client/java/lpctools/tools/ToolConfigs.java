@@ -4,6 +4,7 @@ import fi.dy.masa.malilib.config.IConfigBoolean;
 import lpctools.LPCTools;
 import lpctools.lpcfymasaapi.LPCConfigList;
 import lpctools.lpcfymasaapi.configButtons.uniqueConfigs.ButtonConfig;
+import lpctools.tools.bedrockKiller.leakPreventer.BedrockKiller;
 import lpctools.tools.leakPreventer.LeakPreventer;
 import lpctools.tools.autoGrindstone.AutoGrindstone;
 import lpctools.tools.antiSpawner.AntiSpawner;
@@ -40,7 +41,8 @@ public class ToolConfigs {
             MossBorer.MBConfig,
             AutoReconnect.ARConfig,
             EntityHighlight.EHConfig,
-			LeakPreventer.LPConfig
+			LeakPreventer.LPConfig,
+			BedrockKiller.BKConfig
         );
     }
 }
