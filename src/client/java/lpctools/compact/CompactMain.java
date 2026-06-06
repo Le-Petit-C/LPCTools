@@ -17,5 +17,4 @@ public class CompactMain {
         if(FabricLoader.getInstance().isModLoaded("minihud")) minihudInstance = new MiniHUDMethods();
         if(FabricLoader.getInstance().isModLoaded("litematica")) litematicaInstance = new LitematicaMethods();
     }
-
 }

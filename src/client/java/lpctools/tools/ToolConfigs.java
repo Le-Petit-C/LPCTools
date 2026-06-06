@@ -13,6 +13,7 @@ import lpctools.tools.breakRestriction.BreakRestriction;
 import lpctools.tools.canSpawnDisplay.CanSpawnDisplay;
 import lpctools.tools.entityHighlight.EntityHighlight;
 import lpctools.tools.furnaceMaintainer.FurnaceMaintainer;
+import lpctools.tools.litematicaMaterial.LitematicaMaterial;
 import lpctools.tools.mossBorer.MossBorer;
 import lpctools.tools.slightXRay.SlightXRay;
 import lpctools.tools.fillingAssistant.FillingAssistant;
@@ -42,7 +43,8 @@ public class ToolConfigs {
             AutoReconnect.ARConfig,
             EntityHighlight.EHConfig,
 			LeakPreventer.LPConfig,
-			BedrockKiller.BKConfig
+			BedrockKiller.BKConfig,
+			LitematicaMaterial.LMConfig
         );
     }
 }

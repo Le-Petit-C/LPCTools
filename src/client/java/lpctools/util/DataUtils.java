@@ -10,6 +10,7 @@ import lpctools.util.javaex.Object2BooleanFunction;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientChunkCache;
 import net.minecraft.client.multiplayer.ClientLevel;
+import net.minecraft.client.multiplayer.chat.ChatListener;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
 import net.minecraft.core.Registry;
@@ -54,8 +55,12 @@ public class DataUtils {
             return new String(stream.readAllBytes());
         } catch (IOException ignored) { return null; }
     }
-    public static void clientMessage(String message, boolean overlay){Minecraft.getInstance().getChatListener().handleSystemMessage(Component.nullToEmpty(message), overlay);}
-    public static void clientMessage(Component message, boolean overlay){Minecraft.getInstance().getChatListener().handleSystemMessage(message, overlay);}
+    public static void clientMessage(String message, boolean overlay) { clientMessage(Component.nullToEmpty(message), overlay); }
+    public static void clientMessage(Component message, boolean overlay) {
+        ChatListener chatListener = Minecraft.getInstance().getChatListener();
+        if(overlay) chatListener.handleOverlay(message);
+        else chatListener.handleSystemMessage(message, false);
+    }
     public static <T> void notifyPlayerIf(T value, Function<T, String> converter, Object2BooleanFunction<T> condition, boolean overlay){
         if(condition.getBoolean(value)) clientMessage(converter.apply(value), overlay);
     }
