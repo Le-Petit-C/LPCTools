@@ -59,7 +59,7 @@ public class DataUtils {
     public static void clientMessage(Component message, boolean overlay) {
         ChatListener chatListener = Minecraft.getInstance().getChatListener();
         if(overlay) chatListener.handleOverlay(message);
-        else chatListener.handleSystemMessage(message, false);
+        else chatListener.handleSystemMessage(message, true);
     }
     public static <T> void notifyPlayerIf(T value, Function<T, String> converter, Object2BooleanFunction<T> condition, boolean overlay){
         if(condition.getBoolean(value)) clientMessage(converter.apply(value), overlay);
