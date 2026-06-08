@@ -299,6 +299,8 @@
 	"lpctools.configs.tools.BK.torchAutoOperate.comment": "开启后当你看向红石火把时自动执行一次此工具的操作\n（目前是破坏两次+放置一次）",
 	"lpctools.configs.tools.BK.multiSamplingFactor.name": "每刻采样次数",
 	"lpctools.configs.tools.BK.multiSamplingFactor.comment": "红石火把模型细窄，带有速度效果时原版每刻1次采样容易漏掉\n此值设置每游戏刻的射线检测次数（默认1=普通行为），数值越大越不容易漏掉，但性能开销也越大",
+	"lpctools.configs.tools.BK.ignoreTorchNotAttachingBedrock.name": "仅处理附着在基岩上的红石火把",
+	"lpctools.configs.tools.BK.ignoreTorchNotAttachingBedrock.comment": "开启后“看向红石火把时自动操作”的“自动操作”额外需要“红石火把是插在基岩上的”条件",
 	"lpctools.configs.tools.LM.name": "投影材料收集工具",
 	"lpctools.configs.tools.LM.comment": "帮助你收集投影材料\n开启此工具时打开容器后会自动搜索并拿取需要的材料然后马上关闭容器",
 	"lpctools.configs.tools.LM.warehouseContainers.name": "仓库容器",

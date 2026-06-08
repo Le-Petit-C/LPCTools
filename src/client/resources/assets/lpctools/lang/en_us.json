@@ -299,6 +299,8 @@
 	"lpctools.configs.tools.BK.torchAutoOperate.comment": "When enabled, it will automatically perform this tool's operation when you look at a redstone torch\n(Currently it's two breaks + one place)",
 	"lpctools.configs.tools.BK.multiSamplingFactor.name": "Samples Per Tick",
 	"lpctools.configs.tools.BK.multiSamplingFactor.comment": "Redstone torches have a thin hitbox. With speed effects, the default 1 sample per tick may miss them\nSets the number of raycasts per game tick (1 = normal behavior). Higher values reduce misses but increase performance cost",
+	"lpctools.configs.tools.BK.ignoreTorchNotAttachingBedrock.name": "Only Target Bedrock Redstone Torches",
+	"lpctools.configs.tools.BK.ignoreTorchNotAttachingBedrock.comment": "When enabled, the 'Auto Operate on Torch' feature additionally requires the redstone torch to be attached to bedrock",
 	"lpctools.configs.tools.LM.name": "Litematica Material Collector",
 	"lpctools.configs.tools.LM.comment": "Helps you collect Litematica schematic materials\nWhen enabled, opening a container will automatically search for and take needed materials, then close the container",
 	"lpctools.configs.tools.LM.warehouseContainers.name": "Warehouse Containers",

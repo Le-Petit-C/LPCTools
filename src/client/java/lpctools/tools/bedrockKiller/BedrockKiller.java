@@ -12,8 +12,12 @@ import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.player.LocalPlayer;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.RedstoneWallTorchBlock;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult;
 import org.jspecify.annotations.NonNull;
@@ -26,6 +30,7 @@ public class BedrockKiller {
 	static { listStack.push(BKConfig); }
 	public static final BooleanConfig torchAutoOperate = addBooleanConfig("torchAutoOperate", false, BedrockKillerEvents.INSTANCE);
 	public static final IntegerConfig multiSamplingFactor = addIntegerConfig("multiSamplingFactor", 1, 1, 64);
+	public static final BooleanConfig ignoreTorchNotAttachingBedrock = addBooleanConfig("ignoreTorchNotAttachingBedrock", false);
 	static { listStack.pop(); }
 	
 	private static boolean operating = false;
@@ -58,13 +63,19 @@ public class BedrockKiller {
 
 		boolean tryOperate(Minecraft mc, ClientLevel level) {
 			HitResult hitResult = mc.hitResult;
-			if(level != null && hitResult instanceof BlockHitResult blockHitResult
-				&& level.getBlockState(blockHitResult.getBlockPos()).getBlock() == Blocks.REDSTONE_TORCH) {
-				MinecraftAccessor accessor = (MinecraftAccessor)mc;
-				accessor.invokeStartAttack();
-				return true;
+			if(level != null && hitResult instanceof BlockHitResult blockHitResult){
+				BlockPos pos = blockHitResult.getBlockPos();
+				BlockState blockState = level.getBlockState(pos);
+				boolean ignoreNotAttachingBedrock = ignoreTorchNotAttachingBedrock.getAsBoolean();
+				boolean isValid1 = blockState.getBlock() == Blocks.REDSTONE_TORCH && (!ignoreNotAttachingBedrock || level.getBlockState(pos.below()).getBlock() == Blocks.BEDROCK);
+				boolean isValid2 = blockState.getBlock() == Blocks.REDSTONE_WALL_TORCH && (!ignoreNotAttachingBedrock || level.getBlockState(pos.relative(blockState.getValueOrElse(RedstoneWallTorchBlock.FACING, Direction.DOWN))).getBlock() == Blocks.BEDROCK);
+				if(isValid1 || isValid2){
+					MinecraftAccessor accessor = (MinecraftAccessor)mc;
+					accessor.invokeStartAttack();
+					return true;
+				}
 			}
-			else return false;
+			return false;
 		}
 
 		@Override public void onEndTick(@NonNull Minecraft mc) {
