@@ -8,6 +8,7 @@ import fi.dy.masa.malilib.interfaces.IRangeChangeListener;
 import fi.dy.masa.malilib.interfaces.IRenderer;
 import fi.dy.masa.malilib.render.GuiContext;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientChunkEvents;
+import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientEntityEvents;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientLevelEvents;
 import net.fabricmc.fabric.api.client.rendering.v1.level.LevelRenderEvents;
@@ -116,6 +117,10 @@ public class Registries {
         callbacks->manager->callbacks.forEach(callback->callback.onResourceReload(manager)));
     public static final UnregistrableRegistry<BetweenRenderFrames> BETWEEN_RENDER_FRAMES = new UnregistrableRegistry<>(
         callbacks->()->callbacks.forEach(BetweenRenderFrames::betweenFrames));
+    public static final UnregistrableRegistry<ClientEntityEvents.Load> CLIENT_ENTITY_LOAD = new UnregistrableRegistry<>(
+        callbacks->(entity, level)->callbacks.forEach(callback->callback.onLoad(entity, level)), ClientEntityEvents.ENTITY_LOAD);
+    public static final UnregistrableRegistry<ClientEntityEvents.Unload> CLIENT_ENTITY_UNLOAD = new UnregistrableRegistry<>(
+        callbacks->(entity, level)->callbacks.forEach(callback->callback.onUnload(entity, level)), ClientEntityEvents.ENTITY_UNLOAD);
     
     static{
         var toolTipComponentInsertFirstRenderer = MASA_RENDER_TOOLTIP_COMPONENT_INSERTION_FIRST.runner();
