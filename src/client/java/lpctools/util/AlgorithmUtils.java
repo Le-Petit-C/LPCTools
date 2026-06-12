@@ -21,6 +21,7 @@ import org.jetbrains.annotations.Nullable;
 import org.joml.Vector2d;
 import org.joml.Vector2i;
 
+import java.lang.ref.WeakReference;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.BiConsumer;
@@ -503,5 +504,27 @@ public class AlgorithmUtils {
                 return res;
             }
         }
+    }
+    public static <T> Iterator<T> iteratorWeakReferences(Iterable<WeakReference<T>> iterable) {
+        return new Iterator<T>() {
+            static <T> T nextFromWeakReferences(Iterator<WeakReference<T>> iterator) {
+                T res = null;
+                while(iterator.hasNext() && res == null)
+                    res = iterator.next().get();
+                return res;
+            }
+            final Iterator<WeakReference<T>> iterator = iterable.iterator();
+            T nextVal = nextFromWeakReferences(iterator);
+            @Override public boolean hasNext() { return nextVal != null; }
+            @Override public T next() {
+                if(nextVal == null) throw new NoSuchElementException();
+                T res = nextVal;
+                nextVal = nextFromWeakReferences(iterator);
+                return res;
+            }
+        };
+    }
+    public static <T> Iterable<T> iterableWeakReferences(Iterable<WeakReference<T>> iterable) {
+        return () -> iteratorWeakReferences(iterable);
     }
 }
