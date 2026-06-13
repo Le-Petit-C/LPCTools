@@ -41,27 +41,15 @@ public class MutableAABB {
 		z2 = maxZ;
 		return this;
 	}
-	public MutableAABB set(MutableAABB aabb) {
-		return set(aabb.x1, aabb.y1, aabb.z1, aabb.x2, aabb.y2, aabb.z2);
-	}
-	public MutableAABB set(AABB aabb) {
-		return set(aabb.minX, aabb.minY, aabb.minZ, aabb.maxX, aabb.maxY, aabb.maxZ);
-	}
-	public MutableAABB moveAndSet(double x, double y, double z) {
-		return set(x1 + x, y1 + y, z1 + z, x2 + x, y2 + y, z2 + z);
-	}
-	public MutableAABB moveAndSet(Vec3 shift) {
-		return moveAndSet(shift.x(), shift.y(), shift.z());
-	}
-	public MutableAABB moveAndSet(Vector3d shift) {
-		return moveAndSet(shift.x(), shift.y(), shift.z());
-	}
-	public MutableAABB moveAndSet(Vector3f shift) {
-		return moveAndSet(shift.x(), shift.y(), shift.z());
-	}
-	public MutableAABB moveAndSet(Vec3i shift) {
-		return moveAndSet(shift.getX(), shift.getY(), shift.getZ());
-	}
+	public MutableAABB set(MutableAABB aabb) { return set(aabb.x1, aabb.y1, aabb.z1, aabb.x2, aabb.y2, aabb.z2); }
+	public MutableAABB set(AABB aabb) { return set(aabb.minX, aabb.minY, aabb.minZ, aabb.maxX, aabb.maxY, aabb.maxZ); }
+	public MutableAABB moveAndSet(double x, double y, double z) { return set(x1 + x, y1 + y, z1 + z, x2 + x, y2 + y, z2 + z); }
+	public MutableAABB moveAndSet(Vec3 shift) { return moveAndSet(shift.x(), shift.y(), shift.z()); }
+	public MutableAABB moveAndSet(Vector3d shift) { return moveAndSet(shift.x(), shift.y(), shift.z()); }
+	public MutableAABB moveAndSet(Vector3f shift) { return moveAndSet(shift.x(), shift.y(), shift.z()); }
+	public MutableAABB moveAndSet(Vec3i shift) { return moveAndSet(shift.getX(), shift.getY(), shift.getZ()); }
+	public Vector3d getCenter(Vector3d res) { return res.set((x1 + x2) * 0.5, (y1 + y2) * 0.5, (z1 + z2) * 0.5); }
+	public Vec3 getCenter() { return new Vec3((x1 + x2) * 0.5, (y1 + y2) * 0.5, (z1 + z2) * 0.5); }
 	private static boolean intersects(double ax1, double ax2, double bx1, double bx2) {
 		return Math.min(ax1, ax2) < Math.max(bx1, bx2) && Math.max(ax1, ax2) > Math.min(bx1, bx2);
 	}

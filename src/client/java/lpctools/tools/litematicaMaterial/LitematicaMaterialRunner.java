@@ -87,13 +87,11 @@ class LitematicaMaterialRunner implements ILPCValueChangeCallback, Registries.Sc
 			}
 			if(warnNotEnoughSpace)
 				DataUtils.clientMessage(
-					String.format("[%s] %s",
-						Component.translatable(LMConfig.getFullNameTranslationKey()).getString(),
+					String.format("[%s] %s", LMConfig.getNameTranslation(),
 						Component.translatable("lpctools.tools.LM.warnNotEnoughSpace").getString()),
 					false);
 			DataUtils.clientMessage(
-				String.format("[%s] " + Component.translatable("lpctools.tools.LM.movedInfoText").getString(),
-					Component.translatable(LMConfig.getFullNameTranslationKey()).getString(),
+				String.format("[%s] " + Component.translatable("lpctools.tools.LM.movedInfoText").getString(), LMConfig.getNameTranslation(),
 					movedItemCount),
 				true);
 			MaterialListUtils.updateAvailableCounts(materialListBase.getMaterialsAll(), player);
