@@ -12,12 +12,15 @@ import lpctools.util.AlgorithmUtils;
 import lpctools.util.DataUtils;
 import lpctools.util.LPCMathHelper;
 import lpctools.util.Packed;
+import lpctools.util.data.minecraft.CombinedBlockGetters;
 import lpctools.util.javaex.QuietAutoCloseable;
+import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientChunkEvents;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientLevelEvents;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.core.BlockPos;
 import net.minecraft.util.Mth;
+import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
@@ -38,7 +41,7 @@ import java.util.function.Supplier;
 
 import static lpctools.tools.ToolUtils.clearMapDataOutOfRange;
 
-public class DataInstance implements AutoCloseable, Registries.ClientWorldChunkLightUpdated, Registries.BetweenRenderFrames, Registries.ClientWorldChunkSetBlockState, GenericRegistry.SpawnConditionChanged, ClientLevelEvents.AfterClientLevelChange {
+public class DataInstance implements AutoCloseable, Registries.ClientWorldChunkLightUpdated, ClientChunkEvents.Load, Registries.BetweenRenderFrames, Registries.ClientWorldChunkSetBlockState, GenericRegistry.SpawnConditionChanged, ClientLevelEvents.AfterClientLevelChange {
     
     private record DelayedTask(long packedChunkPos, Supplier<RunningTask> task){}
     private record RunningTask(long packedChunkPos, CompletableFuture<TaskResult> task){}
@@ -60,6 +63,7 @@ public class DataInstance implements AutoCloseable, Registries.ClientWorldChunkL
     
     protected void registerAll(boolean b){
         Registries.CLIENT_CHUNK_LIGHT_LOAD.register(this, b);
+        Registries.CLIENT_CHUNK_LOAD.register(this, b);
         Registries.BETWEEN_RENDER_FRAMES.register(this, b);
         Registries.CLIENT_WORLD_CHUNK_SET_BLOCK_STATE.register(this, b);
         Registries.AFTER_CLIENT_LEVEL_CHANGE.register(this, b);
@@ -114,16 +118,24 @@ public class DataInstance implements AutoCloseable, Registries.ClientWorldChunkL
         canSpawnPoses.values().forEach(c->c.values().forEach(QuietAutoCloseable::closeIfNotNull));
         canSpawnPoses.clear();
     }
-    private void addDelayedTask(ChunkAccess chunk, LevelLightEngine light){
-        long packedChunkPos = chunk.getPos().pack();
-        delayedTasks.add(new DelayedTask(packedChunkPos, ()->testChunkAsync(chunk, light, packedChunkPos)));
+    private void addDelayedTask(Level world, ChunkPos chunkPos, LevelLightEngine light){
+        Combined3x3Chunk chunks = Combined3x3Chunk.createCentered(world, chunkPos.x(), chunkPos.z());
+        if(chunks == null) return;
+        long packedChunkPos = chunkPos.pack();
+        delayedTasks.add(new DelayedTask(packedChunkPos, ()->testChunkAsync(chunks, light, packedChunkPos)));
     }
     public void resetData(@NotNull Level world, @NotNull Vec3 playerPos){
         for(ChunkAccess chunk : AlgorithmUtils.iterateLoadedChunksFromClosest(world, playerPos))
-            addDelayedTask(chunk, world.getLightEngine());
+            addDelayedTask(world, chunk.getPos(), world.getLightEngine());
     }
-    @Override public void onClientWorldChunkLightUpdated(@NotNull ClientLevel world, @NotNull LevelChunk chunk) {
-        addDelayedTask(chunk, world.getLightEngine());
+    @Override public void onClientWorldChunkLightUpdated(@NotNull ClientLevel level, @NotNull LevelChunk chunk) {
+        addDelayedTask(level, chunk.getPos(), level.getLightEngine());
+    }
+    @Override public void onChunkLoad(@NonNull ClientLevel level, @NonNull LevelChunk chunk) {
+        ChunkPos centerChunkPos = chunk.getPos();
+        for(int dx = -1; dx <= 1; ++dx)
+            for(int dz = -1; dz <= 1; ++dz)
+                addDelayedTask(level, new ChunkPos(centerChunkPos.x() + dx, centerChunkPos.z() + dz), level.getLightEngine());
     }
     @Override public void close() {
         clearData();
@@ -198,12 +210,9 @@ public class DataInstance implements AutoCloseable, Registries.ClientWorldChunkL
     @Override public void afterLevelChange(@NonNull Minecraft minecraftClient, @NonNull ClientLevel clientWorld) {clearData();}
     
     private void tryPutDelayed(Level world, int x, int z){
-        for(int dz = -1; dz <= 1; ++dz)
-            for(int dx = -1; dx <= 1; ++dx)
-                if(!world.hasChunk(x + dx, z + dz)) return;
-        long packedChunkPos = Packed.ChunkPos.pack(x, z);
-        ChunkAccess chunk = world.getChunk(x, z, ChunkStatus.FULL, false);
+        Combined3x3Chunk chunk = Combined3x3Chunk.createCentered(world, x, z);
         if(chunk == null) return;
+        long packedChunkPos = Packed.ChunkPos.pack(x, z);
         AlgorithmUtils.fastRemove(runningTasks, task->{
             boolean res = task.packedChunkPos == packedChunkPos;
             if(res) task.task.cancel(false);
@@ -222,21 +231,38 @@ public class DataInstance implements AutoCloseable, Registries.ClientWorldChunkL
                 tryPutDelayed(world, x + dx, z + dz);
     }
     
-    private RunningTask testChunkAsync(@NotNull ChunkAccess chunk, @NotNull LevelLightEngine lightingProvider, long packedChunkPos){
+    private RunningTask testChunkAsync(@NotNull Combined3x3Chunk chunk, @NotNull LevelLightEngine lightingProvider, long packedChunkPos){
         return new RunningTask(packedChunkPos, GenericUtils.supplyAsync(()->AsyncChunkTest(chunk, lightingProvider, packedChunkPos)));
     }
     
-    private TaskResult AsyncChunkTest(@NotNull ChunkAccess chunk, @NotNull LevelLightEngine light, long packedChunkPos){
+    private TaskResult AsyncChunkTest(@NotNull Combined3x3Chunk chunk, @NotNull LevelLightEngine light, long packedChunkPos){
         TaskResult result = new TaskResult(packedChunkPos, new ArrayList<>());
         int x = Packed.getBlockCoord(Packed.ChunkPos.unpackX(packedChunkPos));
         int z = Packed.getBlockCoord(Packed.ChunkPos.unpackZ(packedChunkPos));
+        GenericUtils.MobSpawnTest spawnTest = GenericUtils.createSpawnTest();
         Iterable<BlockPos> blockPoses = AlgorithmUtils.iterateInBox(
-            x, chunk.getMinY(), z,
-            x + 15, chunk.getMinY() + chunk.getHeight() - 1, z + 15);
-        for(BlockPos pos1 : blockPoses){
-            if(GenericUtils.mayMobSpawnAt(chunk, light, pos1))
+            x, chunk.getMinY(), z, x + 15, chunk.getMinY() + chunk.getHeight() - 1, z + 15);
+        for(BlockPos pos1 : blockPoses) {
+            if(spawnTest.mayMobSpawnAt(chunk, light, pos1))
                 result.result.add(pos1.immutable());
         }
         return result;
+    }
+    
+    private static class Combined3x3Chunk extends CombinedBlockGetters {
+        private Combined3x3Chunk(){}
+        static @Nullable Combined3x3Chunk createCentered(Level level, int x, int z){
+            ArrayList<ChunkAccess> chunks = new ArrayList<>(9);
+            for(int dx = -1; dx <= 1; ++dx) {
+                for(int dz = -1; dz <= 1; ++dz) {
+                    ChunkAccess chunk1 = level.getChunk(x + dx, z + dz, ChunkStatus.FULL, false);
+                    if(chunk1 == null) return null;
+                    else chunks.add(chunk1);
+                }
+            }
+            Combined3x3Chunk res = new Combined3x3Chunk();
+            chunks.forEach(res::putChunk);
+            return res;
+        }
     }
 }

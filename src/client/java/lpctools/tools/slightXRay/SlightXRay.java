@@ -87,7 +87,7 @@ public class SlightXRay{
         }
         catch (Exception e){return alphaMask;}
     }
-    private static int getColorByDefaultColor(Block block){return DataUtils.argb2agbr(defaultColor.getIntegerValue());}
+    private static int getColorByDefaultColor(Block block){return DataUtils.swapRedBlue(defaultColor.getIntegerValue());}
 
     public static void tryRefreshXRayBlocks(){
         if(!needRefreshXRayBlocks) return;
@@ -96,7 +96,7 @@ public class SlightXRay{
         XRayBlocksConfig.iterateConfigs().forEach(c->{
             var block = c.getBlock();
             if(newBlocks.containsKey(block)) clientMessage(String.format("§eWarning: Repeat block \"%s\"", block.getName()), false);
-            else newBlocks.put(block, DataUtils.argb2agbr(c.getColor().getIntValue()));
+            else newBlocks.put(block, DataUtils.swapRedBlue(c.getColor().getIntValue()));
         });
         if(XRayBlocks.keySet().equals(newBlocks.keySet())) {
             for(var block : newBlocks.object2IntEntrySet())

@@ -104,9 +104,9 @@ public class ColoredBlockListConfig extends ConfigListConfig<ColoredBlockListCon
 				updateDefaultColor();
 			}
 			@Override public void getButtonOptions(ButtonOptionArrayList res) {
-				if(followDefault) res.add(1, (button, mouseButton)->toggleFollowMethod(), defaultButtonText::getString, buttonGenericAllocator);
+				if(followDefault) res.add(1, (_, _)->toggleFollowMethod(), defaultButtonText::getString, buttonGenericAllocator);
 				else {
-					res.add(0.5f, (button, mouseButton)->toggleFollowMethod(), customizeButtonText::getString, buttonGenericAllocator);
+					res.add(0.5f, (_, _)->toggleFollowMethod(), customizeButtonText::getString, buttonGenericAllocator);
 					super.getButtonOptions(res);
 				}
 			}
@@ -117,7 +117,7 @@ public class ColoredBlockListConfig extends ConfigListConfig<ColoredBlockListCon
 				getPage().markNeedUpdate();
 			}
 			public void updateDefaultColor(){
-				defaultColor = Color4f.fromColor(DataUtils.argb2agbr(SlightXRay.defaultColorMethod.get().right.applyAsInt(getBlock())));
+				defaultColor = Color4f.fromColor(DataUtils.swapRedBlue(SlightXRay.defaultColorMethod.get().right.applyAsInt(getBlock())));
 				if(followDefault) setColor(defaultColor);
 			}
 			

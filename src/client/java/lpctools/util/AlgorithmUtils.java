@@ -5,6 +5,7 @@ import it.unimi.dsi.fastutil.longs.Long2BooleanFunction;
 import it.unimi.dsi.fastutil.longs.LongArrayList;
 import it.unimi.dsi.fastutil.longs.LongIterable;
 import it.unimi.dsi.fastutil.longs.LongIterator;
+import lpctools.util.data.minecraft.MutableAABB;
 import lpctools.util.javaex.Object2BooleanFunction;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.SectionPos;
@@ -13,12 +14,14 @@ import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.chunk.ChunkAccess;
 import net.minecraft.world.level.chunk.status.ChunkStatus;
+import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Vector2d;
 import org.joml.Vector2i;
 
+import java.lang.ref.WeakReference;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.BiConsumer;
@@ -38,6 +41,30 @@ public class AlgorithmUtils {
     }
     public static Iterable<BlockPos> iterateInBox(BlockPos minPos, BlockPos maxPos){
         return new InBoxIterable(minPos.getX(), minPos.getY(), minPos.getZ(), maxPos.getX(), maxPos.getY(), maxPos.getZ());
+    }
+    public static Iterable<BlockPos> iterateInBoxIntersected(double x1, double y1, double z1, double x2, double y2, double z2){
+        return new InBoxIterable(
+            (int) Math.floor(Math.min(x1, x2)), (int) Math.floor(Math.min(y1, y2)), (int) Math.floor(Math.min(z1, z2)),
+            (int) Math.ceil(Math.max(x1, x2)) - 1, (int) Math.ceil(Math.max(y1, y2)) - 1, (int) Math.ceil(Math.max(z1, z2)) - 1
+        );
+    }
+    public static Iterable<BlockPos> iterateInBoxIntersected(AABB box){
+        return new InBoxIterable(
+            (int) Math.floor(box.minX), (int) Math.floor(box.minY), (int) Math.floor(box.minZ),
+            (int) Math.ceil(box.maxX) - 1, (int) Math.ceil(box.maxY) - 1, (int) Math.ceil(box.maxZ) - 1
+        );
+    }
+    public static Iterable<BlockPos> iterateInBoxTouched(double x1, double y1, double z1, double x2, double y2, double z2){
+        return new InBoxIterable(
+            (int) Math.ceil(Math.min(x1, x2)) - 1, (int) Math.ceil(Math.min(y1, y2)) - 1, (int) Math.ceil(Math.min(z1, z2)) - 1,
+            (int) Math.floor(Math.max(x1, x2)), (int) Math.floor(Math.max(y1, y2)), (int) Math.floor(Math.max(z1, z2))
+        );
+    }
+    public static Iterable<BlockPos> iterateInBoxTouched(MutableAABB box){
+        return iterateInBoxTouched(box.x1, box.y1, box.z1, box.x2, box.y2, box.z2);
+    }
+    public static Iterable<BlockPos> iterateInBoxTouched(AABB box){
+        return iterateInBoxTouched(box.minX, box.minY, box.minZ, box.maxX, box.maxY, box.maxZ);
     }
     //遍历曼哈顿距离内的方块坐标
     public static Iterable<BlockPos> iterateInManhattanDistance(BlockPos center, int distance){
@@ -477,5 +504,27 @@ public class AlgorithmUtils {
                 return res;
             }
         }
+    }
+    public static <T> Iterator<T> iteratorWeakReferences(Iterable<WeakReference<T>> iterable) {
+        return new Iterator<T>() {
+            static <T> T nextFromWeakReferences(Iterator<WeakReference<T>> iterator) {
+                T res = null;
+                while(iterator.hasNext() && res == null)
+                    res = iterator.next().get();
+                return res;
+            }
+            final Iterator<WeakReference<T>> iterator = iterable.iterator();
+            T nextVal = nextFromWeakReferences(iterator);
+            @Override public boolean hasNext() { return nextVal != null; }
+            @Override public T next() {
+                if(nextVal == null) throw new NoSuchElementException();
+                T res = nextVal;
+                nextVal = nextFromWeakReferences(iterator);
+                return res;
+            }
+        };
+    }
+    public static <T> Iterable<T> iterableWeakReferences(Iterable<WeakReference<T>> iterable) {
+        return () -> iteratorWeakReferences(iterable);
     }
 }

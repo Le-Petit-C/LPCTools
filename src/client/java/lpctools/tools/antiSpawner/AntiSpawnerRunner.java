@@ -1,6 +1,7 @@
 package lpctools.tools.antiSpawner;
 
 import lpctools.compact.derived.ShapeList;
+import lpctools.generic.GenericUtils;
 import lpctools.util.DataUtils;
 import lpctools.util.HandRestock;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
@@ -12,7 +13,6 @@ import net.minecraft.world.InteractionResult;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
 
-import static lpctools.generic.GenericUtils.mayMobSpawnAt;
 import static lpctools.lpcfymasaapi.configButtons.derivedConfigs.LimitOperationSpeedConfig.OperationResult.*;
 import static lpctools.tools.antiSpawner.AntiSpawner.*;
 import static lpctools.tools.antiSpawner.AntiSpawnerData.*;
@@ -28,11 +28,12 @@ public class AntiSpawnerRunner implements ClientTickEvents.EndTick {
         ShapeList shapeList = rangeLimitConfig.buildShapeList();
         limitOperationSpeedConfig.resetOperationTimes();
         //默认遍历的距离判断是与方块中心的距离，但是这里选择interact底下方块的上表面中心，所以添加了一个y+0.5的偏移修正
+        GenericUtils.MobSpawnTest spawnTest = GenericUtils.createSpawnTest();
         limitOperationSpeedConfig.iterableOperate(
             reachDistanceConfig.iterateFromClosest(mc.player.getEyePosition().add(0, 0.5, 0)),
             pos -> {
                 if (!shapeList.testPos(pos)) return NO_OPERATION;
-                if (!mayMobSpawnAt(mc.level, mc.level.getLightEngine(), pos)) return NO_OPERATION;
+                if (!spawnTest.mayMobSpawnAt(mc.level, mc.level.getLightEngine(), pos)) return NO_OPERATION;
                 if (!mc.level.getBlockState(pos).canBeReplaced()) return NO_OPERATION;
                 BlockPos downPos = pos.below();
                 BlockPos hitPos;
