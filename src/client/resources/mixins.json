@@ -67,6 +67,9 @@
     "tweaks.blockReplaceHotkey.BlockItemMixin",
     "tweaks.happyGhastRidingTweak.HappyGhastEntityMixin",
     "tweaks.happyGhastRidingTweak.PlayerInputC2SPacketMixin",
+    "tweaks.playerRayTraceIgnorance.BlockGetterMixin",
+    "tweaks.playerRayTraceIgnorance.LocalPlayerMixin",
+    "tweaks.playerRayTraceIgnorance.ProjectileUtilMixin",
     "utils.PacketRecorder"
   ]
 }

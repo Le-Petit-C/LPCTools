@@ -21,7 +21,9 @@ public class TweakConfigs {
             LPCfyTweakerooList.lpcfyTweakerooList,
             BlockBreakCooldownTweaks.extraBlockBreakCooldown,
             BlockBreakCooldownTweaks.spareTimeDecreasesBlockBreakCooldown,
-            BlockBreakCooldownTweaks.startBreakBlockResetsBlockBreakCooldown
+            BlockBreakCooldownTweaks.startBreakBlockResetsBlockBreakCooldown,
+            PlayerCrosshairFilter.passThroughEntities,
+            PlayerCrosshairFilter.passThroughBlocks
         );
     }
 }
