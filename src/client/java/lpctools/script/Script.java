@@ -62,8 +62,8 @@ public class Script extends AbstractScriptWithSubScript implements IScriptWithSu
 	}
 	public void openEditScreen() {
 		var screen = getEditScreen();
-		screen.setParent(Minecraft.getInstance().screen);
-		Minecraft.getInstance().setScreen(screen);
+		screen.setParent(Minecraft.getInstance().gui.screen());
+		Minecraft.getInstance().setScreenAndShow(screen);
 	}
 	//启用脚本
 	public void enable(boolean enable) {

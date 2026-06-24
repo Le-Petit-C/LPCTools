@@ -12,7 +12,7 @@ import java.util.ArrayList;
 public class GuiUtils {
     public static boolean isInTextOrGui(){
         Minecraft client = Minecraft.getInstance();
-        return client.screen != null && /*client.getOverlay() == null &&*/ client.player != null;
+        return client.gui.screen() != null && /*client.getOverlay() == null &&*/ client.player != null;
     }
     
     public static void renderInfoWidgets(Object2LongOpenHashMap<WidgetBase> infoWidgets, GuiGraphicsExtractor drawContext, int mouseX, int mouseY){

@@ -42,7 +42,7 @@ class LitematicaMaterialRunner implements ILPCValueChangeCallback, Registries.Sc
 		LocalPlayer player = mc.player;
 		MultiPlayerGameMode gameMode = mc.gameMode;
 		MaterialListBase materialListBase = litematicaMethods.getMaterialList();
-		if(mc.screen == containerScreen && player != null && gameMode != null && materialListBase != null) {
+		if(mc.gui.screen() == containerScreen && player != null && gameMode != null && materialListBase != null) {
 			MaterialListUtils.updateAvailableCounts(materialListBase.getMaterialsAll(), player);
 			HashMap<Item, ArrayList<ItemLackingData>> lackItems = new HashMap<>();
 			for(MaterialListEntry entry : materialListBase.getMaterialsAll()) {

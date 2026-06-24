@@ -41,8 +41,8 @@ public class BlockItemConfig extends LPCUniqueConfigBase {
 			onValueChanged();
 		});
 		Minecraft client = Minecraft.getInstance();
-		client.screen = null;
-		Minecraft.getInstance().setScreen(screen);
+		client.gui.setScreen(null);
+		Minecraft.getInstance().setScreenAndShow(screen);
 	}
 	
 	public static JsonPrimitive getBlockConfigAsJsonElement(BlockItemConfig blockConfig){

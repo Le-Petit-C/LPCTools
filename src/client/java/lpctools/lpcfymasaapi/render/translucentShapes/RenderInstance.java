@@ -1,6 +1,7 @@
 package lpctools.lpcfymasaapi.render.translucentShapes;
 
 import com.google.common.collect.ImmutableSet;
+import com.mojang.blaze3d.IndexType;
 import com.mojang.blaze3d.buffers.GpuBuffer;
 import com.mojang.blaze3d.buffers.GpuBufferSlice;
 import com.mojang.blaze3d.systems.CommandEncoder;
@@ -93,7 +94,7 @@ public class RenderInstance implements QuietAutoCloseable, Registries.WorldPreMa
 	private @Nullable CompletableFuture<CompletableFuture<Void>> dispatchTask;
 	private @Nullable Registries.MASAWorldRenderContext recordedWorldRenderContext;
 	
-	private int sizePerVertex(){ return renderOption.pipeline().getVertexFormat().getVertexSize(); }
+	private int sizePerVertex(){ return renderOption.pipeline().getVertexFormatBinding(0).getVertexSize(); }
 	
 	private RenderInstance(RenderOption renderOption) {
 		this.renderOption = renderOption;
@@ -152,11 +153,11 @@ public class RenderInstance implements QuietAutoCloseable, Registries.WorldPreMa
 			subChunksNeedUpload.clear();
 		}
 		var fb = context.fb();
-		GpuTextureView colorAttachmentView = Objects.requireNonNullElse(fb.getColorTextureView(), RenderUtils.fb().getColorTextureView());
+		GpuTextureView colorAttachmentView = lpctools.util.RenderUtils.colorAttachmentViewOrDef(fb);
 		GpuTextureView depthAttachmentView = renderOption.useDepthBuffer() ? (fb.useDepth ? fb.getDepthTextureView() : null) : null;
 		var camPos = context.camera().position();
 		Vector3f offset = new Vector3f();
-		Matrix4f modelViewMatrix = new Matrix4f(RenderSystem.getModelViewMatrix());
+		Matrix4f modelViewMatrix = new Matrix4f(RenderSystem.getModelViewMatrixCopy());
 		Matrix4f projectionMatrix = new Matrix4f(worldBasicProjectionMatrix);
 		switch (renderOption.translateMethod().projectionTranslationLocation) {
 			case PROJECTION -> projectionMatrix.mul(worldProjectionTranslateMatrix);
@@ -182,7 +183,7 @@ public class RenderInstance implements QuietAutoCloseable, Registries.WorldPreMa
 			projectionMatrix.m23(projectionMatrix.m23() - GenericUtils.zFightBias());
 		GpuBufferSlice projection = rawProjectionMatrixBuffer.getBuffer(projectionMatrix);
 		try (RenderPass renderPass = commandEncoder
-			.createRenderPass(renderPassLabel, colorAttachmentView, OptionalInt.empty(), depthAttachmentView, OptionalDouble.empty())) {
+			.createRenderPass(renderPassLabel, colorAttachmentView, Optional.empty(), depthAttachmentView, OptionalDouble.empty())) {
 			renderPass.setPipeline(renderOption.pipeline());
 			renderPass.setUniform("DynamicTransforms", dynamicTransforms);
 			renderPass.setUniform("Projection", projection);
@@ -274,7 +275,7 @@ public class RenderInstance implements QuietAutoCloseable, Registries.WorldPreMa
 		AABB sectionBox;
 		GpuBuffer vertexBuffer = null;
 		GpuBuffer indexBuffer = null;
-		VertexFormat.IndexType indexType = null;
+		IndexType indexType = null;
 		ByteBuffer vertexBufferToUpload = null;
 		ByteBuffer indexBufferToUpload = null;
 		
@@ -423,7 +424,7 @@ public class RenderInstance implements QuietAutoCloseable, Registries.WorldPreMa
 			if(vertexBufferToUpload != null) MemoryUtil.memFree(vertexBufferToUpload);
 			int vertexSize = sizePerVertex();
 			vertexBufferToUpload = MemoryUtil.memAlloc(vertices_size * vertexSize);
-			indexType = vertices_size > 65536 ? VertexFormat.IndexType.INT : VertexFormat.IndexType.SHORT;
+			indexType = vertices_size > 65536 ? IndexType.INT : IndexType.SHORT;
 			int gpuIndex = 0;
 			int position = 0;
 			for(var shape : shapes){
@@ -511,9 +512,9 @@ public class RenderInstance implements QuietAutoCloseable, Registries.WorldPreMa
 		
 		void render(RenderPass renderPass) {
 			if(!veryInitialized) return;
-			renderPass.setVertexBuffer(0, vertexBuffer);
+			renderPass.setVertexBuffer(0, vertexBuffer.slice());
 			renderPass.setIndexBuffer(indexBuffer, indexType);
-			renderPass.drawIndexed(0, 0, uploadedSize, 1);
+			renderPass.drawIndexed(0, 0, uploadedSize, 1, 0);
 		}
 		
 		@Contract("_,_->null")

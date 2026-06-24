@@ -64,13 +64,13 @@ public class ChooseItemScreen extends GuiBase {
 		return ofItems(parent, BuiltInRegistries.ITEM.stream().toList(), width, height, callback);
 	}
 	public static ChooseItemScreen ofAllItems(int width, int height, Consumer<Item> callback){
-		return ofAllItems(Minecraft.getInstance().screen, width, height, callback);
+		return ofAllItems(Minecraft.getInstance().gui.screen(), width, height, callback);
 	}
 	public static ChooseItemScreen ofAllBlocks(@Nullable Screen parent, int width, int height, Consumer<Block> callback){
 		return ofBlocks(parent, BuiltInRegistries.BLOCK.stream().toList(), width, height, callback);
 	}
 	public static ChooseItemScreen ofAllBlocks(int width, int height, Consumer<Block> callback){
-		return ofAllBlocks(Minecraft.getInstance().screen, width, height, callback);
+		return ofAllBlocks(Minecraft.getInstance().gui.screen(), width, height, callback);
 	}
 	public static ChooseItemScreen ofAllBlockItems(@Nullable Screen parent, int width, int height, Consumer<BlockItem> callback){
 		ArrayList<BlockItem> list = new ArrayList<>();
@@ -78,7 +78,7 @@ public class ChooseItemScreen extends GuiBase {
 		return ofItems(parent, list, width, height, callback);
 	}
 	public static ChooseItemScreen ofAllBlockItems(int width, int height, Consumer<BlockItem> callback){
-		return ofAllBlockItems(Minecraft.getInstance().screen, width, height, callback);
+		return ofAllBlockItems(Minecraft.getInstance().gui.screen(), width, height, callback);
 	}
 	@Override public void initGui() {
 		super.initGui();

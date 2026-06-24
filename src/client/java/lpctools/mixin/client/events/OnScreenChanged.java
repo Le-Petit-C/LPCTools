@@ -12,7 +12,7 @@ import net.minecraft.client.gui.screens.Screen;
 
 @Mixin(Minecraft.class)
 public class OnScreenChanged {
-    @Inject(method = "setScreen", at = @At("TAIL"))
+    @Inject(method = "setScreenAndShow", at = @At("TAIL"))
     void setScreenMixin(Screen screen, CallbackInfo ci){
         ON_SCREEN_CHANGED.runner().onScreenChanged(screen);
     }

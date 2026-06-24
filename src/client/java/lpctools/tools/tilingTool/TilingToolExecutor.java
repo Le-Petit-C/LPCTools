@@ -85,7 +85,7 @@ public class TilingToolExecutor implements AutoCloseable, ClientTickEvents.EndTi
                 data.block = block.get();
             }
             if(!condition.getBoolean(data.block)) return NO_OPERATION;
-            BlockHitResult hitResult = new BlockHitResult(pos.getCenter(), Direction.DOWN, pos.immutable(), false);
+            BlockHitResult hitResult = new BlockHitResult(net.minecraft.world.phys.Vec3.atCenterOf(pos), Direction.DOWN, pos.immutable(), false);
             itm.useItemOn(player, offhandOperate.getAsBoolean() ? InteractionHand.OFF_HAND : InteractionHand.MAIN_HAND, hitResult);
             if(--data.count == 0) return SHOULD_BREAK;
             else return OPERATED;

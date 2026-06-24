@@ -8,6 +8,6 @@ import java.util.Objects;
 
 public class RenderUtils {
 	public static GpuTextureView colorAttachmentViewOrDef(RenderTarget target) {
-		return Objects.requireNonNullElse(target.getColorTextureView(), Minecraft.getInstance().getMainRenderTarget().getColorTextureView());
+		return Objects.requireNonNullElse(target.getColorTextureView(), Minecraft.getInstance().gameRenderer.mainRenderTarget().getColorTextureView());
 	}
 }

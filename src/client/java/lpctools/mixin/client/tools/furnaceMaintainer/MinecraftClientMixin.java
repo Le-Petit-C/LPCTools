@@ -11,7 +11,7 @@ import net.minecraft.client.gui.screens.Screen;
 
 @Mixin(Minecraft.class)
 public class MinecraftClientMixin {
-    @Inject(method = "setScreen", at = @At("HEAD"), cancellable = true)
+    @Inject(method = "setScreenAndShow", at = @At("HEAD"), cancellable = true)
     void mixinScreenRender(Screen screen, CallbackInfo ci){
         if(screenCallback(screen)) ci.cancel();
     }

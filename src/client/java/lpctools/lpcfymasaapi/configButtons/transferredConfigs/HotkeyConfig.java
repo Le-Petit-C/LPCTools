@@ -53,7 +53,7 @@ public class HotkeyConfig extends ConfigHotkey implements ILPC_MASAConfigWrapper
         @Override public boolean onKeyAction(KeyAction action, IKeybind key){
             if(enabled != null && !enabled.getAsBoolean()) return false;
             valueToChange.accept(valueToChange.getAsInt() + changeValue);
-            Minecraft.getInstance().getChatListener().handleSystemMessage(Component.nullToEmpty(
+            Minecraft.getInstance().gui.chatListener().handleSystemMessage(Component.nullToEmpty(
                 StringUtils.translate("lpcfymalilib.hotkeyValueDisplay", valueToChange.getDisplayName().trim()) + " " + valueToChange.getAsInt()
             ), true);
             return true;

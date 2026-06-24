@@ -17,7 +17,7 @@ public class RenderQuad{
         this.attachedBlock = attachedBlock;
         this.direction = direction;
         this.color = color;
-        this.centerPos = attachedBlock.getCenter().relative(direction, 0.5);
+        this.centerPos = net.minecraft.world.phys.Vec3.atCenterOf(attachedBlock).relative(direction, 0.5);
     }
     public void vertex(ByteBuffer vertexBuffer, int offsetX, int offsetZ){
         float minX = attachedBlock.getX() + offsetX, maxX = minX + 1;

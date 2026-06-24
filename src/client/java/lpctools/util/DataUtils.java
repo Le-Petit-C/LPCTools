@@ -57,7 +57,7 @@ public class DataUtils {
     }
     public static void clientMessage(String message, boolean overlay) { clientMessage(Component.nullToEmpty(message), overlay); }
     public static void clientMessage(Component message, boolean overlay) {
-        ChatListener chatListener = Minecraft.getInstance().getChatListener();
+        ChatListener chatListener = Minecraft.getInstance().gui.chatListener();
         if(overlay) chatListener.handleOverlay(message);
         else chatListener.handleSystemMessage(message, true);
     }
@@ -398,7 +398,7 @@ public class DataUtils {
     }
     
     public static void executeWithCameraCenterPos(CameraCenterPosConsumer consumer) {
-        Vec3 camPos = Minecraft.getInstance().gameRenderer.getMainCamera().position();
+        Vec3 camPos = Minecraft.getInstance().gameRenderer.mainCamera().position();
         consumer.acceptPos(chunkedCoord(camPos.x), chunkedCoord(camPos.z));
     }
     
@@ -408,7 +408,7 @@ public class DataUtils {
     
     public static void executeWithRenderCenterPos(RenderCenterPosConsumer consumer, double expandRadius) {
         Minecraft mc = Minecraft.getInstance();
-        Vec3 camPos = mc.gameRenderer.getMainCamera().position();
+        Vec3 camPos = mc.gameRenderer.mainCamera().position();
         double chunkedCamX = chunkedCoord(camPos.x);
         double chunkedCamZ = chunkedCoord(camPos.z);
         double chunkedX, chunkedZ, radius;

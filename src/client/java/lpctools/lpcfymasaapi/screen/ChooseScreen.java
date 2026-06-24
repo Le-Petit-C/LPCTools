@@ -26,8 +26,8 @@ public class ChooseScreen extends GuiBase {
 	public static <T> ChooseScreen openChooseScreen(Screen parent, String title, boolean hasCancelButton, boolean hasSearchBar, Map<String, ? extends OptionCallback<? super T>> options, Map<?, ?> chooseTree, T userData){
 		ChooseScreen screen = new ChooseScreen(parent, null, title, hasCancelButton, hasSearchBar, options, chooseTree, userData);
 		Minecraft client = Minecraft.getInstance();
-		if(client.screen == parent) client.screen = null;
-		client.setScreen(screen);
+		if(client.gui.screen() == parent) client.gui.setScreen(null);
+		client.setScreenAndShow(screen);
 		screen.resetY();
 		screen.initGui();
 		return screen;
@@ -37,11 +37,11 @@ public class ChooseScreen extends GuiBase {
 	}
 	@SuppressWarnings("UnusedReturnValue")
 	public static <T> ChooseScreen openChooseScreen(String title, boolean hasCancelButton, Map<String, ? extends OptionCallback<? super T>> options, Map<?, ?> chooseTree, T userData){
-		return openChooseScreen(Minecraft.getInstance().screen, title, hasCancelButton, options, chooseTree, userData);
+		return openChooseScreen(Minecraft.getInstance().gui.screen(), title, hasCancelButton, options, chooseTree, userData);
 	}
 	@SuppressWarnings("UnusedReturnValue")
 	public static <T> ChooseScreen openChooseScreen(String title, boolean hasCancelButton, boolean hasSearchBar, Map<String, ? extends OptionCallback<? super T>> options, Map<?, ?> chooseTree, T userData){
-		return openChooseScreen(Minecraft.getInstance().screen, title, hasCancelButton, hasSearchBar, options, chooseTree, userData);
+		return openChooseScreen(Minecraft.getInstance().gui.screen(), title, hasCancelButton, hasSearchBar, options, chooseTree, userData);
 	}
 	private static final int buttonHeight = 20;
 	private static final int buttonHeightStride = 22;
@@ -79,7 +79,7 @@ public class ChooseScreen extends GuiBase {
 						}
 						else if(obj instanceof Map<?, ?> map){
 							ChooseScreen screen1 = new ChooseScreen(screen.getParent(), screen, screen.title, screen.hasCancelButton, screen.hasSearchBar, options, map, userData);
-							Minecraft.getInstance().setScreen(screen1);
+							Minecraft.getInstance().setScreenAndShow(screen1);
 							screen1.resetY();
 							screen1.initGui();
 						}
@@ -89,7 +89,7 @@ public class ChooseScreen extends GuiBase {
 			if(screen.hasCancelButton) screen.addButton(allocateCenterAt(x, y.intValue(), Component.translatable(cancelKey).getString(), textRenderer),
 				(button, mouse) -> {
 				if(screen.chooseParent == null) screen.closeGui(true);
-				else Minecraft.getInstance().setScreen(screen.chooseParent);
+				else Minecraft.getInstance().setScreenAndShow(screen.chooseParent);
 			});
 		}
 	}

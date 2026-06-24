@@ -40,8 +40,8 @@ public class ItemConfig extends LPCUniqueConfigBase {
 			onValueChanged();
 		});
 		Minecraft client = Minecraft.getInstance();
-		client.screen = null;
-		Minecraft.getInstance().setScreen(screen);
+		client.gui.setScreen(null);
+		Minecraft.getInstance().setScreenAndShow(screen);
 	}
 	
 	@Override public @Nullable JsonElement getAsJsonElement() {return new JsonPrimitive(DataUtils.getItemId(item));}

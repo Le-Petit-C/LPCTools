@@ -25,7 +25,7 @@ import net.minecraft.world.item.enchantment.ItemEnchantments;
 
 @Mixin(Minecraft.class)
 public class AutoGrindstone {
-    @Inject(method = "setScreen", at = @At("RETURN"))
+    @Inject(method = "setScreenAndShow", at = @At("RETURN"))
     void mixinScreenRender(Screen screen, CallbackInfo ci){
         if(!(screen instanceof GrindstoneScreen)) return;
         if(!lpctools.tools.autoGrindstone.AutoGrindstone.AGConfig.getBooleanValue()) return;
@@ -86,7 +86,7 @@ public class AutoGrindstone {
                 itm.handleContainerInput(player.containerMenu.containerId, 2, 0, ContainerInput.THROW, player);
             }
         }
-        client.setScreen(null);
+        client.setScreenAndShow(null);
     }
     @Unique private static void warnInvalidEnchantment(String key, LocalPlayer player){
         player.sendSystemMessage(Component.nullToEmpty(String.format("§eInvalid enchantment string: %s", key)));

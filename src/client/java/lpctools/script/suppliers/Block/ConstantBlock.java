@@ -61,9 +61,9 @@ public class ConstantBlock extends AbstractScript implements IBlockSupplier {
 				(button, mouseButton)->{
 					ChooseItemScreen screen = ChooseItemScreen.ofAllBlocks(9, 6, this::setBlock);
 					var client = Minecraft.getInstance();
-					screen.setParent(client.screen);
-					client.screen = null;
-					Minecraft.getInstance().setScreen(screen);
+					screen.setParent(client.gui.screen());
+					client.gui.setScreen(null);
+					Minecraft.getInstance().setScreenAndShow(screen);
 				}
 			);
 		}

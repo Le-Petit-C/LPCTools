@@ -71,7 +71,7 @@ public class MossBorerRunner implements AutoCloseable, ClientTickEvents.EndTick{
         if(!mossBlocks.isEmpty() && operationSpeed.next() && HandRestock.restock(stack->stack.getItem() == Items.BONE_MEAL, -1) != 0){
             BlockPos pos = mossBlocks.poll();
             assert pos != null;
-            BlockHitResult hitResult = new BlockHitResult(pos.getCenter(), Direction.UP, pos.immutable(), false);
+            BlockHitResult hitResult = new BlockHitResult(net.minecraft.world.phys.Vec3.atCenterOf(pos), Direction.UP, pos.immutable(), false);
             itm.useItemOn(player, InteractionHand.OFF_HAND, hitResult);
         }
     }

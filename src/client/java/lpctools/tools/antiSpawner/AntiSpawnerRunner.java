@@ -23,7 +23,7 @@ public class AntiSpawnerRunner implements ClientTickEvents.EndTick {
             ASConfig.setBooleanValue(false);
             return;
         }
-        if (mc.screen != null) return;
+        if (mc.gui.screen() != null) return;
         if (HandRestock.search(restockTest, 0) == -1) return;
         ShapeList shapeList = rangeLimitConfig.buildShapeList();
         limitOperationSpeedConfig.resetOperationTimes();
@@ -40,7 +40,7 @@ public class AntiSpawnerRunner implements ClientTickEvents.EndTick {
                 if (mc.level.getBlockState(pos.below()).canBeReplaced()) hitPos = pos;
                 else hitPos = downPos;
                 BlockHitResult hitResult = new BlockHitResult(
-                    pos.getBottomCenter(), Direction.UP, hitPos, false);
+                    net.minecraft.world.phys.Vec3.atBottomCenterOf(pos), Direction.UP, hitPos, false);
                 if (!mc.player.isShiftKeyDown()) {
                     BlockState below = mc.level.getBlockState(pos.below());
                     InteractionResult result = below.useWithoutItem(mc.level, mc.player, hitResult);
