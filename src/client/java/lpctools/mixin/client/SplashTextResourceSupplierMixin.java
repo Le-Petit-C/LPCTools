@@ -24,7 +24,6 @@ public class SplashTextResourceSupplierMixin {
     void injectPrepare(ResourceManager resourceManager, ProfilerFiller profiler, CallbackInfoReturnable<List<Component>> cir){
 		try (BufferedReader bufferedReader = resourceManager.openAsReader(RESOURCE_ID)) {
 			List<Component> extra;
-			if (bufferedReader == null) return;
 			extra = bufferedReader.lines().map(s -> (Component) Component.literal(s.trim())).toList();
 			if (cir.getReturnValue() != null) {
 				try {

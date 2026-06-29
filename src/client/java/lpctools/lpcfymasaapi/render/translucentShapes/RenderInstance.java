@@ -92,8 +92,6 @@ public class RenderInstance implements QuietAutoCloseable, Registries.WorldPreMa
 	private @Nullable CompletableFuture<CompletableFuture<Void>> dispatchTask;
 	private @Nullable Registries.MASAWorldRenderContext recordedWorldRenderContext;
 	
-	private int sizePerVertex(){ return renderOption.pipeline().getVertexFormatBinding(0).getVertexSize(); }
-	
 	private RenderInstance(RenderOption renderOption) {
 		this.renderOption = renderOption;
 		Registries.PRE_MAIN.register(this);
@@ -420,7 +418,7 @@ public class RenderInstance implements QuietAutoCloseable, Registries.WorldPreMa
 		
 		void buildVertexByteBuffer(){
 			if(vertexBufferToUpload != null) MemoryUtil.memFree(vertexBufferToUpload);
-			int vertexSize = sizePerVertex();
+			int vertexSize = renderOption.pipeline().getVertexFormatBinding(0).getVertexSize();
 			vertexBufferToUpload = MemoryUtil.memAlloc(vertices_size * vertexSize);
 			indexType = vertices_size > 65536 ? IndexType.INT : IndexType.SHORT;
 			int gpuIndex = 0;

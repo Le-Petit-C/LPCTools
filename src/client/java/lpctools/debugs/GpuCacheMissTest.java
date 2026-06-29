@@ -166,6 +166,7 @@ public class GpuCacheMissTest {
 				for(int j = 0; j < vertexPerShape; ++j) shapeBaseVectors[j].rotate(rotation, shapeCache[j]).add(center);
 				for(int j = 0; j < vertexPerShape; ++j) vertexCache[basicVertexIndexes[shapeStart + j]] = new Vector3f(shapeCache[j]);
 			}
+			// TODO fix warning 方法调用 'getVertexSize' 可能产生 'NullPointerException'
 			var vertexByteBuffer = MemoryUtil.memAlloc(renderPipeline.getVertexFormatBinding(0).getVertexSize() * vertexCount);
 			for(int i = 0; i < vertexCount; i++){
 				var p = vertexCache[i];
