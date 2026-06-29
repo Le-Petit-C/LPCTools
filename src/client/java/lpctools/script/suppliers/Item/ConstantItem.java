@@ -60,9 +60,9 @@ public class ConstantItem extends AbstractScript implements IItemSupplier {
 				(button, mouseButton)->{
 					ChooseItemScreen screen = ChooseItemScreen.ofAllItems(9, 6, this::setItem);
 					var client = Minecraft.getInstance();
-					screen.setParent(client.screen);
-					client.screen = null;
-					Minecraft.getInstance().setScreen(screen);
+					screen.setParent(client.gui.screen());
+					client.gui.setScreen(null);
+					Minecraft.getInstance().setScreenAndShow(screen);
 				}
 			);
 		}

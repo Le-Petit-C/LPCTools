@@ -80,7 +80,7 @@ public class LiquidCleanerRunner implements ClientTickEvents.EndTick {
             BlockState state = world.getBlockState(pos);
             if (isAllowedReplaceableLiquid(state)) {
                 limitOperationSpeedConfig.limitWithRestock(this::isStackOk, offhandPriority);
-                Vec3 midPos = pos.getCenter();
+                Vec3 midPos = net.minecraft.world.phys.Vec3.atCenterOf(pos);
                 BlockHitResult hitResult = new BlockHitResult(midPos, Direction.DOWN, pos.mutable(), false);
                 manager.useItemOn(player, hand, hitResult);
                 return OPERATED;

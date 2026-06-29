@@ -41,8 +41,8 @@ public class BlockConfig extends LPCUniqueConfigBase implements SimpleDirtyImpl 
 	private void chooseBlock(){
 		ChooseItemScreen screen = ChooseItemScreen.ofAllBlocks(9, 6, this::setBlock);
 		Minecraft client = Minecraft.getInstance();
-		client.screen = null;
-		Minecraft.getInstance().setScreen(screen);
+		client.gui.setScreen(null);
+		Minecraft.getInstance().setScreenAndShow(screen);
 	}
 	
 	public static JsonPrimitive getBlockConfigAsJsonElement(BlockConfig blockConfig){

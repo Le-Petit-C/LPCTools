@@ -72,7 +72,7 @@ public class LPCConfigPage implements IConfigHandler, Supplier<GuiBase>, ILPCCon
         if(pageInstance != null) pageInstance.onClose();
         pageInstance = new ConfigPageInstance();
         pageInstance.setParent(parent);
-        if(Minecraft.getInstance().screen != pageInstance)
+        if(Minecraft.getInstance().gui.screen() != pageInstance)
             GuiBase.openGui(pageInstance);
     }
     private boolean needUpdate = true;

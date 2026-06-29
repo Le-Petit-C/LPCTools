@@ -1,5 +1,6 @@
 package lpctools.debugs.ThreeBodyDisplay;
 
+import com.mojang.blaze3d.IndexType;
 import com.mojang.blaze3d.buffers.GpuBuffer;
 import com.mojang.blaze3d.buffers.GpuBufferSlice;
 import com.mojang.blaze3d.pipeline.RenderTarget;
@@ -24,8 +25,8 @@ import org.lwjgl.system.MemoryUtil;
 
 import java.lang.Math;
 import java.nio.ByteBuffer;
+import java.util.Optional;
 import java.util.OptionalDouble;
-import java.util.OptionalInt;
 import java.util.function.Supplier;
 
 import static lpctools.debugs.ThreeBodyDisplay.ThreeBodyDisplay.*;
@@ -151,7 +152,7 @@ class Runner implements QuietAutoCloseable, Registries.WorldPreMainRender, Level
 		GpuTextureView colorAttachmentView = RenderUtils.colorAttachmentViewOrDef(fb);
 		GpuTextureView depthAttachmentView = fb.useDepth ? fb.getDepthTextureView() : null;
 		Vector3f offset = new Vector3f();
-		Matrix4f modelViewMatrix = new Matrix4f(RenderSystem.getModelViewMatrix());
+		Matrix4f modelViewMatrix = new Matrix4f(RenderSystem.getModelViewMatrixCopy());
 		Matrix4f projectionMatrix = new Matrix4f(RenderInstance.worldBasicProjectionMatrix);
 		RenderInstance.worldProjectionTranslateMatrix.mul(modelViewMatrix, modelViewMatrix);
 		modelViewMatrix.get3x3(new Matrix3f()).invert().transform(modelViewMatrix.getColumn(3, offset));
@@ -163,13 +164,13 @@ class Runner implements QuietAutoCloseable, Registries.WorldPreMainRender, Level
 			.writeTransform(modelViewMatrix, new Vector4f(1.0F, 1.0F, 1.0F, 1.0F), offset, new Matrix4f());
 		GpuBufferSlice projection = rawProjectionMatrixBuffer.getBuffer(projectionMatrix);
 		try (RenderPass renderPass = commandEncoder
-			.createRenderPass(renderPassLabel, colorAttachmentView, OptionalInt.empty(), depthAttachmentView, OptionalDouble.empty())) {
+			.createRenderPass(renderPassLabel, colorAttachmentView, Optional.empty(), depthAttachmentView, OptionalDouble.empty())) {
 			renderPass.setPipeline(LPCRenderPipelines.spherePipeline);
 			renderPass.setUniform("DynamicTransforms", dynamicTransforms);
 			renderPass.setUniform("Projection", projection);
-			renderPass.setIndexBuffer(indexBuffer, VertexFormat.IndexType.SHORT);
-			renderPass.setVertexBuffer(0, vertexBuffer);
-			renderPass.drawIndexed(0, 0, 3 * Sphere.baseIndices.length * Sphere.baseIndices[0].length, 1);
+			renderPass.setIndexBuffer(indexBuffer, IndexType.SHORT);
+			renderPass.setVertexBuffer(0, vertexBuffer.slice());
+			renderPass.drawIndexed(0, 0, 3 * Sphere.baseIndices.length * Sphere.baseIndices[0].length, 1, 0);
 		}
 	}
 	

@@ -153,8 +153,8 @@ public class SelectionScreen<T> extends GuiBase {
 	public static <T> SelectionScreen<T> openSelectionScreen(@Nullable Component title, OptionNode<T> tree, @Nullable Screen parent, Consumer<T> callback){
 		var res = new SelectionScreen<>(title, parent, callback);
 		var mc = Minecraft.getInstance();
-		if(mc.screen == parent) mc.screen = null;
-		mc.setScreen(res);
+		if(mc.gui.screen() == parent) mc.gui.setScreen(null);
+		mc.setScreenAndShow(res);
 		res.setOptionList(0, tree.subOptionSupplier.get());
 		return res;
 	}
@@ -165,12 +165,12 @@ public class SelectionScreen<T> extends GuiBase {
 	}
 	
 	public static <T> SelectionScreen<T> openSelectionScreen(@Nullable Component title, OptionNode<T> tree, Consumer<T> callback){
-		return openSelectionScreen(title, tree, Minecraft.getInstance().screen, callback);
+		return openSelectionScreen(title, tree, Minecraft.getInstance().gui.screen(), callback);
 	}
 	
 	@SuppressWarnings("UnusedReturnValue")
 	public static <T> SelectionScreen<T> openSelectionScreen(OptionNode<T> tree, Consumer<T> callback){
-		return openSelectionScreen(null, tree, Minecraft.getInstance().screen, callback);
+		return openSelectionScreen(null, tree, Minecraft.getInstance().gui.screen(), callback);
 	}
 	
 	public static <T> SelectionScreen<T> openSelectionScreen(@Nullable Component title, Map<String, T> sources, Map<String, ?> tree, Consumer<T> callback){

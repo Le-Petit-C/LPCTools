@@ -1,6 +1,5 @@
 package lpctools.lpcfymasaapi;
 
-import com.google.common.collect.ImmutableMap;
 import com.mojang.blaze3d.buffers.GpuBufferSlice;
 import com.mojang.blaze3d.pipeline.RenderTarget;
 import fi.dy.masa.malilib.event.RenderEventHandler;
@@ -11,17 +10,15 @@ import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientChunkEvents;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientEntityEvents;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientLevelEvents;
+import net.fabricmc.fabric.api.client.rendering.v1.level.LevelExtractionEvents;
 import net.fabricmc.fabric.api.client.rendering.v1.level.LevelRenderEvents;
 import net.fabricmc.fabric.api.resource.v1.ResourceLoader;
 import net.minecraft.client.Camera;
 import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.render.GuiRenderer;
-import net.minecraft.client.gui.render.pip.PictureInPictureRenderer;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.input.MouseButtonInfo;
 import net.minecraft.client.multiplayer.ClientLevel;
-import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderBuffers;
 import net.minecraft.client.renderer.culling.Frustum;
 import net.minecraft.client.renderer.state.level.CameraRenderState;
@@ -60,9 +57,9 @@ public class Registries {
         callbacks->(world, chunk)->callbacks.forEach(screen->screen.onChunkUnload(world, chunk)), ClientChunkEvents.CHUNK_UNLOAD);
     public static final UnregistrableRegistry<WorldPreMainRender> PRE_MAIN = new UnregistrableRegistry<>(
         callbacks->context->callbacks.forEach(callback->callback.onRenderWorldPreMain(context)));
-    public static final UnregistrableRegistry<LevelRenderEvents.AfterBlockOutlineExtraction> AFTER_BLOCK_OUTLINE_EXTRACTION = new UnregistrableRegistry<>(
+    public static final UnregistrableRegistry<LevelExtractionEvents.AfterBlockOutlineExtraction> AFTER_BLOCK_OUTLINE_EXTRACTION = new UnregistrableRegistry<>(
         callbacks->(context, result)->callbacks.forEach(callback->callback.afterBlockOutlineExtraction(context, result)), LevelRenderEvents.AFTER_BLOCK_OUTLINE_EXTRACTION);
-    public static final UnregistrableRegistry<LevelRenderEvents.EndExtraction> END_EXTRACTION = new UnregistrableRegistry<>(
+    public static final UnregistrableRegistry<LevelExtractionEvents.EndExtraction> END_EXTRACTION = new UnregistrableRegistry<>(
         callbacks->(context)->callbacks.forEach(callback->callback.endExtraction(context)), LevelRenderEvents.END_EXTRACTION);
     public static final UnregistrableRegistry<LevelRenderEvents.StartMain> START_MAIN = new UnregistrableRegistry<>(
         callbacks->(context)->callbacks.forEach(callback->callback.startMain(context)), LevelRenderEvents.START_MAIN);
@@ -151,9 +148,6 @@ public class Registries {
                 toolTipLastRenderer.onRenderTooltipLast(ctx, stack, x, y);
             }
             
-            @Override public void onRegisterSpecialGuiRenderer(GuiRenderer guiRenderer, MultiBufferSource.BufferSource immediate, Minecraft mc, ImmutableMap.Builder<Class<? extends net.minecraft.client.renderer.state.gui.pip.PictureInPictureRenderState>, PictureInPictureRenderer<?>> builder) {
-            
-            }
         };
         var malilibRenderEventHandler = RenderEventHandler.getInstance();
         malilibRenderEventHandler.registerInGameGuiRenderer(malilibRenderer);

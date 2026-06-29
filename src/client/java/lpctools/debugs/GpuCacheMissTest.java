@@ -1,5 +1,6 @@
 package lpctools.debugs;
 
+import com.mojang.blaze3d.IndexType;
 import com.mojang.blaze3d.buffers.GpuBuffer;
 import com.mojang.blaze3d.buffers.GpuBufferSlice;
 import com.mojang.blaze3d.pipeline.RenderPipeline;
@@ -22,8 +23,8 @@ import org.lwjgl.system.MemoryUtil;
 
 import java.nio.ByteBuffer;
 import java.util.Arrays;
+import java.util.Optional;
 import java.util.OptionalDouble;
-import java.util.OptionalInt;
 import java.util.Random;
 
 import static lpctools.lpcfymasaapi.LPCConfigStatics.*;
@@ -143,7 +144,7 @@ public class GpuCacheMissTest {
 	private static class RenderInstance implements AutoCloseable, Registries.WorldLastRender {
 		static final RenderPipeline renderPipeline = RenderPipelines.DEBUG_QUADS;
 		final GpuBuffer vertexBuffer, indexBuffer;
-		final VertexFormat.IndexType indexType;
+		final IndexType indexType;
 		final int shapeCount;
 		RenderInstance(){
 			Random random = new Random();
@@ -166,7 +167,7 @@ public class GpuCacheMissTest {
 				for(int j = 0; j < vertexPerShape; ++j) shapeBaseVectors[j].rotate(rotation, shapeCache[j]).add(center);
 				for(int j = 0; j < vertexPerShape; ++j) vertexCache[basicVertexIndexes[shapeStart + j]] = new Vector3f(shapeCache[j]);
 			}
-			var vertexByteBuffer = MemoryUtil.memAlloc(renderPipeline.getVertexFormat().getVertexSize() * vertexCount);
+			var vertexByteBuffer = MemoryUtil.memAlloc(renderPipeline.getVertexFormatBinding(0).getVertexSize() * vertexCount);
 			for(int i = 0; i < vertexCount; i++){
 				var p = vertexCache[i];
 				vertexByteBuffer.putFloat(p.x).putFloat(p.y).putFloat(p.z);
@@ -188,12 +189,12 @@ public class GpuCacheMissTest {
 			shuffleIntsUnited(indexes, indexShuffleMethod.get().unitLength, random);
 			ByteBuffer indexByteBuffer;
 			if(indexCount <= 65536) {
-				indexType = VertexFormat.IndexType.SHORT;
+				indexType = IndexType.SHORT;
 				indexByteBuffer = MemoryUtil.memAlloc(indexType.bytes * indexCount);
 				for(int i = 0; i < indexCount; ++i) indexByteBuffer.putShort((short)indexes[i]);
 			}
 			else {
-				indexType = VertexFormat.IndexType.INT;
+				indexType = IndexType.INT;
 				indexByteBuffer = MemoryUtil.memAlloc(indexType.bytes * indexCount);
 				for(int i = 0; i < indexCount; ++i) indexByteBuffer.putInt(indexes[i]);
 			}
@@ -216,21 +217,21 @@ public class GpuCacheMissTest {
 			GpuTextureView colorAttachmentView = RenderUtils.colorAttachmentViewOrDef(fb);
 			GpuTextureView depthAttachmentView = fb.useDepth ? fb.getDepthTextureView() : null;
 			GpuBufferSlice dynamicTransforms = RenderSystem.getDynamicUniforms()
-				.writeTransform(RenderSystem.getModelViewMatrix().translate(context.camera().position().toVector3f().mul(-1),
+				.writeTransform(RenderSystem.getModelViewMatrixCopy().translate(context.camera().position().toVector3f().mul(-1),
 					new Matrix4f()), new Vector4f(1.0F, 1.0F, 1.0F, 1.0F), new Vector3f(), new Matrix4f());
 			GpuBufferSlice projection = RenderSystem.getProjectionMatrixBuffer();
 			try(RenderPass renderPass = RenderSystem.getDevice()
 				.createCommandEncoder()
 				.createRenderPass(() -> "LPCTools Vertex Cache Miss Test",
-					colorAttachmentView, OptionalInt.empty(), depthAttachmentView, OptionalDouble.empty())){
+					colorAttachmentView, Optional.empty(), depthAttachmentView, OptionalDouble.empty())){
 				renderPass.setPipeline(renderPipeline);
 				renderPass.setUniform("DynamicTransforms", dynamicTransforms);
 				if (projection != null) {
 					renderPass.setUniform("Projection", projection);
 				}
-				renderPass.setVertexBuffer(0, vertexBuffer);
+				renderPass.setVertexBuffer(0, vertexBuffer.slice());
 				renderPass.setIndexBuffer(indexBuffer, indexType);
-				renderPass.drawIndexed(0, 0, shapeCount * indexPerShape, 1);
+				renderPass.drawIndexed(0, 0, shapeCount * indexPerShape, 1, 0);
 			}
 		}
 	}

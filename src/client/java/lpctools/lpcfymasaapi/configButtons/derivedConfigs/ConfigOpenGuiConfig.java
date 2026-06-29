@@ -16,7 +16,7 @@ public class ConfigOpenGuiConfig extends HotkeyConfig {
     }
     private record ConfigOpenGuiConfigInstance(LPCConfigPage page) implements IHotkeyCallback{
         @Override public boolean onKeyAction(KeyAction action, IKeybind key) {
-            page.showPage(Minecraft.getInstance().screen);
+            page.showPage(Minecraft.getInstance().gui.screen());
             return true;
         }
     }

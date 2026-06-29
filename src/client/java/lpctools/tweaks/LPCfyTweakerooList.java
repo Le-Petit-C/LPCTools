@@ -116,7 +116,7 @@ public class LPCfyTweakerooList {
 		
 		private void sendUpdateCurrentScreen(){
 			Minecraft client = Minecraft.getInstance();
-			if(client.screen instanceof GuiConfigs configs)
+			if(client.gui.screen() instanceof GuiConfigs configs)
 				tweakerooGuiConfigs = configs;
 			if(updateMarked) return;
 			updateMarked = true;

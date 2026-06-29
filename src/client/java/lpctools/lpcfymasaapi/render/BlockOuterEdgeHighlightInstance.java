@@ -128,7 +128,7 @@ public class BlockOuterEdgeHighlightInstance implements AutoCloseable, ClientLev
     @Override public void afterLevelChange(@NonNull Minecraft mc, @NonNull ClientLevel world) {clearData();}
     
     @Override public void betweenFrames() {
-        var camPos = Minecraft.getInstance().gameRenderer.getMainCamera().position();
+        var camPos = Minecraft.getInstance().gameRenderer.mainCamera().position();
         double chunkedCamX = DataUtils.chunkedCoord(camPos.x);
         double chunkedCamZ = DataUtils.chunkedCoord(camPos.z);
         updatePosesNeedToUpdate(chunkedCamX, chunkedCamZ);

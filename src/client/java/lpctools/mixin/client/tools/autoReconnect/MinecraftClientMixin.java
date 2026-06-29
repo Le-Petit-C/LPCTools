@@ -12,7 +12,7 @@ import net.minecraft.client.gui.screens.Screen;
 
 @Mixin(Minecraft.class)
 public class MinecraftClientMixin {
-    @Inject(method = "setScreen", at = @At("HEAD"))
+    @Inject(method = "setScreenAndShow", at = @At("HEAD"))
     void onSetScreen(Screen screen, CallbackInfo ci){
         if(screen == null){
             cancelReconnect();

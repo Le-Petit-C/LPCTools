@@ -87,7 +87,7 @@ public class FurnaceMaintainerRunner implements QuietAutoCloseable, ClientTickEv
                 }
                 else if(!(block instanceof HopperBlock) || state.getValue(HopperBlock.FACING) != Direction.DOWN
 					|| !(world.getBlockState(pos.below()).getBlock() instanceof AbstractFurnaceBlock)) continue;
-                BlockHitResult hitResult = new BlockHitResult(pos.getCenter(), Direction.DOWN, lastInteractedPos = pos.immutable(), false);
+                BlockHitResult hitResult = new BlockHitResult(net.minecraft.world.phys.Vec3.atCenterOf(pos), Direction.DOWN, lastInteractedPos = pos.immutable(), false);
                 isFMInteracting = true;
                 itm.useItemOn(player, InteractionHand.MAIN_HAND, hitResult);
                 isFMInteracting = false;
