@@ -11,6 +11,7 @@ import net.minecraft.client.gui.screens.Screen;
 
 @Mixin(Minecraft.class)
 public class MinecraftClientMixin {
+    // TODO: 使用ON_SCREEN_CHANGED事件或许更好？
     @Inject(method = "setScreenAndShow", at = @At("HEAD"), cancellable = true)
     void mixinScreenRender(Screen screen, CallbackInfo ci){
         if(screenCallback(screen)) ci.cancel();

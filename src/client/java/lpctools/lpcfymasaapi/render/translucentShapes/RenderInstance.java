@@ -8,9 +8,7 @@ import com.mojang.blaze3d.systems.CommandEncoder;
 import com.mojang.blaze3d.systems.RenderPass;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.textures.GpuTextureView;
-import com.mojang.blaze3d.vertex.VertexFormat;
 import fi.dy.masa.malilib.render.MaLiLibPipelines;
-import fi.dy.masa.malilib.render.RenderUtils;
 import it.unimi.dsi.fastutil.ints.*;
 import it.unimi.dsi.fastutil.longs.Long2IntOpenHashMap;
 import lpctools.generic.GenericUtils;
@@ -157,7 +155,7 @@ public class RenderInstance implements QuietAutoCloseable, Registries.WorldPreMa
 		GpuTextureView depthAttachmentView = renderOption.useDepthBuffer() ? (fb.useDepth ? fb.getDepthTextureView() : null) : null;
 		var camPos = context.camera().position();
 		Vector3f offset = new Vector3f();
-		Matrix4f modelViewMatrix = new Matrix4f(RenderSystem.getModelViewMatrixCopy());
+		Matrix4f modelViewMatrix = RenderSystem.getModelViewMatrixCopy();
 		Matrix4f projectionMatrix = new Matrix4f(worldBasicProjectionMatrix);
 		switch (renderOption.translateMethod().projectionTranslationLocation) {
 			case PROJECTION -> projectionMatrix.mul(worldProjectionTranslateMatrix);

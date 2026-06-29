@@ -41,7 +41,7 @@ public class BlockItemConfig extends LPCUniqueConfigBase {
 			onValueChanged();
 		});
 		Minecraft client = Minecraft.getInstance();
-		client.gui.setScreen(null);
+		client.gui.setScreen(null); // TODO 检查父screen在此处removed()后再渲染会不会发生异常
 		Minecraft.getInstance().setScreenAndShow(screen);
 	}
 	

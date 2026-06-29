@@ -153,7 +153,7 @@ public class SelectionScreen<T> extends GuiBase {
 	public static <T> SelectionScreen<T> openSelectionScreen(@Nullable Component title, OptionNode<T> tree, @Nullable Screen parent, Consumer<T> callback){
 		var res = new SelectionScreen<>(title, parent, callback);
 		var mc = Minecraft.getInstance();
-		if(mc.gui.screen() == parent) mc.gui.setScreen(null);
+		if(mc.gui.screen() == parent) mc.gui.setScreen(null);// TODO 检查父screen在此处removed()后再渲染会不会发生异常
 		mc.setScreenAndShow(res);
 		res.setOptionList(0, tree.subOptionSupplier.get());
 		return res;

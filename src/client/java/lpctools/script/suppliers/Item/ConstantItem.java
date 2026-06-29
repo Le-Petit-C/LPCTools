@@ -57,11 +57,11 @@ public class ConstantItem extends AbstractScript implements IItemSupplier {
 			selectButton = new WidthAutoAdjustButtonGeneric(
 				getDisplayWidget(), 0, 0, 20, DataUtils.getItemId(item), null);
 			selectButton.setActionListener(
-				(button, mouseButton)->{
+				(_, _)->{
 					ChooseItemScreen screen = ChooseItemScreen.ofAllItems(9, 6, this::setItem);
 					var client = Minecraft.getInstance();
 					screen.setParent(client.gui.screen());
-					client.gui.setScreen(null);
+					client.gui.setScreen(null);// TODO check
 					Minecraft.getInstance().setScreenAndShow(screen);
 				}
 			);

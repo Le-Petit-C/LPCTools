@@ -12,6 +12,7 @@ import net.minecraft.client.gui.screens.Screen;
 
 @Mixin(Minecraft.class)
 public class OnScreenChanged {
+    // TODO: 到底是setScreen更合适还是setScreenAndShow更合适？
     @Inject(method = "setScreenAndShow", at = @At("TAIL"))
     void setScreenMixin(Screen screen, CallbackInfo ci){
         ON_SCREEN_CHANGED.runner().onScreenChanged(screen);

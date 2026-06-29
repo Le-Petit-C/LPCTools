@@ -26,7 +26,7 @@ public class ChooseScreen extends GuiBase {
 	public static <T> ChooseScreen openChooseScreen(Screen parent, String title, boolean hasCancelButton, boolean hasSearchBar, Map<String, ? extends OptionCallback<? super T>> options, Map<?, ?> chooseTree, T userData){
 		ChooseScreen screen = new ChooseScreen(parent, null, title, hasCancelButton, hasSearchBar, options, chooseTree, userData);
 		Minecraft client = Minecraft.getInstance();
-		if(client.gui.screen() == parent) client.gui.setScreen(null);
+		if(client.gui.screen() == parent) client.gui.setScreen(null);// TODO 检查父screen在此处removed()后再渲染会不会发生异常
 		client.setScreenAndShow(screen);
 		screen.resetY();
 		screen.initGui();

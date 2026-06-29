@@ -17,6 +17,7 @@ import net.minecraft.world.InteractionHand;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.Vec3;
 import org.apache.commons.lang3.mutable.MutableObject;
 import org.jspecify.annotations.NonNull;
 
@@ -85,7 +86,7 @@ public class TilingToolExecutor implements AutoCloseable, ClientTickEvents.EndTi
                 data.block = block.get();
             }
             if(!condition.getBoolean(data.block)) return NO_OPERATION;
-            BlockHitResult hitResult = new BlockHitResult(net.minecraft.world.phys.Vec3.atCenterOf(pos), Direction.DOWN, pos.immutable(), false);
+            BlockHitResult hitResult = new BlockHitResult(Vec3.atCenterOf(pos), Direction.DOWN, pos.immutable(), false);
             itm.useItemOn(player, offhandOperate.getAsBoolean() ? InteractionHand.OFF_HAND : InteractionHand.MAIN_HAND, hitResult);
             if(--data.count == 0) return SHOULD_BREAK;
             else return OPERATED;
