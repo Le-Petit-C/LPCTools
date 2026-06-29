@@ -33,7 +33,7 @@ public class LitematicaMethods {
     public void addRenderRangeShape(Collection<ITestableShape> list, SimpleTestableShape.TestType testType){
         LayerRange currentRange = DataManager.getRenderLayerRange();
         list.add(ITestableShape.byTester(
-            new LayerRangeTester(Direction.Axis.valueOf(currentRange.getAxis().name()), currentRange.getLayerRangeMin(), currentRange.getLayerRangeMax())
+            new LayerRangeTester(currentRange.getAxis().toVanilla(), currentRange.getLayerRangeMin(), currentRange.getLayerRangeMax())
             , testType));
     }
     public @Nullable Box3i getSelectionBox(){

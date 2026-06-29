@@ -25,6 +25,7 @@ import net.minecraft.world.item.enchantment.ItemEnchantments;
 
 @Mixin(Minecraft.class)
 public class AutoGrindstone {
+    // TODO: 或许能用setScreen事件
     @Inject(method = "setScreenAndShow", at = @At("RETURN"))
     void mixinScreenRender(Screen screen, CallbackInfo ci){
         if(!(screen instanceof GrindstoneScreen)) return;

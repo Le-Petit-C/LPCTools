@@ -58,7 +58,7 @@ public class FurnaceMaintainer {
     }
     private static void clearClientScreen(Screen screen){
         var mc = Minecraft.getInstance();
-        if(mc.gui.screen() == screen) mc.setScreenAndShow(null);
+        if(mc.gui.screen() == screen) mc.gui.setScreen(null);
     }
     public static boolean screenCallback(Screen screen) {
         if(!FMConfig.getBooleanValue() || dataInstance == null || runner == null || runner.lastInteractedPos == null) return false;

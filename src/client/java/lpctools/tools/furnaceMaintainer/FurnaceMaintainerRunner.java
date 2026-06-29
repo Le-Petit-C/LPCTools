@@ -16,6 +16,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.AbstractFurnaceBlock;
 import net.minecraft.world.level.block.HopperBlock;
 import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.Nullable;
 import org.jspecify.annotations.NonNull;
 
@@ -87,7 +88,7 @@ public class FurnaceMaintainerRunner implements QuietAutoCloseable, ClientTickEv
                 }
                 else if(!(block instanceof HopperBlock) || state.getValue(HopperBlock.FACING) != Direction.DOWN
 					|| !(world.getBlockState(pos.below()).getBlock() instanceof AbstractFurnaceBlock)) continue;
-                BlockHitResult hitResult = new BlockHitResult(net.minecraft.world.phys.Vec3.atCenterOf(pos), Direction.DOWN, lastInteractedPos = pos.immutable(), false);
+                BlockHitResult hitResult = new BlockHitResult(Vec3.atCenterOf(pos), Direction.DOWN, lastInteractedPos = pos.immutable(), false);
                 isFMInteracting = true;
                 itm.useItemOn(player, InteractionHand.MAIN_HAND, hitResult);
                 isFMInteracting = false;

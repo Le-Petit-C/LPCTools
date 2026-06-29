@@ -12,6 +12,7 @@ import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.Vec3;
 
 import static lpctools.lpcfymasaapi.configButtons.derivedConfigs.LimitOperationSpeedConfig.OperationResult.*;
 import static lpctools.tools.antiSpawner.AntiSpawner.*;
@@ -40,7 +41,7 @@ public class AntiSpawnerRunner implements ClientTickEvents.EndTick {
                 if (mc.level.getBlockState(pos.below()).canBeReplaced()) hitPos = pos;
                 else hitPos = downPos;
                 BlockHitResult hitResult = new BlockHitResult(
-                    net.minecraft.world.phys.Vec3.atBottomCenterOf(pos), Direction.UP, hitPos, false);
+                    Vec3.atBottomCenterOf(pos), Direction.UP, hitPos, false);
                 if (!mc.player.isShiftKeyDown()) {
                     BlockState below = mc.level.getBlockState(pos.below());
                     InteractionResult result = below.useWithoutItem(mc.level, mc.player, hitResult);

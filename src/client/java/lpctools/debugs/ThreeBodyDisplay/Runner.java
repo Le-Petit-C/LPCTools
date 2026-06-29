@@ -8,7 +8,6 @@ import com.mojang.blaze3d.systems.RenderPass;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.textures.GpuTextureView;
 import com.mojang.blaze3d.vertex.DefaultVertexFormat;
-import com.mojang.blaze3d.vertex.VertexFormat;
 import lpctools.LPCTools;
 import lpctools.lpcfymasaapi.Registries;
 import lpctools.lpcfymasaapi.render.LPCRenderPipelines;
@@ -152,7 +151,7 @@ class Runner implements QuietAutoCloseable, Registries.WorldPreMainRender, Level
 		GpuTextureView colorAttachmentView = RenderUtils.colorAttachmentViewOrDef(fb);
 		GpuTextureView depthAttachmentView = fb.useDepth ? fb.getDepthTextureView() : null;
 		Vector3f offset = new Vector3f();
-		Matrix4f modelViewMatrix = new Matrix4f(RenderSystem.getModelViewMatrixCopy());
+		Matrix4f modelViewMatrix = RenderSystem.getModelViewMatrixCopy();
 		Matrix4f projectionMatrix = new Matrix4f(RenderInstance.worldBasicProjectionMatrix);
 		RenderInstance.worldProjectionTranslateMatrix.mul(modelViewMatrix, modelViewMatrix);
 		modelViewMatrix.get3x3(new Matrix3f()).invert().transform(modelViewMatrix.getColumn(3, offset));
