@@ -13,7 +13,7 @@ public enum RenderTiming implements IUnregistrableRegistry<IRenderCallback> {
 	BEFORE_BLOCK_OUTLINE(Registries.BEFORE_BLOCK_OUTLINE, callback->(_, _)->{callback.render(); return true;}),
 	END_MAIN(Registries.END_MAIN, callback->_->callback.render());
 	<T> RenderTiming(UnregistrableRegistry<T> registry, Function<IRenderCallback, T> mappingFunction) {
-		this.registry = new UnregistrableRegistry<>(callbacks->()->callbacks.forEach(IRenderCallback::render));
+		this.registry = UnregistrableRegistry.fanOut(IRenderCallback.class);
 		registry.register(mappingFunction.apply(this.registry.runner()));
 	}
 	private final UnregistrableRegistry<IRenderCallback> registry;

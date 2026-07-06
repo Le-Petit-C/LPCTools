@@ -1,4 +1,4 @@
-package lpctools.mixin.client;
+package lpctools.mixin.client.events;
 
 import com.llamalad7.mixinextras.sugar.Local;
 import lpctools.lpcfymasaapi.render.RenderEventHandler;
@@ -31,15 +31,13 @@ public abstract class MixinWorldRenderer
 	@Shadow @Final private LevelTargetBundle targets;
 	@Shadow @Final private RenderBuffers renderBuffers;
 	
-	@SuppressWarnings("DiscouragedShift") @Inject(method = "render",
-		at = @At(value = "INVOKE",
-			target = "Lnet/minecraft/client/renderer/LevelRenderer;addMainPass(Lcom/mojang/blaze3d/framegraph/FrameGraphBuilder;Lnet/minecraft/client/renderer/feature/FeatureRenderDispatcher$PreparedFrame;Lcom/mojang/blaze3d/buffers/GpuBufferSlice;Lnet/minecraft/client/renderer/state/level/LevelRenderState;Lnet/minecraft/util/profiling/ProfilerFiller;Lnet/minecraft/client/renderer/chunk/ChunkSectionsToRender;)V",
-			shift = At.Shift.BEFORE))
+	@Inject(method = "render", at = @At(value = "INVOKE",
+		target = "Lnet/minecraft/client/renderer/LevelRenderer;addMainPass(Lcom/mojang/blaze3d/framegraph/FrameGraphBuilder;Lnet/minecraft/client/renderer/feature/FeatureRenderDispatcher$PreparedFrame;Lcom/mojang/blaze3d/buffers/GpuBufferSlice;Lnet/minecraft/client/renderer/state/level/LevelRenderState;Lnet/minecraft/util/profiling/ProfilerFiller;Lnet/minecraft/client/renderer/chunk/ChunkSectionsToRender;)V"))
 	private void lpctools_onRenderWorldMain(GraphicsResourceAllocator resourceAllocator, DeltaTracker deltaTracker, boolean renderOutline, CameraRenderState cameraState,
 											Matrix4fc modelViewMatrix, GpuBufferSlice terrainFog, Vector4f fogColor, boolean shouldRenderSky,
 											CallbackInfo ci,
-											@Local(name = "profiler") ProfilerFiller profiler,
-											@Local(name = "frame") FrameGraphBuilder frame)
+											@Local(ordinal = 0) ProfilerFiller profiler,
+											@Local(ordinal = 0) FrameGraphBuilder frame)
 	{
 		Minecraft minecraft = Minecraft.getInstance();
 		Frustum cullFrustum = cameraState.cullFrustum;

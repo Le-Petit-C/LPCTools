@@ -1,7 +1,7 @@
 package lpctools.script.suppliers.ControlFlowIssue;
 
 import com.google.gson.JsonElement;
-import lpctools.mixin.client.BlockReplaceAction;
+import lpctools.mixin.client.accessors.MinecraftAccessor;
 import lpctools.script.AbstractScript;
 import lpctools.script.CompileEnvironment;
 import lpctools.script.IScriptWithSubScript;
@@ -14,8 +14,8 @@ public class DoAttack extends AbstractScript implements IControlFlowIssueSupplie
 	public DoAttack(IScriptWithSubScript parent) {super(parent);}
 	@Override public @NotNull ScriptNotNullSupplier<ControlFlowIssue>
 	compileNotNull(CompileEnvironment environment) {
-		return map->{
-			((BlockReplaceAction) Minecraft.getInstance()).invokeDoAttack();
+		return _ ->{
+			((MinecraftAccessor) Minecraft.getInstance()).invokeStartAttack();
 			return ControlFlowIssue.NO_ISSUE;
 		};
 	}

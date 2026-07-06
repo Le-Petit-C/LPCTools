@@ -11,7 +11,7 @@ import net.minecraft.client.MouseHandler;
 
 @Mixin(MouseHandler.class)
 public class MouseHorizontalMixin {
-	@Unique private double lpctools$originalVertical;
+	@Unique private double lpctools$originalYOffset;
 	
 	@Unique private static boolean isHorizontalScrollKeyDown(){
 		return horizontalScrollButton.getKeybind().isPressed();
@@ -22,11 +22,10 @@ public class MouseHorizontalMixin {
 		at = @At("HEAD"),
 		index = 5,
 		argsOnly = true,
-		order = 901
-	)
-	private double captureVertical(double vertical) {
-		lpctools$originalVertical = vertical;
-		return vertical;
+		order = 901)
+	private double captureYOffset(double yoffset) {
+		lpctools$originalYOffset = yoffset;
+		return yoffset;
 	}
 	
 	@ModifyVariable(
@@ -34,12 +33,11 @@ public class MouseHorizontalMixin {
 		at = @At("HEAD"),
 		index = 3,
 		argsOnly = true,
-		order = 902
-	)
-	private double modifyHorizontal(double horizontal) {
+		order = 902)
+	private double modifyXOffset(double xoffset) {
 		if (isHorizontalScrollKeyDown())
-			return horizontal - lpctools$originalVertical;
-		return horizontal;
+			return xoffset - lpctools$originalYOffset;
+		return xoffset;
 	}
 	
 	@ModifyVariable(
@@ -47,9 +45,8 @@ public class MouseHorizontalMixin {
 		at = @At("HEAD"),
 		index = 5,
 		argsOnly = true,
-		order = 903
-	)
-	private double modifyVertical(double vertical) {
-		return isHorizontalScrollKeyDown() ? 0.0 : vertical;
+		order = 903)
+	private double modifyYOffset(double yoffset) {
+		return isHorizontalScrollKeyDown() ? 0.0 : yoffset;
 	}
 }

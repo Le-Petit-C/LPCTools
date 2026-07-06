@@ -15,6 +15,8 @@ import net.fabricmc.fabric.api.client.rendering.v1.level.LevelRenderEvents;
 import net.fabricmc.fabric.api.resource.v1.ResourceLoader;
 import net.minecraft.client.Camera;
 import net.minecraft.client.DeltaTracker;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.Gui;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.input.MouseButtonInfo;
 import net.minecraft.client.multiplayer.ClientLevel;
@@ -28,6 +30,7 @@ import net.minecraft.server.packs.PackType;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.server.packs.resources.ResourceManagerReloadListener;
 import net.minecraft.util.profiling.ProfilerFiller;
+import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.state.BlockState;
@@ -42,62 +45,55 @@ import java.util.function.Consumer;
 
 @SuppressWarnings("unused")
 public class Registries {
-    public static final UnregistrableRegistry<ClientLevelEvents.AfterClientLevelChange> AFTER_CLIENT_LEVEL_CHANGE = new UnregistrableRegistry<>(
-        callbacks->(client, world)->callbacks.forEach(screen->screen.afterLevelChange(client, world)), ClientLevelEvents.AFTER_CLIENT_LEVEL_CHANGE);
-    public static final UnregistrableRegistry<ScreenChangeCallback> ON_SCREEN_CHANGED = new UnregistrableRegistry<>(
-        callbacks->newScreen->callbacks.forEach(screen->screen.onScreenChanged(newScreen)));
-    public static final UnregistrableRegistry<ClientTickEvents.StartTick> START_CLIENT_TICK = new UnregistrableRegistry<>(
-        callbacks->mc->callbacks.forEach(screen->screen.onStartTick(mc)), ClientTickEvents.START_CLIENT_TICK);
-    public static final UnregistrableRegistry<ClientTickEvents.EndTick> END_CLIENT_TICK = new UnregistrableRegistry<>(
-        callbacks->mc->callbacks.forEach(screen->screen.onEndTick(mc)), ClientTickEvents.END_CLIENT_TICK);
-    public static final UnregistrableRegistry<ClientChunkEvents.Load> CLIENT_CHUNK_LOAD = new UnregistrableRegistry<>(
-        callbacks->(world, chunk)->callbacks.forEach(screen->screen.onChunkLoad(world, chunk)), ClientChunkEvents.CHUNK_LOAD);
-    public static final UnregistrableRegistry<ClientChunkEvents.Unload> CLIENT_CHUNK_UNLOAD = new UnregistrableRegistry<>(
-        callbacks->(world, chunk)->callbacks.forEach(screen->screen.onChunkUnload(world, chunk)), ClientChunkEvents.CHUNK_UNLOAD);
-    public static final UnregistrableRegistry<WorldPreMainRender> PRE_MAIN = new UnregistrableRegistry<>(
-        callbacks->context->callbacks.forEach(callback->callback.onRenderWorldPreMain(context)));
-    public static final UnregistrableRegistry<LevelExtractionEvents.AfterBlockOutlineExtraction> AFTER_BLOCK_OUTLINE_EXTRACTION = new UnregistrableRegistry<>(
-        callbacks->(context, result)->callbacks.forEach(callback->callback.afterBlockOutlineExtraction(context, result)), LevelRenderEvents.AFTER_BLOCK_OUTLINE_EXTRACTION);
-    public static final UnregistrableRegistry<LevelExtractionEvents.EndExtraction> END_EXTRACTION = new UnregistrableRegistry<>(
-        callbacks->(context)->callbacks.forEach(callback->callback.endExtraction(context)), LevelRenderEvents.END_EXTRACTION);
-    public static final UnregistrableRegistry<LevelRenderEvents.StartMain> START_MAIN = new UnregistrableRegistry<>(
-        callbacks->(context)->callbacks.forEach(callback->callback.startMain(context)), LevelRenderEvents.START_MAIN);
-    public static final UnregistrableRegistry<LevelRenderEvents.AfterOpaqueTerrain> AFTER_OPAQUE_TERRAIN = new UnregistrableRegistry<>(
-        callbacks->(context)->callbacks.forEach(callback->callback.afterOpaqueTerrain(context)), LevelRenderEvents.AFTER_OPAQUE_TERRAIN);
-    public static final UnregistrableRegistry<LevelRenderEvents.AfterSolidFeatures> AFTER_SOLID_FEATURES = new UnregistrableRegistry<>(
-        callbacks->(context)->callbacks.forEach(callback->callback.afterSolidFeatures(context)), LevelRenderEvents.AFTER_SOLID_FEATURES);
-    public static final UnregistrableRegistry<LevelRenderEvents.AfterTranslucentFeatures> AFTER_TRANSLUCENT_FEATURES = new UnregistrableRegistry<>(
-        callbacks->(context)->callbacks.forEach(callback->callback.afterTranslucentFeatures(context)), LevelRenderEvents.AFTER_TRANSLUCENT_FEATURES);
+    public static final UnregistrableRegistry<ClientLevelEvents.AfterClientLevelChange> AFTER_CLIENT_LEVEL_CHANGE = UnregistrableRegistry.fanOut(
+        ClientLevelEvents.AfterClientLevelChange.class, ClientLevelEvents.AFTER_CLIENT_LEVEL_CHANGE);
+    // orCircuit: 返回 true 表示终止 screen change — 不能使用 fanOut
+    public static final UnregistrableRegistry<BeforeScreenChangeCallback> BEFORE_SCREEN_CHANGE = new UnregistrableRegistry<>(
+        callbacks->screen->callbacks.orCircuit(callback->callback.beforeScreenChange(screen)));
+    public static final UnregistrableRegistryBase<Runnable, ScreenChangedCallback> ON_SCREEN_CHANGED = new UnregistrableRegistryBase<>(
+        callbacks->()-> {
+            Gui gui = Minecraft.getInstance().gui;
+            Screen screen = gui.screen();
+            loop:
+            while(true) {
+                for(ScreenChangedCallback screenChangedCallback : callbacks) {
+                    screenChangedCallback.onScreenChanged(screen);
+                    if(gui.screen() != screen) {
+                        screen = gui.screen();
+                        continue loop;
+                    }
+                }
+                break;
+            }
+        });
+    public static final UnregistrableRegistry<ContainerContentInitializedCallback> CLIENT_CONTAINER_CONTENT_INITIALIZED = UnregistrableRegistry.fanOut(ContainerContentInitializedCallback.class);
+    public static final UnregistrableRegistry<ClientTickEvents.StartTick> START_CLIENT_TICK = UnregistrableRegistry.fanOut(ClientTickEvents.StartTick.class, ClientTickEvents.START_CLIENT_TICK);
+    public static final UnregistrableRegistry<ClientTickEvents.EndTick> END_CLIENT_TICK = UnregistrableRegistry.fanOut(ClientTickEvents.EndTick.class, ClientTickEvents.END_CLIENT_TICK);
+    public static final UnregistrableRegistry<ClientChunkEvents.Load> CLIENT_CHUNK_LOAD = UnregistrableRegistry.fanOut(ClientChunkEvents.Load.class, ClientChunkEvents.CHUNK_LOAD);
+    public static final UnregistrableRegistry<ClientChunkEvents.Unload> CLIENT_CHUNK_UNLOAD = UnregistrableRegistry.fanOut(ClientChunkEvents.Unload.class, ClientChunkEvents.CHUNK_UNLOAD);
+    public static final UnregistrableRegistry<WorldPreMainRender> PRE_MAIN = UnregistrableRegistry.fanOut(WorldPreMainRender.class);
+    public static final UnregistrableRegistry<LevelExtractionEvents.AfterBlockOutlineExtraction> AFTER_BLOCK_OUTLINE_EXTRACTION = UnregistrableRegistry.fanOut(LevelExtractionEvents.AfterBlockOutlineExtraction.class, LevelExtractionEvents.AFTER_BLOCK_OUTLINE_EXTRACTION);
+    public static final UnregistrableRegistry<LevelExtractionEvents.EndExtraction> END_EXTRACTION = UnregistrableRegistry.fanOut(LevelExtractionEvents.EndExtraction.class, LevelExtractionEvents.END_EXTRACTION);
+    public static final UnregistrableRegistry<LevelRenderEvents.StartMain> START_MAIN = UnregistrableRegistry.fanOut(LevelRenderEvents.StartMain.class, LevelRenderEvents.START_MAIN);
+    public static final UnregistrableRegistry<LevelRenderEvents.AfterOpaqueTerrain> AFTER_OPAQUE_TERRAIN = UnregistrableRegistry.fanOut(LevelRenderEvents.AfterOpaqueTerrain.class, LevelRenderEvents.AFTER_OPAQUE_TERRAIN);
+    public static final UnregistrableRegistry<LevelRenderEvents.AfterSolidFeatures> AFTER_SOLID_FEATURES = UnregistrableRegistry.fanOut(LevelRenderEvents.AfterSolidFeatures.class, LevelRenderEvents.AFTER_SOLID_FEATURES);
+    public static final UnregistrableRegistry<LevelRenderEvents.AfterTranslucentFeatures> AFTER_TRANSLUCENT_FEATURES = UnregistrableRegistry.fanOut(LevelRenderEvents.AfterTranslucentFeatures.class, LevelRenderEvents.AFTER_TRANSLUCENT_FEATURES);
     public static final UnregistrableRegistry<LevelRenderEvents.BeforeBlockOutline> BEFORE_BLOCK_OUTLINE = new UnregistrableRegistry<>(
         callbacks->(context, outlineRenderState)->callbacks.andNonCircuit(callback->callback.beforeBlockOutline(context, outlineRenderState)), LevelRenderEvents.BEFORE_BLOCK_OUTLINE);
-    public static final UnregistrableRegistry<LevelRenderEvents.BeforeGizmos> BEFORE_GIZMOS = new UnregistrableRegistry<>(
-        callbacks->(context)->callbacks.forEach(callback->callback.beforeGizmos(context)), LevelRenderEvents.BEFORE_GIZMOS);
-    public static final UnregistrableRegistry<LevelRenderEvents.BeforeTranslucentTerrain> BEFORE_TRANSLUCENT_TERRAIN = new UnregistrableRegistry<>(
-        callbacks->(context)->callbacks.forEach(callback->callback.beforeTranslucentTerrain(context)), LevelRenderEvents.BEFORE_TRANSLUCENT_TERRAIN);
-    public static final UnregistrableRegistry<LevelRenderEvents.AfterTranslucentTerrain> AFTER_TRANSLUCENT_TERRAIN = new UnregistrableRegistry<>(
-        callbacks->(context)->callbacks.forEach(callback->callback.afterTranslucentTerrain(context)), LevelRenderEvents.AFTER_TRANSLUCENT_TERRAIN);
-    public static final UnregistrableRegistry<LevelRenderEvents.EndMain> END_MAIN = new UnregistrableRegistry<>(
-        callbacks->(context)->callbacks.forEach(callback->callback.endMain(context)), LevelRenderEvents.END_MAIN);
-    public static final UnregistrableRegistry<ClientWorldChunkSetBlockState> CLIENT_WORLD_CHUNK_SET_BLOCK_STATE = new UnregistrableRegistry<>(
-        callbacks->(chunk, pos, lastState, newState)->callbacks.forEach(screen->screen.onClientWorldChunkSetBlockState(chunk, pos, lastState, newState)));
-    public static final UnregistrableRegistry<GameOverlayRender> MASA_RENDER_GAME_OVERLAY = new UnregistrableRegistry<>(
-        callbacks->(a, b, c)->callbacks.forEach(renderer->renderer.renderGameOverlay(a, b, c)));
-    public static final UnregistrableRegistry<WorldPreWeatherRender> MASA_RENDER_WORLD_PRE_WEATHER = new UnregistrableRegistry<>(
-        callbacks->c->callbacks.forEach(renderer->renderer.onRenderWorldPreWeather(c)));
-    public static final UnregistrableRegistry<WorldLastRender> MASA_WORLD_RENDER_LAST = new UnregistrableRegistry<>(
-        callbacks->c->callbacks.forEach(renderer->renderer.onLast(c)));
-    public static final UnregistrableRegistry<TooltipComponentInsertFirstRender> MASA_RENDER_TOOLTIP_COMPONENT_INSERTION_FIRST = new UnregistrableRegistry<>(
-        callbacks->(c, s, l)->callbacks.forEach(renderer->renderer.onRenderTooltipComponentInsertFirst(c, s, l)));
-    public static final UnregistrableRegistry<TooltipComponentInsertMiddleRender> MASA_RENDER_TOOLTIP_COMPONENT_INSERTION_MIDDLE = new UnregistrableRegistry<>(
-        callbacks->(c, s, l)->callbacks.forEach(renderer->renderer.onRenderTooltipComponentInsertMiddle(c, s, l)));
-    public static final UnregistrableRegistry<TooltipComponentInsertLastRender> MASA_RENDER_TOOLTIP_COMPONENT_INSERTION_LAST = new UnregistrableRegistry<>(
-        callbacks->(c, s, l)->callbacks.forEach(renderer->renderer.onRenderTooltipComponentInsertLast(c, s, l)));
-    public static final UnregistrableRegistry<TooltipLastRender> MASA_RENDER_TOOLTIP_LAST = new UnregistrableRegistry<>(
-        callbacks->(c, s, x, y)->callbacks.forEach(renderer->renderer.onRenderTooltipLast(c, s, x, y)));
-    public static final UnregistrableRegistry<ClientWorldChunkLightUpdated> CLIENT_CHUNK_LIGHT_LOAD = new UnregistrableRegistry<>(
-        callbacks->(world, chunk)->callbacks.forEach(callback->callback.onClientWorldChunkLightUpdated(world, chunk)));
-    public static final UnregistrableRegistry<InGameEndMouse> IN_GAME_END_MOUSE = new UnregistrableRegistry<>(
-        callbacks->(input, action)->callbacks.forEach(callback->callback.onInGameEndMouse(input, action)));
+    public static final UnregistrableRegistry<LevelRenderEvents.BeforeGizmos> BEFORE_GIZMOS = UnregistrableRegistry.fanOut(LevelRenderEvents.BeforeGizmos.class, LevelRenderEvents.BEFORE_GIZMOS);
+    public static final UnregistrableRegistry<LevelRenderEvents.BeforeTranslucentTerrain> BEFORE_TRANSLUCENT_TERRAIN = UnregistrableRegistry.fanOut(LevelRenderEvents.BeforeTranslucentTerrain.class, LevelRenderEvents.BEFORE_TRANSLUCENT_TERRAIN);
+    public static final UnregistrableRegistry<LevelRenderEvents.AfterTranslucentTerrain> AFTER_TRANSLUCENT_TERRAIN = UnregistrableRegistry.fanOut(LevelRenderEvents.AfterTranslucentTerrain.class, LevelRenderEvents.AFTER_TRANSLUCENT_TERRAIN);
+    public static final UnregistrableRegistry<LevelRenderEvents.EndMain> END_MAIN = UnregistrableRegistry.fanOut(LevelRenderEvents.EndMain.class, LevelRenderEvents.END_MAIN);
+    public static final UnregistrableRegistry<ClientWorldChunkSetBlockState> CLIENT_WORLD_CHUNK_SET_BLOCK_STATE = UnregistrableRegistry.fanOut(ClientWorldChunkSetBlockState.class);
+    public static final UnregistrableRegistry<GameOverlayRender> MASA_RENDER_GAME_OVERLAY = UnregistrableRegistry.fanOut(GameOverlayRender.class);
+    public static final UnregistrableRegistry<WorldPreWeatherRender> MASA_RENDER_WORLD_PRE_WEATHER = UnregistrableRegistry.fanOut(WorldPreWeatherRender.class);
+    public static final UnregistrableRegistry<WorldLastRender> MASA_WORLD_RENDER_LAST = UnregistrableRegistry.fanOut(WorldLastRender.class);
+    public static final UnregistrableRegistry<TooltipComponentInsertFirstRender> MASA_RENDER_TOOLTIP_COMPONENT_INSERTION_FIRST = UnregistrableRegistry.fanOut(TooltipComponentInsertFirstRender.class);
+    public static final UnregistrableRegistry<TooltipComponentInsertMiddleRender> MASA_RENDER_TOOLTIP_COMPONENT_INSERTION_MIDDLE = UnregistrableRegistry.fanOut(TooltipComponentInsertMiddleRender.class);
+    public static final UnregistrableRegistry<TooltipComponentInsertLastRender> MASA_RENDER_TOOLTIP_COMPONENT_INSERTION_LAST = UnregistrableRegistry.fanOut(TooltipComponentInsertLastRender.class);
+    public static final UnregistrableRegistry<TooltipLastRender> MASA_RENDER_TOOLTIP_LAST = UnregistrableRegistry.fanOut(TooltipLastRender.class);
+    public static final UnregistrableRegistry<ClientWorldChunkLightUpdated> CLIENT_CHUNK_LIGHT_LOAD = UnregistrableRegistry.fanOut(ClientWorldChunkLightUpdated.class);
+    public static final UnregistrableRegistry<InGameEndMouse> IN_GAME_END_MOUSE = UnregistrableRegistry.fanOut(InGameEndMouse.class);
     public static final UnregistrableRegistry<IRangeChangeListener> LITEMATICA_RANGE_CHANGED = new UnregistrableRegistry<>(
         callbacks->new IRangeChangeListener() {
             @Override public void updateAll() {
@@ -109,14 +105,10 @@ public class Registries {
             @Override public void updateBetweenZ(int minZ, int maxZ) {
                 callbacks.forEach(callback->callback.updateBetweenX(minZ, maxZ));}
         });
-    public static final UnregistrableRegistry<ResourceReloadCallback> CLIENT_RESOURCE_RELOAD = new UnregistrableRegistry<>(
-        callbacks->manager->callbacks.forEach(callback->callback.onResourceReload(manager)));
-    public static final UnregistrableRegistry<BetweenRenderFrames> BETWEEN_RENDER_FRAMES = new UnregistrableRegistry<>(
-        callbacks->()->callbacks.forEach(BetweenRenderFrames::betweenFrames));
-    public static final UnregistrableRegistry<ClientEntityEvents.Load> CLIENT_ENTITY_LOAD = new UnregistrableRegistry<>(
-        callbacks->(entity, level)->callbacks.forEach(callback->callback.onLoad(entity, level)), ClientEntityEvents.ENTITY_LOAD);
-    public static final UnregistrableRegistry<ClientEntityEvents.Unload> CLIENT_ENTITY_UNLOAD = new UnregistrableRegistry<>(
-        callbacks->(entity, level)->callbacks.forEach(callback->callback.onUnload(entity, level)), ClientEntityEvents.ENTITY_UNLOAD);
+    public static final UnregistrableRegistry<ResourceReloadCallback> CLIENT_RESOURCE_RELOAD = UnregistrableRegistry.fanOut(ResourceReloadCallback.class);
+    public static final UnregistrableRegistry<BetweenRenderFrames> BETWEEN_RENDER_FRAMES = UnregistrableRegistry.fanOut(BetweenRenderFrames.class);
+    public static final UnregistrableRegistry<ClientEntityEvents.Load> CLIENT_ENTITY_LOAD = UnregistrableRegistry.fanOut(ClientEntityEvents.Load.class, ClientEntityEvents.ENTITY_LOAD);
+    public static final UnregistrableRegistry<ClientEntityEvents.Unload> CLIENT_ENTITY_UNLOAD = UnregistrableRegistry.fanOut(ClientEntityEvents.Unload.class, ClientEntityEvents.ENTITY_UNLOAD);
     
     static{
         var toolTipComponentInsertFirstRenderer = MASA_RENDER_TOOLTIP_COMPONENT_INSERTION_FIRST.runner();
@@ -189,7 +181,11 @@ public class Registries {
     public interface ClientWorldChunkSetBlockState {//at RETURN
         void onClientWorldChunkSetBlockState(LevelChunk chunk, BlockPos pos, @Nullable BlockState lastState, @Nullable BlockState newState);
     }
-    public interface ScreenChangeCallback{
+    public interface BeforeScreenChangeCallback {
+        // 返回true表示终止此次screen change，false表示可以继续
+        boolean beforeScreenChange(Screen newScreen);
+    }
+    public interface ScreenChangedCallback {
         void onScreenChanged(Screen newScreen);
     }
     public interface ClientWorldChunkLightUpdated{
@@ -203,5 +199,8 @@ public class Registries {
     }
     public interface BetweenRenderFrames {
         void betweenFrames();
+    }
+    public interface ContainerContentInitializedCallback {
+        void onContainerContentInitialized(AbstractContainerMenu menu);
     }
 }

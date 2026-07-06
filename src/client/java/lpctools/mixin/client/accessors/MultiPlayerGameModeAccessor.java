@@ -1,6 +1,8 @@
 package lpctools.mixin.client.accessors;
 
+import net.minecraft.client.multiplayer.ClientPacketListener;
 import net.minecraft.client.multiplayer.MultiPlayerGameMode;
+import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.gen.Accessor;
 
@@ -8,4 +10,5 @@ import org.spongepowered.asm.mixin.gen.Accessor;
 public interface MultiPlayerGameModeAccessor {
 	@Accessor int getDestroyDelay();
 	@Accessor void setDestroyDelay(int ticks);
+	@Accessor @Nullable ClientPacketListener getConnection();
 }

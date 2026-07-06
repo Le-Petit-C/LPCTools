@@ -9,7 +9,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 @Mixin(Property.class)
 public class PropertyRegisterMixin {
 	@Inject(method = "<init>", at = @org.spongepowered.asm.mixin.injection.At("RETURN") )
-	private void onInit(String name, Class<?> type, CallbackInfo ci){
+	private void onInit(String name, Class<?> clazz, CallbackInfo ci){
 		BlockPropertyOperators.GenericPropertyOperator.propertyGetters.registerProperty((Property<?>)(Object)this);
 	}
 }
