@@ -21,10 +21,9 @@ public class SplashTextResourceSupplierMixin {
     @Unique private static final Identifier RESOURCE_ID = Identifier.fromNamespaceAndPath("lpctools", "texts/splashes.txt");
     @Inject(method = "prepare(Lnet/minecraft/server/packs/resources/ResourceManager;Lnet/minecraft/util/profiling/ProfilerFiller;)Ljava/util/List;",
     at = @At("RETURN"), cancellable = true)
-    void injectPrepare(ResourceManager resourceManager, ProfilerFiller profiler, CallbackInfoReturnable<List<Component>> cir){
-		try (BufferedReader bufferedReader = resourceManager.openAsReader(RESOURCE_ID)) {
+    void injectPrepare(ResourceManager manager, ProfilerFiller profiler, CallbackInfoReturnable<List<Component>> cir){
+		try (BufferedReader bufferedReader = manager.openAsReader(RESOURCE_ID)) {
 			List<Component> extra;
-			if (bufferedReader == null) return;
 			extra = bufferedReader.lines().map(s -> (Component) Component.literal(s.trim())).toList();
 			if (cir.getReturnValue() != null) {
 				try {

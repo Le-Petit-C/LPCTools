@@ -32,9 +32,9 @@ public class WidgetConfigOptionBaseMixin implements IWidgetConfigOptionBaseEx {
         parent.addTextField(wrapper);
     }
     @Inject(method = "drawTextFields", at = @At("TAIL"))
-    void drawExtraTextFields(GuiContext context, int mouseX, int mouseY, CallbackInfo ci){
+    void drawExtraTextFields(GuiContext ctx, int mouseX, int mouseY, CallbackInfo ci){
         for(TextFieldWrapper<? extends GuiTextFieldGeneric> textFieldWrapper : extraTextFieldWrappers)
-            textFieldWrapper.textField().extractRenderState(context, mouseX, mouseY, 0f);
+            textFieldWrapper.textField().extractRenderState(ctx, mouseX, mouseY, 0f);
     }
     @Inject(method = "onMouseClickedImpl", at = @At("RETURN"), cancellable = true)
     void onMouseClickedImpl(MouseButtonEvent click, boolean doubleClick, CallbackInfoReturnable<Boolean> cir){

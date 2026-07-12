@@ -7,7 +7,7 @@ import lpctools.lpcfymasaapi.configButtons.derivedConfigs.RangeLimitConfig;
 import lpctools.lpcfymasaapi.configButtons.transferredConfigs.*;
 import lpctools.lpcfymasaapi.configButtons.uniqueConfigs.BooleanHotkeyThirdListConfig;
 import lpctools.lpcfymasaapi.interfaces.ILPCConfigList;
-import lpctools.mixin.client.SpriteContentsMixin;
+import lpctools.mixin.client.accessors.SpriteContentsAccessor;
 import lpctools.tools.ToolConfigs;
 import lpctools.util.DataUtils;
 import net.minecraft.client.Minecraft;
@@ -67,7 +67,7 @@ public class SlightXRay{
             TextureAtlasSprite particleSprite = model.particleMaterial().sprite();
             float r = 0, g = 0, b = 0;
             float t = 0;
-            for(NativeImage image : ((SpriteContentsMixin)particleSprite.contents()).getMipmapLevelsImages()){
+            for(NativeImage image : ((SpriteContentsAccessor)particleSprite.contents()).getByMipLevel()){
                 for(int color : image.getPixels()){
                     float k = (color >>> 24) / 255.0f;
                     r += (color & 0xff) * k;

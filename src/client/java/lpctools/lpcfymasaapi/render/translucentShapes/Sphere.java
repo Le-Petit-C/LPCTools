@@ -25,11 +25,9 @@ public class Sphere extends PositionedShape<PositionColorLineWidthVertex> {
 		centers[5] = new Vector3d(center).add(radius, 0, 0);
 	}
 	
-	public static ShapeRegister<Sphere> register(boolean xrays) {
+	public static ShapeRegister<Sphere> register() {
 		return new ShapeRegister<>(RenderInstance.getRenderInstance(new RenderOption(
-			LPCRenderPipelines.spherePipeline, !xrays, !xrays, TranslateMethod.PROJECTION__MODEL_VIEW__BIASED_OFFSET,
-			xrays ? RenderTiming.END_MAIN : RenderTiming.BEFORE_TRANSLUCENT,
-			ImmutableSet.of()
+			LPCRenderPipelines.spherePipeline, RenderTiming.BEFORE_TRANSLUCENT, false, ImmutableSet.of()
 		)));
 	}
 }
