@@ -1,7 +1,5 @@
 package lpctools.lpcfymasaapi;
 
-import com.google.common.collect.ImmutableMap;
-import com.mojang.blaze3d.buffers.GpuBufferSlice;
 import com.mojang.blaze3d.pipeline.RenderTarget;
 import fi.dy.masa.malilib.event.RenderEventHandler;
 import fi.dy.masa.malilib.interfaces.IRangeChangeListener;

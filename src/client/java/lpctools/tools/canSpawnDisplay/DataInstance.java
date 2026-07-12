@@ -171,7 +171,7 @@ public class DataInstance implements AutoCloseable, Registries.ClientWorldChunkL
             if(task.task.isDone()){
                 var res = task.task.join();
                 long packedChunkPos = res.packedChunkPos;
-                var shapes = canSpawnPoses.computeIfAbsent(packedChunkPos, k->new HashMap<>());
+                var shapes = canSpawnPoses.computeIfAbsent(packedChunkPos, _ ->new HashMap<>());
                 updateCounter -= shapes.size();
                 shapes.values().forEach(QuietAutoCloseable::closeIfNotNull);
                 shapes.clear();

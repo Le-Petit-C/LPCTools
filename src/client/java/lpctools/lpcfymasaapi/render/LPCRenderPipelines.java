@@ -11,8 +11,6 @@ import net.minecraft.resources.Identifier;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Objects;
-
 import static fi.dy.masa.malilib.render.MaLiLibPipelines.*;
 import static net.minecraft.client.renderer.RenderPipelines.*;
 
