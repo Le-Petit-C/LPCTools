@@ -44,7 +44,7 @@
 	"suggests": {
 		"malilib": "0.26.8",
 		"minihud": "0.37.6",
-		"litematica": "0.24.7",
+		"litematica": "0.24.8",
 		"tweakeroo": "0.26.5"
 	}
 }
