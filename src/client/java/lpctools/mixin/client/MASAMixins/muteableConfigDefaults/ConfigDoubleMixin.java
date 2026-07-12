@@ -1,4 +1,4 @@
-package lpctools.mixin.client.MASAMixins.MuteMASAConfigMinMaxMixin;
+package lpctools.mixin.client.MASAMixins.muteableConfigDefaults;
 
 import fi.dy.masa.malilib.config.options.ConfigDouble;
 import org.spongepowered.asm.mixin.Final;

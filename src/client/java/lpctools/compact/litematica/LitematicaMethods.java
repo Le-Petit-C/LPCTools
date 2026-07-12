@@ -1,6 +1,7 @@
 package lpctools.compact.litematica;
 
 import fi.dy.masa.litematica.data.DataManager;
+import fi.dy.masa.litematica.materials.MaterialListBase;
 import fi.dy.masa.litematica.schematic.placement.SchematicPlacement;
 import fi.dy.masa.litematica.selection.AreaSelection;
 import fi.dy.masa.malilib.util.LayerRange;
@@ -32,7 +33,7 @@ public class LitematicaMethods {
     public void addRenderRangeShape(Collection<ITestableShape> list, SimpleTestableShape.TestType testType){
         LayerRange currentRange = DataManager.getRenderLayerRange();
         list.add(ITestableShape.byTester(
-            new LayerRangeTester(currentRange.getAxis(), currentRange.getLayerMin(), currentRange.getLayerMax())
+            new LayerRangeTester(currentRange.getAxis(), currentRange.getLayerRangeMin(), currentRange.getLayerRangeMax())
             , testType));
     }
     public @Nullable Box3i getSelectionBox(){
@@ -57,11 +58,14 @@ public class LitematicaMethods {
     @Nullable private static AABB toMinecraftBox(fi.dy.masa.litematica.selection.Box box){
         BlockPos pos1 = box.getPos1(), pos2 = box.getPos2();
         if(pos1 == null || pos2 == null) return null;
-        return new AABB(pos1.getCenter(), pos2.getCenter()).inflate(0.5);
+        return new AABB(net.minecraft.world.phys.Vec3.atCenterOf(pos1), net.minecraft.world.phys.Vec3.atCenterOf(pos2)).inflate(0.5);
     }
     @Nullable private static Box3i toBox3i(fi.dy.masa.litematica.selection.Box box){
         BlockPos pos1 = box.getPos1(), pos2 = box.getPos2();
         if(pos1 == null || pos2 == null) return null;
         return new Box3i(toVector3i(pos1), toVector3i(pos2));
+    }
+    public @Nullable MaterialListBase getMaterialList(){
+        return DataManager.getMaterialList();
     }
 }

@@ -8,7 +8,21 @@ class Star {
 	double mass;
 	double radius;
 	final Vector3d light = new Vector3d();
-	final Vector3d position = new Vector3d(), velocity = new Vector3d(), vChange = new Vector3d();
+	record StarStatus(Vector3d position, Vector3d velocity, Vector3d acceleration) {
+		StarStatus() { this(new Vector3d(), new Vector3d(), new Vector3d()); }
+		void set(StarStatus status) {
+			this.position.set(status.position);
+			this.velocity.set(status.velocity);
+			this.acceleration.set(status.acceleration);
+		}
+	}
+	StarStatus frontStatus = new StarStatus(), backStatus = new StarStatus();
+	StarStatus getStatus(boolean front) { return front ? frontStatus : backStatus; }
+	void swapStatus() {
+		StarStatus temp = frontStatus;
+		frontStatus = backStatus;
+		backStatus = temp;
+	}
 	
 	Star(java.util.Random random, RunnerDataPack dataPack) {randomize(random, dataPack);}
 	
@@ -19,39 +33,60 @@ class Star {
 		this.radius = (float)radius;
 		double temperature = Utils.temperatureFromLightAndRadius(Utils.lightFromMassAndAge(mass, age), radius);
 		Utils.lightFromTemperature(light, temperature).div(Utils.whiteLight);
-		// LPCTools.LOGGER.info("temperature:{}light:({},{},{})", temperature, light.x, light.y, light.z);
-		// color = 0xff7fafff;
-		position.set(random.nextGaussian(), random.nextGaussian(), random.nextGaussian()).mul(dataPack.spreadRadius());
-		velocity.set(random.nextGaussian(), random.nextGaussian(), random.nextGaussian()).mul(dataPack.spreadSpeed());
+		frontStatus.position.set(random.nextGaussian(), random.nextGaussian(), random.nextGaussian()).mul(dataPack.spreadRadius());
+		frontStatus.velocity.set(random.nextGaussian(), random.nextGaussian(), random.nextGaussian()).mul(dataPack.spreadSpeed());
 	}
 	
 	static void randomizeStars(Star[] stars, Random random, RunnerDataPack dataPack, CalcCache cache) {
 		for (Star star : stars) star.randomize(random, dataPack);
 		normalize(stars, cache);
+		updateAccelerations(stars, cache, true);
+		for (Star star : stars) star.backStatus.set(star.frontStatus);
 	}
 	
 	static class CalcCache {
 		final Vector3d tmp1 = new Vector3d();
 		final Vector3d tmp2 = new Vector3d();
 	}
-	
-	static void tick(Star[] stars, double dt, CalcCache cache) {
-		for (var star : stars) star.vChange.set(0, 0, 0);
+
+	// 中间欧拉法迭代次数
+	private static final int eulerIterationTimes = 4;
+
+	private static void updateAccelerations(Star[] stars, CalcCache cache, boolean front) {
+		for (Star star : stars) star.getStatus(front).acceleration.set(0);
 		for (int i = 0; i < stars.length; ++i) {
 			for (int j = i + 1; j < stars.length; ++j) {
 				var star1 = stars[i];
 				var star2 = stars[j];
-				star2.position.sub(star1.position, cache.tmp1);
-				double dstSquareInv = 1.0 / cache.tmp1.lengthSquared();
-				cache.tmp1.mul(dstSquareInv * Math.sqrt(dstSquareInv) * dt);
-				star1.vChange.add(cache.tmp1.mul(star2.mass, cache.tmp2));
-				star2.vChange.sub(cache.tmp1.mul(star1.mass, cache.tmp2));
+				var status1 = star1.getStatus(front);
+				var status2 = star2.getStatus(front);
+				status2.position.sub(status1.position, cache.tmp1);
+				double dstSquareInv1 = 1.0 / cache.tmp1.lengthSquared();
+				double k1 = dstSquareInv1 * Math.sqrt(dstSquareInv1);
+				status1.acceleration.fma( k1 * star2.mass, cache.tmp1);
+				status2.acceleration.fma(-k1 * star1.mass, cache.tmp1);
 			}
 		}
+	}
+
+	static void tick(Star[] stars, double dt, CalcCache cache) {
+		double halfDt = dt * 0.5;
 		for (var star : stars) {
-			star.position.fma(dt, star.velocity).fma(0.5 * dt, star.vChange);
-			star.velocity.add(star.vChange);
+			// 先“预加”上这些东西，待会迭代时就不需要每次循环都加一遍了
+			star.frontStatus.position.fma(halfDt, star.frontStatus.velocity);
+			star.frontStatus.velocity.fma(halfDt, star.frontStatus.acceleration);
+
+			// 迭代初值
+			star.backStatus.acceleration.set(star.frontStatus.acceleration);
 		}
+		for(int i = 0; i < eulerIterationTimes; ++i) {
+			for (var star : stars) {
+				star.frontStatus.velocity.fma(halfDt, star.backStatus.acceleration, star.backStatus.velocity);
+				star.frontStatus.position.fma(halfDt, star.backStatus.velocity, star.backStatus.position);
+			}
+			updateAccelerations(stars, cache, false);
+		}
+		for (var star : stars) star.swapStatus();
 	}
 	
 	static void normalize(Star[] stars, CalcCache cache) {
@@ -60,15 +95,15 @@ class Star {
 		cache.tmp2.set(0, 0, 0);
 		for (var star : stars) {
 			massSum += star.mass;
-			cache.tmp1.fma(star.mass, star.position);
-			cache.tmp2.fma(star.mass, star.velocity);
+			cache.tmp1.fma(star.mass, star.frontStatus.position);
+			cache.tmp2.fma(star.mass, star.frontStatus.velocity);
 		}
 		double k = -1.0 / massSum;
 		cache.tmp1.mul(k);
 		cache.tmp2.mul(k);
 		for (var star : stars) {
-			star.position.add(cache.tmp1);
-			star.velocity.add(cache.tmp2);
+			star.frontStatus.position.add(cache.tmp1);
+			star.frontStatus.velocity.add(cache.tmp2);
 		}
 	}
 	
@@ -77,23 +112,24 @@ class Star {
 		double massSum = 0;
 		for(var star : stars) massSum += star.mass;
 		for (var star : stars) {
-			double posLengthSquared = star.position.lengthSquared();
+			StarStatus current = star.frontStatus;
+			double posLengthSquared = current.position.lengthSquared();
 			if (posLengthSquared > (double) 30000000 * 30000000) return true;
 			if (posLengthSquared <= dataPack.squaredResetDistanceLimit()) continue;
-			if (!(star.position.dot(star.velocity) > 0)) continue;
+			if (!(current.position.dot(current.velocity) > 0)) continue;
 			Vector3d closestPos = cache.tmp1; // 一个无意义的值
 			double closestDistanceSquared = Double.POSITIVE_INFINITY;
 			for (var s : stars) {
 				if (s == star) continue;
-				double ds = s.position.distanceSquared(star.position);
+				double ds = s.frontStatus.position.distanceSquared(current.position);
 				if(ds < closestDistanceSquared) {
 					closestDistanceSquared = ds;
-					closestPos = s.position;
+					closestPos = s.frontStatus.position;
 				}
 			}
 			double othersMassSum = massSum - star.mass;
-			double Ep = othersMassSum * star.mass / closestPos.distance(star.position);
-			double Ek = 0.5 * star.mass * star.velocity.lengthSquared() * massSum / othersMassSum;
+			double Ep = othersMassSum * star.mass / closestPos.distance(current.position);
+			double Ek = 0.5 * star.mass * current.velocity.lengthSquared() * massSum / othersMassSum;
 			if (!(Ek < Ep)) return true;
 		}
 		return false;

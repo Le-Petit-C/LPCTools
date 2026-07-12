@@ -41,7 +41,7 @@ public class DataInstance implements QuietAutoCloseable, Registries.ClientWorldC
 		this.color.setValue(color);
 		highlightInstance.reshapesAsync();
 	}
-	public void refreshColor() { setColor(DataUtils.argb2agbr(FurnaceMaintainer.markingColor.getIntegerValue())); }
+	public void refreshColor() { setColor(DataUtils.swapRedBlue(FurnaceMaintainer.markingColor.getIntegerValue())); }
 	public void setUseCullFace(boolean useCullFace) { highlightInstance.setUseCullFace(useCullFace); }
 	public void refreshUseCullFace() { setUseCullFace(FurnaceMaintainer.useCullFace.getBooleanValue()); }
 	public void setRenderXRays(boolean xRays) { highlightInstance.setRenderXRays(xRays); }

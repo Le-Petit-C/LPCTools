@@ -4,8 +4,8 @@ import fi.dy.masa.malilib.hotkeys.IKeybind;
 import fi.dy.masa.malilib.hotkeys.KeyAction;
 import lpctools.lpcfymasaapi.configButtons.transferredConfigs.BooleanConfig;
 import lpctools.lpcfymasaapi.configButtons.transferredConfigs.HotkeyConfig;
-import lpctools.mixin.client.BlockReplaceAction;
 import lpctools.mixin.client.accessors.AbstractBlockAccessor;
+import lpctools.mixin.client.accessors.MinecraftAccessor;
 import lpctools.util.DataUtils;
 import lpctools.util.mixin.PacketRecorder;
 import net.minecraft.client.Minecraft;
@@ -42,12 +42,12 @@ public class VanillaBlockInteractionModifier {
     }
     
     private static boolean normalReplacePair() {
-        ((BlockReplaceAction) Minecraft.getInstance()).invokeDoAttack();
-        ((BlockReplaceAction)Minecraft.getInstance()).invokeDoItemUse();
+        ((MinecraftAccessor) Minecraft.getInstance()).invokeStartAttack();
+        ((MinecraftAccessor)Minecraft.getInstance()).invokeStartUseItem();
         return true;
     }
     private static boolean normalAttack() {
-        ((BlockReplaceAction) Minecraft.getInstance()).invokeDoAttack();
+        ((MinecraftAccessor) Minecraft.getInstance()).invokeStartAttack();
         return true;
     }
     private static boolean blockReplaceHotkeyCallback(KeyAction keyAction, IKeybind iKeybind) {
@@ -66,9 +66,9 @@ public class VanillaBlockInteractionModifier {
         var world = player.level();
         var pos = hitResult.getBlockPos();
         try (var recorder = PacketRecorder.startInterceptedPackets()) {
-            ((BlockReplaceAction) Minecraft.getInstance()).invokeDoAttack();
+            ((MinecraftAccessor)Minecraft.getInstance()).invokeStartAttack();
             shouldModifyClientTest = true;
-            ((BlockReplaceAction)Minecraft.getInstance()).invokeDoItemUse();
+            ((MinecraftAccessor)Minecraft.getInstance()).invokeStartUseItem();
             shouldModifyClientTest = false;
             BlockState state = world.getBlockState(pos);
             BlockEntity blockEntity = world.getBlockEntity(pos);

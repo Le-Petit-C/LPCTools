@@ -11,7 +11,7 @@ import org.spongepowered.asm.mixin.injection.Redirect;
 
 import static com.mojang.blaze3d.systems.RenderSystem.isOnRenderThread;
 
-@Mixin(HappyGhast.class)
+@Mixin(value = HappyGhast.class, remap = false)
 public class HappyGhastEntityMixin {
     @Redirect(method = "getRiddenInput", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/player/Player;getXRot()F"))
     float setPitch(Player instance){
@@ -20,10 +20,10 @@ public class HappyGhastEntityMixin {
         return 0;
     }
     @ModifyArg(index = 1, method = "getRiddenInput", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/phys/Vec3;<init>(DDD)V"))
-    double isSneaking(double h, @Local(argsOnly = true) Player controllingPlayer){
+    double isSneaking(double h, @Local(argsOnly = true) Player controller){
         if(!isOnRenderThread()) return h;
         if(!HappyGhastRidingTweak.happyGhastRidingTweak.getBooleanValue()) return h;
-        if(controllingPlayer.isShiftKeyDown()) return h - 0.5;
+        if(controller.isShiftKeyDown()) return h - 0.5;
         else return h;
     }
 }

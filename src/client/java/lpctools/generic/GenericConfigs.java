@@ -2,6 +2,7 @@ package lpctools.generic;
 
 import fi.dy.masa.malilib.hotkeys.KeyAction;
 import fi.dy.masa.malilib.hotkeys.KeybindSettings;
+import it.unimi.dsi.fastutil.doubles.Double2DoubleFunction;
 import lpctools.lpcfymasaapi.LPCConfigList;
 import lpctools.lpcfymasaapi.configButtons.derivedConfigs.ConfigOpenGuiConfig;
 import lpctools.lpcfymasaapi.configButtons.transferredConfigs.HotkeyConfig;
@@ -11,6 +12,8 @@ import lpctools.lpcfymasaapi.configButtons.transferredConfigs.IntegerConfig;
 import lpctools.lpcfymasaapi.interfaces.ILPCValueChangeCallback;
 import lpctools.util.CachedSupplier;
 import lpctools.util.javaex.PriorityThreadPoolExecutor;
+import net.minecraft.world.entity.monster.zombie.Zombie;
+import net.minecraft.world.phys.Vec3;
 
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -40,11 +43,12 @@ public class GenericConfigs {
     static {useLabelIndent.setValueChangeCallback(()-> useLabelIndent.getPage().markNeedUpdate());}
     public static final BooleanThirdListConfig useIndependentThreadPool = addBooleanThirdListConfig("threadPool", true, null);
     public static final IntegerConfig threadCountConfig = addIntegerConfig(useIndependentThreadPool, "threadCount", Runtime.getRuntime().availableProcessors(),
-        1, Runtime.getRuntime().availableProcessors(), GenericConfigs::threadCountConfigCallback);
+        1, Runtime.getRuntime().availableProcessors() - 1, GenericConfigs::threadCountConfigCallback);
     public static final IntegerConfig spawnLightLevelLimit = addIntegerConfig("spawnLightLevelLimit", 0, 0, 15, runSpawnConditionChanged);
-    public static final BooleanConfig liquidPlacesAsCanSpawn = addBooleanConfig("liquidPlacesAsCanSpawn", false,runSpawnConditionChanged);
-    public static final BlockListConfig extraSpawnBlocks = addBlockListConfig("extraSpawnBlocks", defaultExtraSpawnBlocks);
-    public static final BlockListConfig extraNoSpawnBlocks = addBlockListConfig("extraNoSpawnBlocks", defaultExtraNoSpawnBlocks);
+    public static final BooleanConfig liquidPlacesAsCanSpawn = addBooleanConfig("liquidPlacesAsCanSpawn", false, runSpawnConditionChanged);
+    public static final BlockListConfig extraSpawnBlocks = addBlockListConfig("extraSpawnBlocks", defaultExtraSpawnBlocks, runSpawnConditionChanged);
+    public static final BlockListConfig extraNoSpawnBlocks = addBlockListConfig("extraNoSpawnBlocks", defaultExtraNoSpawnBlocks, runSpawnConditionChanged);
+    public static final Vector3dConfig hitBoxRequirement = addConfigEx(list->new Vector3dConfig(list, "hitBoxRequirement", new Vec3(Zombie.DEFAULT_BB_WIDTH, Zombie.DEFAULT_BB_HEIGHT, Zombie.DEFAULT_BB_WIDTH), GenericConfigs::hitBoxCallback));
     public static final BooleanConfig reachDistanceAlwaysUnlimited = addBooleanConfig("reachDistanceAlwaysUnlimited", false);
     public static final BooleanConfig playClickSoundFromModMenu = addBooleanConfig("playClickSoundFromModMenu", false);
     public static final HotkeyConfig horizontalScrollButton = addHotkeyConfig("horizontalScrollKey",
@@ -57,6 +61,16 @@ public class GenericConfigs {
     public static final UniqueIntegerConfig maxCommandLength = addConfigEx(l->new UniqueIntegerConfig(l, "maxCommandLength", 32767, 0, Integer.MAX_VALUE, null));
     static {threadCountConfig.onValueChanged();}
     static {listStack.pop();}
+    
+    private static double hitBoxClamp(double x) {
+        return Math.min(Math.max(x, 0), 16);
+    }
+    private static void hitBoxCallback() {
+        Vec3 pos = hitBoxRequirement.getPos();
+        if(hitBoxClamp(pos.x()) != pos.x() || hitBoxClamp(pos.y()) != pos.y() || hitBoxClamp(pos.z()) != pos.z())
+            hitBoxRequirement.setPos(new Vec3(hitBoxClamp(pos.x()), hitBoxClamp(pos.y()), hitBoxClamp(pos.z())));
+        else runSpawnConditionChanged.onValueChanged();
+    }
     
     private static void threadCountConfigCallback(){
         PriorityThreadPoolExecutor newPool;

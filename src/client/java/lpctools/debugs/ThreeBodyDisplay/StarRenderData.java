@@ -58,7 +58,7 @@ class StarRenderData implements QuietAutoCloseable {
 		rSquare = star.radius * star.radius;
 		light.set(star.light);
 		lineColor = vector3d2Color(light, 2.0 / getBrightness(light));
-		position.set(star.position);
+		position.set(star.frontStatus.position());
 		if (track && trackedPoints.length != 0) {
 			++rawWorkingThreadTrackIndex;
 			if (++workingThreadTrackIndex >= trackedPoints.length) workingThreadTrackIndex = 0;
@@ -70,7 +70,7 @@ class StarRenderData implements QuietAutoCloseable {
 	void resetTracks(int trackCount) {
 		for (var track : trackedPoints) track.setRef(null);
 		trackedPoints = new TrackingData[trackCount];
-		Arrays.setAll(trackedPoints, i -> new TrackingData());
+		Arrays.setAll(trackedPoints, _ -> new TrackingData());
 		rawTrackedIndex = trackedIndex = 1;
 		rawWorkingThreadTrackIndex = workingThreadTrackIndex = 0;
 	}
