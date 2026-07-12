@@ -11,8 +11,8 @@ import lpctools.lpcfymasaapi.Registries;
 import lpctools.lpcfymasaapi.configButtons.derivedConfigs.ArrayOptionListConfig;
 import lpctools.lpcfymasaapi.configButtons.uniqueConfigs.BooleanHotkeyThirdListConfig;
 import lpctools.lpcfymasaapi.configButtons.uniqueConfigs.UniqueIntegerConfig;
+import lpctools.lpcfymasaapi.render.LPCRenderPipelines;
 import lpctools.util.RenderUtils;
-import net.minecraft.client.renderer.RenderPipelines;
 import org.jetbrains.annotations.Contract;
 import org.joml.Matrix4f;
 import org.joml.Quaternionf;
@@ -141,7 +141,7 @@ public class GpuCacheMissTest {
 	};
 	private static final int indexPerShape = shapeBaseIndexes.length;
 	private static class RenderInstance implements AutoCloseable, Registries.WorldLastRender {
-		static final RenderPipeline renderPipeline = RenderPipelines.DEBUG_QUADS;
+		static final RenderPipeline renderPipeline = LPCRenderPipelines.positionColorPipeline(false, false);
 		final GpuBuffer vertexBuffer, indexBuffer;
 		final IndexType indexType;
 		final int shapeCount;
@@ -155,7 +155,7 @@ public class GpuCacheMissTest {
 			shuffleIntsUnited(basicVertexIndexes, vertexUnitLength, random);
 			float separateK = (float)Math.pow(shapeCount, 1.0 / 3);
 			Vector3f[] shapeCache = new Vector3f[vertexPerShape];
-			Arrays.setAll(shapeCache, indexType -> new Vector3f());
+			Arrays.setAll(shapeCache, _ -> new Vector3f());
 			var rotationCache = new Quaternionf();
 			var centerCache = new Vector3f();
 			Vector3f[] vertexCache = new Vector3f[vertexCount];
@@ -217,21 +217,18 @@ public class GpuCacheMissTest {
 			GpuTextureView colorAttachmentView = RenderUtils.colorAttachmentViewOrDef(fb);
 			GpuTextureView depthAttachmentView = fb.useDepth ? fb.getDepthTextureView() : null;
 			GpuBufferSlice dynamicTransforms = RenderSystem.getDynamicUniforms()
-				.writeTransform(RenderSystem.getModelViewMatrixCopy().translate(context.camera().position().toVector3f().mul(-1)),
+				.writeTransform(RenderSystem.getModelViewMatrixCopy().translate(context.camera().pos.toVector3f().mul(-1)),
 					new Vector4f(1.0F, 1.0F, 1.0F, 1.0F), new Vector3f(), new Matrix4f());
-			GpuBufferSlice projection = RenderSystem.getProjectionMatrixBuffer();
 			try(RenderPass renderPass = RenderSystem.getDevice()
 				.createCommandEncoder()
 				.createRenderPass(() -> "LPCTools Vertex Cache Miss Test",
 					colorAttachmentView, Optional.empty(), depthAttachmentView, OptionalDouble.empty())){
+				RenderSystem.bindDefaultUniforms(renderPass);
 				renderPass.setPipeline(renderPipeline);
 				renderPass.setUniform("DynamicTransforms", dynamicTransforms);
-				if (projection != null) {
-					renderPass.setUniform("Projection", projection);
-				}
 				renderPass.setVertexBuffer(0, vertexBuffer.slice());
 				renderPass.setIndexBuffer(indexBuffer, indexType);
-				renderPass.drawIndexed(0, 0, shapeCount * indexPerShape, 1, 0);
+				renderPass.drawIndexed(shapeCount * indexPerShape, 1, 0, 0, 0);
 			}
 		}
 	}

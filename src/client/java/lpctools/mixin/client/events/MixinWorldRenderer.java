@@ -2,7 +2,6 @@ package lpctools.mixin.client.events;
 
 import com.llamalad7.mixinextras.sugar.Local;
 import lpctools.lpcfymasaapi.render.RenderEventHandler;
-import net.minecraft.client.Camera;
 import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.LevelRenderer;
@@ -10,6 +9,7 @@ import net.minecraft.client.renderer.LevelTargetBundle;
 import net.minecraft.client.renderer.RenderBuffers;
 import net.minecraft.client.renderer.culling.Frustum;
 import net.minecraft.client.renderer.state.level.CameraRenderState;
+import net.minecraft.client.renderer.state.level.LevelRenderState;
 import net.minecraft.util.profiling.ProfilerFiller;
 import org.joml.Matrix4f;
 import org.joml.Matrix4fc;
@@ -28,6 +28,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 @Mixin(value = LevelRenderer.class)
 public abstract class MixinWorldRenderer
 {
+	@Shadow @Final private LevelRenderState levelRenderState;
 	@Shadow @Final private LevelTargetBundle targets;
 	@Shadow @Final private RenderBuffers renderBuffers;
 	
@@ -41,7 +42,6 @@ public abstract class MixinWorldRenderer
 	{
 		Minecraft minecraft = Minecraft.getInstance();
 		Frustum cullFrustum = cameraState.cullFrustum;
-		Camera camera = minecraft.gameRenderer.mainCamera();
-		RenderEventHandler.runRenderWorldPreMain(new Matrix4f(), cameraState.projectionMatrix, minecraft, frame, this.targets, cullFrustum, camera, this.renderBuffers, profiler);
+		RenderEventHandler.runRenderWorldPreMain(new Matrix4f(), minecraft, frame, this.targets, cullFrustum, levelRenderState.cameraRenderState, this.renderBuffers, profiler);
 	}
 }

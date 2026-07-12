@@ -121,7 +121,7 @@ class Runner implements QuietAutoCloseable, Registries.WorldPreMainRender, Level
 	@Override public void beforeTranslucentTerrain(@NonNull LevelRenderContext ignored) {
 		var context = recordedContext;
 		dataBuffer.clear();
-		var camPos = context.camera().position();
+		var camPos = context.camera().pos;
 		double deltaSeconds = System.currentTimeMillis() * 0.001 - lastTimeSeconds;
 		lastTimeSeconds += deltaSeconds;
 		double brightness = 0;
