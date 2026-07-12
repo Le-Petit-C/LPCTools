@@ -4,19 +4,18 @@ import lpctools.lpcfymasaapi.Registries;
 import lpctools.util.BlockUtils;
 import lpctools.util.HandRestock;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.Blocks;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.network.ClientPlayerEntity;
-import net.minecraft.client.network.ClientPlayerInteractionManager;
-import net.minecraft.item.Items;
-import net.minecraft.util.Hand;
-import net.minecraft.util.hit.BlockHitResult;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Direction;
-import net.minecraft.util.math.Vec3d;
-import net.minecraft.world.World;
-
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.multiplayer.MultiPlayerGameMode;
+import net.minecraft.client.player.LocalPlayer;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.Vec3;
 import java.util.Comparator;
 import java.util.PriorityQueue;
 
@@ -34,29 +33,29 @@ public class MossBorerRunner implements AutoCloseable, ClientTickEvents.EndTick{
         Registries.END_CLIENT_TICK.register(this, b);
     }
     
-    @Override public void onEndTick(MinecraftClient mc) {
-        ClientPlayerEntity player = mc.player;
-        ClientPlayerInteractionManager itm = mc.interactionManager;
+    @Override public void onEndTick(Minecraft mc) {
+        LocalPlayer player = mc.player;
+        MultiPlayerGameMode itm = mc.gameMode;
         if(player == null || itm == null) {
             MBConfig.setBooleanValue(false);
             return;
         }
         operationSpeed.resetOperationTimes();
-        World world = player.getEntityWorld();
-        Vec3d eyePos = player.getEyePos();
+        Level world = player.level();
+        Vec3 eyePos = player.getEyePosition();
         Comparator<BlockPos> comparator = (pos1, pos2)-> pos2.getY() != pos1.getY() ?
             pos2.getY() - pos1.getY() :
-            Double.compare(pos2.getSquaredDistance(eyePos), pos1.getSquaredDistance(eyePos));
+            Double.compare(pos2.distToCenterSqr(eyePos), pos1.distToCenterSqr(eyePos));
         PriorityQueue<BlockPos> mossBlocks = new PriorityQueue<>(comparator);
-        operationSpeed.iterableOperate(reachDistance.iterateFromClosest(player.getEyePos()), pos->{
+        operationSpeed.iterableOperate(reachDistance.iterateFromClosest(player.getEyePosition()), pos->{
             BlockState state = world.getBlockState(pos);
             if(state.getBlock() == Blocks.MOSS_BLOCK) {
-                mossBlocks.add(pos.toImmutable());
+                mossBlocks.add(pos.immutable());
                 return NO_OPERATION;
             }
             if(state.isAir()) return NO_OPERATION;
             if(BlockUtils.canBreakInstantly(player, pos)) {
-                itm.attackBlock(pos, Direction.UP);
+                itm.startDestroyBlock(pos, Direction.UP);
                 return OPERATED;
             }
             return NO_OPERATION;
@@ -66,14 +65,14 @@ public class MossBorerRunner implements AutoCloseable, ClientTickEvents.EndTick{
             if(pos.getY() - player.getBlockY() < -2) break;
             if(BlockUtils.canBreakInstantly(player, pos)) {
                 if(!operationSpeed.next()) break;
-                itm.attackBlock(pos, Direction.UP);
+                itm.startDestroyBlock(pos, Direction.UP);
             }
         }
         if(!mossBlocks.isEmpty() && operationSpeed.next() && HandRestock.restock(stack->stack.getItem() == Items.BONE_MEAL, -1) != 0){
             BlockPos pos = mossBlocks.poll();
             assert pos != null;
-            BlockHitResult hitResult = new BlockHitResult(pos.toCenterPos(), Direction.UP, pos.toImmutable(), false);
-            itm.interactBlock(player, Hand.OFF_HAND, hitResult);
+            BlockHitResult hitResult = new BlockHitResult(pos.getCenter(), Direction.UP, pos.immutable(), false);
+            itm.useItemOn(player, InteractionHand.OFF_HAND, hitResult);
         }
     }
 }

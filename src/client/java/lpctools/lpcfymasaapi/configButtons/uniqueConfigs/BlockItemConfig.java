@@ -9,8 +9,8 @@ import lpctools.lpcfymasaapi.interfaces.ILPCValueChangeCallback;
 import lpctools.lpcfymasaapi.screen.ChooseItemScreen;
 import lpctools.lpcfymasaapi.screen.ItemButton;
 import lpctools.util.DataUtils;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.item.BlockItem;
+import net.minecraft.client.Minecraft;
+import net.minecraft.world.item.BlockItem;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -40,9 +40,9 @@ public class BlockItemConfig extends LPCUniqueConfigBase {
 			this.blockItem = blockItem;
 			onValueChanged();
 		});
-		MinecraftClient client = MinecraftClient.getInstance();
-		client.currentScreen = null;
-		MinecraftClient.getInstance().setScreen(screen);
+		Minecraft client = Minecraft.getInstance();
+		client.screen = null;
+		Minecraft.getInstance().setScreen(screen);
 	}
 	
 	public static JsonPrimitive getBlockConfigAsJsonElement(BlockItemConfig blockConfig){

@@ -5,16 +5,16 @@ import fi.dy.masa.malilib.gui.GuiBase;
 import fi.dy.masa.malilib.gui.GuiTextFieldGeneric;
 import fi.dy.masa.malilib.gui.button.ButtonBase;
 import fi.dy.masa.malilib.gui.button.ButtonGeneric;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.font.TextRenderer;
-import net.minecraft.client.gui.DrawContext;
-import net.minecraft.client.gui.screen.Screen;
-import net.minecraft.text.Text;
 import org.apache.commons.lang3.mutable.MutableInt;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Map;
 import java.util.function.Supplier;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.Font;
+import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.network.chat.Component;
 
 import static lpctools.lpcfymasaapi.LPCConfigUtils.calculateTextButtonWidth;
 
@@ -24,8 +24,8 @@ public class ChooseScreen extends GuiBase {
 	
 	public static <T> ChooseScreen openChooseScreen(Screen parent, String title, boolean hasCancelButton, boolean hasSearchBar, Map<String, ? extends OptionCallback<? super T>> options, Map<?, ?> chooseTree, T userData){
 		ChooseScreen screen = new ChooseScreen(parent, null, title, hasCancelButton, hasSearchBar, options, chooseTree, userData);
-		MinecraftClient client = MinecraftClient.getInstance();
-		if(client.currentScreen == parent) client.currentScreen = null;
+		Minecraft client = Minecraft.getInstance();
+		if(client.screen == parent) client.screen = null;
 		client.setScreen(screen);
 		screen.resetY();
 		screen.initGui();
@@ -36,11 +36,11 @@ public class ChooseScreen extends GuiBase {
 	}
 	@SuppressWarnings("UnusedReturnValue")
 	public static <T> ChooseScreen openChooseScreen(String title, boolean hasCancelButton, Map<String, ? extends OptionCallback<? super T>> options, Map<?, ?> chooseTree, T userData){
-		return openChooseScreen(MinecraftClient.getInstance().currentScreen, title, hasCancelButton, options, chooseTree, userData);
+		return openChooseScreen(Minecraft.getInstance().screen, title, hasCancelButton, options, chooseTree, userData);
 	}
 	@SuppressWarnings("UnusedReturnValue")
 	public static <T> ChooseScreen openChooseScreen(String title, boolean hasCancelButton, boolean hasSearchBar, Map<String, ? extends OptionCallback<? super T>> options, Map<?, ?> chooseTree, T userData){
-		return openChooseScreen(MinecraftClient.getInstance().currentScreen, title, hasCancelButton, hasSearchBar, options, chooseTree, userData);
+		return openChooseScreen(Minecraft.getInstance().screen, title, hasCancelButton, hasSearchBar, options, chooseTree, userData);
 	}
 	private static final int buttonHeight = 20;
 	private static final int buttonHeightStride = 22;
@@ -58,12 +58,12 @@ public class ChooseScreen extends GuiBase {
 			ImmutableMap.Builder<Object, Object> chooseTreeBuilder = ImmutableMap.builder();
 			chooseTree.forEach((key, object)->{
 				String str = key.toString();
-				if(str.contains(searchText) || Text.translatable(str).getString().contains(searchText))
+				if(str.contains(searchText) || Component.translatable(str).getString().contains(searchText))
 					chooseTreeBuilder.put(key, object);
 			});
 			return new WrappedOptionTree<>(options, chooseTreeBuilder.build(), userData);
 		}
-		public void buildButtons(ChooseScreen screen, TextRenderer textRenderer){
+		public void buildButtons(ChooseScreen screen, Font textRenderer){
 			int x = screen.getScreenWidth() / 2;
 			MutableInt y = new MutableInt(screen.startY);
 			chooseTree.forEach((key, object)->{
@@ -71,24 +71,24 @@ public class ChooseScreen extends GuiBase {
 					Object obj;
 					if(object instanceof Supplier<?> supplier) obj = supplier.get();
 					else obj = object;
-					screen.addButton(allocateCenterAt(x, y.getAndAdd(buttonHeightStride), Text.translatable(text).getString(), textRenderer), (button, mouse)->{
+					screen.addButton(allocateCenterAt(x, y.getAndAdd(buttonHeightStride), Component.translatable(text).getString(), textRenderer), (button, mouse)->{
 						if(obj instanceof String optionKey){
 							options.get(optionKey).action(button, mouse, userData);
 							screen.closeGui(true);
 						}
 						else if(obj instanceof Map<?, ?> map){
 							ChooseScreen screen1 = new ChooseScreen(screen.getParent(), screen, screen.title, screen.hasCancelButton, screen.hasSearchBar, options, map, userData);
-							MinecraftClient.getInstance().setScreen(screen1);
+							Minecraft.getInstance().setScreen(screen1);
 							screen1.resetY();
 							screen1.initGui();
 						}
 					});
 				}
 			});
-			if(screen.hasCancelButton) screen.addButton(allocateCenterAt(x, y.intValue(), Text.translatable(cancelKey).getString(), textRenderer),
+			if(screen.hasCancelButton) screen.addButton(allocateCenterAt(x, y.intValue(), Component.translatable(cancelKey).getString(), textRenderer),
 				(button, mouse) -> {
 				if(screen.chooseParent == null) screen.closeGui(true);
-				else MinecraftClient.getInstance().setScreen(screen.chooseParent);
+				else Minecraft.getInstance().setScreen(screen.chooseParent);
 			});
 		}
 	}
@@ -110,20 +110,20 @@ public class ChooseScreen extends GuiBase {
 	}
 	@Override public void initGui() {
 		super.initGui();
-		searchedOptions.buildButtons(this, textRenderer);
+		searchedOptions.buildButtons(this, font);
 		if(hasSearchBar){
 			int w = (int)Math.round(getScreenWidth() * 0.5);
 			int h = 14;
 			int x = (int)Math.round((getScreenWidth() - w) * 0.5);
 			int y = 26;
-			GuiTextFieldGeneric textField = new GuiTextFieldGeneric(x, y, w, h, textRenderer);
-			textField.setText(searchText);
+			GuiTextFieldGeneric textField = new GuiTextFieldGeneric(x, y, w, h, font);
+			textField.setValue(searchText);
 			addTextField(textField, (text)->{
-				searchText = text.getText();
+				searchText = text.getValue();
 				searchedOptions = options.search(searchText);
 				resetY();
 				clearButtons();
-				searchedOptions.buildButtons(this, textRenderer);
+				searchedOptions.buildButtons(this, font);
 				return false;
 			});
 		}
@@ -136,21 +136,21 @@ public class ChooseScreen extends GuiBase {
 		return true;
 	}
 	
-	private static ButtonGeneric allocateCenterAt(int centerX, int centerY, String text, TextRenderer textRenderer) {
+	private static ButtonGeneric allocateCenterAt(int centerX, int centerY, String text, Font textRenderer) {
 		int w = calculateTextButtonWidth(text, textRenderer, 20);
 		return new ButtonGeneric(centerX - w / 2, centerY - buttonHeight / 2, w, buttonHeight, text);
 	}
-	private void renderChooseParents(DrawContext drawContext, int mouseX, int mouseY, float partialTicks){
+	private void renderChooseParents(GuiGraphics drawContext, int mouseX, int mouseY, float partialTicks){
 		if(chooseParent != null) chooseParent.renderChooseParents(drawContext, 0, 0, partialTicks);
 		super.render(drawContext, mouseX, mouseY, partialTicks);
 	}
-	@Override public void render(DrawContext drawContext, int mouseX, int mouseY, float partialTicks) {
+	@Override public void render(GuiGraphics drawContext, int mouseX, int mouseY, float partialTicks) {
 		if (this.getParent() != null) this.getParent().render(drawContext, 0, 0, partialTicks);
 		renderChooseParents(drawContext, mouseX, mouseY, partialTicks);
 	}
-	@Override public boolean shouldPause() {
+	@Override public boolean isPauseScreen() {
 		var parent = getParent();
-		if(parent != null) return parent.shouldPause();
-		else return super.shouldPause();
+		if(parent != null) return parent.isPauseScreen();
+		else return super.isPauseScreen();
 	}
 }

@@ -4,17 +4,17 @@ import lpctools.script.CompileEnvironment;
 import lpctools.script.IScriptWithSubScript;
 import lpctools.script.runtimeInterfaces.ScriptNotNullSupplier;
 import lpctools.script.suppliers.AbstractSupplierWithTypeDeterminedSubSuppliers;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.entity.Entity;
-import net.minecraft.text.Text;
-import net.minecraft.util.Hand;
+import net.minecraft.client.Minecraft;
+import net.minecraft.network.chat.Component;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.entity.Entity;
 import org.jetbrains.annotations.NotNull;
 
 public class InteractEntity extends AbstractSupplierWithTypeDeterminedSubSuppliers implements IControlFlowIssueSupplier {
 	protected final SupplierStorage<Entity> entity = ofStorage(Entity.class,
-		Text.translatable("lpctools.script.suppliers.controlFlowIssue.interactEntity.subSuppliers.entity.name"), "entity");
+		Component.translatable("lpctools.script.suppliers.controlFlowIssue.interactEntity.subSuppliers.entity.name"), "entity");
 	protected final SupplierStorage<Boolean> useOffhand = ofStorage(Boolean.class,
-		Text.translatable("lpctools.script.suppliers.controlFlowIssue.interactEntity.subSuppliers.useOffhand.name"), "useOffhand");
+		Component.translatable("lpctools.script.suppliers.controlFlowIssue.interactEntity.subSuppliers.useOffhand.name"), "useOffhand");
 	protected final SupplierStorage<?>[] subSuppliers = ofStorages(entity, useOffhand);
 	
 	public InteractEntity(IScriptWithSubScript parent) {super(parent);}
@@ -26,11 +26,11 @@ public class InteractEntity extends AbstractSupplierWithTypeDeterminedSubSupplie
 		var compiledEntitySupplier = entity.get().compileCheckedNotNull(environment);
 		var compiledUseOffhandSupplier = useOffhand.get().compileCheckedNotNull(environment);
 		return map->{
-			var mc = MinecraftClient.getInstance();
-			var itm = mc.interactionManager;
+			var mc = Minecraft.getInstance();
+			var itm = mc.gameMode;
 			var player = mc.player;
 			if(itm == null || player == null) return ControlFlowIssue.NO_ISSUE;
-			itm.interactEntity(player, compiledEntitySupplier.scriptApply(map), compiledUseOffhandSupplier.scriptApply(map) ? Hand.OFF_HAND : Hand.MAIN_HAND);
+			itm.interact(player, compiledEntitySupplier.scriptApply(map), compiledUseOffhandSupplier.scriptApply(map) ? InteractionHand.OFF_HAND : InteractionHand.MAIN_HAND);
 			return ControlFlowIssue.NO_ISSUE;
 		};
 	}

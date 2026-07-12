@@ -4,26 +4,26 @@ import lpctools.script.CompileEnvironment;
 import lpctools.script.IScriptWithSubScript;
 import lpctools.script.runtimeInterfaces.ScriptNotNullSupplier;
 import lpctools.script.suppliers.AbstractSupplierWithTypeDeterminedSubSuppliers;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.text.Text;
-import net.minecraft.util.Hand;
-import net.minecraft.util.hit.BlockHitResult;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Direction;
-import net.minecraft.util.math.Vec3d;
+import net.minecraft.client.Minecraft;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.network.chat.Component;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
 
 public class InteractBlock extends AbstractSupplierWithTypeDeterminedSubSuppliers implements IControlFlowIssueSupplier {
 	protected final SupplierStorage<Boolean> useOffhand = ofStorage(Boolean.class,
-		Text.translatable("lpctools.script.suppliers.controlFlowIssue.interactBlock.subSuppliers.useOffhand.name"), "useOffhand");
-	protected final SupplierStorage<Vec3d> pos = ofStorage(Vec3d.class,
-		Text.translatable("lpctools.script.suppliers.controlFlowIssue.interactBlock.subSuppliers.pos.name"), "pos");
+		Component.translatable("lpctools.script.suppliers.controlFlowIssue.interactBlock.subSuppliers.useOffhand.name"), "useOffhand");
+	protected final SupplierStorage<Vec3> pos = ofStorage(Vec3.class,
+		Component.translatable("lpctools.script.suppliers.controlFlowIssue.interactBlock.subSuppliers.pos.name"), "pos");
 	protected final SupplierStorage<Direction> direction = ofStorage(Direction.class,
-		Text.translatable("lpctools.script.suppliers.controlFlowIssue.interactBlock.subSuppliers.direction.name"), "direction");
+		Component.translatable("lpctools.script.suppliers.controlFlowIssue.interactBlock.subSuppliers.direction.name"), "direction");
 	protected final SupplierStorage<BlockPos> blockPos = ofStorage(BlockPos.class,
-		Text.translatable("lpctools.script.suppliers.controlFlowIssue.interactBlock.subSuppliers.blockPos.name"), "blockPos");
+		Component.translatable("lpctools.script.suppliers.controlFlowIssue.interactBlock.subSuppliers.blockPos.name"), "blockPos");
 	protected final SupplierStorage<Boolean> insideBlock = ofStorage(Boolean.class,
-		Text.translatable("lpctools.script.suppliers.controlFlowIssue.interactBlock.subSuppliers.insideBlock.name"), "insideBlock");
+		Component.translatable("lpctools.script.suppliers.controlFlowIssue.interactBlock.subSuppliers.insideBlock.name"), "insideBlock");
 	protected final SupplierStorage<?>[] subSuppliers = ofStorages(useOffhand, pos, direction, blockPos, insideBlock);
 	
 	public InteractBlock(IScriptWithSubScript parent) {super(parent);}
@@ -38,11 +38,11 @@ public class InteractBlock extends AbstractSupplierWithTypeDeterminedSubSupplier
 		var compiledBlockPosSupplier = blockPos.get().compileCheckedNotNull(environment);
 		var compiledInsideBlock = insideBlock.get().compileCheckedNotNull(environment);
 		return map->{
-			var mc = MinecraftClient.getInstance();
-			var itm = mc.interactionManager;
+			var mc = Minecraft.getInstance();
+			var itm = mc.gameMode;
 			var player = mc.player;
 			if(itm == null || player == null) return ControlFlowIssue.NO_ISSUE;
-			itm.interactBlock(player, compiledUseOffhandSupplier.scriptApply(map) ? Hand.OFF_HAND : Hand.MAIN_HAND,
+			itm.useItemOn(player, compiledUseOffhandSupplier.scriptApply(map) ? InteractionHand.OFF_HAND : InteractionHand.MAIN_HAND,
 				new BlockHitResult(compiledPosSupplier.scriptApply(map), compiledDirectionSupplier.scriptApply(map),
 					compiledBlockPosSupplier.scriptApply(map), compiledInsideBlock.scriptApply(map)));
 			return ControlFlowIssue.NO_ISSUE;

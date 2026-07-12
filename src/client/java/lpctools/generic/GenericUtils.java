@@ -1,18 +1,18 @@
 package lpctools.generic;
 
-import net.minecraft.block.AbstractRailBlock;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.SideShapeType;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Direction;
-import net.minecraft.world.BlockView;
-import net.minecraft.world.EmptyBlockView;
-import net.minecraft.world.chunk.light.LightingProvider;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Supplier;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.world.level.BlockGetter;
+import net.minecraft.world.level.EmptyBlockGetter;
+import net.minecraft.world.level.block.BaseRailBlock;
+import net.minecraft.world.level.block.SupportType;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.lighting.LevelLightEngine;
 
 import static lpctools.debugs.DebugConfigs.*;
 import static lpctools.generic.GenericConfigs.*;
@@ -23,26 +23,26 @@ import static lpctools.util.DataUtils.*;
 public class GenericUtils {
     static float zFightBias = (float)GenericConfigs.zFightBias.getDoubleValue();
     public static float zFightBias(){ return zFightBias; }
-    public static boolean mayMobSpawnAt(@NotNull BlockView world, @Nullable LightingProvider light, BlockPos pos){
+    public static boolean mayMobSpawnAt(@NotNull BlockGetter world, @Nullable LevelLightEngine light, BlockPos pos){
         BlockState block = world.getBlockState(pos);
         if(!block.getCollisionShape(world, pos).isEmpty()) return false;
-        if(block.emitsRedstonePower()) return false;
-        if(block.getBlock() instanceof AbstractRailBlock) return false;
-        if(light != null && light.getLight(pos, 15) > spawnLightLevelLimit.getAsInt()) return false;
-        int fluidLevel = block.getFluidState().getLevel();
+        if(block.isSignalSource()) return false;
+        if(block.getBlock() instanceof BaseRailBlock) return false;
+        if(light != null && light.getRawBrightness(pos, 15) > spawnLightLevelLimit.getAsInt()) return false;
+        int fluidLevel = block.getFluidState().getAmount();
         if(fluidLevel != 0){
             if(liquidPlacesAsCanSpawn.getAsBoolean()) return fluidLevel >= 8;
             else return false;
         }
-        return mayMobSpawnOn(world.getBlockState(pos.down()));
+        return mayMobSpawnOn(world.getBlockState(pos.below()));
     }
     //检测是不是可生成方块
     public static boolean mayMobSpawnOn(BlockState steppedBlock){
         if(extraNoSpawnBlocks.contains(steppedBlock.getBlock())) return false;
         if(extraSpawnBlocks.contains(steppedBlock.getBlock())) return true;
-        if(!steppedBlock.isOpaque()) return false;
-        if(steppedBlock.isOpaqueFullCube()) return true;
-        return steppedBlock.isSideSolid(EmptyBlockView.INSTANCE, BlockPos.ORIGIN, Direction.UP, SideShapeType.FULL);
+        if(!steppedBlock.canOcclude()) return false;
+        if(steppedBlock.isSolidRender()) return true;
+        return steppedBlock.isFaceSturdy(EmptyBlockGetter.INSTANCE, BlockPos.ZERO, Direction.UP, SupportType.FULL);
     }
     
     private static void asyncTest(CompletableFuture<?> future){

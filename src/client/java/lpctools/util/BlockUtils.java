@@ -1,48 +1,48 @@
 package lpctools.util;
 
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.Blocks;
-import net.minecraft.block.Waterloggable;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.network.ClientPlayerEntity;
-import net.minecraft.client.world.ClientWorld;
-import net.minecraft.fluid.Fluid;
-import net.minecraft.fluid.Fluids;
-import net.minecraft.item.BlockItem;
-import net.minecraft.item.Item;
-import net.minecraft.registry.Registries;
-import net.minecraft.util.math.BlockPos;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.multiplayer.ClientLevel;
+import net.minecraft.client.player.LocalPlayer;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.world.item.BlockItem;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.SimpleWaterloggedBlock;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.material.Fluid;
+import net.minecraft.world.level.material.Fluids;
 
 @SuppressWarnings("unused")
 public class BlockUtils {
     public static boolean isReplaceable(BlockState state){
-        return state.isReplaceable() || state.getBlock().equals(Blocks.SCULK_VEIN);
+        return state.canBeReplaced() || state.getBlock().equals(Blocks.SCULK_VEIN);
     }
     public static boolean isReplaceable(BlockPos pos){
-        ClientWorld world = MinecraftClient.getInstance().world;
+        ClientLevel world = Minecraft.getInstance().level;
         if(world == null) return false;
         return isReplaceable(world.getBlockState(pos));
     }
     public static boolean isContainingLiquid(BlockState state){
-        return state.getFluidState().getLevel() != 0;
+        return state.getFluidState().getAmount() != 0;
     }
     public static boolean isReplaceableLiquid(BlockState state){
         return isReplaceable(state) && isContainingLiquid(state);
     }
     public static boolean isZeroHardBlock(BlockState state){
-        return state.getBlock().getHardness() == 0 || state.getBlock() == Blocks.KELP || state.getBlock() == Blocks.KELP_PLANT;
+        return state.getBlock().defaultDestroyTime() == 0 || state.getBlock() == Blocks.KELP || state.getBlock() == Blocks.KELP_PLANT;
     }
     //检测能不能被水冲掉
     public static boolean canAnyBucketPlaceAt(BlockState state){
-        if(state.getBlock() instanceof Waterloggable) return false;
-        for(Fluid fluid : Registries.FLUID)
-            if (state.canBucketPlace(fluid))
+        if(state.getBlock() instanceof SimpleWaterloggedBlock) return false;
+        for(Fluid fluid : BuiltInRegistries.FLUID)
+            if (state.canBeReplaced(fluid))
                 return true;
         return false;
     }
     public static boolean canAnyBucketPlaceAt(Block block){
-        return canAnyBucketPlaceAt(block.getDefaultState());
+        return canAnyBucketPlaceAt(block.defaultBlockState());
     }
     public static boolean canAnyBucketPlaceAt(BlockItem item){
         return canAnyBucketPlaceAt(item.getBlock());
@@ -54,15 +54,15 @@ public class BlockUtils {
     }
     //检测是不是流体，原版的话只有水或者岩浆
     public static boolean isFluid(Block block){
-        for(Fluid fluid : Registries.FLUID)
-            if (fluid != Fluids.EMPTY && fluid.getDefaultState().getBlockState().getBlock().equals(block))
+        for(Fluid fluid : BuiltInRegistries.FLUID)
+            if (fluid != Fluids.EMPTY && fluid.defaultFluidState().createLegacyBlock().getBlock().equals(block))
                 return true;
         return false;
     }
     public static boolean isFluid(BlockState state){
         return isFluid(state.getBlock());
     }
-    public static boolean canBreakInstantly(ClientPlayerEntity player, BlockPos pos){
-        return player.getEntityWorld().getBlockState(pos).calcBlockBreakingDelta(player, player.getEntityWorld(), pos) >= 1.0F;
+    public static boolean canBreakInstantly(LocalPlayer player, BlockPos pos){
+        return player.level().getBlockState(pos).getDestroyProgress(player, player.level(), pos) >= 1.0F;
     }
 }

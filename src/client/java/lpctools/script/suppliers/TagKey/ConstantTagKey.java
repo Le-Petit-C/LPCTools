@@ -6,7 +6,7 @@ import lpctools.script.runtimeInterfaces.ScriptNotNullSupplier;
 import lpctools.script.suppliers.AbstractOperatorResultSupplier;
 import lpctools.util.operatorUtils.ArrayListSignInfo;
 import lpctools.util.operatorUtils.Operators;
-import net.minecraft.registry.tag.TagKey;
+import net.minecraft.tags.TagKey;
 import org.jetbrains.annotations.NotNull;
 
 public class ConstantTagKey extends AbstractOperatorResultSupplier<ConstantTagKey.ITagKeySupplierOperator> implements ITagKeySupplier {
@@ -31,7 +31,7 @@ public class ConstantTagKey extends AbstractOperatorResultSupplier<ConstantTagKe
 	
 	public static void addTagKey(TagKey<?> tagKey){
 		tagKeyInfo.addSign(new ITagKeySupplierOperator() {
-			@Override public String idString() { return tagKey.id().toString(); }
+			@Override public String idString() { return tagKey.location().toString(); }
 			@Override public TagKey<?> getTagKey() {return tagKey;}
 		});
 	}
@@ -39,6 +39,6 @@ public class ConstantTagKey extends AbstractOperatorResultSupplier<ConstantTagKe
 	private static final ArrayListSignInfo<ITagKeySupplierOperator> tagKeyInfo
 		= new ArrayListSignInfo<>(){
 		@Override public String getDisplayString(ITagKeySupplierOperator key)
-		{return key.getTagKey().id().toString();}
+		{return key.getTagKey().location().toString();}
 	};
 }

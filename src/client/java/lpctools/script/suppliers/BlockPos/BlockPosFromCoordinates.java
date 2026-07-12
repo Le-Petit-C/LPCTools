@@ -4,17 +4,17 @@ import lpctools.script.CompileEnvironment;
 import lpctools.script.IScriptWithSubScript;
 import lpctools.script.runtimeInterfaces.ScriptNotNullSupplier;
 import lpctools.script.suppliers.AbstractSupplierWithTypeDeterminedSubSuppliers;
-import net.minecraft.text.Text;
-import net.minecraft.util.math.BlockPos;
+import net.minecraft.core.BlockPos;
+import net.minecraft.network.chat.Component;
 import org.jetbrains.annotations.NotNull;
 
 public class BlockPosFromCoordinates extends AbstractSupplierWithTypeDeterminedSubSuppliers implements IBlockPosSupplier {
 	protected final SupplierStorage<Integer> x = ofStorage(Integer.class,
-		Text.translatable("lpctools.script.suppliers.blockPos.blockPosFromCoordinates.subSuppliers.x.name"), "x");
+		Component.translatable("lpctools.script.suppliers.blockPos.blockPosFromCoordinates.subSuppliers.x.name"), "x");
 	protected final SupplierStorage<Integer> y = ofStorage(Integer.class,
-		Text.translatable("lpctools.script.suppliers.blockPos.blockPosFromCoordinates.subSuppliers.y.name"), "y");
+		Component.translatable("lpctools.script.suppliers.blockPos.blockPosFromCoordinates.subSuppliers.y.name"), "y");
 	protected final SupplierStorage<Integer> z = ofStorage(Integer.class,
-		Text.translatable("lpctools.script.suppliers.blockPos.blockPosFromCoordinates.subSuppliers.z.name"), "z");
+		Component.translatable("lpctools.script.suppliers.blockPos.blockPosFromCoordinates.subSuppliers.z.name"), "z");
 	protected final SupplierStorage<?>[] subSuppliers = ofStorages(x);
 	
 	public BlockPosFromCoordinates(IScriptWithSubScript parent) {super(parent);}

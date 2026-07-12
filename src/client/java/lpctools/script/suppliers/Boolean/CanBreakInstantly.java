@@ -5,14 +5,14 @@ import lpctools.script.IScriptWithSubScript;
 import lpctools.script.runtimeInterfaces.ScriptBooleanSupplier;
 import lpctools.script.suppliers.AbstractSupplierWithTypeDeterminedSubSuppliers;
 import lpctools.util.BlockUtils;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.network.ClientPlayerEntity;
-import net.minecraft.text.Text;
-import net.minecraft.util.math.BlockPos;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.player.LocalPlayer;
+import net.minecraft.core.BlockPos;
+import net.minecraft.network.chat.Component;
 
 public class CanBreakInstantly extends AbstractSupplierWithTypeDeterminedSubSuppliers implements IBooleanSupplier {
 	protected final SupplierStorage<BlockPos> blockPos = ofStorage(BlockPos.class,
-		Text.translatable("lpctools.script.suppliers.boolean.canBreakInstantly.subSuppliers.blockPos.name"), "blockPos");
+		Component.translatable("lpctools.script.suppliers.boolean.canBreakInstantly.subSuppliers.blockPos.name"), "blockPos");
 	protected final SupplierStorage<?>[] subSuppliers = ofStorages(blockPos);
 	
 	public CanBreakInstantly(IScriptWithSubScript parent) {super(parent);}
@@ -23,7 +23,7 @@ public class CanBreakInstantly extends AbstractSupplierWithTypeDeterminedSubSupp
 	compileBoolean(CompileEnvironment environment) {
 		var booleanSupplier = blockPos.get().compileCheckedNotNull(environment);
 		return map->{
-			ClientPlayerEntity player = MinecraftClient.getInstance().player;
+			LocalPlayer player = Minecraft.getInstance().player;
 			if(player != null) return BlockUtils.canBreakInstantly(player, booleanSupplier.scriptApply(map));
 			else return false;
 		};

@@ -4,14 +4,14 @@ import lpctools.script.CompileEnvironment;
 import lpctools.script.IScriptWithSubScript;
 import lpctools.script.runtimeInterfaces.ScriptNotNullSupplier;
 import lpctools.script.suppliers.AbstractSupplierWithTypeDeterminedSubSuppliers;
-import net.minecraft.entity.Entity;
-import net.minecraft.text.Text;
-import net.minecraft.util.math.BlockPos;
+import net.minecraft.core.BlockPos;
+import net.minecraft.network.chat.Component;
+import net.minecraft.world.entity.Entity;
 import org.jetbrains.annotations.NotNull;
 
 public class EntityBlockPos extends AbstractSupplierWithTypeDeterminedSubSuppliers implements IBlockPosSupplier {
 	protected final SupplierStorage<Entity> entity = ofStorage(Entity.class,
-		Text.translatable("lpctools.script.suppliers.blockPos.entityBlockPos.subSuppliers.entity.name"), "entity");
+		Component.translatable("lpctools.script.suppliers.blockPos.entityBlockPos.subSuppliers.entity.name"), "entity");
 	protected final SupplierStorage<?>[] subSuppliers = ofStorages(entity);
 	
 	public EntityBlockPos(IScriptWithSubScript parent) {super(parent);}
@@ -21,6 +21,6 @@ public class EntityBlockPos extends AbstractSupplierWithTypeDeterminedSubSupplie
 	@Override public @NotNull ScriptNotNullSupplier<BlockPos>
 	compileNotNull(CompileEnvironment environment) {
 		var compiledEntitySupplier = entity.get().compileCheckedNotNull(environment);
-		return map->compiledEntitySupplier.scriptApply(map).getBlockPos();
+		return map->compiledEntitySupplier.scriptApply(map).blockPosition();
 	}
 }

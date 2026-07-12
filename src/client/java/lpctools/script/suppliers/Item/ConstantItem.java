@@ -10,9 +10,9 @@ import lpctools.script.IScriptWithSubScript;
 import lpctools.script.editScreen.WidthAutoAdjustButtonGeneric;
 import lpctools.script.runtimeInterfaces.ScriptNotNullSupplier;
 import lpctools.util.DataUtils;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.item.Item;
-import net.minecraft.item.Items;
+import net.minecraft.client.Minecraft;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.Items;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -59,10 +59,10 @@ public class ConstantItem extends AbstractScript implements IItemSupplier {
 			selectButton.setActionListener(
 				(button, mouseButton)->{
 					ChooseItemScreen screen = ChooseItemScreen.ofAllItems(9, 6, this::setItem);
-					var client = MinecraftClient.getInstance();
-					screen.setParent(client.currentScreen);
-					client.currentScreen = null;
-					MinecraftClient.getInstance().setScreen(screen);
+					var client = Minecraft.getInstance();
+					screen.setParent(client.screen);
+					client.screen = null;
+					Minecraft.getInstance().setScreen(screen);
 				}
 			);
 		}

@@ -5,7 +5,7 @@ import lpctools.script.AbstractScript;
 import lpctools.script.CompileEnvironment;
 import lpctools.script.IScriptWithSubScript;
 import lpctools.script.runtimeInterfaces.ScriptIntegerSupplier;
-import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.Minecraft;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -15,8 +15,8 @@ public class ScreenSlotCount extends AbstractScript implements IIntegerSupplier 
 	@Override public @NotNull ScriptIntegerSupplier
 	compileInteger(CompileEnvironment environment) {
 		return map -> {
-			var player = MinecraftClient.getInstance().player;
-			if(player != null) return player.currentScreenHandler.slots.size();
+			var player = Minecraft.getInstance().player;
+			if(player != null) return player.containerMenu.slots.size();
 			else return 0;
 		};
 	}

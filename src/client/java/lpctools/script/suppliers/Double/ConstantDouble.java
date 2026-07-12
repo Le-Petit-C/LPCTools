@@ -28,7 +28,7 @@ public class ConstantDouble extends AbstractScript implements IDoubleSupplier {
 	public void setDoubleValue(double value){
 		if(this.value != value){
 			this.value = value;
-			if(textField != null) textField.setText(String.valueOf(value));
+			if(textField != null) textField.setValue(String.valueOf(value));
 		}
 	}
 	
@@ -49,7 +49,7 @@ public class ConstantDouble extends AbstractScript implements IDoubleSupplier {
 				getDisplayWidget(), 100, String.valueOf(value), text->{
 				try {value = Double.parseDouble(text);
 				} catch (NumberFormatException ignored) {}
-				textField.setText(String.valueOf(value));
+				textField.setValue(String.valueOf(value));
 				applyToDisplayWidgetIfNotNull(ScriptDisplayWidget::markUpdateChain);
 			});
 		}

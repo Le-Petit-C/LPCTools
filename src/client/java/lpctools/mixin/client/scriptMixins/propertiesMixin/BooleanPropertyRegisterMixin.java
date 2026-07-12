@@ -1,7 +1,7 @@
 package lpctools.mixin.client.scriptMixins.propertiesMixin;
 
 import lpctools.script.suppliers.BlockPropertyOperators;
-import net.minecraft.state.property.BooleanProperty;
+import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;

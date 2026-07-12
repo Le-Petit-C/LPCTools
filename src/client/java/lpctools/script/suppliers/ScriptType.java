@@ -1,7 +1,7 @@
 package lpctools.script.suppliers;
 
 import lpctools.script.IScriptWithSubScript;
-import net.minecraft.text.Text;
+import net.minecraft.network.chat.Component;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.HashMap;
@@ -11,7 +11,7 @@ public interface ScriptType {
 	TypeGenerics<?> generics();
 	boolean isAssignableFrom(ScriptType another);
 	boolean isInstance(Object obj);
-	Text name();
+	Component name();
 	String id();
 	
 	static ScriptType getType(Class<?> clazz){
@@ -38,8 +38,8 @@ public interface ScriptType {
 		}
 	}
 	
-	record BasicType<T>(TypeGenerics<T> generics, Text name, String id) implements ScriptType {
-		BasicType(Class<T> basicClass, Function<IScriptWithSubScript, IScriptSupplier<? extends T>> defaultAllocator, Text name, String id){
+	record BasicType<T>(TypeGenerics<T> generics, Component name, String id) implements ScriptType {
+		BasicType(Class<T> basicClass, Function<IScriptWithSubScript, IScriptSupplier<? extends T>> defaultAllocator, Component name, String id){
 			this(new TypeGenerics.BasicGeneric<>(basicClass, defaultAllocator), name, id);
 		}
 		@Override public boolean isAssignableFrom(ScriptType another) {

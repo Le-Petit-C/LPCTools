@@ -4,8 +4,8 @@ import lpctools.lpcfymasaapi.configButtons.transferredConfigs.DoubleConfig;
 import lpctools.lpcfymasaapi.configButtons.uniqueConfigs.BooleanThirdListConfig;
 import lpctools.lpcfymasaapi.interfaces.ILPCConfigReadable;
 import lpctools.util.HandRestock;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.network.ClientPlayerEntity;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.player.LocalPlayer;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Iterator;
@@ -54,7 +54,7 @@ public class LimitOperationSpeedConfig extends BooleanThirdListConfig {
         if(restocked) return;
         restocked = true;
         int count = HandRestock.restock(restockTest, offhandPriority);
-        ClientPlayerEntity player = MinecraftClient.getInstance().player;
+        LocalPlayer player = Minecraft.getInstance().player;
         if(player != null && player.isCreative()) return;
         limitReservedTimes(count);
     }

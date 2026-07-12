@@ -1,8 +1,8 @@
 package lpctools.util.mixin;
 
 import lpctools.util.javaex.QuietAutoCloseable;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.network.packet.Packet;
+import net.minecraft.client.Minecraft;
+import net.minecraft.network.protocol.Packet;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -24,10 +24,10 @@ public class PacketRecorder implements QuietAutoCloseable {
 		if(recorder != this) throw new IllegalStateException();
 		recorder = parent;
 		if(parent == null) {
-			var networkHandler = MinecraftClient.getInstance().getNetworkHandler();
+			var networkHandler = Minecraft.getInstance().getConnection();
 			if(networkHandler == null) return;
 			for(var packet : interceptedPackets)
-				networkHandler.sendPacket(packet);
+				networkHandler.send(packet);
 		}
 	}
 	

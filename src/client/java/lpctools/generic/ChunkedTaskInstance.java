@@ -3,9 +3,9 @@ package lpctools.generic;
 import it.unimi.dsi.fastutil.longs.*;
 import lpctools.lpcfymasaapi.Registries;
 import lpctools.util.Packed;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.util.math.MathHelper;
-import net.minecraft.util.math.Vec3d;
+import net.minecraft.client.Minecraft;
+import net.minecraft.util.Mth;
+import net.minecraft.world.phys.Vec3;
 import org.apache.commons.lang3.mutable.MutableDouble;
 
 import java.util.ArrayList;
@@ -105,7 +105,7 @@ public class ChunkedTaskInstance implements AutoCloseable {
 			long packedChunkPos = packedChunkPos();
 			int chunkX = Packed.ChunkPos.unpackX(packedChunkPos);
 			int chunkZ = Packed.ChunkPos.unpackZ(packedChunkPos);
-			distanceCache().setValue(Math.sqrt(MathHelper.square(chunkX - chunkedCamX) + MathHelper.square(chunkZ - chunkedCamZ)) + instance().negPriority);
+			distanceCache().setValue(Math.sqrt(Mth.square(chunkX - chunkedCamX) + Mth.square(chunkZ - chunkedCamZ)) + instance().negPriority);
 		}
 	}
 	private record RunningTask(ChunkedTaskInstance instance, long packedChunkPos, MutableDouble distanceCache, CompletableFuture<Supplier<CallbackStatus>> task) implements ChunkPriorityData {
@@ -143,7 +143,7 @@ public class ChunkedTaskInstance implements AutoCloseable {
 		@Override public void betweenFrames() {
 			scheduled = false;
 			Registries.BETWEEN_RENDER_FRAMES.unregister(this);
-			Vec3d camPos = MinecraftClient.getInstance().gameRenderer.getCamera().getCameraPos();
+			Vec3 camPos = Minecraft.getInstance().gameRenderer.getMainCamera().position();
 			for(ChunkedTaskInstance taskInstance : tasks) { taskInstance.scheduled = false; }
 			var cachedTasks = new ArrayList<>(tasks);
 			tasks.clear();

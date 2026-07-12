@@ -12,7 +12,7 @@ import fi.dy.masa.malilib.gui.button.ButtonBase;
 import lpctools.lpcfymasaapi.configButtons.UpdateTodo;
 import lpctools.lpcfymasaapi.interfaces.*;
 import lpctools.lpcfymasaapi.screen.ChooseScreen;
-import net.minecraft.text.Text;
+import net.minecraft.network.chat.Component;
 import org.apache.commons.lang3.function.TriFunction;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -320,7 +320,7 @@ public class MutableConfig<T extends ILPCUniqueConfigBase> extends LPCUniqueConf
         else {
             ImmutableMap.Builder<String, ChooseScreen.OptionCallback<Object>> options = ImmutableMap.builder();
             configSuppliers.forEach((key, func)->options.put(key, (button, mouseButton, user)->allocateAndAddConfig(key, position)));
-            ChooseScreen.openChooseScreen(Text.translatable(titleKey).getString(), true, options.build(), optionTree, null);
+            ChooseScreen.openChooseScreen(Component.translatable(titleKey).getString(), true, options.build(), optionTree, null);
         }
     }
     private static final String titleKey = "lpcfymasaapi.configs.mutableConfig.title";

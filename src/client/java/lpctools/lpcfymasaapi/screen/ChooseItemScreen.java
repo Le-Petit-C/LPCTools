@@ -3,14 +3,14 @@ package lpctools.lpcfymasaapi.screen;
 import fi.dy.masa.malilib.gui.GuiBase;
 import fi.dy.masa.malilib.gui.GuiTextFieldGeneric;
 import lpctools.util.javaex.ToBooleanFunction;
-import net.minecraft.block.Block;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.gui.DrawContext;
-import net.minecraft.client.gui.screen.Screen;
-import net.minecraft.item.BlockItem;
-import net.minecraft.item.Item;
-import net.minecraft.registry.Registries;
-import net.minecraft.util.Identifier;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.item.BlockItem;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.level.block.Block;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -26,17 +26,17 @@ public class ChooseItemScreen extends GuiBase {
 	private final ChooseItemData<?> data;
 	private record SearchResult(Item renderItem, List<String> hoverStrings, Runnable chosenCallback){}
 	private final ArrayList<SearchResult> searchedItems = new ArrayList<>();
-	private record ChooseItemData<T>(List<T> items, Function<T, Item> toItem, Function<T, Identifier> toIdentifier, Function<T, String> toDisplayString, Consumer<T> callback) {
+	private record ChooseItemData<T>(List<T> items, Function<T, Item> toItem, Function<T, ResourceLocation> toIdentifier, Function<T, String> toDisplayString, Consumer<T> callback) {
 		public void refreshSearchedItems(String text, ArrayList<SearchResult> searchedItems){
-			ToBooleanFunction<Identifier> idTest;
-			Identifier testId = Identifier.tryParse(text);
+			ToBooleanFunction<ResourceLocation> idTest;
+			ResourceLocation testId = ResourceLocation.tryParse(text);
 			if(testId != null) idTest = obj->obj.getNamespace().contains(testId.getNamespace())
 				&& obj.getPath().contains(testId.getPath());
 			else idTest = o->false;
 			searchedItems.clear();
 			for(T obj : items){
 				Item item = toItem.apply(obj);
-				Identifier id = toIdentifier.apply(obj);
+				ResourceLocation id = toIdentifier.apply(obj);
 				String displayString = toDisplayString.apply(obj);
 				if(displayString.contains(text) || idTest.applyAsBoolean(id))
 					searchedItems.add(new SearchResult(item, List.of(displayString, id.toString()), ()->callback.accept(obj)));
@@ -46,7 +46,7 @@ public class ChooseItemScreen extends GuiBase {
 	private int shift = 0;
 	private boolean needInitGui = true;
 	GuiTextFieldGeneric searchBar;
-	public <T> ChooseItemScreen(@Nullable Screen parent, List<T> items, Function<T, Item> toItem, Function<T, Identifier> toIdentifier, Function<T, String> toDisplayString, int width, int height, Consumer<T> callback){
+	public <T> ChooseItemScreen(@Nullable Screen parent, List<T> items, Function<T, Item> toItem, Function<T, ResourceLocation> toIdentifier, Function<T, String> toDisplayString, int width, int height, Consumer<T> callback){
 		this.width = width;
 		this.height = height;
 		this.data = new ChooseItemData<>(items, toItem, toIdentifier, toDisplayString, callback);
@@ -54,39 +54,39 @@ public class ChooseItemScreen extends GuiBase {
 		data.refreshSearchedItems("", searchedItems);
 	}
 	public static <T extends Item> ChooseItemScreen ofItems(@Nullable Screen parent, List<T> items, int width, int height, Consumer<T> callback){
-		return new ChooseItemScreen(parent, items, item->item, Registries.ITEM::getId, item->item.getName().getString(), width, height, callback);
+		return new ChooseItemScreen(parent, items, item->item, BuiltInRegistries.ITEM::getKey, item->item.getName().getString(), width, height, callback);
 	}
 	public static <T extends Block> ChooseItemScreen ofBlocks(@Nullable Screen parent, List<T> items, int width, int height, Consumer<T> callback){
-		return new ChooseItemScreen(parent, items, Block::asItem, Registries.BLOCK::getId, block->block.getName().getString(), width, height, callback);
+		return new ChooseItemScreen(parent, items, Block::asItem, BuiltInRegistries.BLOCK::getKey, block->block.getName().getString(), width, height, callback);
 	}
 	public static ChooseItemScreen ofAllItems(@Nullable Screen parent, int width, int height, Consumer<Item> callback){
-		return ofItems(parent, Registries.ITEM.stream().toList(), width, height, callback);
+		return ofItems(parent, BuiltInRegistries.ITEM.stream().toList(), width, height, callback);
 	}
 	public static ChooseItemScreen ofAllItems(int width, int height, Consumer<Item> callback){
-		return ofAllItems(MinecraftClient.getInstance().currentScreen, width, height, callback);
+		return ofAllItems(Minecraft.getInstance().screen, width, height, callback);
 	}
 	public static ChooseItemScreen ofAllBlocks(@Nullable Screen parent, int width, int height, Consumer<Block> callback){
-		return ofBlocks(parent, Registries.BLOCK.stream().toList(), width, height, callback);
+		return ofBlocks(parent, BuiltInRegistries.BLOCK.stream().toList(), width, height, callback);
 	}
 	public static ChooseItemScreen ofAllBlocks(int width, int height, Consumer<Block> callback){
-		return ofAllBlocks(MinecraftClient.getInstance().currentScreen, width, height, callback);
+		return ofAllBlocks(Minecraft.getInstance().screen, width, height, callback);
 	}
 	public static ChooseItemScreen ofAllBlockItems(@Nullable Screen parent, int width, int height, Consumer<BlockItem> callback){
 		ArrayList<BlockItem> list = new ArrayList<>();
-		Registries.ITEM.forEach(item->{if(item instanceof BlockItem blockItem) list.add(blockItem);});
+		BuiltInRegistries.ITEM.forEach(item->{if(item instanceof BlockItem blockItem) list.add(blockItem);});
 		return ofItems(parent, list, width, height, callback);
 	}
 	public static ChooseItemScreen ofAllBlockItems(int width, int height, Consumer<BlockItem> callback){
-		return ofAllBlockItems(MinecraftClient.getInstance().currentScreen, width, height, callback);
+		return ofAllBlockItems(Minecraft.getInstance().screen, width, height, callback);
 	}
 	@Override public void initGui() {
 		super.initGui();
 		int y0 = (getScreenHeight() - h * (height - 1)) / 2;
 		int x0 = (getScreenWidth() - w * (width - 1)) / 2;
-		if(searchBar == null) searchBar = new GuiTextFieldGeneric(0, 0, w * width, 15, getTextRenderer());
+		if(searchBar == null) searchBar = new GuiTextFieldGeneric(0, 0, w * width, 15, getFont());
 		searchBar.setPosition(x0 - w / 2, y0 - h / 2 - 16);
 		addTextField(searchBar, textField -> {
-			data.refreshSearchedItems(textField.getText(), searchedItems);
+			data.refreshSearchedItems(textField.getValue(), searchedItems);
 			shift = 0;
 			needInitGui = true;
 			return true;
@@ -118,7 +118,7 @@ public class ChooseItemScreen extends GuiBase {
 		if(shift != lastShift) needInitGui = true;
 		return true;
 	}
-	@Override public void render(DrawContext drawContext, int mouseX, int mouseY, float partialTicks) {
+	@Override public void render(GuiGraphics drawContext, int mouseX, int mouseY, float partialTicks) {
 		if(needInitGui){
 			initGui();
 			needInitGui = false;
@@ -127,9 +127,9 @@ public class ChooseItemScreen extends GuiBase {
 		if(parent != null) parent.render(drawContext, 0, 0, partialTicks);
 		super.render(drawContext, mouseX, mouseY, partialTicks);
 	}
-	@Override public boolean shouldPause() {
+	@Override public boolean isPauseScreen() {
 		var parent = getParent();
-		if(parent != null) return parent.shouldPause();
-		else return super.shouldPause();
+		if(parent != null) return parent.isPauseScreen();
+		else return super.isPauseScreen();
 	}
 }

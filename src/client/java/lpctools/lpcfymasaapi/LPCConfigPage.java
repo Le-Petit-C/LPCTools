@@ -22,10 +22,10 @@ import lpctools.lpcfymasaapi.interfaces.ILPCConfig;
 import lpctools.lpcfymasaapi.interfaces.ILPCConfigBase;
 import lpctools.lpcfymasaapi.interfaces.ILPCConfigReadable;
 import lpctools.util.GuiUtils;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.gui.DrawContext;
-import net.minecraft.client.gui.screen.Screen;
-import net.minecraft.text.Text;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.network.chat.Component;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -69,10 +69,10 @@ public class LPCConfigPage implements IConfigHandler, Supplier<GuiBase>, ILPCCon
     @Override public void onConfigsChanged() {save();}
     //显示当前页面
     public void showPage(Screen parent){
-        if(pageInstance != null) pageInstance.close();
+        if(pageInstance != null) pageInstance.onClose();
         pageInstance = new ConfigPageInstance();
         pageInstance.setParent(parent);
-        if(MinecraftClient.getInstance().currentScreen != pageInstance)
+        if(Minecraft.getInstance().screen != pageInstance)
             GuiBase.openGui(pageInstance);
     }
     private boolean needUpdate = true;
@@ -178,7 +178,7 @@ public class LPCConfigPage implements IConfigHandler, Supplier<GuiBase>, ILPCCon
 
             for (int a = 0; a < lists.size(); ++a) {
                 String listName = lists.get(a).getTitleDisplayName();
-                ButtonGeneric button = new ButtonGeneric(x, y, calculateTextButtonWidth(listName, textRenderer, 20), 20, listName);
+                ButtonGeneric button = new ButtonGeneric(x, y, calculateTextButtonWidth(listName, font, 20), 20, listName);
                 button.setEnabled(selectedIndex != a);
                 this.addButton(button, new ButtonListener(a, this));
                 x += button.getWidth() + 2;
@@ -197,7 +197,7 @@ public class LPCConfigPage implements IConfigHandler, Supplier<GuiBase>, ILPCCon
         public void cursorInfo(String text, int sustainMillis){
             GuiUtils.cursorInfo(infoWidgets, text, sustainMillis, getScreenWidth());
         }
-        public void cursorInfo(Text text, int sustainMillis){
+        public void cursorInfo(Component text, int sustainMillis){
             cursorInfo(text.getString(), sustainMillis);
         }
 
@@ -207,7 +207,7 @@ public class LPCConfigPage implements IConfigHandler, Supplier<GuiBase>, ILPCCon
             super(10, 50, modReference.modId, null, "");
         }
         
-        @Override public boolean shouldPause() {return shouldPause;}
+        @Override public boolean isPauseScreen() {return shouldPause;}
         
         void select(int index){
             if(index == selectedIndex) return;
@@ -226,7 +226,7 @@ public class LPCConfigPage implements IConfigHandler, Supplier<GuiBase>, ILPCCon
                 widget.markConfigsModified();
         }
         
-        @Override public void render(DrawContext drawContext, int mouseX, int mouseY, float partialTicks) {
+        @Override public void render(GuiGraphics drawContext, int mouseX, int mouseY, float partialTicks) {
             if(needUpdate) {
                 initGui();
                 needUpdate = false;

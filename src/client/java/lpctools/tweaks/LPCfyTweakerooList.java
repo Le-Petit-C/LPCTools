@@ -16,7 +16,7 @@ import lpctools.lpcfymasaapi.interfaces.ILPCConfig;
 import lpctools.mixinInterfaces.MASAMixins.IGuiListBaseMixin;
 import lpctools.util.DataUtils;
 import net.fabricmc.loader.api.FabricLoader;
-import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.Minecraft;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -115,12 +115,12 @@ public class LPCfyTweakerooList {
 		}
 		
 		private void sendUpdateCurrentScreen(){
-			MinecraftClient client = MinecraftClient.getInstance();
-			if(client.currentScreen instanceof GuiConfigs configs)
+			Minecraft client = Minecraft.getInstance();
+			if(client.screen instanceof GuiConfigs configs)
 				tweakerooGuiConfigs = configs;
 			if(updateMarked) return;
 			updateMarked = true;
-			client.send(()->{
+			client.schedule(()->{
 				updateConfigs(lpcfyTweakerooList.getAsBoolean());
 				if(tweakerooGuiConfigs != null)
 					tweakerooGuiConfigs.initGui();

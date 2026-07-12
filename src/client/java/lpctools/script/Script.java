@@ -11,8 +11,8 @@ import lpctools.script.exceptions.ScriptRuntimeException;
 import lpctools.script.runtimeInterfaces.ScriptRunnable;
 import lpctools.script.suppliers.ControlFlowIssue.RunMultiple;
 import lpctools.script.trigger.ScriptTrigger;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.text.Text;
+import net.minecraft.client.Minecraft;
+import net.minecraft.network.chat.Component;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -29,7 +29,7 @@ public class Script extends AbstractScriptWithSubScript implements IScriptWithSu
 	public final ScriptConfig config;
 	private boolean enabled = false;
 	private final ScriptTrigger trigger = new ScriptTrigger(this);
-	private final RunMultiple operations = new RunMultiple(this, Text.translatable("lpctools.script.operations.name"));
+	private final RunMultiple operations = new RunMultiple(this, Component.translatable("lpctools.script.operations.name"));
 	private final List<IScript> subScripts = List.of(trigger, operations);
 	private @Nullable WidthAutoAdjustTextField idWidget;
 	private @Nullable List<Object> widgets;
@@ -62,8 +62,8 @@ public class Script extends AbstractScriptWithSubScript implements IScriptWithSu
 	}
 	public void openEditScreen() {
 		var screen = getEditScreen();
-		screen.setParent(MinecraftClient.getInstance().currentScreen);
-		MinecraftClient.getInstance().setScreen(screen);
+		screen.setParent(Minecraft.getInstance().screen);
+		Minecraft.getInstance().setScreen(screen);
 	}
 	//启用脚本
 	public void enable(boolean enable) {
@@ -74,13 +74,13 @@ public class Script extends AbstractScriptWithSubScript implements IScriptWithSu
 		}
 	}
 	
-	@Override public @Nullable Text getName() {return null;}
-	@Override public @Nullable Text getComment() {return null;}
+	@Override public @Nullable Component getName() {return null;}
+	@Override public @Nullable Component getComment() {return null;}
 	
 	public @NotNull String getId(){return id;}
 	public void setId(String id){
 		if(id.equals(this.id)) return;
-		Text warnText = checkId(id);
+		Component warnText = checkId(id);
 		if(warnText != null){
 			var pageInstance = config.getPage().getPageInstance();
 			if(pageInstance != null) pageInstance.cursorInfo(warnText, 3000);
@@ -97,14 +97,14 @@ public class Script extends AbstractScriptWithSubScript implements IScriptWithSu
 		}
 		this.id = id;
 		ScriptsConfig.instance.existScript.add(this.id);
-		if(idWidget != null) idWidget.setText(id);
+		if(idWidget != null) idWidget.setValue(id);
 		config.scriptId.setValueFromString(id);
 	}
 	
-	private static @Nullable Text checkId(String id) {
+	private static @Nullable Component checkId(String id) {
 		final String invalidCharacters = "\\/*?\"<>|";
 		if(ScriptsConfig.instance.existScript.contains(id))
-			return Text.translatable("lpctools.script.exception.id.scriptNameRepeat");
+			return Component.translatable("lpctools.script.exception.id.scriptNameRepeat");
 		else {
 			boolean hasInvalidCharacter = false;
 			for(int i = 0; i < invalidCharacters.length(); ++i){
@@ -113,9 +113,9 @@ public class Script extends AbstractScriptWithSubScript implements IScriptWithSu
 					break;
 				}
 			}
-			if(hasInvalidCharacter) return Text.translatable("lpctools.script.exception.id.invalidCharacter");
+			if(hasInvalidCharacter) return Component.translatable("lpctools.script.exception.id.invalidCharacter");
 			else if(id.endsWith(" ") || id.endsWith("."))
-				return Text.translatable("lpctools.script.exception.id.invalidEnd");
+				return Component.translatable("lpctools.script.exception.id.invalidEnd");
 			else return null;
 		}
 	}

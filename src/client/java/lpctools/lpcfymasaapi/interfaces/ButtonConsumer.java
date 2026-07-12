@@ -9,7 +9,7 @@ import fi.dy.masa.malilib.gui.button.IButtonActionListener;
 import fi.dy.masa.malilib.gui.interfaces.IKeybindConfigGui;
 import fi.dy.masa.malilib.gui.widgets.WidgetBase;
 import fi.dy.masa.malilib.gui.widgets.WidgetListConfigOptionsBase;
-import net.minecraft.client.font.TextRenderer;
+import net.minecraft.client.gui.Font;
 
 public interface ButtonConsumer {
     @SuppressWarnings("UnusedReturnValue") <T extends WidgetBase> T addWidget(T widget);
@@ -21,5 +21,5 @@ public interface ButtonConsumer {
     ButtonGeneric createResetButton(int x, int y, IConfigResettable config);
     IKeybindConfigGui getKeybindHost();
     WidgetListConfigOptionsBase<?, ?> getWidgetListConfigOptionsBase();
-    TextRenderer getTextRenderer();
+    Font getTextRenderer();
 }

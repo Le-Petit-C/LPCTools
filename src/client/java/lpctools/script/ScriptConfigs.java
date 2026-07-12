@@ -10,8 +10,7 @@ import lpctools.lpcfymasaapi.configButtons.transferredConfigs.*;
 import lpctools.lpcfymasaapi.configButtons.uniqueConfigs.ButtonConfig;
 import lpctools.lpcfymasaapi.configButtons.uniqueConfigs.ThirdListConfig;
 import lpctools.lpcfymasaapi.configButtons.uniqueConfigs.UniqueIntegerConfig;
-import net.minecraft.text.Text;
-
+import net.minecraft.network.chat.Component;
 import java.util.ArrayList;
 
 import static lpctools.lpcfymasaapi.LPCConfigStatics.*;
@@ -39,17 +38,17 @@ public class ScriptConfigs {
     @SuppressWarnings("unused")
     public static final ButtonConfig clearGlobalStaticVariables = addButtonConfig("clearGlobalStaticVariables", (button, mouseButton)->{
             clearGlobalStaticVariables();
-            script.getPage().applyToPageInstanceIfNotNull(page->page.cursorInfo(Text.translatable("lpctools.configs.scripts.clearGlobalStaticVariables.info"), 2000));
+            script.getPage().applyToPageInstanceIfNotNull(page->page.cursorInfo(Component.translatable("lpctools.configs.scripts.clearGlobalStaticVariables.info"), 2000));
         });
     @SuppressWarnings("unused")
     public static final ButtonConfig clearAllStaticVariables = addButtonConfig("clearAllStaticVariables", (button, mouseButton)->{
             clearAllStaticVariables();
-            script.getPage().applyToPageInstanceIfNotNull(page->page.cursorInfo(Text.translatable("lpctools.configs.scripts.clearAllStaticVariables.info"), 2000));
+            script.getPage().applyToPageInstanceIfNotNull(page->page.cursorInfo(Component.translatable("lpctools.configs.scripts.clearAllStaticVariables.info"), 2000));
         });
     @SuppressWarnings("unused")
     public static final ButtonConfig reloadScripts = addButtonConfig("reloadScripts", (button, mouseButton)->{
             ScriptsConfig.instance.setValueFromJsonElement(ScriptsConfig.instance.getAsJsonElement());
-            script.getPage().applyToPageInstanceIfNotNull(page->page.cursorInfo(Text.translatable("lpctools.configs.scripts.reloadScripts.info"), 2000));
+            script.getPage().applyToPageInstanceIfNotNull(page->page.cursorInfo(Component.translatable("lpctools.configs.scripts.reloadScripts.info"), 2000));
         });
     static {addConfig(ScriptsConfig.instance);}
     //static {addConfig(StaticVariables.instance);}

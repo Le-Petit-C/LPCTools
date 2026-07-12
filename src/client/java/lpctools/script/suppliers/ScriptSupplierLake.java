@@ -31,22 +31,22 @@ import lpctools.script.suppliers.String.*;
 import lpctools.script.suppliers.TagKey.ConstantTagKey;
 import lpctools.script.suppliers.Type.*;
 import lpctools.script.suppliers.Vec3d.*;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.network.chat.Component;
+import net.minecraft.tags.TagKey;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.properties.BooleanProperty;
+import net.minecraft.world.level.block.state.properties.EnumProperty;
+import net.minecraft.world.level.block.state.properties.IntegerProperty;
+import net.minecraft.world.level.block.state.properties.Property;
+import net.minecraft.world.phys.Vec3;
 import lpctools.script.suppliers.ControlFlowIssue.*;
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockState;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
-import net.minecraft.registry.tag.TagKey;
-import net.minecraft.state.property.BooleanProperty;
-import net.minecraft.state.property.EnumProperty;
-import net.minecraft.state.property.IntProperty;
-import net.minecraft.state.property.Property;
-import net.minecraft.text.Text;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Direction;
-import net.minecraft.util.math.Vec3d;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -90,9 +90,9 @@ public class ScriptSupplierLake {
 	public static ScriptRegistration<?, ?> getSupplierRegistration(String key) {return suppliers.get(key);}
 	
 	
-	public static Text getTypeName(Class<?> clazz) {
+	public static Component getTypeName(Class<?> clazz) {
 		if (typeMap.containsKey(clazz)) return Objects.requireNonNull(typeMap.get(clazz)).name();
-		else return Text.literal(clazz.getName());
+		else return Component.literal(clazz.getName());
 	}
 	
 	public static JsonObject getJsonEntryFromSupplier(@NotNull IScriptSupplier<?> supplier) {
@@ -171,7 +171,7 @@ public class ScriptSupplierLake {
 		registerType(ScriptType.class, ConstantType::new, "scriptType");
 		registerType(ObjectIterable.class, parent -> new Null<>(parent, ObjectIterable.class), "iterable");
 		registerType(BlockPos.class, ConstantBlockPos::new, "blockPos");
-		registerType(Vec3d.class, ConstantVec3d::new, "vec3d");
+		registerType(Vec3.class, ConstantVec3d::new, "vec3d");
 		registerType(Enum.class, ConstantEnum::new, "enum");
 		registerType(Direction.class, ConstantDirection::new, "direction");
 		registerType(BlockState.class, BlockDefaultState::new, "blockState");
@@ -179,10 +179,10 @@ public class ScriptSupplierLake {
 		registerType(Item.class, ConstantItem::new, "item");
 		registerType(ItemStack.class, EmptyStack::new, "itemStack");
 		registerType(Entity.class, MainPlayerEntity::new, "entity");
-		registerType(PlayerEntity.class, MainPlayerEntity::new, "playerEntity");
+		registerType(Player.class, MainPlayerEntity::new, "playerEntity");
 		registerType(Property.class, ConstantBlockProperty::new, "blockProperty");
 		registerType(BooleanProperty.class, ConstantBooleanBlockProperty::new, "booleanBlockProperty");
-		registerType(IntProperty.class, ConstantIntegerBlockProperty::new, "integerBlockProperty");
+		registerType(IntegerProperty.class, ConstantIntegerBlockProperty::new, "integerBlockProperty");
 		registerType(EnumProperty.class, ConstantEnumBlockProperty::new, "enumBlockProperty");
 		registerType(TagKey.class, ConstantTagKey::new, "tagKey");
 	}
@@ -282,12 +282,12 @@ public class ScriptSupplierLake {
 		registerPrecise("directionVector", BlockPos.class, DirectionVector.class, DirectionVector::new);
 		registerPrecise("entityBlockPos", BlockPos.class, EntityBlockPos.class, EntityBlockPos::new);
 		//注册vec3d suppliers
-		registerPrecise("constantVec3d", Vec3d.class, ConstantVec3d.class, ConstantVec3d::new);
-		registerPrecise("calculateVec3ds", Vec3d.class, CalculateVec3ds.class, CalculateVec3ds::new);
-		registerPrecise("vec3dFromCoordinates", Vec3d.class, Vec3dFromCoordinates.class, Vec3dFromCoordinates::new);
-		registerPrecise("vec3dFromBlockPos", Vec3d.class, Vec3dFromBlockPos.class, Vec3dFromBlockPos::new);
-		registerPrecise("entityPos", Vec3d.class, EntityPos.class, EntityPos::new);
-		registerPrecise("entityEyePos", Vec3d.class, EntityEyePos.class, EntityEyePos::new);
+		registerPrecise("constantVec3d", Vec3.class, ConstantVec3d.class, ConstantVec3d::new);
+		registerPrecise("calculateVec3ds", Vec3.class, CalculateVec3ds.class, CalculateVec3ds::new);
+		registerPrecise("vec3dFromCoordinates", Vec3.class, Vec3dFromCoordinates.class, Vec3dFromCoordinates::new);
+		registerPrecise("vec3dFromBlockPos", Vec3.class, Vec3dFromBlockPos.class, Vec3dFromBlockPos::new);
+		registerPrecise("entityPos", Vec3.class, EntityPos.class, EntityPos::new);
+		registerPrecise("entityEyePos", Vec3.class, EntityEyePos.class, EntityEyePos::new);
 		//注册blockState suppliers
 		registerPrecise("blockDefaultState", BlockState.class, BlockDefaultState.class, BlockDefaultState::new);
 		registerPrecise("blockStateInWorld", BlockState.class, BlockStateInWorld.class, BlockStateInWorld::new);
@@ -308,13 +308,13 @@ public class ScriptSupplierLake {
 		//注册entity suppliers
 		registerPrecise("vehicleEntity", Entity.class, VehicleEntity.class, VehicleEntity::new);
 		//注册player entity suppliers
-		registerPrecise("mainPlayerEntity", PlayerEntity.class, MainPlayerEntity.class, MainPlayerEntity::new);
+		registerPrecise("mainPlayerEntity", Player.class, MainPlayerEntity.class, MainPlayerEntity::new);
 		//注册blockProperty suppliers
 		registerPrecise("constantBlockProperty", Property.class, ConstantBlockProperty.class, ConstantBlockProperty::new);
 		//注册booleanBlockProperty suppliers
 		registerPrecise("constantBooleanBlockProperty", BooleanProperty.class, ConstantBooleanBlockProperty.class, ConstantBooleanBlockProperty::new);
 		//注册integerBlockProperty suppliers
-		registerPrecise("constantIntegerBlockProperty", IntProperty.class, ConstantIntegerBlockProperty.class, ConstantIntegerBlockProperty::new);
+		registerPrecise("constantIntegerBlockProperty", IntegerProperty.class, ConstantIntegerBlockProperty.class, ConstantIntegerBlockProperty::new);
 		//注册enumBlockProperty suppliers
 		registerPrecise("constantEnumBlockProperty", EnumProperty.class, ConstantEnumBlockProperty.class, ConstantEnumBlockProperty::new);
 		//注册tagKey suppliers
@@ -388,7 +388,7 @@ public class ScriptSupplierLake {
 	}
 	
 	private static <T> void registerType(Class<T> basicClass, Function<IScriptWithSubScript, IScriptSupplier<? extends T>> defaultValue, String id) {
-		var type = new ScriptType.BasicType<>(basicClass, defaultValue, Text.translatable("lpctools.script.typeName." + id), id);
+		var type = new ScriptType.BasicType<>(basicClass, defaultValue, Component.translatable("lpctools.script.typeName." + id), id);
 		typeMapTemp.put(basicClass, type);
 		typeIdMapTemp.put(id, type);
 		LinkedHashSet<Class<?>> set = new LinkedHashSet<>();
@@ -399,16 +399,16 @@ public class ScriptSupplierLake {
 	@SuppressWarnings("UnusedReturnValue")
 	public static <T, U extends IScriptSupplier<T>> boolean registerPrecise(String key, Class<T> clazz, Class<U> supplierClass, IScriptSupplierAllocator<U> allocator) {
 		return register(key, clazz, ScriptRegistration.ofPrecise(key,
-			Text.translatable("lpctools.script.suppliers." + typeMapTemp.get(clazz).id() + '.' + key + ".name"),
-			Text.translatable("lpctools.script.suppliers." + typeMapTemp.get(clazz).id() + '.' + key + ".comment"),
+			Component.translatable("lpctools.script.suppliers." + typeMapTemp.get(clazz).id() + '.' + key + ".name"),
+			Component.translatable("lpctools.script.suppliers." + typeMapTemp.get(clazz).id() + '.' + key + ".comment"),
 			clazz, supplierClass, allocator));
 	}
 	
 	@SuppressWarnings("UnusedReturnValue")
 	public static <U extends IScriptSupplier<?>> boolean registerRandom(String key, Class<U> supplierClass, IRandomSupplierAllocator allocator) {
 		return register(key, Object.class, ScriptRegistration.ofRandom(key,
-			Text.translatable("lpctools.script.suppliers.random." + key + ".name"),
-			Text.translatable("lpctools.script.suppliers.random." + key + ".comment"),
+			Component.translatable("lpctools.script.suppliers.random." + key + ".name"),
+			Component.translatable("lpctools.script.suppliers.random." + key + ".comment"),
 			supplierClass, allocator));
 	}
 }

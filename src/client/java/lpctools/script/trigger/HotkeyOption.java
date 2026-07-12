@@ -9,7 +9,7 @@ import fi.dy.masa.malilib.hotkeys.KeybindSettings;
 import lpctools.LPCTools;
 import lpctools.lpcfymasaapi.InputHandler;
 import lpctools.script.editScreen.WidthAutoAdjustButtonKeybind;
-import net.minecraft.text.Text;
+import net.minecraft.network.chat.Component;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -44,7 +44,7 @@ class HotkeyOption extends TriggerOptionBase {
 	
 	public @NotNull WidgetKeybindSettings getKeybindSettingsButton(){
 		if(keybindSettingsButton == null) {
-			String name = getName() instanceof Text text ? text.getString() : "";
+			String name = getName() instanceof Component text ? text.getString() : "";
 			var editScreen = getDisplayWidget().editScreen;
 			keybindSettingsButton = new WidgetKeybindSettings(0, 0, 20, 20, keybind, name,
 				editScreen.getListWidget(), getDisplayWidget().editScreen.getDialogHandler());

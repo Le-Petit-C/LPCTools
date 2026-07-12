@@ -3,28 +3,28 @@ package lpctools.script.utils;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntMaps;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
-import net.minecraft.entity.EquipmentSlot;
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.item.ItemStack;
-import net.minecraft.text.Text;
-import net.minecraft.util.Arm;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.function.Function;
+import net.minecraft.network.chat.Component;
+import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.entity.HumanoidArm;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.item.ItemStack;
 
 public enum StackGetter {
-	MAIN_HAND_STACK(LivingEntity::getMainHandStack, Text.translatable("lpctools.script.utils.stackGetter.mainHandStack"), "mainHand"),
-	OFF_HAND_STACK(LivingEntity::getOffHandStack, Text.translatable("lpctools.script.utils.stackGetter.offHandStack"), "offHand"),
-	FEET_STACK(entity -> entity.getEquippedStack(EquipmentSlot.FEET), Text.translatable("lpctools.script.utils.stackGetter.feetStack"), "feet"),
-	LEGS_STACK(entity -> entity.getEquippedStack(EquipmentSlot.LEGS), Text.translatable("lpctools.script.utils.stackGetter.legsStack"), "legs"),
-	CHEST_STACK(entity -> entity.getEquippedStack(EquipmentSlot.CHEST), Text.translatable("lpctools.script.utils.stackGetter.chestStack"), "chest"),
-	HEAD_STACK(entity -> entity.getEquippedStack(EquipmentSlot.HEAD), Text.translatable("lpctools.script.utils.stackGetter.headStack"), "head"),
-	BODY_STACK(entity -> entity.getEquippedStack(EquipmentSlot.BODY), Text.translatable("lpctools.script.utils.stackGetter.bodyStack"), "body"),
-	SADDLE_STACK(entity -> entity.getEquippedStack(EquipmentSlot.SADDLE), Text.translatable("lpctools.script.utils.stackGetter.saddleStack"), "saddle"),
-	LEFT_HAND_STACK(entity -> entity.getStackInArm(Arm.LEFT), Text.translatable("lpctools.script.utils.stackGetter.leftHandStack"), "leftHand"),
-	RIGHT_HAND_STACK(entity -> entity.getStackInArm(Arm.RIGHT), Text.translatable("lpctools.script.utils.stackGetter.rightHandStack"), "rightHand"),;
+	MAIN_HAND_STACK(LivingEntity::getMainHandItem, Component.translatable("lpctools.script.utils.stackGetter.mainHandStack"), "mainHand"),
+	OFF_HAND_STACK(LivingEntity::getOffhandItem, Component.translatable("lpctools.script.utils.stackGetter.offHandStack"), "offHand"),
+	FEET_STACK(entity -> entity.getItemBySlot(EquipmentSlot.FEET), Component.translatable("lpctools.script.utils.stackGetter.feetStack"), "feet"),
+	LEGS_STACK(entity -> entity.getItemBySlot(EquipmentSlot.LEGS), Component.translatable("lpctools.script.utils.stackGetter.legsStack"), "legs"),
+	CHEST_STACK(entity -> entity.getItemBySlot(EquipmentSlot.CHEST), Component.translatable("lpctools.script.utils.stackGetter.chestStack"), "chest"),
+	HEAD_STACK(entity -> entity.getItemBySlot(EquipmentSlot.HEAD), Component.translatable("lpctools.script.utils.stackGetter.headStack"), "head"),
+	BODY_STACK(entity -> entity.getItemBySlot(EquipmentSlot.BODY), Component.translatable("lpctools.script.utils.stackGetter.bodyStack"), "body"),
+	SADDLE_STACK(entity -> entity.getItemBySlot(EquipmentSlot.SADDLE), Component.translatable("lpctools.script.utils.stackGetter.saddleStack"), "saddle"),
+	LEFT_HAND_STACK(entity -> entity.getItemHeldByArm(HumanoidArm.LEFT), Component.translatable("lpctools.script.utils.stackGetter.leftHandStack"), "leftHand"),
+	RIGHT_HAND_STACK(entity -> entity.getItemHeldByArm(HumanoidArm.RIGHT), Component.translatable("lpctools.script.utils.stackGetter.rightHandStack"), "rightHand"),;
 	private final Function<LivingEntity, ItemStack> slotGetter;
-	public final Text name;
+	public final Component name;
 	public final String id;
 	public static final Object2IntMap<String> indexMap;
 	private int index;
@@ -37,7 +37,7 @@ public enum StackGetter {
 		}
 		indexMap = Object2IntMaps.unmodifiable(tempMap);
 	}
-	StackGetter(Function<LivingEntity, ItemStack> slotGetter, Text name, String id){
+	StackGetter(Function<LivingEntity, ItemStack> slotGetter, Component name, String id){
 		this.slotGetter = slotGetter;
 		this.name = name;
 		this.id = id;

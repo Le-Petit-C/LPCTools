@@ -4,15 +4,15 @@ import lpctools.script.CompileEnvironment;
 import lpctools.script.IScriptWithSubScript;
 import lpctools.script.runtimeInterfaces.ScriptNotNullSupplier;
 import lpctools.script.suppliers.AbstractSupplierWithTypeDeterminedSubSuppliers;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.network.ClientPlayerEntity;
-import net.minecraft.item.ItemStack;
-import net.minecraft.text.Text;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.player.LocalPlayer;
+import net.minecraft.network.chat.Component;
+import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.NotNull;
 
 public class CurrentScreenSlotStack extends AbstractSupplierWithTypeDeterminedSubSuppliers implements IItemStackSupplier{
 	protected final SupplierStorage<Integer> index = ofStorage(Integer.class,
-		Text.translatable("lpctools.script.suppliers.itemStack.currentScreenSlotStack.subSuppliers.index.name"), "index");
+		Component.translatable("lpctools.script.suppliers.itemStack.currentScreenSlotStack.subSuppliers.index.name"), "index");
 	protected final SupplierStorage<?>[] subSuppliers = ofStorages(index);
 	
 	public CurrentScreenSlotStack(IScriptWithSubScript parent) {super(parent);}
@@ -23,11 +23,11 @@ public class CurrentScreenSlotStack extends AbstractSupplierWithTypeDeterminedSu
 	compileNotNull(CompileEnvironment environment) {
 		var compiledIndexSupplier = compileCheckedInteger(index.get(), environment);
 		return map->{
-			if(MinecraftClient.getInstance().player instanceof ClientPlayerEntity player){
-				var slots = player.currentScreenHandler.slots;
+			if(Minecraft.getInstance().player instanceof LocalPlayer player){
+				var slots = player.containerMenu.slots;
 				int i = compiledIndexSupplier.scriptApplyAsInt(map);
 				if(i >= 0 && i < slots.size())
-					return slots.get(i).getStack();
+					return slots.get(i).getItem();
 			}
 			return ItemStack.EMPTY;
 		};

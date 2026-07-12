@@ -4,12 +4,12 @@ import lpctools.script.CompileEnvironment;
 import lpctools.script.IScriptWithSubScript;
 import lpctools.script.runtimeInterfaces.ScriptDoubleSupplier;
 import lpctools.script.suppliers.AbstractSupplierWithTypeDeterminedSubSuppliers;
-import net.minecraft.text.Text;
+import net.minecraft.network.chat.Component;
 import org.jetbrains.annotations.NotNull;
 
 public class DoubleFromInteger extends AbstractSupplierWithTypeDeterminedSubSuppliers implements IDoubleSupplier {
 	protected final SupplierStorage<Integer> integer = ofStorage(Integer.class,
-		Text.translatable("lpctools.script.suppliers.double.doubleFromInteger.subSuppliers.integer.name"), "integer");
+		Component.translatable("lpctools.script.suppliers.double.doubleFromInteger.subSuppliers.integer.name"), "integer");
 	protected final SupplierStorage<?>[] subSuppliers = ofStorages(integer);
 	
 	public DoubleFromInteger(IScriptWithSubScript parent) {super(parent);}

@@ -5,19 +5,19 @@ import lpctools.lpcfymasaapi.Registries;
 import lpctools.util.GuiUtils;
 import lpctools.util.HandRestock;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.input.MouseInput;
-import net.minecraft.client.network.ClientPlayerInteractionManager;
-import net.minecraft.util.ActionResult;
-import net.minecraft.util.Hand;
-import net.minecraft.util.hit.BlockHitResult;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Direction;
-import net.minecraft.util.math.Vec3d;
-import net.minecraft.util.math.Vec3i;
-import net.minecraft.world.BlockView;
-import net.minecraft.world.GameMode;
-import net.minecraft.world.dimension.DimensionType;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.input.MouseButtonInfo;
+import net.minecraft.client.multiplayer.MultiPlayerGameMode;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.core.Vec3i;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.level.BlockGetter;
+import net.minecraft.world.level.GameType;
+import net.minecraft.world.level.dimension.DimensionType;
+import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -40,8 +40,8 @@ public class PlaceBlockTick implements ClientTickEvents.EndTick, Registries.InGa
         testBuffer = new boolean[testSize][testSize][testSize];
     }
 
-    @Override public void onEndTick(MinecraftClient client){
-        if(client.world == null){
+    @Override public void onEndTick(Minecraft client){
+        if(client.level == null){
             disableTool("nullClientWorld");
             return;
         }
@@ -49,12 +49,12 @@ public class PlaceBlockTick implements ClientTickEvents.EndTick, Registries.InGa
             disableTool("nullClientPlayerEntity");
             return;
         }
-        ClientPlayerInteractionManager manager = client.interactionManager;
+        MultiPlayerGameMode manager = client.gameMode;
         if(manager == null){
             disableTool("nullInteractionManager");
             return;
         }
-        if (manager.getCurrentGameMode() == GameMode.SPECTATOR || manager.getCurrentGameMode() == GameMode.ADVENTURE){
+        if (manager.getPlayerMode() == GameType.SPECTATOR || manager.getPlayerMode() == GameType.ADVENTURE){
             disableTool("unsupportedGameMode");
             return;
         }
@@ -67,11 +67,11 @@ public class PlaceBlockTick implements ClientTickEvents.EndTick, Registries.InGa
             disableTool("placeableItemRanOut");
             return;
         }
-        Vec3d eyePos = client.player.getEyePos();
-        BlockPos eyeBlockPos = new BlockPos((int)Math.floor(eyePos.getX()), (int)Math.floor(eyePos.getY()), (int)Math.floor(eyePos.getZ()));
+        Vec3 eyePos = client.player.getEyePosition();
+        BlockPos eyeBlockPos = new BlockPos((int)Math.floor(eyePos.x()), (int)Math.floor(eyePos.y()), (int)Math.floor(eyePos.z()));
         ShapeList shapeList = limitFillingRange.buildShapeList();
-        initializeMap(shapeList, eyeBlockPos, client.world);
-        DimensionType dimensionType = client.world.getDimension();
+        initializeMap(shapeList, eyeBlockPos, client.level);
+        DimensionType dimensionType = client.level.dimensionType();
         int bottom = dimensionType.minY();
         int ceiling = bottom + dimensionType.height();
         limitPlaceSpeedConfig.resetOperationTimes();
@@ -89,21 +89,21 @@ public class PlaceBlockTick implements ClientTickEvents.EndTick, Registries.InGa
              return NO_OPERATION;
         });
     }
-    @Override public void onInGameEndMouse(MouseInput input, int action) {
+    @Override public void onInGameEndMouse(MouseButtonInfo input, int action) {
         if(disableOnLeftDownConfig.getAsBoolean() && input.button() == 0 && action == 1)
             disableTool("mouseLeftDown");
     }
 
     private boolean put(BlockPos blockPos, HandRestock.IRestockTest restockTest){
-        MinecraftClient client = MinecraftClient.getInstance();
-        if(client.interactionManager == null) return false;
+        Minecraft client = Minecraft.getInstance();
+        if(client.gameMode == null) return false;
         limitPlaceSpeedConfig.limitWithRestock(restockTest, offhandFillingConfig.getAsBoolean() ? -1 : 0);
-        BlockHitResult hit = new BlockHitResult(blockPos.toCenterPos(), Direction.UP, blockPos.mutableCopy(), false);
-        return client.interactionManager.interactBlock(
+        BlockHitResult hit = new BlockHitResult(blockPos.getCenter(), Direction.UP, blockPos.mutable(), false);
+        return client.gameMode.useItemOn(
                 client.player,
-                offhandFillingConfig.getAsBoolean() ? Hand.OFF_HAND : Hand.MAIN_HAND,
+                offhandFillingConfig.getAsBoolean() ? InteractionHand.OFF_HAND : InteractionHand.MAIN_HAND,
                 hit
-        ) == ActionResult.SUCCESS;
+        ) == InteractionResult.SUCCESS;
     }
     private BlockPos currentPosition;//当前map区域的xyz值最小角坐标
     private int testDistance;
@@ -142,8 +142,8 @@ public class PlaceBlockTick implements ClientTickEvents.EndTick, Registries.InGa
         if(pos.getZ() < 0 || pos.getZ() >= testSize) return;
         testBuffer[pos.getX()][pos.getY()][pos.getZ()] = value;
     }
-    private void initializeMap(@NotNull ShapeList shapeList, @NotNull BlockPos eyeBlockPos, @Nullable BlockView world){
-        currentPosition = eyeBlockPos.add(-testDistance, -testDistance, -testDistance);
+    private void initializeMap(@NotNull ShapeList shapeList, @NotNull BlockPos eyeBlockPos, @Nullable BlockGetter world){
+        currentPosition = eyeBlockPos.offset(-testDistance, -testDistance, -testDistance);
         BlockPos pos1 = new BlockPos(currentPosition);
         for (boolean[][] mapX : map) {
             BlockPos pos2 = pos1;
@@ -155,7 +155,7 @@ public class PlaceBlockTick implements ClientTickEvents.EndTick, Registries.InGa
                     else mapXY[z] = outerRangeBlockMethod.get().isUnpassable(pos3, world);
                     pos3 = pos3.south();
                 }
-                pos2 = pos2.up();
+                pos2 = pos2.above();
             }
             pos1 = pos1.east();
         }
@@ -172,80 +172,80 @@ public class PlaceBlockTick implements ClientTickEvents.EndTick, Registries.InGa
             if(dstXZ <= 1){
                 int dy = pos.getY() - to.getY();
                 if(dy == 0 || dy == 1) return false;
-                if(dy == -1 && !getTestBufferVec3i(pos.add(0, 1, 0))) return false;
+                if(dy == -1 && !getTestBufferVec3i(pos.offset(0, 1, 0))) return false;
             }
             if(getTestBufferVec3i(pos)) continue;
             setTestBufferVec3i(pos, true);
             //y+
-            if(!getMapVec3i(pos.add(0, 2, 0)))
-                searchQueue.offer(pos.add(0, 1, 0));
+            if(!getMapVec3i(pos.offset(0, 2, 0)))
+                searchQueue.offer(pos.offset(0, 1, 0));
             //y-
-            searchQueue.offer(pos.add(0, -1, 0));
-            boolean hereLow = getMapVec3i(pos.add(0, 1, 0));
+            searchQueue.offer(pos.offset(0, -1, 0));
+            boolean hereLow = getMapVec3i(pos.offset(0, 1, 0));
             //x+
-            if(hereLow || !getMapVec3i(pos.add(1, 1, 0)))
-                searchQueue.offer(pos.add(1, 0, 0));
+            if(hereLow || !getMapVec3i(pos.offset(1, 1, 0)))
+                searchQueue.offer(pos.offset(1, 0, 0));
             //x-
-            if(hereLow || !getMapVec3i(pos.add(-1, 1, 0)))
-                searchQueue.offer(pos.add(-1, 0, 0));
+            if(hereLow || !getMapVec3i(pos.offset(-1, 1, 0)))
+                searchQueue.offer(pos.offset(-1, 0, 0));
             //z+
-            if(hereLow || !getMapVec3i(pos.add(0, 1, 1)))
-                searchQueue.offer(pos.add(0, 0, 1));
+            if(hereLow || !getMapVec3i(pos.offset(0, 1, 1)))
+                searchQueue.offer(pos.offset(0, 0, 1));
             //z-
-            if(hereLow || !getMapVec3i(pos.add(0, 1, -1)))
-                searchQueue.offer(pos.add(0, 0, -1));
+            if(hereLow || !getMapVec3i(pos.offset(0, 1, -1)))
+                searchQueue.offer(pos.offset(0, 0, -1));
         }
         return true;
     }
     private boolean canPut(Vec3i mapPos){
         if(getMapVec3i(mapPos)) return false;
         int nearStones = 0;
-        if(getMapVec3i(mapPos.add(1, 0, 0))) ++nearStones;
-        if(getMapVec3i(mapPos.add(-1, 0, 0))) ++nearStones;
-        if(getMapVec3i(mapPos.add(0, 1, 0))) ++nearStones;
-        if(getMapVec3i(mapPos.add(0, -1, 0))) ++nearStones;
-        if(getMapVec3i(mapPos.add(0, 0, 1))) ++nearStones;
-        if(getMapVec3i(mapPos.add(0, 0, -1))) ++nearStones;
+        if(getMapVec3i(mapPos.offset(1, 0, 0))) ++nearStones;
+        if(getMapVec3i(mapPos.offset(-1, 0, 0))) ++nearStones;
+        if(getMapVec3i(mapPos.offset(0, 1, 0))) ++nearStones;
+        if(getMapVec3i(mapPos.offset(0, -1, 0))) ++nearStones;
+        if(getMapVec3i(mapPos.offset(0, 0, 1))) ++nearStones;
+        if(getMapVec3i(mapPos.offset(0, 0, -1))) ++nearStones;
         if(nearStones < 3) return false;
         if(nearStones >= 5) return true;
         setMapVec3i(mapPos, true);
         Vec3i[] positions = new Vec3i[13];
         int numPositions = 0;
         Vec3i test;
-        test = mapPos.add(1, 0, 0);
+        test = mapPos.offset(1, 0, 0);
         if(!getMapVec3i(test)) positions[numPositions++] = test;
-        test = mapPos.add(-1, 0, 0);
+        test = mapPos.offset(-1, 0, 0);
         if(!getMapVec3i(test)) positions[numPositions++] = test;
-        test = mapPos.add(0, 0, 1);
+        test = mapPos.offset(0, 0, 1);
         if(!getMapVec3i(test)) positions[numPositions++] = test;
-        test = mapPos.add(0, 0, -1);
+        test = mapPos.offset(0, 0, -1);
         if(!getMapVec3i(test)) positions[numPositions++] = test;
-        test = mapPos.add(0, -1, 0);
+        test = mapPos.offset(0, -1, 0);
         if(!getMapVec3i(test)){
             positions[numPositions++] = test;
-            test = mapPos.add(1, -1, 0);
+            test = mapPos.offset(1, -1, 0);
             if(!getMapVec3i(test)) positions[numPositions++] = test;
-            test = mapPos.add(-1, -1, 0);
+            test = mapPos.offset(-1, -1, 0);
             if(!getMapVec3i(test)) positions[numPositions++] = test;
-            test = mapPos.add(0, -1, 1);
+            test = mapPos.offset(0, -1, 1);
             if(!getMapVec3i(test)) positions[numPositions++] = test;
-            test = mapPos.add(0, -1, -1);
+            test = mapPos.offset(0, -1, -1);
             if(!getMapVec3i(test)) positions[numPositions++] = test;
-            test = mapPos.add(0, -2, 0);
+            test = mapPos.offset(0, -2, 0);
             if(!getMapVec3i(test)) positions[numPositions++] = test;
         }
-        test = mapPos.add(0, 1, 0);
+        test = mapPos.offset(0, 1, 0);
         if(!getMapVec3i(test)){
             positions[numPositions++] = test;
-            test = mapPos.add(1, 1, 0);
+            test = mapPos.offset(1, 1, 0);
             if(!getMapVec3i(test)) positions[numPositions++] = test;
-            test = mapPos.add(-1, 1, 0);
+            test = mapPos.offset(-1, 1, 0);
             if(!getMapVec3i(test)) positions[numPositions++] = test;
-            test = mapPos.add(0, 1, 1);
+            test = mapPos.offset(0, 1, 1);
             if(!getMapVec3i(test)) positions[numPositions++] = test;
-            test = mapPos.add(0, 1, -1);
+            test = mapPos.offset(0, 1, -1);
             if(!getMapVec3i(test)) positions[numPositions++] = test;
-            test = mapPos.add(0, 2, 0);
+            test = mapPos.offset(0, 2, 0);
             if(!getMapVec3i(test)) positions[numPositions++] = test;
         }
         int a;
@@ -268,8 +268,8 @@ public class PlaceBlockTick implements ClientTickEvents.EndTick, Registries.InGa
         if (required(pos.west())) return false;
         if (required(pos.north())) return false;
         if (required(pos.south())) return false;
-        if (required(pos.up())) return false;
-        if (required(pos.down())) return false;
+        if (required(pos.above())) return false;
+        if (required(pos.below())) return false;
         if (canPut(pos.subtract(currentPosition)))
             return put(pos, restockTest);
         return false;

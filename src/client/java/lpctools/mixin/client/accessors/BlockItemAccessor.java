@@ -1,19 +1,19 @@
 package lpctools.mixin.client.accessors;
 
-import net.minecraft.block.BlockState;
-import net.minecraft.item.BlockItem;
-import net.minecraft.item.ItemPlacementContext;
-import net.minecraft.item.ItemStack;
-import net.minecraft.sound.SoundEvent;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.World;
+import net.minecraft.core.BlockPos;
+import net.minecraft.sounds.SoundEvent;
+import net.minecraft.world.item.BlockItem;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.context.BlockPlaceContext;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.state.BlockState;
 import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.gen.Invoker;
 
 @Mixin(BlockItem.class)
 public interface BlockItemAccessor {
-	@Invoker @Nullable BlockState invokeGetPlacementState(ItemPlacementContext context);
-	@Invoker BlockState invokePlaceFromNbt(BlockPos pos, World world, ItemStack stack, BlockState state);
+	@Invoker @Nullable BlockState invokeGetPlacementState(BlockPlaceContext context);
+	@Invoker BlockState invokeUpdateBlockStateFromTag(BlockPos pos, Level world, ItemStack stack, BlockState state);
 	@Invoker SoundEvent invokeGetPlaceSound(BlockState state);
 }

@@ -5,13 +5,13 @@ import lpctools.script.IScriptWithSubScript;
 import lpctools.script.runtimeInterfaces.ScriptBooleanSupplier;
 import lpctools.script.suppliers.AbstractOperatorResultSupplier;
 import lpctools.util.operatorUtils.Operators;
-import net.minecraft.text.Text;
+import net.minecraft.network.chat.Component;
 
 public class CompareIntegers extends AbstractOperatorResultSupplier<Operators.IntegerCompareSign> implements IBooleanSupplier {
 	protected final SupplierStorage<Integer> integer1 = ofStorage(Integer.class,
-		Text.translatable("lpctools.script.suppliers.boolean.compareIntegers.subSuppliers.integer1.name"), "integer1");
+		Component.translatable("lpctools.script.suppliers.boolean.compareIntegers.subSuppliers.integer1.name"), "integer1");
 	protected final SupplierStorage<Integer> integer2 = ofStorage(Integer.class,
-		Text.translatable("lpctools.script.suppliers.boolean.compareIntegers.subSuppliers.integer2.name"), "integer2");
+		Component.translatable("lpctools.script.suppliers.boolean.compareIntegers.subSuppliers.integer2.name"), "integer2");
 	protected final SupplierStorage<?>[] subSuppliers = ofStorages(integer1, integer2);
 	
 	public CompareIntegers(IScriptWithSubScript parent) {super(parent, Operators.EQUALS, Operators.integerCompareSignInfo, 1);}

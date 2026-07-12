@@ -2,12 +2,11 @@ package lpctools.script.trigger;
 
 import com.google.common.collect.ImmutableMap;
 import lpctools.script.IScript;
-import net.minecraft.text.Text;
-
+import net.minecraft.network.chat.Component;
 import java.util.function.BiFunction;
 
 public interface TriggerOption extends IScript, AutoCloseable {
-	record TriggerOptionFactory(BiFunction<ScriptTrigger, TriggerOptionFactory, TriggerOption> allocator, boolean allowMulti, String key, Text name, Text comment){
+	record TriggerOptionFactory(BiFunction<ScriptTrigger, TriggerOptionFactory, TriggerOption> allocator, boolean allowMulti, String key, Component name, Component comment){
 		public TriggerOption allocate(ScriptTrigger trigger){return allocator.apply(trigger, this);}
 	}
 	void registerScript(boolean b);
@@ -25,8 +24,8 @@ public interface TriggerOption extends IScript, AutoCloseable {
 		private FactoriesBuilder(){}
 		private FactoriesBuilder putFactory(BiFunction<ScriptTrigger, TriggerOptionFactory, TriggerOption> allocator, boolean allowMulti, String key){
 			TriggerOptionFactory factory = new TriggerOptionFactory(allocator, allowMulti, key,
-				Text.translatable("lpctools.script.trigger." + key + ".name"),
-				Text.translatable("lpctools.script.trigger." + key + ".comment"));
+				Component.translatable("lpctools.script.trigger." + key + ".name"),
+				Component.translatable("lpctools.script.trigger." + key + ".comment"));
 			builder.put(factory.key, factory);
 			return this;
 		}

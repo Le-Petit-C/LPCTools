@@ -1,12 +1,12 @@
 package lpctools.lpcfymasaapi.render.translucentShapes;
 
 import com.mojang.blaze3d.systems.RenderPass;
-import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.Minecraft;
 
 public interface ExtraBindings {
 	@SuppressWarnings("unused")
 	ExtraBindings LIGHT_MAP = pass->pass.bindSampler("Sampler2",
-		MinecraftClient.getInstance().gameRenderer.getLightmapTextureManager().getGlTextureView()
+		Minecraft.getInstance().gameRenderer.lightTexture().getTextureView()
 	);
 	
 	void bindExtra(RenderPass renderPass);

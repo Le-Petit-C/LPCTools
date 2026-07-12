@@ -1,10 +1,5 @@
 package lpctools.mixin.client.tools.blockBreakRestriction;
 
-import net.minecraft.block.BlockState;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.network.ClientPlayerInteractionManager;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Direction;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -16,18 +11,24 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import static lpctools.tools.breakRestriction.BreakRestriction.*;
 import static lpctools.tools.breakRestriction.BreakRestrictionData.*;
 
-@Mixin(ClientPlayerInteractionManager.class)
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.multiplayer.MultiPlayerGameMode;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.world.level.block.state.BlockState;
+
+@Mixin(MultiPlayerGameMode.class)
 public class ClientPlayerInteractionManagerMixin {
-    @Shadow @Final private MinecraftClient client;
-    @Inject(method = {"attackBlock", "updateBlockBreakingProgress"}, at = @At("HEAD"), cancellable = true)
+    @Shadow @Final private Minecraft minecraft;
+    @Inject(method = {"startDestroyBlock", "continueDestroyBlock"}, at = @At("HEAD"), cancellable = true)
     void beforeBlockBreaking(BlockPos pos, Direction direction, CallbackInfoReturnable<Boolean> cir){
         if(testBlockBreaking(pos, direction)) cir.setReturnValue(false);
     }
     @SuppressWarnings("RedundantIfStatement")
     @Unique private boolean testBlockBreaking(BlockPos pos, Direction direction){
-        if(client.world == null) return false;
+        if(minecraft.level == null) return false;
         if(!BRConfig.getBooleanValue()) return false;
-        BlockState state = client.world.getBlockState(pos);
+        BlockState state = minecraft.level.getBlockState(pos);
         if(!blockTestMethod.getCurrentUserdata().right.applyAsBoolean(state.getBlock())) return true;
         if(!shapeList.testPos(pos)) return true;
         return false;

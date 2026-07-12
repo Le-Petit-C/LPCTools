@@ -9,7 +9,7 @@ import lpctools.script.editScreen.WidthAutoAdjustButtonGeneric;
 import lpctools.script.runtimeInterfaces.ScriptNotNullSupplier;
 import lpctools.script.suppliers.ScriptSupplierLake;
 import lpctools.script.suppliers.ScriptType;
-import net.minecraft.text.Text;
+import net.minecraft.network.chat.Component;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -47,7 +47,7 @@ public class ConstantType extends AbstractScript implements ITypeSupplier {
 					});
 					selectTree.put(type.name().getString(), type.name().getString());
 				}
-				ChooseScreen.openChooseScreen(Text.translatable("lpctools.script.suppliers.scriptType.constantType.selectType.title").getString(),
+				ChooseScreen.openChooseScreen(Component.translatable("lpctools.script.suppliers.scriptType.constantType.selectType.title").getString(),
 					true, options, selectTree, this);
 			});
 			cachedWidgets = List.of(selectButton);

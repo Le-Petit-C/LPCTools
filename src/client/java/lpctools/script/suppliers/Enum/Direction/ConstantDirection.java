@@ -7,7 +7,7 @@ import lpctools.script.AbstractScript;
 import lpctools.script.CompileEnvironment;
 import lpctools.script.IScriptWithSubScript;
 import lpctools.script.runtimeInterfaces.ScriptNotNullSupplier;
-import net.minecraft.util.math.Direction;
+import net.minecraft.core.Direction;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -25,11 +25,11 @@ public class ConstantDirection extends AbstractScript implements IDirectionSuppl
 		return map->cachedValue;
 	}
 	
-	@Override public @Nullable JsonElement getAsJsonElement() {return new JsonPrimitive(value.getId());}
+	@Override public @Nullable JsonElement getAsJsonElement() {return new JsonPrimitive(value.getName());}
 	@Override public void setValueFromJsonElement(@Nullable JsonElement element) {
 		if(element == null) return;
 		if(!(element instanceof JsonPrimitive primitive) ||
-			!(Direction.byId(primitive.getAsString()) instanceof Direction direction)){
+			!(Direction.byName(primitive.getAsString()) instanceof Direction direction)){
 			warnFailedLoadingConfig("ConstantInteger", element);
 			return;
 		}
@@ -39,10 +39,10 @@ public class ConstantDirection extends AbstractScript implements IDirectionSuppl
 	
 	private @NotNull ButtonGeneric getSwitchButton(){
 		if(switchButton == null){
-			switchButton = new ButtonGeneric(0, 0, 100, 20, value.getId());
+			switchButton = new ButtonGeneric(0, 0, 100, 20, value.getName());
 			switchButton.setActionListener((button, mouseButton)->{
-				value = Direction.byIndex(value.getIndex() + 1);
-				switchButton.setDisplayString(value.getId());
+				value = Direction.from3DDataValue(value.get3DDataValue() + 1);
+				switchButton.setDisplayString(value.getName());
 			});
 		}
 		return switchButton;

@@ -1,11 +1,10 @@
 package lpctools.lpcfymasaapi.screen;
 
 import fi.dy.masa.malilib.gui.button.ButtonBase;
-import net.minecraft.client.gui.DrawContext;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
-
 import java.util.List;
+import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
 
 public class ItemButton extends ButtonBase {
 	private ItemStack stack;
@@ -17,11 +16,11 @@ public class ItemButton extends ButtonBase {
 		setHoverStrings(hoverStrings);
 	}
 	
-	@Override public void render(DrawContext context, int mouseX, int mouseY, boolean selected) {
+	@Override public void render(GuiGraphics context, int mouseX, int mouseY, boolean selected) {
 		super.render(context, mouseX, mouseY, selected);
 		hovered = isMouseOver(mouseX, mouseY);
 		if(hovered) context.fill(x, y, x + 16, y + 16, 0x3fffffff);
-		context.drawItem(stack, getX(), getY());
+		context.renderItem(stack, getX(), getY());
 	}
 	
 	public void setItem(Item item){

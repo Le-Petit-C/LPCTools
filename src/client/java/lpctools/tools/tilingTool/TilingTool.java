@@ -9,11 +9,10 @@ import lpctools.lpcfymasaapi.configButtons.transferredConfigs.BooleanConfig;
 import lpctools.lpcfymasaapi.configButtons.uniqueConfigs.*;
 import lpctools.tools.ToolConfigs;
 import lpctools.util.data.Box3i;
-import net.minecraft.block.Block;
-import net.minecraft.block.Blocks;
-import net.minecraft.text.Text;
-import net.minecraft.util.math.BlockPos;
-
+import net.minecraft.core.BlockPos;
+import net.minecraft.network.chat.Component;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.Blocks;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -32,8 +31,8 @@ public class TilingTool {
     public static final RangeLimitConfig rangeLimit = addRangeLimitConfig();
     static {rangeLimit.setValueChangeCallback(()->shapeList = rangeLimit.buildShapeList());}
     public static final BooleanConfig offhandOperate = addBooleanConfig("offhandOperate", false);
-    public static final BlockPosConfig cornerPos1 = addBlockPosConfig("cornerPos1", BlockPos.ORIGIN, null);
-    public static final BlockPosConfig cornerPos2 = addBlockPosConfig("cornerPos2", BlockPos.ORIGIN, null);
+    public static final BlockPosConfig cornerPos1 = addBlockPosConfig("cornerPos1", BlockPos.ZERO, null);
+    public static final BlockPosConfig cornerPos2 = addBlockPosConfig("cornerPos2", BlockPos.ZERO, null);
     @SuppressWarnings("unused")
     public static final ButtonHotkeyConfig refreshButton = addButtonHotkeyConfig("refresh", null, TilingTool::refreshCallback);
     @SuppressWarnings("unused")
@@ -105,17 +104,17 @@ public class TilingTool {
         if(CompactMain.getLitematicaInstance() instanceof LitematicaMethods methods){
             Box3i box = methods.getSelectionBox();
             if(box != null) setConfigBox(box);
-            else clientMessage(Text.translatable("lpctools.compact.litematica.cantGetSelectionBox"), true);
+            else clientMessage(Component.translatable("lpctools.compact.litematica.cantGetSelectionBox"), true);
         }
-        else clientMessage(Text.translatable("lpctools.compact.missingLitematica"), true);
+        else clientMessage(Component.translatable("lpctools.compact.missingLitematica"), true);
     }
     private static void litematicaRefreshDirectly(){
         if(CompactMain.getLitematicaInstance() instanceof LitematicaMethods methods){
             Box3i box = methods.getSelectionBox();
             if(box != null) refresh(box);
-            else clientMessage(Text.translatable("lpctools.compact.litematica.cantGetSelectionBox"), true);
+            else clientMessage(Component.translatable("lpctools.compact.litematica.cantGetSelectionBox"), true);
         }
-        else clientMessage(Text.translatable("lpctools.compact.missingLitematica"), true);
+        else clientMessage(Component.translatable("lpctools.compact.missingLitematica"), true);
     }
     private static void setByLitematica(){litematicaButtonMode.get().run();}
     private static void refreshVagueBlocks(){

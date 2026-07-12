@@ -9,7 +9,7 @@ import lpctools.lpcfymasaapi.configButtons.uniqueConfigs.UniqueBooleanConfig;
 import lpctools.lpcfymasaapi.configButtons.uniqueConfigs.UniqueStringConfig;
 import lpctools.lpcfymasaapi.configButtons.uniqueConfigs.WrappedThirdListConfig;
 import lpctools.lpcfymasaapi.interfaces.ILPCConfigReadable;
-import net.minecraft.text.Text;
+import net.minecraft.network.chat.Component;
 import org.jetbrains.annotations.NotNull;
 
 // 显示在malilib配置界面中的脚本配置项
@@ -51,7 +51,7 @@ public class ScriptConfig extends WrappedThirdListConfig implements AutoCloseabl
 		editButton.setListener((button, mouseButton) -> script.openEditScreen());
 		variableClearButton.setListener((button, mouseButton) -> {
 			clearStaticVariables();
-			getPage().applyToPageInstanceIfNotNull(page->page.cursorInfo(Text.translatable("lpctools.configs.scripts.scripts.script.clearVariables.info"), 2000));
+			getPage().applyToPageInstanceIfNotNull(page->page.cursorInfo(Component.translatable("lpctools.configs.scripts.scripts.script.clearVariables.info"), 2000));
 		});
 		exceptionButton.setListener((button, mouseButton) -> script.clearExceptions());
 	}
@@ -67,7 +67,7 @@ public class ScriptConfig extends WrappedThirdListConfig implements AutoCloseabl
 			if(script.hasExceptions()) {
 				res.add(new ButtonOption(
 					1, null,
-					()->Text.translatable("lpctools.configs.scripts.scripts.script.exception.smallName").getString(),
+					()->Component.translatable("lpctools.configs.scripts.scripts.script.exception.smallName").getString(),
 					buttonGenericAllocator)
 				);
 			}

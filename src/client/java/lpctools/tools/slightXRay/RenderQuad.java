@@ -1,23 +1,23 @@
 package lpctools.tools.slightXRay;
 
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Direction;
-import net.minecraft.util.math.Vec3d;
 import org.apache.commons.lang3.mutable.MutableInt;
 import org.jetbrains.annotations.NotNull;
 
 import java.nio.ByteBuffer;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.world.phys.Vec3;
 
 public class RenderQuad{
     public final BlockPos attachedBlock;
     public final Direction direction;
     public final MutableInt color;
-    public final Vec3d centerPos;
+    public final Vec3 centerPos;
     public RenderQuad(BlockPos attachedBlock, Direction direction, @NotNull MutableInt color){
         this.attachedBlock = attachedBlock;
         this.direction = direction;
         this.color = color;
-        this.centerPos = attachedBlock.toCenterPos().offset(direction, 0.5);
+        this.centerPos = attachedBlock.getCenter().relative(direction, 0.5);
     }
     public void vertex(ByteBuffer vertexBuffer, int offsetX, int offsetZ){
         float minX = attachedBlock.getX() + offsetX, maxX = minX + 1;

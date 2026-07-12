@@ -4,15 +4,15 @@ import lpctools.script.CompileEnvironment;
 import lpctools.script.IScript;
 import lpctools.script.exceptions.ScriptRuntimeException;
 import lpctools.script.runtimeInterfaces.*;
-import net.minecraft.text.Text;
+import net.minecraft.network.chat.Component;
 import org.jetbrains.annotations.NotNull;
 
 public interface IScriptSupplier<T> extends IScript {
-	@Override default Text getName(){
+	@Override default Component getName(){
 		return ScriptSupplierLake.getSupplierRegistration(this).displayName;
 	}
 	
-	@Override default Text getComment(){
+	@Override default Component getComment(){
 		return ScriptSupplierLake.getSupplierRegistration(this).comment;
 	}
 	

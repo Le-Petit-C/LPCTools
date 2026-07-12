@@ -9,13 +9,13 @@ import it.unimi.dsi.fastutil.objects.Object2LongOpenHashMap;
 import lpctools.script.*;
 import lpctools.util.GuiUtils;
 import lpctools.util.data.Rect2d;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.gui.Click;
-import net.minecraft.client.gui.DrawContext;
-import net.minecraft.client.gui.Element;
-import net.minecraft.client.input.CharInput;
-import net.minecraft.client.input.KeyInput;
-import net.minecraft.text.Text;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.components.events.GuiEventListener;
+import net.minecraft.client.input.CharacterEvent;
+import net.minecraft.client.input.KeyEvent;
+import net.minecraft.client.input.MouseButtonEvent;
+import net.minecraft.network.chat.Component;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Matrix3x2f;
@@ -34,7 +34,7 @@ public class ScriptEditScreen extends GuiConfigsBase {
 	private double x = 10, y = 40;
 	//缩放
 	private double stretch = 1.0;
-	private @Nullable Element scriptFocused;
+	private @Nullable GuiEventListener scriptFocused;
 	private final ButtonGeneric copyButton = createGenericSquareButton("C", "lpctools.script.trigger.chooseScreen.copy");
 	private final ButtonGeneric pasteButton = createGenericSquareButton("P", "lpctools.script.trigger.chooseScreen.paste");
 	private final ButtonGeneric dragButton = createGenericSquareButton("≡", "lpctools.script.trigger.chooseScreen.drag");
@@ -75,19 +75,19 @@ public class ScriptEditScreen extends GuiConfigsBase {
 	public void cursorInfo(String text, int sustainMillis){
 		GuiUtils.cursorInfo(infoWidgets, text, sustainMillis, getScreenWidth());
 	}
-	public void cursorInfo(Text text, int sustainMillis){
+	public void cursorInfo(Component text, int sustainMillis){
 		cursorInfo(text.getString(), sustainMillis);
 	}
 	
-	public void setScriptFocused(@Nullable Element element){
+	public void setScriptFocused(@Nullable GuiEventListener element){
 		if(scriptFocused != null) scriptFocused.setFocused(false);
 		scriptFocused = element;
 		if (element != null) element.setFocused(true);
 	}
 	
-	public @Nullable Element getScriptFocused(){return scriptFocused;}
+	public @Nullable GuiEventListener getScriptFocused(){return scriptFocused;}
 	
-	@Override public boolean mouseClicked(Click click, boolean doubleClick) {
+	@Override public boolean mouseClicked(MouseButtonEvent click, boolean doubleClick) {
 		if(super.mouseClicked(click, doubleClick)) {
 			setScriptFocused(null);
 			return true;
@@ -96,14 +96,14 @@ public class ScriptEditScreen extends GuiConfigsBase {
 		double fixedMouseY = calcFixedY(click.y());
 		var widget = getRootDisplayWidget().getByLine((int)Math.floor(fixedMouseY / 22));
 		if(widget != null){
-			if(widget.mouseClicked(new Click(fixedMouseX, fixedMouseY, click.buttonInfo()), doubleClick))
+			if(widget.mouseClicked(new MouseButtonEvent(fixedMouseX, fixedMouseY, click.buttonInfo()), doubleClick))
 				return true;
 		}
 		setScriptFocused(null);
 		if (click.button() == 0) {
 			if(widget != null){
 				int mx = (int)Math.floor(fixedMouseX), my = (int)Math.floor(fixedMouseY);
-				Click mclick = new Click(mx, my, click.buttonInfo());
+				MouseButtonEvent mclick = new MouseButtonEvent(mx, my, click.buttonInfo());
 				if(isCopyPastDisplayKeyPressed() && copyButton.onMouseClicked(mclick, doubleClick)){
 					ScriptData.setClipboard(widget.script.getAsJsonElement(), widget.script.getClass());
 					cursorInfo("Copied", 2000);
@@ -193,7 +193,7 @@ public class ScriptEditScreen extends GuiConfigsBase {
 		}
 	}
 	
-	@Override public boolean mouseReleased(Click click) {
+	@Override public boolean mouseReleased(MouseButtonEvent click) {
 		double fixedMouseX = calcFixedX(click.x());
 		double fixedMouseY = calcFixedY(click.y());
 		if (holdingScreenBackground != null && click.button() == 0) {
@@ -204,17 +204,17 @@ public class ScriptEditScreen extends GuiConfigsBase {
 			scriptHoldingData = null;
 			return true;
 		}
-		Click fixedClick = new Click(fixedMouseX, fixedMouseY, click.buttonInfo());
+		MouseButtonEvent fixedClick = new MouseButtonEvent(fixedMouseX, fixedMouseY, click.buttonInfo());
 		if(scriptFocused != null && scriptFocused.mouseReleased(fixedClick)) return true;
 		var widget = getRootDisplayWidget().getByLine((int)Math.floor(fixedMouseY / 22));
 		if(widget != null && widget.mouseReleased(fixedClick)) return true;
 		return super.mouseReleased(click);
 	}
 	
-	@Override public boolean mouseDragged(Click click, double offsetX, double offsetY) {
+	@Override public boolean mouseDragged(MouseButtonEvent click, double offsetX, double offsetY) {
 		double fixedMouseX = calcFixedX(click.x());
 		double fixedMouseY = calcFixedY(click.y());
-		Click fixedClick = new Click(fixedMouseX, fixedMouseY, click.buttonInfo());
+		MouseButtonEvent fixedClick = new MouseButtonEvent(fixedMouseX, fixedMouseY, click.buttonInfo());
 		if(scriptFocused != null && scriptFocused.mouseDragged(fixedClick, offsetX, offsetY)) return true;
 		var widget = getRootDisplayWidget().getByLine((int)Math.floor(fixedMouseY / 22));
 		if(widget != null && widget.mouseDragged(fixedClick, offsetX, offsetY)) return true;
@@ -231,34 +231,34 @@ public class ScriptEditScreen extends GuiConfigsBase {
 		return super.mouseScrolled(mouseX, mouseY, horizontalAmount, verticalAmount);
 	}
 	
-	@Override public boolean keyPressed(KeyInput key) {
+	@Override public boolean keyPressed(KeyEvent key) {
 		if(scriptFocused != null && scriptFocused.keyPressed(key)) return true;
 		return super.keyPressed(key);
 	}
 	
-	@Override public boolean keyReleased(KeyInput key) {
+	@Override public boolean keyReleased(KeyEvent key) {
 		if(scriptFocused != null && scriptFocused.keyReleased(key)) return true;
 		return super.keyReleased(key);
 	}
 	
-	@Override public boolean charTyped(CharInput input) {
+	@Override public boolean charTyped(CharacterEvent input) {
 		if(scriptFocused != null && scriptFocused.charTyped(input)) return true;
 		return super.charTyped(input);
 	}
 	
 	//以父screen为背景
-	@Override public void render(DrawContext drawContext, int mouseX, int mouseY, float partialTicks) {
+	@Override public void render(GuiGraphics drawContext, int mouseX, int mouseY, float partialTicks) {
 		hoveredRenderer.clear();
 		if(getParent() != null)
 			getParent().render(drawContext, -1, -1, partialTicks);
 		super.render(drawContext, mouseX, mouseY, partialTicks);
 	}
 	//渲染内容，选择重载drawTitle只是因为渲染顺序
-	@Override public void drawTitle(DrawContext context, int mouseX, int mouseY, float partialTicks) {
+	@Override public void drawTitle(GuiGraphics context, int mouseX, int mouseY, float partialTicks) {
 		adjustPosition();
 		//渲染内容
 		var root = getRootDisplayWidget();
-		var matrices = context.getMatrices();
+		var matrices = context.pose();
 		root.tryUpdate();
 		//位置修正
 		matrices.pushMatrix().translate((float)x, (float)y).scale((float)stretch);
@@ -302,12 +302,12 @@ public class ScriptEditScreen extends GuiConfigsBase {
 			//修正移动
 			var holdingPos = scriptHoldingData.holdingPos;
 			hoverWidget = scriptHoldingData.widget;
-			var client = MinecraftClient.getInstance();
+			var client = Minecraft.getInstance();
 			var window = client.getWindow();
-			var mouse = client.mouse;
+			var mouse = client.mouseHandler;
 			var method = dragVisualMode.get();
-			double dx = method.moveX ? mouse.getScaledX(window) - holdingPos.x - x - hoverWidget.getX() : 0;
-			double dy = method.moveY ? mouse.getScaledY(window) - holdingPos.y - y - hoverWidget.getY() : 0;
+			double dx = method.moveX ? mouse.getScaledXPos(window) - holdingPos.x - x - hoverWidget.getX() : 0;
+			double dy = method.moveY ? mouse.getScaledYPos(window) - holdingPos.y - y - hoverWidget.getY() : 0;
 			if(dragBoundaryConstraint.getAsBoolean() && hoverWidget.parent instanceof ScriptWithSubScriptDisplayWidget parent){
 				int l = parent.indexOf(hoverWidget);
 				if(l == parent.subCount() - 1 && dy > 0) dy = 0;
@@ -368,27 +368,27 @@ public class ScriptEditScreen extends GuiConfigsBase {
 		hoveredRenderer.setHover(widget, mouseX, mouseY, matrix);
 	}
 	
-	public void renderAndTryHover(DrawContext context, ButtonGeneric buttonGeneric, int fixedMouseX, int fixedMouseY){
+	public void renderAndTryHover(GuiGraphics context, ButtonGeneric buttonGeneric, int fixedMouseX, int fixedMouseY){
 		boolean isOver = buttonGeneric.isMouseOver(fixedMouseX, fixedMouseY);
 		buttonGeneric.render(context, fixedMouseX, fixedMouseY, isOver);
-		if(isOver) setHover(buttonGeneric, fixedMouseX, fixedMouseY, context.getMatrices());
+		if(isOver) setHover(buttonGeneric, fixedMouseX, fixedMouseY, context.pose());
 	}
 	
-	@Override protected void drawHoveredWidget(DrawContext context, int mouseX, int mouseY) {
+	@Override protected void drawHoveredWidget(GuiGraphics context, int mouseX, int mouseY) {
 		super.drawHoveredWidget(context, mouseX, mouseY);
 		if(!isHoverTextDisplayKeyPressed()) return;
 		hoveredRenderer.tryRender(context);
 	}
 	
 	@Override public List<ConfigOptionWrapper> getConfigs() {return List.of();}
-	@Override public boolean shouldPause() {
+	@Override public boolean isPauseScreen() {
 		var parent = getParent();
-		if(parent != null) return parent.shouldPause();
-		else return super.shouldPause();
+		if(parent != null) return parent.isPauseScreen();
+		else return super.isPauseScreen();
 	}
 	
 	private static ButtonGeneric createGenericSquareButton(String text, String hoverKey){
-		return new ButtonGeneric(0, 0, 20, 20, text, Text.translatable(hoverKey).getString());
+		return new ButtonGeneric(0, 0, 20, 20, text, Component.translatable(hoverKey).getString());
 	}
 	
 	@Override public void removed() {
@@ -435,11 +435,11 @@ public class ScriptEditScreen extends GuiConfigsBase {
 			tempWidgetWrapper = new WidgetWrapper(null, screen);
 		}
 		
-		public void tryRender(DrawContext context){
+		public void tryRender(GuiGraphics context){
 			if(hoveredWidget != null){
-				context.getMatrices().pushMatrix().set(renderMatrix);
+				context.pose().pushMatrix().set(renderMatrix);
 				hoveredWidget.postRenderHovered(context, storedMouseX, storedMouseY, false);
-				context.getMatrices().popMatrix();
+				context.pose().popMatrix();
 			}
 		}
 		public void clear(){hoveredWidget = null;}

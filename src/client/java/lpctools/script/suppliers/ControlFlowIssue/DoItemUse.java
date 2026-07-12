@@ -6,7 +6,7 @@ import lpctools.script.AbstractScript;
 import lpctools.script.CompileEnvironment;
 import lpctools.script.IScriptWithSubScript;
 import lpctools.script.runtimeInterfaces.ScriptNotNullSupplier;
-import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.Minecraft;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -15,7 +15,7 @@ public class DoItemUse extends AbstractScript implements IControlFlowIssueSuppli
 	@Override public @NotNull ScriptNotNullSupplier<ControlFlowIssue>
 	compileNotNull(CompileEnvironment environment) {
 		return map->{
-			((BlockReplaceAction) MinecraftClient.getInstance()).invokeDoItemUse();
+			((BlockReplaceAction) Minecraft.getInstance()).invokeDoItemUse();
 			return ControlFlowIssue.NO_ISSUE;
 		};
 	}

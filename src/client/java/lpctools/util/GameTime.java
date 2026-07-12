@@ -1,7 +1,7 @@
 package lpctools.util;
 
 import lpctools.LPCTools;
-import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.Minecraft;
 
 public class GameTime {
 	public long realTimeMillis, gameTimeMillis, worldTicks, dayTicks;
@@ -15,10 +15,10 @@ public class GameTime {
 	public GameTime setCurrent(){
 		realTimeMillis = System.currentTimeMillis();
 		gameTimeMillis = realTimeMillis - LPCTools.startTimeMillis;
-		var world = MinecraftClient.getInstance().world;
+		var world = Minecraft.getInstance().level;
 		if(world != null) {
-			worldTicks = world.getTime();
-			dayTicks = world.getTimeOfDay();
+			worldTicks = world.getGameTime();
+			dayTicks = world.getDayTime();
 		}
 		else dayTicks = worldTicks = -1;
 		return this;

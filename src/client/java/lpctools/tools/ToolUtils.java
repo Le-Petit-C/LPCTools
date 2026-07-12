@@ -11,7 +11,7 @@ import lpctools.lpcfymasaapi.interfaces.ILPCConfig;
 import lpctools.util.LPCMathHelper;
 import lpctools.util.Packed;
 import lpctools.util.javaex.ToBooleanFunction;
-import net.minecraft.text.Text;
+import net.minecraft.network.chat.Component;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -34,11 +34,11 @@ public class ToolUtils {
         String reason = StringUtils.translate("lpctools.tools.disableNotification", tool.getNameTranslation());
         if(reasonKey != null)
             reason += " : " + StringUtils.translate("lpctools.tools.disableReason." + reasonKey);
-        InfoUtils.sendVanillaMessage(Text.literal(reason));
+        InfoUtils.sendVanillaMessage(Component.literal(reason));
     }
     public static void displayDisableMessage(@NotNull ILPCConfig tool){displayDisableReason(tool, null);}
     public static void displayEnableMessage(@NotNull ILPCConfig tool){
-        InfoUtils.sendVanillaMessage(Text.translatable("lpctools.tools.enableNotification", tool.getNameTranslation()));
+        InfoUtils.sendVanillaMessage(Component.translatable("lpctools.tools.enableNotification", tool.getNameTranslation()));
     }
     
     public static void displayToggleMessage(boolean b, ILPCConfig tool){

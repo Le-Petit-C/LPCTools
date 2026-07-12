@@ -1,15 +1,14 @@
 package lpctools.tools.autoReconnect;
 
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.network.CookieStorage;
-import net.minecraft.client.network.ServerAddress;
-import net.minecraft.client.network.ServerInfo;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Timer;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.multiplayer.TransferState;
+import net.minecraft.client.multiplayer.resolver.ServerAddress;
 
 public class AutoReconnectData {
-    public record ServerData(MinecraftClient mc, ServerAddress address, ServerInfo info, boolean quickPlay, @Nullable CookieStorage cookieStorage){}
+    public record ServerData(Minecraft mc, ServerAddress address, net.minecraft.client.multiplayer.ServerData info, boolean quickPlay, @Nullable TransferState cookieStorage){}
     public static @Nullable ServerData lastServer;
     static @Nullable Timer reconnectTask;
     static int attemptTimes = 0;

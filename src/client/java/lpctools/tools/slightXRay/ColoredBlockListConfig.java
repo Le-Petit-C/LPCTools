@@ -14,9 +14,9 @@ import lpctools.lpcfymasaapi.interfaces.IExpandableThirdList;
 import lpctools.lpcfymasaapi.interfaces.ILPCConfig;
 import lpctools.lpcfymasaapi.interfaces.ILPCConfigReadable;
 import lpctools.util.DataUtils;
-import net.minecraft.block.Blocks;
-import net.minecraft.resource.ResourceManager;
-import net.minecraft.text.Text;
+import net.minecraft.network.chat.Component;
+import net.minecraft.server.packs.resources.ResourceManager;
+import net.minecraft.world.level.block.Blocks;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -97,8 +97,8 @@ public class ColoredBlockListConfig extends ConfigListConfig<ColoredBlockListCon
 		
 		public class ColorMethodConfig extends UniqueColorConfig {
 			boolean followDefault = true;
-			public static final Text defaultButtonText = Text.translatable("lpctools.configs.tools.SX.XRayBlocks.block.color.default");
-			public static final Text customizeButtonText = Text.translatable("lpctools.configs.tools.SX.XRayBlocks.block.color.customize");
+			public static final Component defaultButtonText = Component.translatable("lpctools.configs.tools.SX.XRayBlocks.block.color.default");
+			public static final Component customizeButtonText = Component.translatable("lpctools.configs.tools.SX.XRayBlocks.block.color.customize");
 			public ColorMethodConfig() {
 				super(ColoredBlockConfig.this, "color", 0, null);
 				updateDefaultColor();

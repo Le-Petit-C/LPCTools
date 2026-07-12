@@ -5,11 +5,11 @@ import lpctools.script.IScriptWithSubScript;
 import lpctools.script.runtimeInterfaces.ScriptNotNullSupplier;
 import lpctools.script.suppliers.AbstractSupplierWithTypeDeterminedSubSuppliers;
 import lpctools.script.suppliers.ScriptType;
-import net.minecraft.text.Text;
+import net.minecraft.network.chat.Component;
 
 public class ObjectType extends AbstractSupplierWithTypeDeterminedSubSuppliers implements ITypeSupplier {
 	protected final SupplierStorage<Object> object = ofStorage(Object.class,
-		Text.translatable("lpctools.script.suppliers.boolean.notNull.subSuppliers.object.name"), "object");
+		Component.translatable("lpctools.script.suppliers.boolean.notNull.subSuppliers.object.name"), "object");
 	protected final SupplierStorage<?>[] subSuppliers = ofStorages(object);
 	
 	public ObjectType(IScriptWithSubScript parent) {super(parent);}

@@ -5,15 +5,15 @@ import lpctools.script.IScriptWithSubScript;
 import lpctools.script.runtimeInterfaces.ScriptDoubleSupplier;
 import lpctools.script.suppliers.AbstractOperatorResultSupplier;
 import lpctools.util.operatorUtils.Operators;
-import net.minecraft.text.Text;
-import net.minecraft.util.math.Vec3d;
+import net.minecraft.network.chat.Component;
+import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
 
 public class DoubleFromVec3ds extends AbstractOperatorResultSupplier<Operators.DoubleFromVec3dsSign> implements IDoubleSupplier {
-	protected final SupplierStorage<Vec3d> vec1 = ofStorage(Vec3d.class,
-		Text.translatable("lpctools.script.suppliers.double.doubleFromVec3ds.subSuppliers.vec1.name"), "vec1");
-	protected final SupplierStorage<Vec3d> vec2 = ofStorage(Vec3d.class,
-		Text.translatable("lpctools.script.suppliers.double.doubleFromVec3ds.subSuppliers.vec2.name"), "vec2");
+	protected final SupplierStorage<Vec3> vec1 = ofStorage(Vec3.class,
+		Component.translatable("lpctools.script.suppliers.double.doubleFromVec3ds.subSuppliers.vec1.name"), "vec1");
+	protected final SupplierStorage<Vec3> vec2 = ofStorage(Vec3.class,
+		Component.translatable("lpctools.script.suppliers.double.doubleFromVec3ds.subSuppliers.vec2.name"), "vec2");
 	protected final SupplierStorage<?>[] subSuppliers = ofStorages(vec1, vec2);
 	
 	public DoubleFromVec3ds(IScriptWithSubScript parent) {super(parent, Operators.DOT, Operators.doubleFromVec3dsSignInfo, 1);}

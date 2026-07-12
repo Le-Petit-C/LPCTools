@@ -1,7 +1,7 @@
 package lpctools.compact.derived;
 
 import lpctools.compact.interfaces.ITestableShape;
-import net.minecraft.util.math.Box;
+import net.minecraft.world.phys.AABB;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -58,10 +58,10 @@ public class SimpleTestableShape implements ITestableShape {
             return list;
         }
     }
-    public record InsideBox(Box box) implements ShapeTester{
+    public record InsideBox(AABB box) implements ShapeTester{
         @Override public boolean isInsideShape(int x, int y, int z) {return box.contains(x + 0.5, y + 0.5, z + 0.5);}
         @Override public boolean equals(Object object){
-            if(object instanceof InsideBox(Box box1))
+            if(object instanceof InsideBox(AABB box1))
                 return box.equals(box1);
             else return false;
         }

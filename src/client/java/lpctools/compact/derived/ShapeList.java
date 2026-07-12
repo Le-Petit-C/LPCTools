@@ -3,8 +3,7 @@ package lpctools.compact.derived;
 import lpctools.compact.CompactMain;
 import lpctools.compact.interfaces.ITestableShape;
 import lpctools.util.Packed;
-import net.minecraft.util.math.BlockPos;
-
+import net.minecraft.core.BlockPos;
 import java.util.ArrayList;
 
 //不是动态连接litematica和minihud内容的，在它们的显示区域删添时不会自动更新，所以每个需要此表的工具每游戏刻的检测都会新建此表

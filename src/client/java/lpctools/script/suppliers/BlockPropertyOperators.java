@@ -3,10 +3,10 @@ package lpctools.script.suppliers;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import lpctools.util.operatorUtils.DefaultedSignInfo;
 import lpctools.util.operatorUtils.Operators.SignBase;
-import net.minecraft.state.property.BooleanProperty;
-import net.minecraft.state.property.EnumProperty;
-import net.minecraft.state.property.IntProperty;
-import net.minecraft.state.property.Property;
+import net.minecraft.world.level.block.state.properties.BooleanProperty;
+import net.minecraft.world.level.block.state.properties.EnumProperty;
+import net.minecraft.world.level.block.state.properties.IntegerProperty;
+import net.minecraft.world.level.block.state.properties.Property;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
@@ -32,11 +32,11 @@ public class BlockPropertyOperators {
 				@Override public BooleanProperty getProperty() {return property;}
 			});
 	}
-	public interface IntegerPropertyOperator extends GenericPropertyOperator<IntProperty> {
-		PropertyOperators<IntegerPropertyOperator, IntProperty> propertyGetters = new PropertyOperators<>(
+	public interface IntegerPropertyOperator extends GenericPropertyOperator<IntegerProperty> {
+		PropertyOperators<IntegerPropertyOperator, IntegerProperty> propertyGetters = new PropertyOperators<>(
 			(idString, property) -> new IntegerPropertyOperator() {
 				@Override public String idString() {return idString;}
-				@Override public IntProperty getProperty() {return property;}
+				@Override public IntegerProperty getProperty() {return property;}
 			});
 	}
 	public interface EnumPropertyOperator extends GenericPropertyOperator<EnumProperty<?>> {
@@ -70,11 +70,11 @@ public class BlockPropertyOperators {
 					if(propList.size() > 1){
 						Object2IntOpenHashMap<Class<?>> occurrenceMap = new Object2IntOpenHashMap<>();
 						// 计算每种类型的出现次数
-						propList.forEach(prop->occurrenceMap.put(prop.getProperty().getType(), occurrenceMap.getOrDefault(prop.getProperty().getType(), 0) + 1));
+						propList.forEach(prop->occurrenceMap.put(prop.getProperty().getValueClass(), occurrenceMap.getOrDefault(prop.getProperty().getValueClass(), 0) + 1));
 						// 如果某种类型只出现了一次，就用简短的描述，否则用详细描述
 						propList.forEach(prop->{
 							String displayString;
-							if(occurrenceMap.getInt(prop.getProperty().getType()) > 1) displayString = prop.idString();
+							if(occurrenceMap.getInt(prop.getProperty().getValueClass()) > 1) displayString = prop.idString();
 							else displayString = buildDetailedString(prop.getProperty(), false);
 							displayStrings.put(prop, displayString);
 						});
@@ -91,15 +91,15 @@ public class BlockPropertyOperators {
 			StringBuilder builder = new StringBuilder();
 			builder.append(property.getName());
 			builder.append(" (Type=");
-			builder.append(property.getType().getSimpleName());
+			builder.append(property.getValueClass().getSimpleName());
 			if(withValueDetails){
 				builder.append(", ");
-				if(property instanceof IntProperty intProp) {
-					builder.append("min=").append(intProp.getValues().getFirst());
+				if(property instanceof IntegerProperty intProp) {
+					builder.append("min=").append(intProp.getPossibleValues().getFirst());
 					builder.append(", ");
-					builder.append("max=").append(intProp.getValues().getLast());
+					builder.append("max=").append(intProp.getPossibleValues().getLast());
 				}
-				else builder.append("values=").append(property.getValues());
+				else builder.append("values=").append(property.getPossibleValues());
 			}
 			builder.append(")");
 			return builder.toString();

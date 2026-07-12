@@ -3,14 +3,14 @@ package lpctools.script.suppliers.Entity;
 import lpctools.script.*;
 import lpctools.script.runtimeInterfaces.ScriptNullableSupplier;
 import lpctools.script.suppliers.AbstractSupplierWithTypeDeterminedSubSuppliers;
-import net.minecraft.entity.Entity;
-import net.minecraft.text.Text;
+import net.minecraft.network.chat.Component;
+import net.minecraft.world.entity.Entity;
 import org.jetbrains.annotations.NotNull;
 
 public class VehicleEntity extends AbstractSupplierWithTypeDeterminedSubSuppliers implements IEntitySupplier {
 	
 	protected final SupplierStorage<Entity> passenger = ofStorage(Entity.class,
-		Text.translatable("lpctools.script.suppliers.entity.vehicleEntity.subSuppliers.passenger.name"), "passenger");
+		Component.translatable("lpctools.script.suppliers.entity.vehicleEntity.subSuppliers.passenger.name"), "passenger");
 	protected final SupplierStorage<?>[] subSuppliers = ofStorages(passenger);
 	
 	public VehicleEntity(IScriptWithSubScript parent) {super(parent);}

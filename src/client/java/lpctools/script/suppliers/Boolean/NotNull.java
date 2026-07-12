@@ -4,11 +4,11 @@ import lpctools.script.CompileEnvironment;
 import lpctools.script.IScriptWithSubScript;
 import lpctools.script.runtimeInterfaces.ScriptBooleanSupplier;
 import lpctools.script.suppliers.AbstractSupplierWithTypeDeterminedSubSuppliers;
-import net.minecraft.text.Text;
+import net.minecraft.network.chat.Component;
 
 public class NotNull extends AbstractSupplierWithTypeDeterminedSubSuppliers implements IBooleanSupplier {
 	protected final SupplierStorage<Object> objectStorage = ofStorage(Object.class,
-		Text.translatable("lpctools.script.suppliers.boolean.notNull.subSuppliers.object.name"), "objectStorage");
+		Component.translatable("lpctools.script.suppliers.boolean.notNull.subSuppliers.object.name"), "objectStorage");
 	protected final SupplierStorage<?>[] subSuppliers = ofStorages(objectStorage);
 	
 	public NotNull(IScriptWithSubScript parent) {super(parent);}

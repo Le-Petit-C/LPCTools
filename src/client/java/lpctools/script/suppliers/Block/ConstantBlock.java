@@ -10,9 +10,9 @@ import lpctools.script.IScriptWithSubScript;
 import lpctools.script.editScreen.WidthAutoAdjustButtonGeneric;
 import lpctools.script.runtimeInterfaces.ScriptNotNullSupplier;
 import lpctools.util.DataUtils;
-import net.minecraft.block.Block;
-import net.minecraft.block.Blocks;
-import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.Minecraft;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.Blocks;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -60,10 +60,10 @@ public class ConstantBlock extends AbstractScript implements IBlockSupplier {
 			selectButton.setActionListener(
 				(button, mouseButton)->{
 					ChooseItemScreen screen = ChooseItemScreen.ofAllBlocks(9, 6, this::setBlock);
-					var client = MinecraftClient.getInstance();
-					screen.setParent(client.currentScreen);
-					client.currentScreen = null;
-					MinecraftClient.getInstance().setScreen(screen);
+					var client = Minecraft.getInstance();
+					screen.setParent(client.screen);
+					client.screen = null;
+					Minecraft.getInstance().setScreen(screen);
 				}
 			);
 		}

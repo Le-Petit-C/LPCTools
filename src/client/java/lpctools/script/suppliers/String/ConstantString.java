@@ -28,7 +28,7 @@ public class ConstantString extends AbstractScript implements IStringSupplier {
 	public void setStringValue(String value){
 		if(!this.value.equals(value)){
 			this.value = value;
-			if(textField != null) textField.setText(String.valueOf(value));
+			if(textField != null) textField.setValue(String.valueOf(value));
 		}
 	}
 	

@@ -10,7 +10,7 @@ import lpctools.script.editScreen.ScriptDisplayWidget;
 import lpctools.script.editScreen.WidthAutoAdjustTextField;
 import lpctools.script.runtimeInterfaces.ScriptNotNullSupplier;
 import lpctools.script.suppliers.AbstractSupplierWithTypeDeterminedSubSuppliers;
-import net.minecraft.text.Text;
+import net.minecraft.network.chat.Component;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -22,7 +22,7 @@ public class SetGlobalStaticVariable extends AbstractSupplierWithTypeDeterminedS
 	private @NotNull String variableName = "var";
 	protected @Nullable WidthAutoAdjustTextField textField;
 	protected final SupplierStorage<Object> value = ofStorage(Object.class,
-		Text.translatable("lpctools.script.suppliers.controlFlowIssue.setGlobalStaticVariable.subSuppliers.value.name"), valueJsonKey);
+		Component.translatable("lpctools.script.suppliers.controlFlowIssue.setGlobalStaticVariable.subSuppliers.value.name"), valueJsonKey);
 	protected final SupplierStorage<?>[] subSuppliers = ofStorages(value);
 	public static final String variableNameJsonKey = "variableName";
 	public static final String valueJsonKey = "value";
@@ -32,7 +32,7 @@ public class SetGlobalStaticVariable extends AbstractSupplierWithTypeDeterminedS
 	public void setVariableName(@NotNull String variableName) {
 		if(!this.variableName.equals(variableName)){
 			this.variableName = variableName;
-			if(textField != null) textField.setText(variableName);
+			if(textField != null) textField.setValue(variableName);
 		}
 	}
 	

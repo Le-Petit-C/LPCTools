@@ -1,11 +1,11 @@
 package lpctools.util.operatorUtils;
 
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Vec3d;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Objects;
 import java.util.function.Consumer;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.phys.Vec3;
 
 @SuppressWarnings("unused")
 public class Operators {
@@ -93,14 +93,14 @@ public class Operators {
 	public interface BlockPosCalculateSign extends SignBase{ BlockPos calculateBlockPoses(BlockPos p1, BlockPos p2);}
 	
 	public static final FunctionsDefaultSignInfo<Vec3dCalculateSign> vec3dCalculateSignInfo = new FunctionsDefaultSignInfo<>(Vec3dCalculateSign.class);
-	public interface Vec3dCalculateSign extends SignBase{ Vec3d calculateVec3ds(Vec3d v1, Vec3d v2);}
+	public interface Vec3dCalculateSign extends SignBase{ Vec3 calculateVec3ds(Vec3 v1, Vec3 v2);}
 	
 	//混合计算符号
 	public static final FunctionsDefaultSignInfo<IntegerFromBlockPosesSign> intFromBlockPosesSignInfo = new FunctionsDefaultSignInfo<>(IntegerFromBlockPosesSign.class);
 	public interface IntegerFromBlockPosesSign extends SignBase{ int intFromBlockPoses(BlockPos p1, BlockPos p2);}
 	
 	public static final FunctionsDefaultSignInfo<DoubleFromVec3dsSign> doubleFromVec3dsSignInfo = new FunctionsDefaultSignInfo<>(DoubleFromVec3dsSign.class);
-	public interface DoubleFromVec3dsSign extends SignBase{ double doubleFromVec3ds(Vec3d v1, Vec3d v2);}
+	public interface DoubleFromVec3dsSign extends SignBase{ double doubleFromVec3ds(Vec3 v1, Vec3 v2);}
 	
 	//拓展函数
 	public static final FunctionsDefaultSignInfo<DoubleConstant> doubleConstantInfo = new FunctionsDefaultSignInfo<>(DoubleConstant.class);
@@ -125,13 +125,13 @@ public class Operators {
 	public interface Double2IntFunction extends SignBase{ int intFromDouble(double f);}
 	
 	public static final FunctionsDefaultSignInfo<Vec3d2BlockPosFunction> vec3d2BlockPosFunctionInfo = new FunctionsDefaultSignInfo<>(Vec3d2BlockPosFunction.class);
-	public interface Vec3d2BlockPosFunction extends SignBase{ BlockPos blockPosFromVec3d(Vec3d v);}
+	public interface Vec3d2BlockPosFunction extends SignBase{ BlockPos blockPosFromVec3d(Vec3 v);}
 	
 	public static final FunctionsDefaultSignInfo<IntegerFromBlockPosFunction> integerFromBlockPosFunctionInfo = new FunctionsDefaultSignInfo<>(IntegerFromBlockPosFunction.class);
 	public interface IntegerFromBlockPosFunction extends SignBase{ int integerFromBlockPos(BlockPos p);}
 	
 	public static final FunctionsDefaultSignInfo<DoubleFromVec3dFunc> doubleFromVec3dFuncInfo = new FunctionsDefaultSignInfo<>(DoubleFromVec3dFunc.class);
-	public interface DoubleFromVec3dFunc extends SignBase{ double doubleFromVec3d(Vec3d v);}
+	public interface DoubleFromVec3dFunc extends SignBase{ double doubleFromVec3d(Vec3 v);}
 	
 	public static class EqualsSign implements IntegerCompareSign, DoubleCompareSign, ObjectCompareSign{
 		private EqualsSign(){}
@@ -176,8 +176,8 @@ public class Operators {
 		@Override public String idString() {return "+";}
 		@Override public int calculateIntegers(int i1, int i2) {return i1 + i2;}
 		@Override public double calculateDoubles(double f1, double f2) {return f1 + f2;}
-		@Override public BlockPos calculateBlockPoses(BlockPos p1, BlockPos p2) {return p1.add(p2);}
-		@Override public Vec3d calculateVec3ds(Vec3d v1, Vec3d v2) {return v1.add(v2);}
+		@Override public BlockPos calculateBlockPoses(BlockPos p1, BlockPos p2) {return p1.offset(p2);}
+		@Override public Vec3 calculateVec3ds(Vec3 v1, Vec3 v2) {return v1.add(v2);}
 	}
 	public static class SubtractSign implements IntegerCalculateSign, DoubleCalculateSign, BlockPosCalculateSign, Vec3dCalculateSign{
 		private SubtractSign(){}
@@ -185,7 +185,7 @@ public class Operators {
 		@Override public int calculateIntegers(int i1, int i2) {return i1 - i2;}
 		@Override public double calculateDoubles(double f1, double f2) {return f1 - f2;}
 		@Override public BlockPos calculateBlockPoses(BlockPos p1, BlockPos p2) {return p1.subtract(p2);}
-		@Override public Vec3d calculateVec3ds(Vec3d v1, Vec3d v2) {return v1.subtract(v2);}
+		@Override public Vec3 calculateVec3ds(Vec3 v1, Vec3 v2) {return v1.subtract(v2);}
 	}
 	public static class MultiplySign implements IntegerCalculateSign, DoubleCalculateSign{
 		private MultiplySign(){}
@@ -198,15 +198,15 @@ public class Operators {
 		@Override public String idString() {return "/";}
 		@Override public int calculateIntegers(int i1, int i2) {return i1 / i2;}
 		@Override public double calculateDoubles(double f1, double f2) {return f1 / f2;}
-		@Override public double doubleFromVec3ds(Vec3d v1, Vec3d v2) {return v1.dotProduct(v2) / v2.lengthSquared();}
+		@Override public double doubleFromVec3ds(Vec3 v1, Vec3 v2) {return v1.dot(v2) / v2.lengthSqr();}
 	}
 	public static class ModSign implements IntegerCalculateSign, DoubleCalculateSign, Vec3dCalculateSign{
 		private ModSign(){}
 		@Override public String idString() {return "%";}
 		@Override public int calculateIntegers(int i1, int i2) {return i1 % i2;}
 		@Override public double calculateDoubles(double f1, double f2) {return f1 % f2;}
-		@Override public Vec3d calculateVec3ds(Vec3d v1, Vec3d v2) {
-			double k = v1.dotProduct(v2) / v2.lengthSquared();
+		@Override public Vec3 calculateVec3ds(Vec3 v1, Vec3 v2) {
+			double k = v1.dot(v2) / v2.lengthSqr();
 			return v1.subtract(v2.x * k, v2.y * k, v2.z * k);
 		}
 	}
@@ -238,19 +238,19 @@ public class Operators {
 	public static class CrossSign implements BlockPosCalculateSign, Vec3dCalculateSign{
 		private CrossSign(){}
 		@Override public String idString() {return "×";}
-		@Override public BlockPos calculateBlockPoses(BlockPos p1, BlockPos p2) {return p1.crossProduct(p2);}
-		@Override public Vec3d calculateVec3ds(Vec3d v1, Vec3d v2) {return v1.crossProduct(v2);}
+		@Override public BlockPos calculateBlockPoses(BlockPos p1, BlockPos p2) {return p1.cross(p2);}
+		@Override public Vec3 calculateVec3ds(Vec3 v1, Vec3 v2) {return v1.cross(v2);}
 	}
 	public static class DotSign implements DoubleFromVec3dsSign, IntegerFromBlockPosesSign {
 		private DotSign(){}
 		@Override public String idString() {return "•";}
-		@Override public double doubleFromVec3ds(Vec3d v1, Vec3d v2) {return v1.dotProduct(v2);}
+		@Override public double doubleFromVec3ds(Vec3 v1, Vec3 v2) {return v1.dot(v2);}
 		@Override public int intFromBlockPoses(BlockPos p1, BlockPos p2) {return p1.getX() * p2.getX() + p1.getY() * p2.getY() + p1.getZ() * p2.getZ();}
 	}
 	public static class DistanceSquared implements DoubleFromVec3dsSign, IntegerFromBlockPosesSign {
 		private DistanceSquared(){}
 		@Override public String idString() {return "squaredDistanceTo";}
-		@Override public double doubleFromVec3ds(Vec3d v1, Vec3d v2) {return v1.squaredDistanceTo(v2);}
+		@Override public double doubleFromVec3ds(Vec3 v1, Vec3 v2) {return v1.distanceToSqr(v2);}
 		@Override public int intFromBlockPoses(BlockPos p1, BlockPos p2) {
 			int x = p1.getX() - p2.getX();
 			int y = p1.getY() - p2.getY();
@@ -261,7 +261,7 @@ public class Operators {
 	public static class Distance implements DoubleFromVec3dsSign{
 		private Distance(){}
 		@Override public String idString() {return "distanceTo";}
-		@Override public double doubleFromVec3ds(Vec3d v1, Vec3d v2) {return v1.distanceTo(v2);}
+		@Override public double doubleFromVec3ds(Vec3 v1, Vec3 v2) {return v1.distanceTo(v2);}
 	}
 	public static class Pi implements DoubleConstant{//about 3.142
 		private Pi(){}
@@ -338,28 +338,28 @@ public class Operators {
 		@Override public String idString() {return "floor";}
 		@Override public int intFromDouble(double f) {return (int)Math.floor(f);}
 		@Override public double applyDouble(double f) {return Math.floor(f);}
-		@Override public BlockPos blockPosFromVec3d(Vec3d v) {return BlockPos.ofFloored(v);}
+		@Override public BlockPos blockPosFromVec3d(Vec3 v) {return BlockPos.containing(v);}
 	}
 	public static class Ceil implements Double2IntFunction, DoubleFunction, Vec3d2BlockPosFunction{
 		private Ceil(){}
 		@Override public String idString() {return "ceil";}
 		@Override public int intFromDouble(double f) {return (int)Math.ceil(f);}
 		@Override public double applyDouble(double f) {return Math.ceil(f);}
-		@Override public BlockPos blockPosFromVec3d(Vec3d v) {return new BlockPos((int)Math.ceil(v.x), (int)Math.ceil(v.y), (int)Math.ceil(v.z));}
+		@Override public BlockPos blockPosFromVec3d(Vec3 v) {return new BlockPos((int)Math.ceil(v.x), (int)Math.ceil(v.y), (int)Math.ceil(v.z));}
 	}
 	public static class Round implements Double2IntFunction, DoubleFunction, Vec3d2BlockPosFunction{
 		private Round(){}
 		@Override public String idString() {return "round";}
 		@Override public int intFromDouble(double f) {return (int)Math.round(f);}
 		@Override public double applyDouble(double f) {return Math.round(f);}
-		@Override public BlockPos blockPosFromVec3d(Vec3d v) {return new BlockPos((int)Math.round(v.x), (int)Math.round(v.y), (int)Math.round(v.z));}
+		@Override public BlockPos blockPosFromVec3d(Vec3 v) {return new BlockPos((int)Math.round(v.x), (int)Math.round(v.y), (int)Math.round(v.z));}
 	}
 	public static class Trunc implements Double2IntFunction, DoubleFunction, Vec3d2BlockPosFunction{
 		private Trunc(){}
 		@Override public String idString() {return "trunc";}
 		@Override public int intFromDouble(double f) {return (int)f;}
 		@Override public double applyDouble(double f) {return (double)(long)f;}
-		@Override public BlockPos blockPosFromVec3d(Vec3d v) {return new BlockPos((int)v.x, (int)v.y, (int)v.z);}
+		@Override public BlockPos blockPosFromVec3d(Vec3 v) {return new BlockPos((int)v.x, (int)v.y, (int)v.z);}
 	}
 	public static class SqrtFunction implements DoubleFunction{
 		private SqrtFunction(){}
@@ -515,25 +515,25 @@ public class Operators {
 	public static class CoordinateX implements DoubleFromVec3dFunc, IntegerFromBlockPosFunction {
 		private CoordinateX(){}
 		@Override public String idString() {return "coordinate X";}
-		@Override public double doubleFromVec3d(Vec3d v) {return v.x;}
+		@Override public double doubleFromVec3d(Vec3 v) {return v.x;}
 		@Override public int integerFromBlockPos(BlockPos p) {return p.getX();}
 	}
 	public static class CoordinateY implements DoubleFromVec3dFunc, IntegerFromBlockPosFunction {
 		private CoordinateY(){}
 		@Override public String idString() {return "coordinate Y";}
-		@Override public double doubleFromVec3d(Vec3d v) {return v.y;}
+		@Override public double doubleFromVec3d(Vec3 v) {return v.y;}
 		@Override public int integerFromBlockPos(BlockPos p) {return p.getY();}
 	}
 	public static class CoordinateZ implements DoubleFromVec3dFunc, IntegerFromBlockPosFunction {
 		private CoordinateZ(){}
 		@Override public String idString() {return "coordinate Z";}
-		@Override public double doubleFromVec3d(Vec3d v) {return v.z;}
+		@Override public double doubleFromVec3d(Vec3 v) {return v.z;}
 		@Override public int integerFromBlockPos(BlockPos p) {return p.getZ();}
 	}
 	public static class SquaredLength implements DoubleFromVec3dFunc, IntegerFromBlockPosFunction {
 		private SquaredLength(){}
 		@Override public String idString() {return "squaredLength";}
-		@Override public double doubleFromVec3d(Vec3d v) {return v.lengthSquared();}
+		@Override public double doubleFromVec3d(Vec3 v) {return v.lengthSqr();}
 		@Override public int integerFromBlockPos(BlockPos p) {
 			int x = p.getX(), y = p.getY(), z = p.getZ();
 			return x * x + y * y + z * z;
@@ -542,7 +542,7 @@ public class Operators {
 	public static class Length implements DoubleFromVec3dFunc{
 		private Length(){}
 		@Override public String idString() {return "length";}
-		@Override public double doubleFromVec3d(Vec3d v) {return v.length();}
+		@Override public double doubleFromVec3d(Vec3 v) {return v.length();}
 	}
 	
 	public interface ISignInfo<T extends SignBase>{
