@@ -4,7 +4,7 @@ import fi.dy.masa.litematica.data.DataManager;
 import fi.dy.masa.litematica.materials.MaterialListBase;
 import fi.dy.masa.litematica.schematic.placement.SchematicPlacement;
 import fi.dy.masa.litematica.selection.AreaSelection;
-import fi.dy.masa.malilib.util.position.LayerRange;
+import fi.dy.masa.malilib.util.LayerRange;
 import lpctools.compact.derived.SimpleTestableShape;
 import lpctools.compact.interfaces.ITestableShape;
 import lpctools.util.data.Box3i;

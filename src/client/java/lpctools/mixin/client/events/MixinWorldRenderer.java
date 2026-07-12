@@ -8,6 +8,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.LevelRenderer;
 import net.minecraft.client.renderer.LevelTargetBundle;
 import net.minecraft.client.renderer.RenderBuffers;
+import net.minecraft.client.renderer.chunk.ChunkSectionsToRender;
 import net.minecraft.client.renderer.culling.Frustum;
 import net.minecraft.client.renderer.state.level.CameraRenderState;
 import net.minecraft.util.profiling.ProfilerFiller;
@@ -28,20 +29,22 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 @Mixin(value = LevelRenderer.class)
 public abstract class MixinWorldRenderer
 {
+	@Shadow @Final private Minecraft minecraft;
 	@Shadow @Final private LevelTargetBundle targets;
 	@Shadow @Final private RenderBuffers renderBuffers;
 	
-	@Inject(method = "render", at = @At(value = "INVOKE",
-		target = "Lnet/minecraft/client/renderer/LevelRenderer;addMainPass(Lcom/mojang/blaze3d/framegraph/FrameGraphBuilder;Lnet/minecraft/client/renderer/feature/FeatureRenderDispatcher$PreparedFrame;Lcom/mojang/blaze3d/buffers/GpuBufferSlice;Lnet/minecraft/client/renderer/state/level/LevelRenderState;Lnet/minecraft/util/profiling/ProfilerFiller;Lnet/minecraft/client/renderer/chunk/ChunkSectionsToRender;)V"))
+	@SuppressWarnings("DiscouragedShift") @Inject(method = "renderLevel",
+		at = @At(value = "INVOKE",
+			target = "Lnet/minecraft/client/renderer/LevelRenderer;addMainPass(Lcom/mojang/blaze3d/framegraph/FrameGraphBuilder;Lnet/minecraft/client/renderer/culling/Frustum;Lorg/joml/Matrix4fc;Lcom/mojang/blaze3d/buffers/GpuBufferSlice;ZLnet/minecraft/client/renderer/state/level/LevelRenderState;Lnet/minecraft/client/DeltaTracker;Lnet/minecraft/util/profiling/ProfilerFiller;Lnet/minecraft/client/renderer/chunk/ChunkSectionsToRender;)V",
+			shift = At.Shift.BEFORE))
 	private void lpctools_onRenderWorldMain(GraphicsResourceAllocator resourceAllocator, DeltaTracker deltaTracker, boolean renderOutline, CameraRenderState cameraState,
-											Matrix4fc modelViewMatrix, GpuBufferSlice terrainFog, Vector4f fogColor, boolean shouldRenderSky,
+											Matrix4fc modelViewMatrix, GpuBufferSlice terrainFog, Vector4f fogColor, boolean shouldRenderSky, ChunkSectionsToRender chunkSectionsToRender,
 											CallbackInfo ci,
-											@Local(ordinal = 0) ProfilerFiller profiler,
-											@Local(ordinal = 0) FrameGraphBuilder frame)
+											@Local(name = "profiler") ProfilerFiller profiler,
+											@Local(name = "cullFrustum") Frustum cullFrustum,
+											@Local(name = "frame") FrameGraphBuilder frame)
 	{
-		Minecraft minecraft = Minecraft.getInstance();
-		Frustum cullFrustum = cameraState.cullFrustum;
-		Camera camera = minecraft.gameRenderer.mainCamera();
-		RenderEventHandler.runRenderWorldPreMain(new Matrix4f(), cameraState.projectionMatrix, minecraft, frame, this.targets, cullFrustum, camera, this.renderBuffers, profiler);
+		Camera camera = Minecraft.getInstance().gameRenderer.getMainCamera();
+		RenderEventHandler.runRenderWorldPreMain(new Matrix4f(), cameraState.projectionMatrix, this.minecraft, frame, this.targets, cullFrustum, camera, this.renderBuffers, profiler);
 	}
 }

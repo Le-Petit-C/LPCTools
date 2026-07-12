@@ -1,6 +1,5 @@
 package lpctools.debugs;
 
-import com.mojang.blaze3d.IndexType;
 import com.mojang.blaze3d.buffers.GpuBuffer;
 import com.mojang.blaze3d.buffers.GpuBufferSlice;
 import com.mojang.blaze3d.systems.GpuDevice;
@@ -8,6 +7,7 @@ import com.mojang.blaze3d.systems.RenderPass;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.textures.GpuTextureView;
 import com.mojang.blaze3d.vertex.DefaultVertexFormat;
+import com.mojang.blaze3d.vertex.VertexFormat;
 import lpctools.lpcfymasaapi.Registries;
 import lpctools.lpcfymasaapi.render.LPCRenderPipelines;
 import lpctools.lpcfymasaapi.render.translucentShapes.Sphere;
@@ -16,14 +16,15 @@ import lpctools.util.RenderUtils;
 import lpctools.util.javaex.QuietAutoCloseable;
 import net.fabricmc.fabric.api.client.rendering.v1.level.LevelRenderContext;
 import net.fabricmc.fabric.api.client.rendering.v1.level.LevelRenderEvents;
+import net.minecraft.client.Minecraft;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
 import org.joml.Vector4f;
 import org.lwjgl.system.MemoryUtil;
 
 import java.nio.ByteBuffer;
-import java.util.Optional;
 import java.util.OptionalDouble;
+import java.util.OptionalInt;
 
 /**
  * CPU 预变换顶点：在 CPU 上完成 ModelView 变换，
@@ -93,8 +94,8 @@ public class DebugShapes implements ToolUtils.ToolRunner, LevelRenderEvents.Befo
 	@Override public void beforeTranslucentTerrain(LevelRenderContext context) {
 		initializeBuffers();
 
-		var camPos = context.gameRenderer().mainCamera().position();
-		var fb = context.gameRenderer().mainRenderTarget();
+		var camPos = context.gameRenderer().getMainCamera().position();
+		var fb = Minecraft.getInstance().getMainRenderTarget();
 		GpuTextureView colorView = RenderUtils.colorAttachmentViewOrDef(fb);
 		GpuTextureView depthView = RenderUtils.depthAttachmentViewOrDef(fb);
 		var device = RenderSystem.getDevice();
@@ -103,7 +104,7 @@ public class DebugShapes implements ToolUtils.ToolRunner, LevelRenderEvents.Befo
 		//绘制三角形
 		float angle = (float)(System.currentTimeMillis() / 1000.0 % (2 * Math.PI));
 
-		Matrix4f modelView = RenderSystem.getModelViewMatrixCopy();
+		Matrix4f modelView = new Matrix4f(RenderSystem.getModelViewMatrix());
 		modelView.translate((float)-camPos.x, (float)-camPos.y, (float)-camPos.z);
 		modelView.rotate(angle, 0, 1, 0);
 
@@ -112,24 +113,24 @@ public class DebugShapes implements ToolUtils.ToolRunner, LevelRenderEvents.Befo
 
 		try (RenderPass rp = enc.createRenderPass(
 				() -> "DebugTrianglePass", colorView,
-				Optional.empty(), depthView, OptionalDouble.empty())) {
+				OptionalInt.empty(), depthView, OptionalDouble.empty())) {
 			rp.setPipeline(LPCRenderPipelines.positionColorPipeline(false, false));
 			RenderSystem.bindDefaultUniforms(rp);
 			rp.setUniform("DynamicTransforms", dyn);
-			rp.setVertexBuffer(0, triangleVertexBuffer.slice());
-			rp.draw(3, 1, 0, 0);
+			rp.setVertexBuffer(0, triangleVertexBuffer);
+			rp.draw(0, 3);
 		}
 
 		//绘制球
 		try (RenderPass rp = enc.createRenderPass(
 			() -> "DebugSpherePass", colorView,
-			Optional.empty(), depthView, OptionalDouble.empty())) {
+			OptionalInt.empty(), depthView, OptionalDouble.empty())) {
 			rp.setPipeline(LPCRenderPipelines.spherePipeline);
 			RenderSystem.bindDefaultUniforms(rp);
 			rp.setUniform("DynamicTransforms", dyn);
-			rp.setVertexBuffer(0, sphereVertexBuffer.slice());
-			rp.setIndexBuffer(sphereIndexBuffer, IndexType.SHORT);
-			rp.drawIndexed(6 * 2 * 6, 1, 0, 0, 0);
+			rp.setVertexBuffer(0, sphereVertexBuffer);
+			rp.setIndexBuffer(sphereIndexBuffer, VertexFormat.IndexType.SHORT);
+			rp.drawIndexed(0, 0, 6 * 2 * 6, 1);
 		}
 	}
 }

@@ -1,6 +1,5 @@
 package lpctools.debugs.ThreeBodyDisplay;
 
-import com.mojang.blaze3d.IndexType;
 import com.mojang.blaze3d.buffers.GpuBuffer;
 import com.mojang.blaze3d.buffers.GpuBufferSlice;
 import com.mojang.blaze3d.pipeline.RenderTarget;
@@ -8,6 +7,7 @@ import com.mojang.blaze3d.systems.RenderPass;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.textures.GpuTextureView;
 import com.mojang.blaze3d.vertex.DefaultVertexFormat;
+import com.mojang.blaze3d.vertex.VertexFormat;
 import lpctools.LPCTools;
 import lpctools.lpcfymasaapi.Registries;
 import lpctools.lpcfymasaapi.render.LPCRenderPipelines;
@@ -24,8 +24,8 @@ import org.lwjgl.system.MemoryUtil;
 
 import java.lang.Math;
 import java.nio.ByteBuffer;
-import java.util.Optional;
 import java.util.OptionalDouble;
+import java.util.OptionalInt;
 import java.util.function.Supplier;
 
 import static lpctools.debugs.ThreeBodyDisplay.ThreeBodyDisplay.*;
@@ -154,13 +154,13 @@ class Runner implements QuietAutoCloseable, Registries.WorldPreMainRender, Level
 		GpuBufferSlice dynamicTransforms = RenderSystem.getDynamicUniforms()
 			.writeTransform(RenderSystem.getModelViewStack(), new Vector4f(1.0F, 1.0F, 1.0F, 1.0F), offset, new Matrix4f());
 		try (RenderPass renderPass = commandEncoder
-			.createRenderPass(renderPassLabel, colorAttachmentView, Optional.empty(), depthAttachmentView, OptionalDouble.empty())) {
+			.createRenderPass(renderPassLabel, colorAttachmentView, OptionalInt.empty(), depthAttachmentView, OptionalDouble.empty())) {
 			renderPass.setPipeline(LPCRenderPipelines.spherePipeline);
 			RenderSystem.bindDefaultUniforms(renderPass);
 			renderPass.setUniform("DynamicTransforms", dynamicTransforms);
-			renderPass.setIndexBuffer(indexBuffer, IndexType.SHORT);
-			renderPass.setVertexBuffer(0, vertexBuffer.slice());
-			renderPass.drawIndexed(3 * Sphere.baseIndices.length * Sphere.baseIndices[0].length, 1, 0, 0, 0);
+			renderPass.setIndexBuffer(indexBuffer, VertexFormat.IndexType.SHORT);
+			renderPass.setVertexBuffer(0, vertexBuffer);
+			renderPass.drawIndexed(0, 0, 3 * Sphere.baseIndices.length * Sphere.baseIndices[0].length, 1);
 		}
 	}
 	

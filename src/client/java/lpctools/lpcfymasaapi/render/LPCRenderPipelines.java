@@ -1,14 +1,13 @@
 package lpctools.lpcfymasaapi.render;
 
-import com.mojang.blaze3d.PrimitiveTopology;
 import com.mojang.blaze3d.pipeline.BlendFunction;
 import com.mojang.blaze3d.pipeline.ColorTargetState;
 import com.mojang.blaze3d.pipeline.DepthStencilState;
 import com.mojang.blaze3d.pipeline.RenderPipeline;
 import com.mojang.blaze3d.platform.CompareOp;
 import com.mojang.blaze3d.vertex.DefaultVertexFormat;
+import com.mojang.blaze3d.vertex.VertexFormat;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
-import net.minecraft.client.renderer.BindGroupLayouts;
 import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.resources.Identifier;
 import org.jetbrains.annotations.Contract;
@@ -28,12 +27,10 @@ public class LPCRenderPipelines {
 		}
 	}
 
-	public static final RenderPipeline spherePipeline = RenderPipeline.builder()
-		.withVertexBinding(0, DefaultVertexFormat.POSITION_COLOR_LINE_WIDTH)
+	public static final RenderPipeline spherePipeline = RenderPipeline.builder(RenderPipelines.MATRICES_PROJECTION_SNIPPET)
+		.withVertexFormat(DefaultVertexFormat.POSITION_COLOR_LINE_WIDTH, VertexFormat.Mode.TRIANGLES)
 		.withVertexShader(getId("core/sphere"))
 		.withFragmentShader(getId("core/sphere"))
-		.withPrimitiveTopology(PrimitiveTopology.TRIANGLES)
-		.withBindGroupLayout(BindGroupLayouts.MATRICES_PROJECTION)
 		.withColorTargetState(new ColorTargetState(BlendFunction.TRANSLUCENT))
 		.withDepthStencilState(DepthStencilState.DEFAULT)
 		.withLocation(getId("pipeline/sphere")).build();
@@ -100,7 +97,7 @@ public class LPCRenderPipelines {
 
 		private static void setPipeline(RenderPipeline pipeline) {
 			boolean isLine;
-			switch(pipeline.getPrimitiveTopology()) {
+			switch(pipeline.getVertexFormatMode()) {
 				case TRIANGLES, QUADS -> isLine = false;
 				case DEBUG_LINES -> isLine = true;
 				default -> {return;}
@@ -169,7 +166,7 @@ public class LPCRenderPipelines {
 				translucentBlend ? (isLine ? DEBUG_LINES_TRANSLUCENT_STAGE : POSITION_COLOR_TRANSLUCENT_STAGE)
 					: (isLine ? DEBUG_LINES_MASA_SIMPLE_STAGE : POSITION_COLOR_MASA_STAGE))
 				.withCull(cull)
-				.withDepthStencilState(new DepthStencilState(depthTest ? CompareOp.GREATER_THAN_OR_EQUAL : CompareOp.ALWAYS_PASS, depthWrite, offsetMode.depthBiasScaleFactor(), offsetMode.depthBiasConstant()))
+				.withDepthStencilState(new DepthStencilState(depthTest ? CompareOp.LESS_THAN_OR_EQUAL : CompareOp.ALWAYS_PASS, depthWrite, offsetMode.depthBiasScaleFactor(), offsetMode.depthBiasConstant()))
 				.withLocation(getLocationId(isLine, translucentBlend, depthTest, depthWrite, offsetMode, cull))
 				.build();
 		}

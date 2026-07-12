@@ -15,7 +15,7 @@ public class RenderUtils {
 	}
 
 	public static GpuTextureView depthAttachmentViewOrDef(RenderTarget target) {
-		return Objects.requireNonNullElse(target.useDepth ? target.getDepthTextureView() : null, Minecraft.getInstance().gameRenderer.mainRenderTarget().getDepthTextureView());
+		return Objects.requireNonNullElse(target.useDepth ? target.getDepthTextureView() : null, Minecraft.getInstance().getMainRenderTarget().getDepthTextureView());
 	}
 
 	/** 检查并输出所有待处理的 OpenGL 错误到 LPCTools logger */

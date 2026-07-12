@@ -1,7 +1,5 @@
 package lpctools.debugs;
 
-import com.mojang.blaze3d.IndexType;
-import com.mojang.blaze3d.PrimitiveTopology;
 import com.mojang.blaze3d.buffers.GpuBuffer;
 import com.mojang.blaze3d.buffers.GpuBufferSlice;
 import com.mojang.blaze3d.pipeline.*;
@@ -10,6 +8,7 @@ import com.mojang.blaze3d.systems.RenderPass;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.textures.GpuTextureView;
 import com.mojang.blaze3d.vertex.DefaultVertexFormat;
+import com.mojang.blaze3d.vertex.VertexFormat;
 import lpctools.lpcfymasaapi.Registries;
 import lpctools.lpcfymasaapi.configButtons.uniqueConfigs.BooleanThirdListConfig;
 import lpctools.lpcfymasaapi.configButtons.transferredConfigs.DoubleConfig;
@@ -19,17 +18,18 @@ import lpctools.util.CachedSupplier;
 import lpctools.util.RenderUtils;
 import net.fabricmc.fabric.api.client.rendering.v1.level.LevelRenderContext;
 import net.fabricmc.fabric.api.client.rendering.v1.level.LevelRenderEvents;
-import net.minecraft.client.renderer.BindGroupLayouts;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.resources.Identifier;
 import org.joml.*;
 import org.lwjgl.system.MemoryUtil;
 
 import java.nio.ByteBuffer;
-import java.util.Optional;
 import java.util.OptionalDouble;
+import java.util.OptionalInt;
 
 import static lpctools.lpcfymasaapi.LPCConfigStatics.*;
+import static net.minecraft.client.renderer.RenderPipelines.MATRICES_PROJECTION_SNIPPET;
 
 public class MandelbrotSetRender extends BooleanThirdListConfig implements LevelRenderEvents.AfterTranslucentTerrain {
     public final IntegerConfig maxDepth;
@@ -38,21 +38,17 @@ public class MandelbrotSetRender extends BooleanThirdListConfig implements Level
 
     public class RenderSources implements AutoCloseable {
         public static final RenderPipeline mandelbrotSetPipeline
-            = RenderPipeline.builder()
+            = RenderPipeline.builder(MATRICES_PROJECTION_SNIPPET)
+            .withUniform("Mandelbrot", UniformType.UNIFORM_BUFFER)
             .withVertexShader("core/position_tex")
             .withFragmentShader(Identifier.fromNamespaceAndPath("lpctools", "core/mandelbrot_set"))
-            .withVertexBinding(0, DefaultVertexFormat.POSITION_TEX)
-            .withPrimitiveTopology(PrimitiveTopology.QUADS)
+            .withVertexFormat(DefaultVertexFormat.POSITION_TEX, VertexFormat.Mode.QUADS)
             .withLocation(Identifier.fromNamespaceAndPath("lpctools", "pipeline/mandelbrot"))
             .withColorTargetState(new ColorTargetState(BlendFunction.TRANSLUCENT))
             .withDepthStencilState(DepthStencilState.DEFAULT)
-            .withBindGroupLayout(BindGroupLayouts.MATRICES_PROJECTION)
-            .withBindGroupLayout(BindGroupLayout.builder()
-                .withUniform("Mandelbrot", UniformType.UNIFORM_BUFFER)
-                .build())
             .withCull(false)
             .build();
-        public static final RenderSystem.AutoStorageIndexBuffer mandelbrotSetShapeIndexBuffer = RenderSystem.getSequentialBuffer(PrimitiveTopology.QUADS);
+        public static final RenderSystem.AutoStorageIndexBuffer mandelbrotSetShapeIndexBuffer = RenderSystem.getSequentialBuffer(VertexFormat.Mode.QUADS);
         private final GpuBuffer mandelbrotUniformBuffer = RenderSystem.getDevice()
             .createBuffer(() -> "Mandelbrot Uniform",
                 GpuBuffer.USAGE_UNIFORM | GpuBuffer.USAGE_COPY_DST, 48);
@@ -119,29 +115,29 @@ public class MandelbrotSetRender extends BooleanThirdListConfig implements Level
     @Override
     public void afterTranslucentTerrain(LevelRenderContext context) {
         GameRenderer renderer = context.gameRenderer();
-        RenderTarget fb = renderer.mainRenderTarget();
+        RenderTarget fb = Minecraft.getInstance().getMainRenderTarget();
         GpuTextureView colorAttachmentView = RenderUtils.colorAttachmentViewOrDef(fb);
         GpuTextureView depthAttachmentView = fb.useDepth ? fb.getDepthTextureView() : null;
         GpuBufferSlice dynamicTransforms = RenderSystem.getDynamicUniforms()
-            .writeTransform(RenderSystem.getModelViewMatrixCopy().translate(renderer.mainCamera().position().toVector3f().mul(-1)),
+            .writeTransform(new Matrix4f(RenderSystem.getModelViewMatrix()).translate(renderer.getMainCamera().position().toVector3f().mul(-1)),
                 new Vector4f(1.0F, 1.0F, 1.0F, 1.0F), new Vector3f(), new Matrix4f());
 		RenderSources renderSources = this.renderSources.get();
         GpuBuffer mandelbrotUniformBuffer = renderSources.getUpdatedMandelbrotUniformBuffer();
         GpuBuffer vertexBuffer = renderSources.getUpdatedVertexBuffer();
         RenderSystem.AutoStorageIndexBuffer shapeIndexBuffer = RenderSources.mandelbrotSetShapeIndexBuffer;
         GpuBuffer indexBuffer = shapeIndexBuffer.getBuffer(6);
-        IndexType indexType = shapeIndexBuffer.type();
+        VertexFormat.IndexType indexType = shapeIndexBuffer.type();
         try(RenderPass renderPass = RenderSystem.getDevice()
             .createCommandEncoder()
             .createRenderPass(() -> "LPCTools Mandelbrot Set",
-                colorAttachmentView, Optional.empty(), depthAttachmentView, OptionalDouble.empty())){
+                colorAttachmentView, OptionalInt.empty(), depthAttachmentView, OptionalDouble.empty())){
             renderPass.setPipeline(RenderSources.mandelbrotSetPipeline);
             RenderSystem.bindDefaultUniforms(renderPass);
             renderPass.setUniform("DynamicTransforms", dynamicTransforms);
             renderPass.setUniform("Mandelbrot", mandelbrotUniformBuffer);
-            renderPass.setVertexBuffer(0, vertexBuffer.slice());
+            renderPass.setVertexBuffer(0, vertexBuffer);
             renderPass.setIndexBuffer(indexBuffer, indexType);
-            renderPass.drawIndexed(6, 1, 0, 0, 0);
+            renderPass.drawIndexed(0, 0, 6, 1);
         }
     }
 }

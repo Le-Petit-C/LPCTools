@@ -13,7 +13,6 @@
     "accessors.GuiBaseAccessor",
     "accessors.SpriteContentsAccessor",
     "accessors.TextFieldWidgetAccessor",
-    "events.GuiMixin",
     "events.MinecraftClientMixin",
     "events.MixinWorldRenderer",
     "events.MouseHandlerMixin",

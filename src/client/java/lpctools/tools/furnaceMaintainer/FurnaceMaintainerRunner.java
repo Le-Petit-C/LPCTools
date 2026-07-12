@@ -130,7 +130,7 @@ public class FurnaceMaintainerRunner implements QuietAutoCloseable, ClientTickEv
     }
     private static void closeClientContainer(Screen screen){
         var mc = Minecraft.getInstance();
-        if(mc.gui.screen() == screen && mc.player instanceof LocalPlayer player)
+        if(mc.screen == screen && mc.player instanceof LocalPlayer player)
             player.closeContainer();
     }
 }

@@ -35,7 +35,7 @@ class LitematicaMaterialRunner implements ILPCValueChangeCallback, Registries.Co
 
 	@Override public void onContainerContentInitialized(AbstractContainerMenu menu) {
 		Minecraft mc = Minecraft.getInstance();
-		if(mc.gui.screen() instanceof AbstractContainerScreen<?> containerScreen && containerScreen.getMenu() == menu
+		if(mc.screen instanceof AbstractContainerScreen<?> containerScreen && containerScreen.getMenu() == menu
 			&& !(menu instanceof InventoryMenu) && !(menu instanceof CreativeModeInventoryScreen.ItemPickerMenu)
 			&& (warehouseContainers.get().contains(containerScreen.getTitle().getString())
 			|| (buildingMode.getBooleanValue() && materialContainers.get().contains(containerScreen.getTitle().getString())))) {

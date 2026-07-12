@@ -81,7 +81,7 @@ public class AutoGrindstoneRunner implements Registries.ScreenChangedCallback {
 				itm.handleContainerInput(player.containerMenu.containerId, 2, 0, ContainerInput.THROW, player);
 			}
 		}
-		client.gui.setScreen(null);
+		client.setScreen(null);
 	}
 	private static void warnInvalidEnchantment(String key) {
 		DataUtils.clientMessage(String.format("§eInvalid enchantment string: %s", key), false);

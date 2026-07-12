@@ -10,13 +10,11 @@ import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientChunkEvents;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientEntityEvents;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientLevelEvents;
-import net.fabricmc.fabric.api.client.rendering.v1.level.LevelExtractionEvents;
 import net.fabricmc.fabric.api.client.rendering.v1.level.LevelRenderEvents;
 import net.fabricmc.fabric.api.resource.v1.ResourceLoader;
 import net.minecraft.client.Camera;
 import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.Gui;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.input.MouseButtonInfo;
 import net.minecraft.client.multiplayer.ClientLevel;
@@ -52,14 +50,14 @@ public class Registries {
         callbacks->screen->callbacks.orCircuit(callback->callback.beforeScreenChange(screen)));
     public static final UnregistrableRegistryBase<Runnable, ScreenChangedCallback> ON_SCREEN_CHANGED = new UnregistrableRegistryBase<>(
         callbacks->()-> {
-            Gui gui = Minecraft.getInstance().gui;
-            Screen screen = gui.screen();
+            Minecraft mc = Minecraft.getInstance();
+            Screen screen = mc.screen;
             loop:
             while(true) {
                 for(ScreenChangedCallback screenChangedCallback : callbacks) {
                     screenChangedCallback.onScreenChanged(screen);
-                    if(gui.screen() != screen) {
-                        screen = gui.screen();
+                    if(mc.screen != screen) {
+                        screen = mc.screen;
                         continue loop;
                     }
                 }
@@ -72,8 +70,8 @@ public class Registries {
     public static final UnregistrableRegistry<ClientChunkEvents.Load> CLIENT_CHUNK_LOAD = UnregistrableRegistry.fanOut(ClientChunkEvents.Load.class, ClientChunkEvents.CHUNK_LOAD);
     public static final UnregistrableRegistry<ClientChunkEvents.Unload> CLIENT_CHUNK_UNLOAD = UnregistrableRegistry.fanOut(ClientChunkEvents.Unload.class, ClientChunkEvents.CHUNK_UNLOAD);
     public static final UnregistrableRegistry<WorldPreMainRender> PRE_MAIN = UnregistrableRegistry.fanOut(WorldPreMainRender.class);
-    public static final UnregistrableRegistry<LevelExtractionEvents.AfterBlockOutlineExtraction> AFTER_BLOCK_OUTLINE_EXTRACTION = UnregistrableRegistry.fanOut(LevelExtractionEvents.AfterBlockOutlineExtraction.class, LevelExtractionEvents.AFTER_BLOCK_OUTLINE_EXTRACTION);
-    public static final UnregistrableRegistry<LevelExtractionEvents.EndExtraction> END_EXTRACTION = UnregistrableRegistry.fanOut(LevelExtractionEvents.EndExtraction.class, LevelExtractionEvents.END_EXTRACTION);
+    public static final UnregistrableRegistry<LevelRenderEvents.AfterBlockOutlineExtraction> AFTER_BLOCK_OUTLINE_EXTRACTION = UnregistrableRegistry.fanOut(LevelRenderEvents.AfterBlockOutlineExtraction.class, LevelRenderEvents.AFTER_BLOCK_OUTLINE_EXTRACTION);
+    public static final UnregistrableRegistry<LevelRenderEvents.EndExtraction> END_EXTRACTION = UnregistrableRegistry.fanOut(LevelRenderEvents.EndExtraction.class, LevelRenderEvents.END_EXTRACTION);
     public static final UnregistrableRegistry<LevelRenderEvents.StartMain> START_MAIN = UnregistrableRegistry.fanOut(LevelRenderEvents.StartMain.class, LevelRenderEvents.START_MAIN);
     public static final UnregistrableRegistry<LevelRenderEvents.AfterOpaqueTerrain> AFTER_OPAQUE_TERRAIN = UnregistrableRegistry.fanOut(LevelRenderEvents.AfterOpaqueTerrain.class, LevelRenderEvents.AFTER_OPAQUE_TERRAIN);
     public static final UnregistrableRegistry<LevelRenderEvents.AfterSolidFeatures> AFTER_SOLID_FEATURES = UnregistrableRegistry.fanOut(LevelRenderEvents.AfterSolidFeatures.class, LevelRenderEvents.AFTER_SOLID_FEATURES);

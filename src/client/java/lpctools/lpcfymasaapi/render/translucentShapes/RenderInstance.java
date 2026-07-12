@@ -1,13 +1,13 @@
 package lpctools.lpcfymasaapi.render.translucentShapes;
 
 import com.google.common.collect.ImmutableSet;
-import com.mojang.blaze3d.IndexType;
 import com.mojang.blaze3d.buffers.GpuBuffer;
 import com.mojang.blaze3d.buffers.GpuBufferSlice;
 import com.mojang.blaze3d.systems.CommandEncoder;
 import com.mojang.blaze3d.systems.RenderPass;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.textures.GpuTextureView;
+import com.mojang.blaze3d.vertex.VertexFormat;
 import it.unimi.dsi.fastutil.ints.*;
 import it.unimi.dsi.fastutil.longs.Long2IntOpenHashMap;
 import lpctools.lpcfymasaapi.Registries;
@@ -134,7 +134,7 @@ public class RenderInstance implements QuietAutoCloseable, Registries.WorldPreMa
 		GpuTextureView depthAttachmentView = fb.useDepth ? fb.getDepthTextureView() : null;
 		Vec3 camPos = context.camera().position();
 		Vector3f offset = new Vector3f((float) (basePoint.x - camPos.x), (float) (basePoint.y - camPos.y), (float) (basePoint.z - camPos.z));
-		Matrix4f modelViewMatrix = RenderSystem.getModelViewMatrixCopy();
+		Matrix4f modelViewMatrix = new Matrix4f(RenderSystem.getModelViewMatrix());
 		if(renderOption.modelOffsetOntoMatrix()) {
 			modelViewMatrix.translate(offset);
 			offset.set(0, 0, 0);
@@ -142,7 +142,7 @@ public class RenderInstance implements QuietAutoCloseable, Registries.WorldPreMa
 		GpuBufferSlice dynamicTransforms = RenderSystem.getDynamicUniforms()
 			.writeTransform(modelViewMatrix, new Vector4f(1.0F, 1.0F, 1.0F, 1.0F), offset, new Matrix4f());
 		try (RenderPass renderPass = commandEncoder
-			.createRenderPass(renderPassLabel, colorAttachmentView, Optional.empty(), depthAttachmentView, OptionalDouble.empty())) {
+			.createRenderPass(renderPassLabel, colorAttachmentView, OptionalInt.empty(), depthAttachmentView, OptionalDouble.empty())) {
 			renderPass.setPipeline(renderOption.pipeline());
 			RenderSystem.bindDefaultUniforms(renderPass);
 			renderPass.setUniform("DynamicTransforms", dynamicTransforms);
@@ -234,7 +234,7 @@ public class RenderInstance implements QuietAutoCloseable, Registries.WorldPreMa
 		AABB sectionBox;
 		GpuBuffer vertexBuffer = null;
 		GpuBuffer indexBuffer = null;
-		IndexType indexType = null;
+		VertexFormat.IndexType indexType = null;
 		ByteBuffer vertexBufferToUpload = null;
 		ByteBuffer indexBufferToUpload = null;
 		
@@ -381,9 +381,9 @@ public class RenderInstance implements QuietAutoCloseable, Registries.WorldPreMa
 		
 		void buildVertexByteBuffer(){
 			if(vertexBufferToUpload != null) MemoryUtil.memFree(vertexBufferToUpload);
-			int vertexSize = renderOption.pipeline().getVertexFormatBinding(0).getVertexSize();
+			int vertexSize = renderOption.pipeline().getVertexFormat().getVertexSize();
 			vertexBufferToUpload = MemoryUtil.memAlloc(vertices_size * vertexSize);
-			indexType = vertices_size > 65536 ? IndexType.INT : IndexType.SHORT;
+			indexType = vertices_size > 65536 ? VertexFormat.IndexType.INT : VertexFormat.IndexType.SHORT;
 			int gpuIndex = 0;
 			int position = 0;
 			for(var shape : shapes){
@@ -471,9 +471,9 @@ public class RenderInstance implements QuietAutoCloseable, Registries.WorldPreMa
 		
 		void render(RenderPass renderPass) {
 			if(!veryInitialized) return;
-			renderPass.setVertexBuffer(0, vertexBuffer.slice());
+			renderPass.setVertexBuffer(0, vertexBuffer);
 			renderPass.setIndexBuffer(indexBuffer, indexType);
-			renderPass.drawIndexed(uploadedSize, 1, 0, 0, 0);
+			renderPass.drawIndexed(0, 0, uploadedSize, 1);
 		}
 		
 		@Contract("_,_->null")
