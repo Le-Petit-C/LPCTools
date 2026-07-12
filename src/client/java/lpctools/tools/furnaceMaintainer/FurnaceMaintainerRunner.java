@@ -44,12 +44,7 @@ public class FurnaceMaintainerRunner implements QuietAutoCloseable, ClientTickEv
             close();
             return;
         }
-        else if(dataInstance == null) {
-			runner = null;
-            FMConfig.setBooleanValue(false);
-			close();
-			return;
-		}
+        else if(dataInstance == null) return;
         
         LocalPlayer player = mc.player;
         ClientLevel world = mc.level;

@@ -38,7 +38,7 @@ class Runner implements QuietAutoCloseable, Registries.WorldPreMainRender, Level
 	private static final Supplier<String> vertexBufferLabel = () -> appendLabel("VertexBuffer");
 	private static final Supplier<String> renderPassLabel = () -> appendLabel("RenderPass");
 	
-	private static String appendLabel(String tail) {return baseLabel + ' ' + tail;}
+	private static String appendLabel(String tail) { return baseLabel + ' ' + tail; }
 	
 	private static final int ticksPerLoop = 256;
 	private static final double tickFactor = 1.0 / 256.0 / ticksPerLoop;
@@ -79,7 +79,7 @@ class Runner implements QuietAutoCloseable, Registries.WorldPreMainRender, Level
 		MemoryUtil.memFree(indexDataBuffer);
 		dataBuffer = MemoryUtil.memAlloc(DefaultVertexFormat.POSITION_COLOR_LINE_WIDTH.getVertexSize() * 24);
 		vertexBuffer = RenderSystem.getDevice().createBuffer(vertexBufferLabel,
-			GpuBuffer.USAGE_INDEX | GpuBuffer.USAGE_COPY_DST, dataBuffer.capacity());
+			GpuBuffer.USAGE_VERTEX | GpuBuffer.USAGE_COPY_DST, dataBuffer.capacity());
 		updateTracks();
 		registerAll(true);
 	}
@@ -150,26 +150,17 @@ class Runner implements QuietAutoCloseable, Registries.WorldPreMainRender, Level
 		RenderTarget fb = context.fb();
 		GpuTextureView colorAttachmentView = RenderUtils.colorAttachmentViewOrDef(fb);
 		GpuTextureView depthAttachmentView = fb.useDepth ? fb.getDepthTextureView() : null;
-		Vector3f offset = new Vector3f();
-		Matrix4f modelViewMatrix = RenderSystem.getModelViewMatrixCopy();
-		Matrix4f projectionMatrix = new Matrix4f(RenderInstance.worldBasicProjectionMatrix);
-		RenderInstance.worldProjectionTranslateMatrix.mul(modelViewMatrix, modelViewMatrix);
-		modelViewMatrix.get3x3(new Matrix3f()).invert().transform(modelViewMatrix.getColumn(3, offset));
-		offset.mul(-1);
-		modelViewMatrix.translate(offset);
-		offset.mul(-1);
-		offset.add((float) (basePoint.x - camPos.x), (float) (basePoint.y - camPos.y), (float) (basePoint.z - camPos.z));
+		Vector3f offset = new Vector3f((float) (basePoint.x - camPos.x), (float) (basePoint.y - camPos.y), (float) (basePoint.z - camPos.z));
 		GpuBufferSlice dynamicTransforms = RenderSystem.getDynamicUniforms()
-			.writeTransform(modelViewMatrix, new Vector4f(1.0F, 1.0F, 1.0F, 1.0F), offset, new Matrix4f());
-		GpuBufferSlice projection = rawProjectionMatrixBuffer.getBuffer(projectionMatrix);
+			.writeTransform(RenderSystem.getModelViewStack(), new Vector4f(1.0F, 1.0F, 1.0F, 1.0F), offset, new Matrix4f());
 		try (RenderPass renderPass = commandEncoder
 			.createRenderPass(renderPassLabel, colorAttachmentView, Optional.empty(), depthAttachmentView, OptionalDouble.empty())) {
 			renderPass.setPipeline(LPCRenderPipelines.spherePipeline);
+			RenderSystem.bindDefaultUniforms(renderPass);
 			renderPass.setUniform("DynamicTransforms", dynamicTransforms);
-			renderPass.setUniform("Projection", projection);
 			renderPass.setIndexBuffer(indexBuffer, IndexType.SHORT);
 			renderPass.setVertexBuffer(0, vertexBuffer.slice());
-			renderPass.drawIndexed(0, 0, 3 * Sphere.baseIndices.length * Sphere.baseIndices[0].length, 1, 0);
+			renderPass.drawIndexed(3 * Sphere.baseIndices.length * Sphere.baseIndices[0].length, 1, 0, 0, 0);
 		}
 	}
 	

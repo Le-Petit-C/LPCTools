@@ -27,10 +27,11 @@ public class FurnaceMaintainer {
     public static final UniqueBooleanConfig useCullFace = addConfigEx(l->new UniqueBooleanConfig(l, "useCullFace", true, applyToDataInstanceCallback(DataInstance::refreshUseCullFace)));
     
     static {listStack.pop();}
-    private static void switchCallback(){
-        if(FMConfig.getBooleanValue() && dataInstance != null){
+    private static void switchCallback() {
+        if(FMConfig.getBooleanValue()) {
             if(runner == null)
                 runner = new FurnaceMaintainerRunner();
+            runner.registerAll(true);
         }
         else {
             if(runner != null) {

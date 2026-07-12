@@ -518,6 +518,8 @@
 	"lpctools.configs.debugs.threeBody.massDeviation.comment": "Initial random masses have a logarithmic mean of zero. This value controls the standard deviation",
 	"lpctools.configs.debugs.threeBody.starRadiusFactor.name": "Radius Multiplier",
 	"lpctools.configs.debugs.threeBody.starRadiusFactor.comment": "Multiplier for the displayed celestial body radius",
+	"lpctools.configs.debugs.renderDebugShapes.name": "Render Test Shapes",
+	"lpctools.configs.debugs.renderDebugShapes.comment": "Renders some test shapes",
 	"lpctools.configs.utils.limitRange.name": "limitWorkingRange",
 	"lpctools.configs.utils.limitRange.comment": "Limits working range based on MiniHUD shapes and Litematica schematics or render range\nso that you should install any of those mods to enable this config",
 	"lpctools.configs.utils.limitRange.rangeNamePrefix.name": "rangeNamePrefix",

@@ -10,6 +10,7 @@ import lpctools.generic.UpdateCounter;
 import lpctools.lpcfymasaapi.configButtons.uniqueConfigs.BooleanHotkeyThirdListConfig;
 import lpctools.lpcfymasaapi.interfaces.IBooleanConfig;
 import lpctools.lpcfymasaapi.interfaces.ILPCConfig;
+import lpctools.lpcfymasaapi.interfaces.ILPCConfigList;
 import lpctools.lpcfymasaapi.interfaces.ILPCValueChangeCallback;
 import lpctools.util.LPCMathHelper;
 import lpctools.util.Packed;
@@ -38,6 +39,7 @@ public class ToolUtils {
     // TODO: 其他工具也用这个Builder构建
     public static class ToolConfigBuilder {
         private final String key;
+        private @NotNull ILPCConfigList parent = ToolConfigs.toolConfigs;
         private @Nullable ILPCValueChangeCallback callback;
         private @Nullable Supplier<ToolRunner> toolRunner;
         private ToolConfigBuilder(String key) { this.key = key; }
@@ -49,8 +51,12 @@ public class ToolUtils {
             this.toolRunner = toolRunner;
             return this;
         }
+        public ToolConfigBuilder withParent(ILPCConfigList parent) {
+            this.parent = parent;
+            return this;
+        }
         public BooleanHotkeyThirdListConfig build() {
-            BooleanHotkeyThirdListConfig config = new BooleanHotkeyThirdListConfig(ToolConfigs.toolConfigs, key);
+            BooleanHotkeyThirdListConfig config = new BooleanHotkeyThirdListConfig(parent, key);
             ILPCValueChangeCallback callback = this.callback;
             if(toolRunner != null) {
                 ToolRunnerCallback toolRunnerCallback = new ToolRunnerCallback(config, toolRunner);
