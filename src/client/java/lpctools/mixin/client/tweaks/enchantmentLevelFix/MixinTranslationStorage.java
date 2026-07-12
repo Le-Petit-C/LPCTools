@@ -25,7 +25,7 @@ import net.minecraft.client.resources.language.ClientLanguage;
 public abstract class MixinTranslationStorage {
 	@Shadow public abstract boolean has(String key);
 	@Inject(method = "getOrDefault(Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;", at = @At("HEAD"), cancellable = true)
-	private void mixinTranslateHead(String key, String fallback, CallbackInfoReturnable<String> cir){
+	private void mixinTranslateHead(String key, String defaultValue, CallbackInfoReturnable<String> cir){
 		if(enchantmentLevelFix.getBooleanValue()){
 			if(suppressedRomanNumerals.containsKey(key)){
 				cir.setReturnValue(suppressedRomanNumerals.get(key));

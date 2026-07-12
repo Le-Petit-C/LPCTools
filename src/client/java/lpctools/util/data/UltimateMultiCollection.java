@@ -92,7 +92,7 @@ public class UltimateMultiCollection<E> extends AvlTreeList<E> implements Multis
 			list.remove(getMultiListIndex(list, index));
 			if(list.isEmpty()) nodeMap.remove(node.value);
 		});
-		return res.getValue();
+		return res.get();
 	}
 	
 	@Override public boolean remove(Object o) {
@@ -450,7 +450,7 @@ public class UltimateMultiCollection<E> extends AvlTreeList<E> implements Multis
 				else {
 					MutableObject<Node<E>> res = new MutableObject<>();
 					right = right.removeAt(0, res::setValue);
-					var node = res.getValue();
+					var node = res.get();
 					replaceByNode(node);
 					node.recalculate();
 					return (UltimateNode<E>) node.balance();

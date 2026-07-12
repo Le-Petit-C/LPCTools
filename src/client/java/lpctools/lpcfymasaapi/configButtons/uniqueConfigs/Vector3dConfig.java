@@ -39,8 +39,8 @@ public class Vector3dConfig extends ThirdListConfig implements IConfigResettable
     public Vector3dConfig(ILPCConfigReadable parent, String nameKey, Vec3 defaultPos, @Nullable ILPCValueChangeCallback callback) {
         super(parent, nameKey, callback);
         x = addConfig(new _DoubleConfig(this, "x", defaultPos.x()));
-        y = addConfig(new _DoubleConfig(this, "y", defaultPos.x()));
-        z = addConfig(new _DoubleConfig(this, "z", defaultPos.x()));
+        y = addConfig(new _DoubleConfig(this, "y", defaultPos.y()));
+        z = addConfig(new _DoubleConfig(this, "z", defaultPos.z()));
     }
     public Vector3d getPos(Vector3d res){
         return res.set(x.getAsDouble(), y.getAsDouble(), z.getAsDouble());

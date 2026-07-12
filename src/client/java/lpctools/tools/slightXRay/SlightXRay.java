@@ -7,7 +7,7 @@ import lpctools.lpcfymasaapi.configButtons.derivedConfigs.RangeLimitConfig;
 import lpctools.lpcfymasaapi.configButtons.transferredConfigs.*;
 import lpctools.lpcfymasaapi.configButtons.uniqueConfigs.BooleanHotkeyThirdListConfig;
 import lpctools.lpcfymasaapi.interfaces.ILPCConfigList;
-import lpctools.mixin.client.SpriteContentsMixin;
+import lpctools.mixin.client.accessors.SpriteContentsAccessor;
 import lpctools.tools.ToolConfigs;
 import lpctools.util.DataUtils;
 import net.minecraft.client.Minecraft;
@@ -17,7 +17,6 @@ import net.minecraft.world.level.block.Block;
 import org.apache.commons.lang3.mutable.MutableInt;
 
 import java.awt.*;
-import java.util.*;
 import java.util.function.ToIntFunction;
 
 import static lpctools.lpcfymasaapi.LPCConfigStatics.*;
@@ -69,7 +68,7 @@ public class SlightXRay{
             TextureAtlasSprite particleSprite = model.particleIcon();
             float r = 0, g = 0, b = 0;
             float t = 0;
-            for(NativeImage image : ((SpriteContentsMixin)particleSprite.contents()).getMipmapLevelsImages()){
+            for(NativeImage image : ((SpriteContentsAccessor)particleSprite.contents()).getByMipLevel()){
                 for(int color : image.getPixels()){
                     float k = (color >>> 24) / 255.0f;
                     r += (color & 0xff) * k;
@@ -89,7 +88,7 @@ public class SlightXRay{
         }
         catch (Exception e){return alphaMask;}
     }
-    private static int getColorByDefaultColor(Block block){return DataUtils.argb2agbr(defaultColor.getIntegerValue());}
+    private static int getColorByDefaultColor(Block block){return DataUtils.swapRedBlue(defaultColor.getIntegerValue());}
 
     public static void tryRefreshXRayBlocks(){
         if(!needRefreshXRayBlocks) return;
@@ -98,7 +97,7 @@ public class SlightXRay{
         XRayBlocksConfig.iterateConfigs().forEach(c->{
             var block = c.getBlock();
             if(newBlocks.containsKey(block)) clientMessage(String.format("§eWarning: Repeat block \"%s\"", block.getName()), false);
-            else newBlocks.put(block, DataUtils.argb2agbr(c.getColor().getIntValue()));
+            else newBlocks.put(block, DataUtils.swapRedBlue(c.getColor().getIntValue()));
         });
         if(XRayBlocks.keySet().equals(newBlocks.keySet())) {
             for(var block : newBlocks.object2IntEntrySet())

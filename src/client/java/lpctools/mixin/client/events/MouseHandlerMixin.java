@@ -1,4 +1,4 @@
-package lpctools.mixin.client;
+package lpctools.mixin.client.events;
 
 import lpctools.lpcfymasaapi.Registries;
 import lpctools.util.GuiUtils;
@@ -13,11 +13,11 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(MouseHandler.class)
-public abstract class OnMouseButtonReturnMixin {
+public abstract class MouseHandlerMixin {
     @Shadow @Final private Minecraft minecraft;
     @Inject(method = "onButton", at = @At("RETURN"))
-    private void onMouseButton(long window, MouseButtonInfo input, int action, CallbackInfo ci){
-        if(window != this.minecraft.getWindow().handle()) return;
-        if(!GuiUtils.isInTextOrGui()) Registries.IN_GAME_END_MOUSE.runner().onInGameEndMouse(input, action);
+    private void injectOnButtonReturn(long handle, MouseButtonInfo rawButtonInfo, int action, CallbackInfo ci){
+        if(handle != this.minecraft.getWindow().handle()) return;
+        if(!GuiUtils.isInTextOrGui()) Registries.IN_GAME_END_MOUSE.runner().onInGameEndMouse(rawButtonInfo, action);
     }
 }

@@ -1,4 +1,4 @@
-package lpctools.mixin.client;
+package lpctools.mixin.client.events;
 
 import com.llamalad7.mixinextras.sugar.Local;
 import lpctools.lpcfymasaapi.render.RenderEventHandler;

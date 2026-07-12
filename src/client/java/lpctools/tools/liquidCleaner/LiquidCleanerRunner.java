@@ -16,7 +16,6 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.LiquidBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
@@ -92,11 +91,10 @@ public class LiquidCleanerRunner implements ClientTickEvents.EndTick {
     
     private static boolean isAllowedReplaceableLiquid(BlockState state) {
         if(!isReplaceableLiquid(state)) return false;
-        if(liquidSourceOnly.getAsBoolean() && state.getValue(LiquidBlock.LEVEL) != 0) return false;
-        return true;
-    }
+		return !liquidSourceOnly.getAsBoolean() || state.getFluidState().isSource();
+	}
 
-    private static boolean shouldAttackBlock(@NotNull ShapeList shapeList ,@NotNull LocalPlayer player, @NotNull BlockPos pos){
+    private static boolean shouldAttackBlock(@NotNull ShapeList shapeList, @NotNull LocalPlayer player, @NotNull BlockPos pos){
         Level world = player.level();
         BlockState state = world.getBlockState(pos);
         if(!shapeList.testPos(pos)){

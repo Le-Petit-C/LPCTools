@@ -9,7 +9,7 @@ import lpctools.lpcfymasaapi.Registries;
 import lpctools.lpcfymasaapi.render.translucentShapes.Quad;
 import lpctools.lpcfymasaapi.render.translucentShapes.ShapeReference;
 import lpctools.lpcfymasaapi.render.translucentShapes.ShapeRegister;
-import lpctools.tools.ToolUtils;
+import lpctools.util.DataUtils;
 import lpctools.util.Packed;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientWorldEvents;
 import net.minecraft.client.Minecraft;
@@ -20,6 +20,7 @@ import net.minecraft.util.Mth;
 import org.apache.commons.lang3.mutable.MutableInt;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jspecify.annotations.NonNull;
 
 import static lpctools.tools.ToolUtils.*;
 
@@ -77,6 +78,7 @@ public class BlockOuterEdgeHighlightInstance implements AutoCloseable, ClientWor
                     if(ref != null) ref.close();
         posQuads.clear();
         posesNeedToUpdateRender.clear();
+        renderingPoses.clear();
         markedPoses.clear();
     }
     
@@ -113,18 +115,22 @@ public class BlockOuterEdgeHighlightInstance implements AutoCloseable, ClientWor
         });
     }
     
+    public @Nullable Int2ObjectOpenHashMap<MutableInt> getChunkMarks(long packedChunkPos) {
+        return markedPoses.get(packedChunkPos);
+    }
+    
     @Override public void close(){
         registerAll(false);
         clearData();
         taskInstance.close();
     }
     
-    @Override public void afterWorldChange(Minecraft mc, ClientLevel world) {clearData();}
+    @Override public void afterWorldChange(@NonNull Minecraft mc, @NonNull ClientLevel world) {clearData();}
     
     @Override public void betweenFrames() {
         var camPos = Minecraft.getInstance().gameRenderer.getMainCamera().position();
-        double chunkedCamX = ToolUtils.chunkedCoord(camPos.x);
-        double chunkedCamZ = ToolUtils.chunkedCoord(camPos.z);
+        double chunkedCamX = DataUtils.chunkedCoord(camPos.x);
+        double chunkedCamZ = DataUtils.chunkedCoord(camPos.z);
         updatePosesNeedToUpdate(chunkedCamX, chunkedCamZ);
     }
     
@@ -254,7 +260,7 @@ public class BlockOuterEdgeHighlightInstance implements AutoCloseable, ClientWor
     }
     
     void registerAll(boolean b){
-        Registries.AFTER_CLIENT_WORLD_CHANGE.register(this, b);
+        Registries.AFTER_CLIENT_LEVEL_CHANGE.register(this, b);
         Registries.BETWEEN_RENDER_FRAMES.register(this, b);
     }
     

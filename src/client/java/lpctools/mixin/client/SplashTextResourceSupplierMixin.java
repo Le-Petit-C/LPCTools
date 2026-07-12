@@ -11,20 +11,20 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import net.minecraft.client.resources.SplashManager;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.network.chat.Component;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.util.profiling.ProfilerFiller;
 
 @Mixin(SplashManager.class)
 public class SplashTextResourceSupplierMixin {
-    @Unique private static final ResourceLocation RESOURCE_ID = ResourceLocation.fromNamespaceAndPath("lpctools", "texts/splashes.txt");
+    @Unique private static final Identifier RESOURCE_ID = Identifier.fromNamespaceAndPath("lpctools", "texts/splashes.txt");
     @Inject(method = "prepare(Lnet/minecraft/server/packs/resources/ResourceManager;Lnet/minecraft/util/profiling/ProfilerFiller;)Ljava/util/List;",
     at = @At("RETURN"), cancellable = true)
-    void injectPrepare(ResourceManager resourceManager, ProfilerFiller profiler, CallbackInfoReturnable<List<String>> cir){
-		try (BufferedReader bufferedReader = resourceManager.openAsReader(RESOURCE_ID)) {
-			List<String> extra;
-			if (bufferedReader == null) return;
-			extra = bufferedReader.lines().map(String::trim).toList();
+    void injectPrepare(ResourceManager manager, ProfilerFiller profiler, CallbackInfoReturnable<List<Component>> cir){
+		try (BufferedReader bufferedReader = manager.openAsReader(RESOURCE_ID)) {
+			List<Component> extra;
+			extra = bufferedReader.lines().map(s -> (Component) Component.literal(s.trim())).toList();
 			if (cir.getReturnValue() != null) {
 				try {
 					cir.getReturnValue().addAll(extra);

@@ -35,7 +35,7 @@ public class ConfigListConfig<T extends ILPCUniqueConfigBase> extends LPCUniqueC
     public boolean expanded;
     private boolean isModified = false;
     private boolean needUpdateModified = true;
-    DirtyState dirty = new DirtyState();
+    final DirtyState dirty = new DirtyState();
     @Override public DirtyState getDirty() { return dirty; }
     
     public void setExpanded(boolean b){

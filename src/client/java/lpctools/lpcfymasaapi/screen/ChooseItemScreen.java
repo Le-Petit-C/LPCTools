@@ -7,7 +7,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.Block;
@@ -26,17 +26,17 @@ public class ChooseItemScreen extends GuiBase {
 	private final ChooseItemData<?> data;
 	private record SearchResult(Item renderItem, List<String> hoverStrings, Runnable chosenCallback){}
 	private final ArrayList<SearchResult> searchedItems = new ArrayList<>();
-	private record ChooseItemData<T>(List<T> items, Function<T, Item> toItem, Function<T, ResourceLocation> toIdentifier, Function<T, String> toDisplayString, Consumer<T> callback) {
+	private record ChooseItemData<T>(List<T> items, Function<T, Item> toItem, Function<T, Identifier> toIdentifier, Function<T, String> toDisplayString, Consumer<T> callback) {
 		public void refreshSearchedItems(String text, ArrayList<SearchResult> searchedItems){
-			ToBooleanFunction<ResourceLocation> idTest;
-			ResourceLocation testId = ResourceLocation.tryParse(text);
+			ToBooleanFunction<Identifier> idTest;
+			Identifier testId = Identifier.tryParse(text);
 			if(testId != null) idTest = obj->obj.getNamespace().contains(testId.getNamespace())
 				&& obj.getPath().contains(testId.getPath());
 			else idTest = o->false;
 			searchedItems.clear();
 			for(T obj : items){
 				Item item = toItem.apply(obj);
-				ResourceLocation id = toIdentifier.apply(obj);
+				Identifier id = toIdentifier.apply(obj);
 				String displayString = toDisplayString.apply(obj);
 				if(displayString.contains(text) || idTest.applyAsBoolean(id))
 					searchedItems.add(new SearchResult(item, List.of(displayString, id.toString()), ()->callback.accept(obj)));
@@ -46,7 +46,7 @@ public class ChooseItemScreen extends GuiBase {
 	private int shift = 0;
 	private boolean needInitGui = true;
 	GuiTextFieldGeneric searchBar;
-	public <T> ChooseItemScreen(@Nullable Screen parent, List<T> items, Function<T, Item> toItem, Function<T, ResourceLocation> toIdentifier, Function<T, String> toDisplayString, int width, int height, Consumer<T> callback){
+	public <T> ChooseItemScreen(@Nullable Screen parent, List<T> items, Function<T, Item> toItem, Function<T, Identifier> toIdentifier, Function<T, String> toDisplayString, int width, int height, Consumer<T> callback){
 		this.width = width;
 		this.height = height;
 		this.data = new ChooseItemData<>(items, toItem, toIdentifier, toDisplayString, callback);

@@ -5,12 +5,14 @@ import fi.dy.masa.malilib.gui.button.ButtonBase;
 import fi.dy.masa.malilib.hotkeys.IKeybind;
 import fi.dy.masa.malilib.hotkeys.KeyAction;
 import lpctools.LPCTools;
+import lpctools.debugs.ThreeBodyDisplay.ThreeBodyDisplay;
 import lpctools.lpcfymasaapi.LPCConfigList;
 import lpctools.lpcfymasaapi.Registries;
 import lpctools.lpcfymasaapi.configButtons.transferredConfigs.BooleanConfig;
 import lpctools.lpcfymasaapi.configButtons.transferredConfigs.HotkeyConfig;
 import lpctools.lpcfymasaapi.configButtons.uniqueConfigs.*;
 import lpctools.lpcfymasaapi.interfaces.ILPCUniqueConfigBase;
+import lpctools.tools.ToolUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.player.LocalPlayer;
@@ -45,11 +47,13 @@ public class DebugConfigs {
         "mutable", (parent, key)->new MutableConfig<>(parent, key, booleanHotkeyThirdListTest.getFullTranslationKey() + ".mutable", getConfigSuppliers(), null){@Override public @NotNull String getFullTranslationKey() {return "lpctools.configs.debugs.booleanHotkeyThirdListTest.mutable.mutable";}}
     );
     public static final MutableConfig<ILPCUniqueConfigBase> MUTABLE_CONFIG_TEST = booleanHotkeyThirdListTest.addConfig(new MutableConfig<>(booleanHotkeyThirdListTest, "mutable", booleanHotkeyThirdListTest.getFullTranslationKey() + ".mutable", configSuppliers, null));
+    public static final BooleanHotkeyThirdListConfig renderDebugShapes = addConfig(ToolUtils.configBuilder("renderDebugShapes").withParent(debugs).withToolRunner(DebugShapes::new).build());
     private static ImmutableMap<String, BiFunction<MutableConfig<ILPCUniqueConfigBase>, String, ILPCUniqueConfigBase>> getConfigSuppliers(){return configSuppliers;}
     static {Registries.ON_SCREEN_CHANGED.register(newScreen -> buttonConfigTest.buttonName = null);}
     static {addConfig(TimeTest.timeTest);}
     static {addConfig(GpuCacheMissTest.gpuCacheMissTest);}
     static {addConfig(TranslucentQuadsTest.translucentQuadsTest);}
+    static {addConfig(ThreeBodyDisplay.threeBody);}
     static {listStack.pop();}
     
     private static void booleanHotkeyThirdListTestCallback(){

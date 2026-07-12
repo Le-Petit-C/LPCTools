@@ -21,6 +21,7 @@ import net.minecraft.world.level.chunk.ChunkAccess;
 import net.minecraft.world.level.chunk.LevelChunk;
 import org.apache.commons.lang3.mutable.MutableInt;
 import org.jetbrains.annotations.Nullable;
+import org.jspecify.annotations.NonNull;
 
 import static lpctools.tools.furnaceMaintainer.FurnaceMaintainerData.*;
 
@@ -40,7 +41,7 @@ public class DataInstance implements QuietAutoCloseable, Registries.ClientWorldC
 		this.color.setValue(color);
 		highlightInstance.reshapesAsync();
 	}
-	public void refreshColor() { setColor(DataUtils.argb2agbr(FurnaceMaintainer.markingColor.getIntegerValue())); }
+	public void refreshColor() { setColor(DataUtils.swapRedBlue(FurnaceMaintainer.markingColor.getIntegerValue())); }
 	public void setUseCullFace(boolean useCullFace) { highlightInstance.setUseCullFace(useCullFace); }
 	public void refreshUseCullFace() { setUseCullFace(FurnaceMaintainer.useCullFace.getBooleanValue()); }
 	public void setRenderXRays(boolean xRays) { highlightInstance.setRenderXRays(xRays); }
@@ -79,7 +80,7 @@ public class DataInstance implements QuietAutoCloseable, Registries.ClientWorldC
 			highlightInstance.mark(pos.asLong(), null);
 	}
 	
-	@Override public void onEndTick(Minecraft client) {
+	@Override public void onEndTick(@NonNull Minecraft client) {
 		if(dataInstance != this || isEmpty()) {
 			DataUtils.clientMessage(Component.translatable("lpctools.configs.tools.FM.markedBlocksCleared"), true);
 			if(dataInstance == this) {

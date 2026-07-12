@@ -5,8 +5,8 @@ import fi.dy.masa.malilib.gui.GuiTextFieldGeneric;
 import fi.dy.masa.malilib.gui.widgets.WidgetConfigOptionBase;
 import fi.dy.masa.malilib.gui.widgets.WidgetListConfigOptionsBase;
 import fi.dy.masa.malilib.gui.wrappers.TextFieldWrapper;
+import fi.dy.masa.malilib.render.GuiContext;
 import lpctools.mixinInterfaces.MASAMixins.IWidgetConfigOptionBaseEx;
-import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.input.CharacterEvent;
 import net.minecraft.client.input.KeyEvent;
 import net.minecraft.client.input.MouseButtonEvent;
@@ -24,16 +24,17 @@ import java.util.ArrayList;
 @Mixin(value = WidgetConfigOptionBase.class, remap = false)
 public class WidgetConfigOptionBaseMixin implements IWidgetConfigOptionBaseEx {
     @Shadow @Final protected WidgetListConfigOptionsBase<?, ?> parent;
-    @Unique ArrayList<TextFieldWrapper<? extends GuiTextFieldGeneric>> extraTextFieldWrappers = new ArrayList<>();
+    @Unique
+	final ArrayList<TextFieldWrapper<? extends GuiTextFieldGeneric>> extraTextFieldWrappers = new ArrayList<>();
     @Unique @Override public void lPCTools$addExtraTextField(GuiTextFieldGeneric field, ConfigOptionChangeListenerTextField listener) {
         TextFieldWrapper<? extends GuiTextFieldGeneric> wrapper = new TextFieldWrapper<>(field, listener);
         extraTextFieldWrappers.add(wrapper);
         parent.addTextField(wrapper);
     }
     @Inject(method = "drawTextFields", at = @At("TAIL"))
-    void drawExtraTextFields(GuiGraphics context, int mouseX, int mouseY, CallbackInfo ci){
+    void drawExtraTextFields(GuiContext ctx, int mouseX, int mouseY, CallbackInfo ci){
         for(TextFieldWrapper<? extends GuiTextFieldGeneric> textFieldWrapper : extraTextFieldWrappers)
-            textFieldWrapper.getTextField().render(context, mouseX, mouseY, 0f);
+            textFieldWrapper.textField().render(ctx, mouseX, mouseY, 0f);
     }
     @Inject(method = "onMouseClickedImpl", at = @At("RETURN"), cancellable = true)
     void onMouseClickedImpl(MouseButtonEvent click, boolean doubleClick, CallbackInfoReturnable<Boolean> cir){

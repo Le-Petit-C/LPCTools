@@ -7,9 +7,14 @@ import fi.dy.masa.malilib.util.StringUtils;
 import it.unimi.dsi.fastutil.ints.*;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import lpctools.generic.UpdateCounter;
+import lpctools.lpcfymasaapi.configButtons.uniqueConfigs.BooleanHotkeyThirdListConfig;
+import lpctools.lpcfymasaapi.interfaces.IBooleanConfig;
 import lpctools.lpcfymasaapi.interfaces.ILPCConfig;
+import lpctools.lpcfymasaapi.interfaces.ILPCConfigList;
+import lpctools.lpcfymasaapi.interfaces.ILPCValueChangeCallback;
 import lpctools.util.LPCMathHelper;
 import lpctools.util.Packed;
+import lpctools.util.javaex.QuietAutoCloseable;
 import lpctools.util.javaex.ToBooleanFunction;
 import net.minecraft.network.chat.Component;
 import org.jetbrains.annotations.NotNull;
@@ -19,16 +24,93 @@ import java.util.Collection;
 import java.util.Map;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.function.Supplier;
 
 @SuppressWarnings({"UnusedReturnValue", "unused"})
 public class ToolUtils {
-    //通过设置配置的热键回调函数设置一个Boolean配置的切换文本显示为LPCTools默认风格
+    // 通过设置配置的热键回调函数设置一个Boolean配置的切换文本显示为LPCTools默认风格
     public static <T extends IConfigBoolean & IHotkey & ILPCConfig> void setLPCToolsToggleText(T config){
         config.getKeybind().setCallback((action, key)->{
             config.toggleBooleanValue();
             displayToggleMessage(config.getBooleanValue(), config);
             return true;
         });
+    }
+    // TODO: 其他工具也用这个Builder构建
+    public static class ToolConfigBuilder {
+        private final String key;
+        private @NotNull ILPCConfigList parent = ToolConfigs.toolConfigs;
+        private @Nullable ILPCValueChangeCallback callback;
+        private @Nullable Supplier<ToolRunner> toolRunner;
+        private ToolConfigBuilder(String key) { this.key = key; }
+        public ToolConfigBuilder withExtraCallback(ILPCValueChangeCallback callback) {
+            this.callback = callback;
+            return this;
+        }
+        public ToolConfigBuilder withToolRunner(Supplier<ToolRunner> toolRunner) {
+            this.toolRunner = toolRunner;
+            return this;
+        }
+        public ToolConfigBuilder withParent(ILPCConfigList parent) {
+            this.parent = parent;
+            return this;
+        }
+        public BooleanHotkeyThirdListConfig build() {
+            BooleanHotkeyThirdListConfig config = new BooleanHotkeyThirdListConfig(parent, key);
+            ILPCValueChangeCallback callback = this.callback;
+            if(toolRunner != null) {
+                ToolRunnerCallback toolRunnerCallback = new ToolRunnerCallback(config, toolRunner);
+                if(callback != null) {
+                    ILPCValueChangeCallback oldCallback = callback;
+                    callback = ()->{
+                        toolRunnerCallback.onValueChanged();
+                        oldCallback.onValueChanged();
+                    };
+                }
+                else callback = toolRunnerCallback;
+            }
+            if(callback != null) config.setValueChangeCallback(callback);
+            setLPCToolsToggleText(config);
+            return config;
+        }
+
+		private static final class ToolRunnerCallback implements ILPCValueChangeCallback {
+			private final IBooleanConfig config;
+			private final Supplier<ToolRunner> toolRunner;
+            private @Nullable ToolRunner runner;
+
+			private ToolRunnerCallback(IBooleanConfig config, Supplier<ToolRunner> toolRunner) {
+				this.config = config;
+				this.toolRunner = toolRunner;
+			}
+
+			@Override public void onValueChanged() {
+				if (config.getBooleanValue()) {
+                    if(runner == null) runner = toolRunner.get();
+                    runner.registerAll(true);
+				}
+                else {
+                    if(runner != null) {
+                        runner.registerAll(false);
+                        if(runner instanceof QuietAutoCloseable closeable)
+                            closeable.close();
+                        else if(runner instanceof AutoCloseable closeable) {
+                            try {
+                                closeable.close();
+                            } catch (Exception e) {
+                                throw new RuntimeException(e);
+                            }
+                        }
+                        runner = null;
+                    }
+                }
+			}
+		}
+    }
+    public interface ToolRunner { void registerAll(boolean b); }
+
+    public static ToolConfigBuilder configBuilder(String key) {
+        return new ToolConfigBuilder(key);
     }
     public static void displayDisableReason(@NotNull ILPCConfig tool, @Nullable String reasonKey){
         String reason = StringUtils.translate("lpctools.tools.disableNotification", tool.getNameTranslation());
@@ -148,10 +230,6 @@ public class ToolUtils {
     }
     public static boolean chunkedRemove(Long2ObjectMap<? extends IntSet> set, long packedBlockPos) {
         return chunkedRemove(set, Packed.BlockPos.unpackX(packedBlockPos), Packed.BlockPos.unpackY(packedBlockPos), Packed.BlockPos.unpackZ(packedBlockPos));
-    }
-    
-    public static double chunkedCoord(double origin) {
-        return origin / 16 - 0.5;
     }
     
     public static <T> void clearMapDataOutOfRange(double chunkedCamX, double chunkedCamZ, double chunkDistanceLimitSquared, Long2ObjectMap<T> mapToClean, ToBooleanFunction<T> emptyCheck, Consumer<T> cleaner) {
