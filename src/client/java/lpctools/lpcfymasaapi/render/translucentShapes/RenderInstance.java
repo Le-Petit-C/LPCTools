@@ -132,7 +132,7 @@ public class RenderInstance implements QuietAutoCloseable, Registries.WorldPreMa
 		var fb = context.fb();
 		GpuTextureView colorAttachmentView = lpctools.util.RenderUtils.colorAttachmentViewOrDef(fb);
 		GpuTextureView depthAttachmentView = fb.useDepth ? fb.getDepthTextureView() : null;
-		Vec3 camPos = context.camera().position();
+		Vec3 camPos = context.camera().pos;
 		Vector3f offset = new Vector3f((float) (basePoint.x - camPos.x), (float) (basePoint.y - camPos.y), (float) (basePoint.z - camPos.z));
 		Matrix4f modelViewMatrix = RenderSystem.getModelViewMatrixCopy();
 		if(renderOption.modelOffsetOntoMatrix()) {
@@ -164,7 +164,7 @@ public class RenderInstance implements QuietAutoCloseable, Registries.WorldPreMa
 		waitForTasks();
 		if (context != null) {
 			final Frustum frustum = recordData ? new Frustum(context.frustum()) : context.frustum();
-			dispatchTask = CompletableFuture.supplyAsync(() -> dispatchPrepareTasks(frustum, context.camera().position(), executor), executor);
+			dispatchTask = CompletableFuture.supplyAsync(() -> dispatchPrepareTasks(frustum, context.camera().pos, executor), executor);
 			prepareTasks = dispatchTask.thenCompose(tasks -> tasks);
 		}
 	}

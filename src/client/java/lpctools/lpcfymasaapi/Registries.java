@@ -13,8 +13,6 @@ import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientLevelEvents;
 import net.fabricmc.fabric.api.client.rendering.v1.level.LevelExtractionEvents;
 import net.fabricmc.fabric.api.client.rendering.v1.level.LevelRenderEvents;
 import net.fabricmc.fabric.api.resource.v1.ResourceLoader;
-import net.minecraft.client.Camera;
-import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Gui;
 import net.minecraft.client.gui.screens.Screen;
@@ -37,7 +35,6 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.chunk.LevelChunk;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.joml.Matrix4f;
 import org.joml.Matrix4fc;
 import org.joml.Vector4f;
 
@@ -116,15 +113,17 @@ public class Registries {
         var toolTipComponentInsertLastRenderer = MASA_RENDER_TOOLTIP_COMPONENT_INSERTION_LAST.runner();
         var toolTipLastRenderer = MASA_RENDER_TOOLTIP_LAST.runner();
         IRenderer malilibRenderer = new IRenderer() {
-            @Override public void onExtractGuiOverlayPost(GuiContext ctx, float partialTicks, ProfilerFiller profiler) {}
+            @Override public void onExtractGuiOverlayPost(GuiContext ctx, float partialTicks, ProfilerFiller profiler) {
+                MASA_RENDER_GAME_OVERLAY.runner().renderGameOverlay(ctx, partialTicks, profiler);
+            }
             
-            @Override public void onExtractWorldPreWeather(DeltaTracker deltaTracker, Camera camera, float ticks, ProfilerFiller profiler) {}
-            
-            @Override public void onRenderWorldPreWeather(RenderTarget fb, Matrix4fc modelViewMatrix, CameraRenderState cameraState, Frustum culling, RenderBuffers buffers, GpuBufferSlice terrainFog, Vector4f fogColor, ProfilerFiller profiler) {}
-            
-            @Override public void onExtractWorldLast(DeltaTracker deltaTracker, Camera camera, float ticks, ProfilerFiller profiler) {}
-            
-            @Override public void onRenderWorldLast(RenderTarget fb, Matrix4fc modelViewMatrix, CameraRenderState cameraState, Frustum culling, RenderBuffers buffers, GpuBufferSlice terrainFog, Vector4f fogColor, ProfilerFiller profiler) {}
+            @Override public void onRenderWorldPreWeather(RenderTarget fb, Matrix4fc modelViewMatrix, CameraRenderState cameraState, Frustum culling, RenderBuffers buffers, GpuBufferSlice terrainFog, Vector4f fogColor, ProfilerFiller profiler) {
+                MASA_RENDER_WORLD_PRE_WEATHER.runner().onRenderWorldPreWeather(new MASAWorldRenderContext(fb, modelViewMatrix, culling, cameraState, buffers, profiler));
+            }
+
+            @Override public void onRenderWorldLast(RenderTarget fb, Matrix4fc modelViewMatrix, CameraRenderState cameraState, Frustum culling, RenderBuffers buffers, GpuBufferSlice terrainFog, Vector4f fogColor, ProfilerFiller profiler) {
+                MASA_WORLD_RENDER_LAST.runner().onLast(new MASAWorldRenderContext(fb, modelViewMatrix, culling, cameraState, buffers, profiler));
+            }
             
             @Override public void onRenderTooltipComponentInsertFirst(Item.TooltipContext context, ItemStack stack, Consumer<Component> list) {
                 toolTipComponentInsertFirstRenderer.onRenderTooltipComponentInsertFirst(context, stack, list);
@@ -156,7 +155,7 @@ public class Registries {
     public interface GameOverlayRender {
         void renderGameOverlay(GuiContext ctx, float partialTicks, ProfilerFiller profiler);
     }
-    public record MASAWorldRenderContext(RenderTarget fb, Matrix4f positionMatrix, Matrix4f projectionMatrix, Frustum frustum, Camera camera, RenderBuffers buffers, ProfilerFiller profiler) {}
+    public record MASAWorldRenderContext(RenderTarget fb, Matrix4fc positionMatrix, Frustum frustum, CameraRenderState camera, RenderBuffers buffers, ProfilerFiller profiler) {}
     public interface WorldPreMainRender {
         void onRenderWorldPreMain(MASAWorldRenderContext context);
     }
