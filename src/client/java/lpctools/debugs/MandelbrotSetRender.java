@@ -15,24 +15,19 @@ import lpctools.lpcfymasaapi.configButtons.transferredConfigs.DoubleConfig;
 import lpctools.lpcfymasaapi.configButtons.transferredConfigs.IntegerConfig;
 import lpctools.lpcfymasaapi.interfaces.ILPCConfigReadable;
 import lpctools.util.CachedSupplier;
-import net.minecraft.client.Minecraft;
-import net.fabricmc.fabric.api.client.rendering.v1.level.LevelRenderContext;
-import net.fabricmc.fabric.api.client.rendering.v1.level.LevelRenderEvents;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.GameRenderer;
+import lpctools.util.RenderUtils;
 import net.minecraft.resources.Identifier;
 import org.joml.*;
 import org.lwjgl.system.MemoryUtil;
 
 import java.nio.ByteBuffer;
-import java.util.Objects;
 import java.util.OptionalDouble;
 import java.util.OptionalInt;
 
 import static lpctools.lpcfymasaapi.LPCConfigStatics.*;
 import static net.minecraft.client.renderer.RenderPipelines.MATRICES_PROJECTION_SNIPPET;
 
-public class MandelbrotSetRender extends BooleanThirdListConfig implements LevelRenderEvents.AfterTranslucentTerrain {
+public class MandelbrotSetRender extends BooleanThirdListConfig implements Registries.WorldLastRender {
     public final IntegerConfig maxDepth;
     public final DoubleConfig stretch;
     public final CachedSupplier<RenderSources> renderSources = new CachedSupplier<>(RenderSources::new);
@@ -45,8 +40,7 @@ public class MandelbrotSetRender extends BooleanThirdListConfig implements Level
             .withFragmentShader(Identifier.fromNamespaceAndPath("lpctools", "core/mandelbrot_set"))
             .withVertexFormat(DefaultVertexFormat.POSITION_TEX, VertexFormat.Mode.QUADS)
             .withLocation(Identifier.fromNamespaceAndPath("lpctools", "pipeline/mandelbrot"))
-            .withColorTargetState(new ColorTargetState(BlendFunction.TRANSLUCENT))
-            .withDepthStencilState(DepthStencilState.DEFAULT)
+            .withBlend(BlendFunction.TRANSLUCENT)
             .withCull(false)
             .build();
         public static final RenderSystem.AutoStorageIndexBuffer mandelbrotSetShapeIndexBuffer = RenderSystem.getSequentialBuffer(VertexFormat.Mode.QUADS);
@@ -109,18 +103,16 @@ public class MandelbrotSetRender extends BooleanThirdListConfig implements Level
     
     @Override public void onValueChanged() {
         super.onValueChanged();
-        Registries.AFTER_TRANSLUCENT_TERRAIN.register(this, getBooleanValue());
+        Registries.MASA_WORLD_RENDER_LAST.register(this, getBooleanValue());
     }
 
 
-    @Override
-    public void afterTranslucentTerrain(LevelRenderContext context) {
-        GameRenderer renderer = context.gameRenderer();
-        RenderTarget fb = Minecraft.getInstance().getMainRenderTarget();
+    @Override public void onLast(Registries.MASAWorldRenderContext context) {
+        RenderTarget fb = context.fb();
         GpuTextureView colorAttachmentView = RenderUtils.colorAttachmentViewOrDef(fb);
         GpuTextureView depthAttachmentView = fb.useDepth ? fb.getDepthTextureView() : null;
         GpuBufferSlice dynamicTransforms = RenderSystem.getDynamicUniforms()
-            .writeTransform(new Matrix4f(RenderSystem.getModelViewMatrix()).translate(renderer.getMainCamera().position().toVector3f().mul(-1)),
+            .writeTransform(new Matrix4f(RenderSystem.getModelViewMatrix()).translate(context.camera().position().toVector3f().mul(-1)),
                 new Vector4f(1.0F, 1.0F, 1.0F, 1.0F), new Vector3f(), new Matrix4f());
 		RenderSources renderSources = this.renderSources.get();
         GpuBuffer mandelbrotUniformBuffer = renderSources.getUpdatedMandelbrotUniformBuffer();

@@ -1,10 +1,8 @@
 package lpctools.lpcfymasaapi.render;
 
 import com.mojang.blaze3d.pipeline.BlendFunction;
-import com.mojang.blaze3d.pipeline.ColorTargetState;
-import com.mojang.blaze3d.pipeline.DepthStencilState;
 import com.mojang.blaze3d.pipeline.RenderPipeline;
-import com.mojang.blaze3d.platform.CompareOp;
+import com.mojang.blaze3d.platform.DepthTestFunction;
 import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 import com.mojang.blaze3d.vertex.VertexFormat;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
@@ -31,8 +29,7 @@ public class LPCRenderPipelines {
 		.withVertexFormat(DefaultVertexFormat.POSITION_COLOR_LINE_WIDTH, VertexFormat.Mode.TRIANGLES)
 		.withVertexShader(getId("core/sphere"))
 		.withFragmentShader(getId("core/sphere"))
-		.withColorTargetState(new ColorTargetState(BlendFunction.TRANSLUCENT))
-		.withDepthStencilState(DepthStencilState.DEFAULT)
+		.withBlend(BlendFunction.TRANSLUCENT)
 		.withLocation(getId("pipeline/sphere")).build();
 
 	public static RenderPipeline positionColorPipeline(boolean isLine, boolean translucentBlend, boolean depthTest, boolean depthWrite, OffsetMode offsetMode, boolean cull) {
@@ -49,19 +46,13 @@ public class LPCRenderPipelines {
 		OFFSET_2 { @Override RenderPipeline eigenPipeline() { return POSITION_COLOR_TRANSLUCENT_LEQUAL_DEPTH_OFFSET_2; } },
 		OFFSET_3 { @Override RenderPipeline eigenPipeline() { return POSITION_COLOR_TRANSLUCENT_LEQUAL_DEPTH_OFFSET_3; } };
 		abstract RenderPipeline eigenPipeline();
-		private static DepthStencilState depthStencilStateOrDefault(@Nullable DepthStencilState state) {
-			if(state != null) return state;
-			else return new DepthStencilState(CompareOp.ALWAYS_PASS, false);
-		}
-		private DepthStencilState depthStencilState() { return depthStencilStateOrDefault(eigenPipeline().getDepthStencilState()); }
-		public float depthBiasScaleFactor() { return depthStencilState().depthBiasScaleFactor(); }
-		public float depthBiasConstant() { return depthStencilState().depthBiasConstant(); }
+		public float depthBiasScaleFactor() { return eigenPipeline().getDepthBiasScaleFactor(); }
+		public float depthBiasConstant() { return eigenPipeline().getDepthBiasConstant(); }
 		public static @Nullable OffsetMode pipelineOffsetMode(RenderPipeline pipeline) {
-			DepthStencilState depthStencilState = depthStencilStateOrDefault(pipeline.getDepthStencilState());
 			for(OffsetMode mode: OffsetMode.values()) {
 				if(
-					mode.depthBiasScaleFactor() == depthStencilState.depthBiasScaleFactor()
-					&& mode.depthBiasConstant() == depthStencilState.depthBiasConstant()
+					mode.depthBiasScaleFactor() == pipeline.getDepthBiasScaleFactor()
+					&& mode.depthBiasConstant() == pipeline.getDepthBiasConstant()
 				) return mode;
 			}
 			return null;
@@ -104,13 +95,12 @@ public class LPCRenderPipelines {
 			}
 			OffsetMode offsetMode = OffsetMode.pipelineOffsetMode(pipeline);
 			if(offsetMode == null) return;
-			boolean translucentBlend = (pipeline.getColorTargetState() instanceof ColorTargetState state ? state.blendFunction().orElse(null) : null) == BlendFunction.TRANSLUCENT;
-			DepthStencilState depth = Objects.requireNonNullElseGet(pipeline.getDepthStencilState(), ()->new DepthStencilState(CompareOp.ALWAYS_PASS, false));
+			boolean translucentBlend = pipeline.getBlendFunction().orElse(null) == BlendFunction.TRANSLUCENT;
 			boolean depthTest;
-			if(depth.depthTest() == CompareOp.ALWAYS_PASS) depthTest = false;
-			else if(depth.depthTest() == CompareOp.GREATER_THAN_OR_EQUAL) depthTest = true;
+			if(pipeline.getDepthTestFunction() == DepthTestFunction.NO_DEPTH_TEST) depthTest = false;
+			else if(pipeline.getDepthTestFunction() == DepthTestFunction.LEQUAL_DEPTH_TEST) depthTest = true;
 			else return;
-			boolean depthWrite = depth.writeDepth();
+			boolean depthWrite = pipeline.isWriteDepth();
 			boolean cull = pipeline.isCull();
 			setPipeline(isLine, translucentBlend, depthTest, depthWrite, offsetMode, cull, pipeline);
 		}
@@ -166,7 +156,9 @@ public class LPCRenderPipelines {
 				translucentBlend ? (isLine ? DEBUG_LINES_TRANSLUCENT_STAGE : POSITION_COLOR_TRANSLUCENT_STAGE)
 					: (isLine ? DEBUG_LINES_MASA_SIMPLE_STAGE : POSITION_COLOR_MASA_STAGE))
 				.withCull(cull)
-				.withDepthStencilState(new DepthStencilState(depthTest ? CompareOp.LESS_THAN_OR_EQUAL : CompareOp.ALWAYS_PASS, depthWrite, offsetMode.depthBiasScaleFactor(), offsetMode.depthBiasConstant()))
+				.withDepthTestFunction(depthTest ? DepthTestFunction.LEQUAL_DEPTH_TEST : DepthTestFunction.NO_DEPTH_TEST)
+				.withDepthWrite(depthWrite)
+				.withDepthBias(offsetMode.depthBiasScaleFactor(), offsetMode.depthBiasConstant())
 				.withLocation(getLocationId(isLine, translucentBlend, depthTest, depthWrite, offsetMode, cull))
 				.build();
 		}

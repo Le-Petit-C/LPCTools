@@ -21,7 +21,7 @@ public class CombinedBlockGetters implements BlockGetter {
 		bottomY = Math.min(bottomY, chunk.getMinY());
 		topY = Math.max(topY, chunk.getMinY() + chunk.getHeight());
 	}
-	public void putChunk(ChunkPos chunkPos, BlockGetter chunk){ putChunk(chunkPos.pack(), chunk); }
+	public void putChunk(ChunkPos chunkPos, BlockGetter chunk){ putChunk(chunkPos.toLong(), chunk); }
 	public void putChunk(ChunkAccess chunk){ putChunk(chunk.getPos(), chunk); }
 	
 	@Override public @Nullable BlockEntity getBlockEntity(@NonNull BlockPos pos) {

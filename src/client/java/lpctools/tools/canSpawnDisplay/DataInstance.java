@@ -41,7 +41,7 @@ import java.util.function.Supplier;
 
 import static lpctools.tools.ToolUtils.clearMapDataOutOfRange;
 
-public class DataInstance implements AutoCloseable, Registries.ClientWorldChunkLightUpdated, ClientChunkEvents.Load, Registries.BetweenRenderFrames, Registries.ClientWorldChunkSetBlockState, GenericRegistry.SpawnConditionChanged, ClientLevelEvents.AfterClientLevelChange {
+public class DataInstance implements AutoCloseable, Registries.ClientWorldChunkLightUpdated, ClientChunkEvents.Load, Registries.BetweenRenderFrames, Registries.ClientWorldChunkSetBlockState, GenericRegistry.SpawnConditionChanged, ClientWorldEvents.AfterClientWorldChange {
     
     private record DelayedTask(long packedChunkPos, Supplier<RunningTask> task){}
     private record RunningTask(long packedChunkPos, CompletableFuture<TaskResult> task){}
@@ -66,7 +66,7 @@ public class DataInstance implements AutoCloseable, Registries.ClientWorldChunkL
         Registries.CLIENT_CHUNK_LOAD.register(this, b);
         Registries.BETWEEN_RENDER_FRAMES.register(this, b);
         Registries.CLIENT_WORLD_CHUNK_SET_BLOCK_STATE.register(this, b);
-        Registries.AFTER_CLIENT_WORLD_CHANGE.register(this, b);
+        Registries.AFTER_CLIENT_LEVEL_CHANGE.register(this, b);
         GenericRegistry.SPAWN_CONDITION_CHANGED.register(this, b);
     }
     void reshapesAsync(){
@@ -119,9 +119,9 @@ public class DataInstance implements AutoCloseable, Registries.ClientWorldChunkL
         canSpawnPoses.clear();
     }
     private void addDelayedTask(Level world, ChunkPos chunkPos, LevelLightEngine light){
-        Combined3x3Chunk chunks = Combined3x3Chunk.createCentered(world, chunkPos.x(), chunkPos.z());
+        Combined3x3Chunk chunks = Combined3x3Chunk.createCentered(world, chunkPos.x, chunkPos.z);
         if(chunks == null) return;
-        long packedChunkPos = chunkPos.pack();
+        long packedChunkPos = chunkPos.toLong();
         delayedTasks.add(new DelayedTask(packedChunkPos, ()->testChunkAsync(chunks, light, packedChunkPos)));
     }
     public void resetData(@NotNull Level world, @NotNull Vec3 playerPos){
@@ -135,7 +135,7 @@ public class DataInstance implements AutoCloseable, Registries.ClientWorldChunkL
         ChunkPos centerChunkPos = chunk.getPos();
         for(int dx = -1; dx <= 1; ++dx)
             for(int dz = -1; dz <= 1; ++dz)
-                addDelayedTask(level, new ChunkPos(centerChunkPos.x() + dx, centerChunkPos.z() + dz), level.getLightEngine());
+                addDelayedTask(level, new ChunkPos(centerChunkPos.x + dx, centerChunkPos.z + dz), level.getLightEngine());
     }
     @Override public void close() {
         clearData();

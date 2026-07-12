@@ -36,14 +36,14 @@
 		"minecraft": [
 			"1.21.11"
 		],
-		"java": ">=21",
+		"java": ">=24",
 		"malilib": "*",
 		"fabric-api": "*"
 	},
 	"suggests": {
-		"malilib": "0.28.9",
-		"minihud": "0.39.8",
-		"litematica": "0.27.9",
-		"tweakeroo": "0.28.6"
+		"malilib": "0.27.16",
+		"minihud": "0.38.13",
+		"litematica": "0.26.11",
+		"tweakeroo": "0.27.11"
 	}
 }

@@ -47,7 +47,7 @@ class DataInstance implements AutoCloseable, ClientChunkEvents.Load, ClientWorld
     }
     
     void registerAll(boolean b){
-        Registries.AFTER_CLIENT_WORLD_CHANGE.register(this, b);
+        Registries.AFTER_CLIENT_LEVEL_CHANGE.register(this, b);
         Registries.CLIENT_CHUNK_LOAD.register(this, b);
         Registries.CLIENT_WORLD_CHUNK_SET_BLOCK_STATE.register(this, b);
         Registries.BETWEEN_RENDER_FRAMES.register(this, b);

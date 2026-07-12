@@ -14,8 +14,8 @@ import lpctools.lpcfymasaapi.render.translucentShapes.Sphere;
 import lpctools.tools.ToolUtils;
 import lpctools.util.RenderUtils;
 import lpctools.util.javaex.QuietAutoCloseable;
-import net.fabricmc.fabric.api.client.rendering.v1.level.LevelRenderContext;
-import net.fabricmc.fabric.api.client.rendering.v1.level.LevelRenderEvents;
+import net.fabricmc.fabric.api.client.rendering.v1.world.WorldRenderContext;
+import net.fabricmc.fabric.api.client.rendering.v1.world.WorldRenderEvents;
 import net.minecraft.client.Minecraft;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
@@ -30,9 +30,9 @@ import java.util.OptionalInt;
  * CPU 预变换顶点：在 CPU 上完成 ModelView 变换，
  * GPU 只做投影（bindDefaultUniforms 提供 ProjMat）。
  */
-public class DebugShapes implements ToolUtils.ToolRunner, LevelRenderEvents.BeforeTranslucentTerrain, QuietAutoCloseable {
+public class DebugShapes implements ToolUtils.ToolRunner, WorldRenderEvents.BeforeTranslucent, QuietAutoCloseable {
 
-	@Override public void registerAll(boolean b) { Registries.BEFORE_TRANSLUCENT_TERRAIN.register(this, b); }
+	@Override public void registerAll(boolean b) { Registries.BEFORE_TRANSLUCENT.register(this, b); }
 
 	GpuBuffer triangleVertexBuffer;
 	GpuBuffer sphereVertexBuffer;
@@ -91,7 +91,7 @@ public class DebugShapes implements ToolUtils.ToolRunner, LevelRenderEvents.Befo
 			sphereIndexBuffer = QuietAutoCloseable.close(sphereIndexBuffer);
 	}
 
-	@Override public void beforeTranslucentTerrain(LevelRenderContext context) {
+	@Override public void beforeTranslucent(WorldRenderContext context) {
 		initializeBuffers();
 
 		var camPos = context.gameRenderer().getMainCamera().position();

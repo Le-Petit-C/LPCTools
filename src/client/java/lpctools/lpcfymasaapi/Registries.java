@@ -40,8 +40,8 @@ import java.util.function.Consumer;
 
 @SuppressWarnings("unused")
 public class Registries {
-    public static final UnregistrableRegistry<ClientLevelEvents.AfterClientLevelChange> AFTER_CLIENT_LEVEL_CHANGE = UnregistrableRegistry.fanOut(
-        ClientLevelEvents.AfterClientLevelChange.class, ClientLevelEvents.AFTER_CLIENT_LEVEL_CHANGE);
+    public static final UnregistrableRegistry<ClientWorldEvents.AfterClientWorldChange> AFTER_CLIENT_LEVEL_CHANGE = UnregistrableRegistry.fanOut(
+        ClientWorldEvents.AfterClientWorldChange.class, ClientWorldEvents.AFTER_CLIENT_WORLD_CHANGE);
     // orCircuit: 返回 true 表示终止 screen change — 不能使用 fanOut
     public static final UnregistrableRegistry<BeforeScreenChangeCallback> BEFORE_SCREEN_CHANGE = new UnregistrableRegistry<>(
         callbacks->screen->callbacks.orCircuit(callback->callback.beforeScreenChange(screen)));
@@ -67,18 +67,16 @@ public class Registries {
     public static final UnregistrableRegistry<ClientChunkEvents.Load> CLIENT_CHUNK_LOAD = UnregistrableRegistry.fanOut(ClientChunkEvents.Load.class, ClientChunkEvents.CHUNK_LOAD);
     public static final UnregistrableRegistry<ClientChunkEvents.Unload> CLIENT_CHUNK_UNLOAD = UnregistrableRegistry.fanOut(ClientChunkEvents.Unload.class, ClientChunkEvents.CHUNK_UNLOAD);
     public static final UnregistrableRegistry<WorldPreMainRender> PRE_MAIN = UnregistrableRegistry.fanOut(WorldPreMainRender.class);
-    public static final UnregistrableRegistry<LevelRenderEvents.AfterBlockOutlineExtraction> AFTER_BLOCK_OUTLINE_EXTRACTION = UnregistrableRegistry.fanOut(LevelRenderEvents.AfterBlockOutlineExtraction.class, LevelRenderEvents.AFTER_BLOCK_OUTLINE_EXTRACTION);
-    public static final UnregistrableRegistry<LevelRenderEvents.EndExtraction> END_EXTRACTION = UnregistrableRegistry.fanOut(LevelRenderEvents.EndExtraction.class, LevelRenderEvents.END_EXTRACTION);
-    public static final UnregistrableRegistry<LevelRenderEvents.StartMain> START_MAIN = UnregistrableRegistry.fanOut(LevelRenderEvents.StartMain.class, LevelRenderEvents.START_MAIN);
-    public static final UnregistrableRegistry<LevelRenderEvents.AfterOpaqueTerrain> AFTER_OPAQUE_TERRAIN = UnregistrableRegistry.fanOut(LevelRenderEvents.AfterOpaqueTerrain.class, LevelRenderEvents.AFTER_OPAQUE_TERRAIN);
-    public static final UnregistrableRegistry<LevelRenderEvents.AfterSolidFeatures> AFTER_SOLID_FEATURES = UnregistrableRegistry.fanOut(LevelRenderEvents.AfterSolidFeatures.class, LevelRenderEvents.AFTER_SOLID_FEATURES);
-    public static final UnregistrableRegistry<LevelRenderEvents.AfterTranslucentFeatures> AFTER_TRANSLUCENT_FEATURES = UnregistrableRegistry.fanOut(LevelRenderEvents.AfterTranslucentFeatures.class, LevelRenderEvents.AFTER_TRANSLUCENT_FEATURES);
-    public static final UnregistrableRegistry<LevelRenderEvents.BeforeBlockOutline> BEFORE_BLOCK_OUTLINE = new UnregistrableRegistry<>(
-        callbacks->(context, outlineRenderState)->callbacks.andNonCircuit(callback->callback.beforeBlockOutline(context, outlineRenderState)), LevelRenderEvents.BEFORE_BLOCK_OUTLINE);
-    public static final UnregistrableRegistry<LevelRenderEvents.BeforeGizmos> BEFORE_GIZMOS = UnregistrableRegistry.fanOut(LevelRenderEvents.BeforeGizmos.class, LevelRenderEvents.BEFORE_GIZMOS);
-    public static final UnregistrableRegistry<LevelRenderEvents.BeforeTranslucentTerrain> BEFORE_TRANSLUCENT_TERRAIN = UnregistrableRegistry.fanOut(LevelRenderEvents.BeforeTranslucentTerrain.class, LevelRenderEvents.BEFORE_TRANSLUCENT_TERRAIN);
-    public static final UnregistrableRegistry<LevelRenderEvents.AfterTranslucentTerrain> AFTER_TRANSLUCENT_TERRAIN = UnregistrableRegistry.fanOut(LevelRenderEvents.AfterTranslucentTerrain.class, LevelRenderEvents.AFTER_TRANSLUCENT_TERRAIN);
-    public static final UnregistrableRegistry<LevelRenderEvents.EndMain> END_MAIN = UnregistrableRegistry.fanOut(LevelRenderEvents.EndMain.class, LevelRenderEvents.END_MAIN);
+    public static final UnregistrableRegistry<WorldRenderEvents.AfterBlockOutlineExtraction> AFTER_BLOCK_OUTLINE_EXTRACTION = UnregistrableRegistry.fanOut(WorldRenderEvents.AfterBlockOutlineExtraction.class, WorldRenderEvents.AFTER_BLOCK_OUTLINE_EXTRACTION);
+    public static final UnregistrableRegistry<WorldRenderEvents.EndExtraction> END_EXTRACTION = UnregistrableRegistry.fanOut(WorldRenderEvents.EndExtraction.class, WorldRenderEvents.END_EXTRACTION);
+    public static final UnregistrableRegistry<WorldRenderEvents.StartMain> START_MAIN = UnregistrableRegistry.fanOut(WorldRenderEvents.StartMain.class, WorldRenderEvents.START_MAIN);
+    public static final UnregistrableRegistry<WorldRenderEvents.BeforeEntities> BEFORE_ENTITIES = UnregistrableRegistry.fanOut(WorldRenderEvents.BeforeEntities.class, WorldRenderEvents.BEFORE_ENTITIES);
+    public static final UnregistrableRegistry<WorldRenderEvents.AfterEntities> AFTER_ENTITIES = UnregistrableRegistry.fanOut(WorldRenderEvents.AfterEntities.class, WorldRenderEvents.AFTER_ENTITIES);
+    public static final UnregistrableRegistry<WorldRenderEvents.DebugRender> BEFORE_DEBUG_RENDER = UnregistrableRegistry.fanOut(WorldRenderEvents.DebugRender.class, WorldRenderEvents.BEFORE_DEBUG_RENDER);
+    public static final UnregistrableRegistry<WorldRenderEvents.BeforeTranslucent> BEFORE_TRANSLUCENT = UnregistrableRegistry.fanOut(WorldRenderEvents.BeforeTranslucent.class, WorldRenderEvents.BEFORE_TRANSLUCENT);
+    public static final UnregistrableRegistry<WorldRenderEvents.BeforeBlockOutline> BEFORE_BLOCK_OUTLINE = new UnregistrableRegistry<>(
+        callbacks->(context, outlineRenderState)->callbacks.andNonCircuit(callback->callback.beforeBlockOutline(context, outlineRenderState)), WorldRenderEvents.BEFORE_BLOCK_OUTLINE);
+    public static final UnregistrableRegistry<WorldRenderEvents.EndMain> END_MAIN = UnregistrableRegistry.fanOut(WorldRenderEvents.EndMain.class, WorldRenderEvents.END_MAIN);
     public static final UnregistrableRegistry<ClientWorldChunkSetBlockState> CLIENT_WORLD_CHUNK_SET_BLOCK_STATE = UnregistrableRegistry.fanOut(ClientWorldChunkSetBlockState.class);
     public static final UnregistrableRegistry<GameOverlayRender> MASA_RENDER_GAME_OVERLAY = UnregistrableRegistry.fanOut(GameOverlayRender.class);
     public static final UnregistrableRegistry<WorldPreWeatherRender> MASA_RENDER_WORLD_PRE_WEATHER = UnregistrableRegistry.fanOut(WorldPreWeatherRender.class);

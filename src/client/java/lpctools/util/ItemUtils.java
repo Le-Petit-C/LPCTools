@@ -5,7 +5,7 @@ import net.minecraft.client.multiplayer.MultiPlayerGameMode;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.inventory.AbstractContainerMenu;
-import net.minecraft.world.inventory.ContainerInput;
+import net.minecraft.world.inventory.ClickType;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 
@@ -25,8 +25,8 @@ public class ItemUtils {
 			if(initialSourceCount <= maxCount && initialSourceCount <= initialTargetRemaining) {
 				// 可以直接合并stacks
 				movedCount += sourceStack.getCount();
-				gameMode.handleContainerInput(menu.containerId, sourceSlotIndex, 0, ContainerInput.PICKUP, player);
-				gameMode.handleContainerInput(menu.containerId, targetSlotIndex, 0, ContainerInput.PICKUP, player);
+				gameMode.handleInventoryMouseClick(menu.containerId, sourceSlotIndex, 0, ClickType.PICKUP, player);
+				gameMode.handleInventoryMouseClick(menu.containerId, targetSlotIndex, 0, ClickType.PICKUP, player);
 			}
 			else {
 				// 需要保持source始终有至少一个物品，否则当容器接着漏斗时（或者类似的情况）有新物品进来没办法把剩下的物品放回去就糟糕了
@@ -36,7 +36,7 @@ public class ItemUtils {
 				while (movedCount < maxCount && targetRemaining > 0) {
 					if(holdingItemCount <= 0) {
 						// 右键拿取一半的物品
-						gameMode.handleContainerInput(menu.containerId, sourceSlotIndex, 1, ContainerInput.PICKUP, player);
+						gameMode.handleInventoryMouseClick(menu.containerId, sourceSlotIndex, 1, ClickType.PICKUP, player);
 						int reservedCount = sourceCount >> 1;
 						holdingItemCount = sourceCount - reservedCount;
 						sourceCount = reservedCount;
@@ -44,7 +44,7 @@ public class ItemUtils {
 					int moveIfLeftClick = Math.min(targetRemaining, holdingItemCount);
 					if(moveIfLeftClick + movedCount <= maxCount) {
 						// 可以直接尝试将鼠标上的物品全部放到目标stack中
-						gameMode.handleContainerInput(menu.containerId, targetSlotIndex, 0, ContainerInput.PICKUP, player);
+						gameMode.handleInventoryMouseClick(menu.containerId, targetSlotIndex, 0, ClickType.PICKUP, player);
 						targetRemaining -= moveIfLeftClick;
 						holdingItemCount -= moveIfLeftClick;
 						movedCount += moveIfLeftClick;
@@ -56,12 +56,12 @@ public class ItemUtils {
 						int putForwardFirstOperationCount = maxCount - movedCount;
 						int putBackFirstOperationCount = holdingItemCount - (maxCount - movedCount);
 						if(putForwardFirstOperationCount <= putBackFirstOperationCount) {
-							gameMode.handleContainerInput(menu.containerId, targetSlotIndex, 1, ContainerInput.PICKUP, player);
+							gameMode.handleInventoryMouseClick(menu.containerId, targetSlotIndex, 1, ClickType.PICKUP, player);
 							--targetRemaining;
 							++movedCount;
 						}
 						else {
-							gameMode.handleContainerInput(menu.containerId, sourceSlotIndex, 1, ContainerInput.PICKUP, player);
+							gameMode.handleInventoryMouseClick(menu.containerId, sourceSlotIndex, 1, ClickType.PICKUP, player);
 							++sourceCount;
 						}
 						--holdingItemCount;
@@ -69,7 +69,7 @@ public class ItemUtils {
 				}
 				if(holdingItemCount > 0) {
 					// 鼠标上还剩下一些物品，要把它们放回原位
-					gameMode.handleContainerInput(menu.containerId, sourceSlotIndex, 0, ContainerInput.PICKUP, player);
+					gameMode.handleInventoryMouseClick(menu.containerId, sourceSlotIndex, 0, ClickType.PICKUP, player);
 					// sourceCount变量已经没有用了
 					// sourceCount += holdingItemCount;
 				}

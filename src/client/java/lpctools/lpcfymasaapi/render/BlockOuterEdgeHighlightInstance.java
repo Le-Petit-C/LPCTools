@@ -260,7 +260,7 @@ public class BlockOuterEdgeHighlightInstance implements AutoCloseable, ClientWor
     }
     
     void registerAll(boolean b){
-        Registries.AFTER_CLIENT_WORLD_CHANGE.register(this, b);
+        Registries.AFTER_CLIENT_LEVEL_CHANGE.register(this, b);
         Registries.BETWEEN_RENDER_FRAMES.register(this, b);
     }
     

@@ -66,42 +66,36 @@ dependencies {
 	mappings loom.officialMojangMappings()
 
 	// Relied mods & their required lib(s)
-	implementation "net.fabricmc:fabric-loader:${project.loader_version}"
-	implementation "maven.modrinth:malilib:${project.malilib_version}"
+	modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
+	modImplementation "maven.modrinth:malilib:${project.malilib_version}"
 	implementation "me.fallenbreath:conditional-mixin-fabric:${project.conditionalmixin_version}"
-	implementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_api_version}"
+	modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_api_version}"
 
 	// Suggested mods
-	compileOnly "maven.modrinth:minihud:${project.minihud_version}"
-	runtimeOnly "maven.modrinth:minihud:${project.minihud_version}"
-	compileOnly "maven.modrinth:litematica:${project.litematica_version}"
-	runtimeOnly "maven.modrinth:litematica:${project.litematica_version}"
-	compileOnly "maven.modrinth:tweakeroo:${project.tweakeroo_version}"
-	runtimeOnly "maven.modrinth:tweakeroo:${project.tweakeroo_version}"
+	modCompileOnly "maven.modrinth:minihud:${project.minihud_version}"
+	modRuntimeOnly "maven.modrinth:minihud:${project.minihud_version}"
+	modCompileOnly "maven.modrinth:litematica:${project.litematica_version}"
+	modRuntimeOnly "maven.modrinth:litematica:${project.litematica_version}"
+	modCompileOnly "maven.modrinth:tweakeroo:${project.tweakeroo_version}"
+	modRuntimeOnly "maven.modrinth:tweakeroo:${project.tweakeroo_version}"
 
 	// Test mods
-	// compileOnly "maven.modrinth:fabric-permissions-api:${project.fabric_permissions_api_version}"
-	// runtimeOnly "maven.modrinth:fabric-permissions-api:${project.fabric_permissions_api_version}"
-	compileOnly "maven.modrinth:placeholder-api:${project.placeholder_api_version}"
-	runtimeOnly "maven.modrinth:placeholder-api:${project.placeholder_api_version}"
-	compileOnly "maven.modrinth:modmenu:${project.mod_menu_version}"
-	runtimeOnly "maven.modrinth:modmenu:${project.mod_menu_version}"
-	// compileOnly "maven.modrinth:spark:${project.spark_version}"
-	runtimeOnly "maven.modrinth:spark:${project.spark_version}"
-	// compileOnly "maven.modrinth:sodium:${project.sodium_version}"
-	runtimeOnly "maven.modrinth:sodium:${project.sodium_version}"
-	// compileOnly "maven.modrinth:iris:${project.iris_version}"
-	runtimeOnly "maven.modrinth:iris:${project.iris_version}"
-	// compileOnly "maven.modrinth:immediatelyfast:${project.immediatelyfast_version}"
-	runtimeOnly "maven.modrinth:immediatelyfast:${project.immediatelyfast_version}"
-	compileOnly "net.lenni0451:Reflect:${project.reflect_version}"
-	runtimeOnly "net.lenni0451:Reflect:${project.reflect_version}"
-	// compileOnly "maven.modrinth:viafabricplus:${project.viafabricplus_version}"
-	runtimeOnly "maven.modrinth:viafabricplus:${project.viafabricplus_version}"
-	// compileOnly "maven.modrinth:xaeros-world-map:${project.xaero_world_map_version}"
-	runtimeOnly "maven.modrinth:xaeros-world-map:${project.xaero_world_map_version}"
-	// compileOnly "maven.modrinth:xaeros-minimap:${project.xaero_minimap_version}"
-	runtimeOnly "maven.modrinth:xaeros-minimap:${project.xaero_minimap_version}"
+	modCompileOnly "maven.modrinth:fabric-permissions-api:${project.fabric_permissions_api_version}"
+	modRuntimeOnly "maven.modrinth:fabric-permissions-api:${project.fabric_permissions_api_version}"
+	modCompileOnly "maven.modrinth:placeholder-api:${project.placeholder_api_version}"
+	modRuntimeOnly "maven.modrinth:placeholder-api:${project.placeholder_api_version}"
+	modCompileOnly "maven.modrinth:modmenu:${project.mod_menu_version}"
+	modRuntimeOnly "maven.modrinth:modmenu:${project.mod_menu_version}"
+	// modCompileOnly "maven.modrinth:spark:${project.spark_version}"
+	modRuntimeOnly "maven.modrinth:spark:${project.spark_version}"
+	// modCompileOnly "maven.modrinth:sodium:${project.sodium_version}"
+	modRuntimeOnly "maven.modrinth:sodium:${project.sodium_version}"
+	// modCompileOnly "maven.modrinth:iris:${project.iris_version}"
+	modRuntimeOnly "maven.modrinth:iris:${project.iris_version}"
+	// modCompileOnly "maven.modrinth:immediatelyfast:${project.immediatelyfast_version}"
+	modRuntimeOnly "maven.modrinth:immediatelyfast:${project.immediatelyfast_version}"
+	// modCompileOnly "net.lenni0451:Reflect:${project.reflect_version}"
+	modRuntimeOnly "net.lenni0451:Reflect:${project.reflect_version}"
 }
 
 processClientResources {
@@ -113,7 +107,7 @@ processClientResources {
 }
 
 tasks.withType(JavaCompile).configureEach {
-	it.options.release = 21
+	it.options.release = 24
 }
 
 java {

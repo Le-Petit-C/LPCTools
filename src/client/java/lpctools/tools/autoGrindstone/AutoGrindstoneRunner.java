@@ -11,7 +11,7 @@ import net.minecraft.client.multiplayer.MultiPlayerGameMode;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.core.Holder;
 import net.minecraft.world.entity.player.Inventory;
-import net.minecraft.world.inventory.ContainerInput;
+import net.minecraft.world.inventory.ClickType;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
@@ -77,8 +77,8 @@ public class AutoGrindstoneRunner implements Registries.ScreenChangedCallback {
 			}
 			if(canErase){
 				int slot = n < 9 ? n + 30 : n - 6;
-				itm.handleContainerInput(player.containerMenu.containerId, slot, 0, ContainerInput.QUICK_MOVE, player);
-				itm.handleContainerInput(player.containerMenu.containerId, 2, 0, ContainerInput.THROW, player);
+				itm.handleInventoryMouseClick(player.containerMenu.containerId, slot, 0, ClickType.QUICK_MOVE, player);
+				itm.handleInventoryMouseClick(player.containerMenu.containerId, 2, 0, ClickType.THROW, player);
 			}
 		}
 		client.setScreen(null);
