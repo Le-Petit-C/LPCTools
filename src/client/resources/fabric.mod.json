@@ -36,7 +36,7 @@
 		"minecraft": [
 			"1.21.5"
 		],
-		"java": ">=21",
+		"java": ">=24",
 		"malilib": "*",
 		"fabric-api": "*"
 	},

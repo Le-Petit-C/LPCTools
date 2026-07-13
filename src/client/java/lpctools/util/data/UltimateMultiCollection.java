@@ -499,27 +499,27 @@ public class UltimateMultiCollection<E> extends AvlTreeList<E> implements Multis
 		}
 		
 		@Override public void testBuild(StringBuilder builder, int depth){
-			builder.append("    ".repeat(depth));
+			builder.repeat("    ", depth);
 			builder.append(getClass().getName()).append("@").append(Integer.toHexString(hashCode())).append(":{\n");
 			if(left != left.getEmptyLeaf()) {
-				builder.append("    ".repeat(depth + 1));
+				builder.repeat("    ", depth + 1);
 				builder.append("left(parent check ");
 				builder.append(((UltimateNode<E>)left).parent == this ? "ok" : "failed");
 				builder.append("):\n");
 				left.testBuild(builder, depth + 1);
 			}
-			builder.append("    ".repeat(depth + 1));
+			builder.repeat("    ", depth + 1);
 			builder.append(String.format("UltimateNode(size=%d, height=%d, val=%s)\n", size, height, value));
-			builder.append("    ".repeat(depth + 1));
+			builder.repeat("    ", depth + 1);
 			builder.append(String.format("Extra:(index=%d, parentEmpty=%b)\n", getIndex(), parent == getEmptyLeaf()));
 			if(right != right.getEmptyLeaf()) {
-				builder.append("    ".repeat(depth + 1));
+				builder.repeat("    ", depth + 1);
 				builder.append("right(parent check ");
 				builder.append(((UltimateNode<E>)right).parent == this ? "ok" : "failed");
 				builder.append("):\n");
 				right.testBuild(builder, depth + 1);
 			}
-			builder.append("    ".repeat(depth));
+			builder.repeat("    ", depth);
 			builder.append("}\n");
 		}
 		

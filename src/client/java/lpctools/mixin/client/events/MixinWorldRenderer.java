@@ -1,4 +1,4 @@
-package lpctools.mixin.client;
+package lpctools.mixin.client.events;
 
 import com.llamalad7.mixinextras.sugar.Local;
 import com.mojang.blaze3d.framegraph.FrameGraphBuilder;

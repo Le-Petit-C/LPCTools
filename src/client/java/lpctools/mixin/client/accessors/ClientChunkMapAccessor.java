@@ -10,4 +10,6 @@ import net.minecraft.world.level.chunk.LevelChunk;
 @Mixin(ClientChunkCache.Storage.class)
 public interface ClientChunkMapAccessor {
 	@Accessor AtomicReferenceArray<LevelChunk> getChunks();
+	@Accessor int getViewCenterX();
+	@Accessor int getViewCenterZ();
 }
