@@ -5,6 +5,7 @@ import lpctools.lpcfymasaapi.configButtons.transferredConfigs.BooleanConfig;
 import lpctools.lpcfymasaapi.configButtons.transferredConfigs.IntegerConfig;
 import lpctools.lpcfymasaapi.configButtons.uniqueConfigs.BooleanHotkeyThirdListConfig;
 import lpctools.lpcfymasaapi.interfaces.ILPCValueChangeCallback;
+import lpctools.mixin.client.accessors.GameRendererAccessor;
 import lpctools.mixin.client.accessors.MinecraftAccessor;
 import lpctools.tools.ToolConfigs;
 import lpctools.tools.ToolUtils;
@@ -20,7 +21,6 @@ import net.minecraft.world.level.block.RedstoneWallTorchBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult;
-import org.jspecify.annotations.NonNull;
 
 import static lpctools.lpcfymasaapi.LPCConfigStatics.*;
 
@@ -53,7 +53,8 @@ public class BedrockKiller {
 				Entity camera = mc.getCameraEntity();
 				if(player == null || camera == null) return;
 				MinecraftAccessor accessor = (MinecraftAccessor)mc;
-				mc.hitResult = player.raycastHitResult(partialTicks, camera);
+				mc.hitResult = ((GameRendererAccessor)mc.gameRenderer)
+					.invokePick(camera, player.blockInteractionRange(), player.entityInteractionRange(), partialTicks);
 				accessor.invokeStartAttack();
 				accessor.invokeStartUseItem();
 			} finally {
@@ -78,7 +79,7 @@ public class BedrockKiller {
 			return false;
 		}
 
-		@Override public void onEndTick(@NonNull Minecraft mc) {
+		@Override public void onEndTick(Minecraft mc) {
 			LocalPlayer player = mc.player;
 			Entity camera = mc.getCameraEntity();
 			ClientLevel level = mc.level;
@@ -87,7 +88,8 @@ public class BedrockKiller {
 				HitResult originHitResult = mc.hitResult;
 				for(int i = 1; i < multiSamplingCount; ++i) {
 					partialTicks = (float)i /  multiSamplingCount;
-					mc.hitResult = player.raycastHitResult(partialTicks, camera);
+					mc.hitResult = ((GameRendererAccessor)mc.gameRenderer)
+						.invokePick(camera, player.blockInteractionRange(), player.entityInteractionRange(), partialTicks);
 					if(tryOperate(mc, level)) return;
 				}
 				partialTicks = 1.0f;

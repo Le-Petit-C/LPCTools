@@ -18,7 +18,7 @@ import net.minecraft.core.SectionPos;
 import net.minecraft.core.Vec3i;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.resources.Resource;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.world.entity.EntityType;
@@ -36,7 +36,6 @@ import org.jetbrains.annotations.Nullable;
 import org.joml.Vector3d;
 import org.joml.Vector3i;
 import org.joml.Vector4f;
-import org.jspecify.annotations.NonNull;
 import org.lwjgl.opengl.GL30;
 
 import java.io.IOException;
@@ -48,7 +47,7 @@ import java.util.function.Supplier;
 
 @SuppressWarnings("unused")
 public class DataUtils {
-    public static @Nullable String getTextFileResource(ResourceManager manager, Identifier resId){
+    public static @Nullable String getTextFileResource(ResourceManager manager, ResourceLocation resId){
         Optional<Resource> res = manager.getResource(resId);
         if(res.isEmpty()) return null;
         try(InputStream stream = res.get().open()) {
@@ -100,7 +99,7 @@ public class DataUtils {
     public interface ClassCaster<T, U>{U cast(T v) throws ClassCastException;}
     public static @Nullable <T, U> U getObjectFromId(@NotNull String loggerInfo, @NotNull String id, Registry<T> registry, @NotNull ClassCaster<T, U> caster, boolean notifies){
         try{
-            T ret = registry.getValue(Identifier.parse(id));
+            T ret = registry.getValue(ResourceLocation.parse(id));
             Optional<Holder.Reference<T>> defOpt = registry.getAny();
             Holder.Reference<T> defRef = defOpt.orElse(null);
             T def = defRef != null ? defRef.value() : null;
@@ -292,13 +291,13 @@ public class DataUtils {
         while (startIndex < length && chunks.get(startIndex) == null) ++startIndex;
         int finalStartIndex = startIndex;
         return new Iterable<>() {
-            @Override public @NonNull Iterator<LevelChunk> iterator() {
+            @Override public @NotNull Iterator<LevelChunk> iterator() {
                 return new Iterator<>() {
                     int nextIndex = finalStartIndex;
                     @Override public boolean hasNext() {
                         return nextIndex < length;
                     }
-                    
+
                     @Override public LevelChunk next() {
                         var res = chunks.get(nextIndex++);
                         while (nextIndex < length && chunks.get(nextIndex) == null) ++nextIndex;

@@ -21,8 +21,8 @@ public class MathUtils {
     public static Matrix4f worldToCameraMatrix4f(Camera camera){
         Vector3f vec = camera.position().toVector3f().mul(-1);
         Matrix4f matrix =  new Matrix4f()
-                .rotate(camera.xRot() / 180 * Mth.PI, new Vector3f(1, 0, 0))
-                .rotate((camera.yRot() + 180) / 180 * Mth.PI, new Vector3f(0, 1, 0));
+                .rotate(camera.getXRot() / 180 * Mth.PI, new Vector3f(1, 0, 0))
+                .rotate((camera.getYRot() + 180) / 180 * Mth.PI, new Vector3f(0, 1, 0));
         return matrix.setColumn(3, matrix.transform(new Vector4f(vec, 1)));
     }
     @Contract(pure = true)
@@ -30,8 +30,8 @@ public class MathUtils {
         Vec3 vec3d = camera.position();
         Vector3d vec = new Vector3d(vec3d.x(), vec3d.y(), vec3d.z()).mul(-1);
         Matrix4d matrix =  new Matrix4d()
-                .rotate(camera.xRot() / 180 * Math.PI, new Vector3d(1, 0, 0))
-                .rotate((camera.yRot() + 180) / 180 * Math.PI, new Vector3d(0, 1, 0));
+                .rotate(camera.getXRot() / 180 * Math.PI, new Vector3d(1, 0, 0))
+                .rotate((camera.getYRot() + 180) / 180 * Math.PI, new Vector3d(0, 1, 0));
         return matrix.setColumn(3, matrix.transform(new Vector4d(vec, 1)));
     }
     @Contract(pure = true)

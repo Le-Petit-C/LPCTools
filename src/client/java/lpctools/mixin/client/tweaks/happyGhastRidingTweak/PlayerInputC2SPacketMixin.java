@@ -4,7 +4,7 @@ import lpctools.tweaks.HappyGhastRidingTweak;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.network.protocol.game.ServerboundPlayerInputPacket;
-import net.minecraft.world.entity.animal.happyghast.HappyGhast;
+import net.minecraft.world.entity.animal.HappyGhast;
 import net.minecraft.world.entity.player.Input;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;

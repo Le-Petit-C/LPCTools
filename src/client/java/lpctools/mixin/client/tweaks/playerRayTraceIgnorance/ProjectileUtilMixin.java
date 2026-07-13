@@ -9,7 +9,6 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
-import java.util.ArrayList;
 import java.util.Collection;
 
 import static lpctools.tweaks.PlayerCrosshairFilter.isLocalPlayerGettingHitResult;
@@ -19,10 +18,5 @@ import static lpctools.tweaks.PlayerCrosshairFilter.isLocalPlayerGettingHitResul
 	private static void injectGetEntityHitResultHead(CallbackInfoReturnable<Collection<EntityHitResult>> cir) {
 		if (isLocalPlayerGettingHitResult && PlayerCrosshairFilter.passThroughEntities.getBooleanValue() && Minecraft.getInstance().isSameThread())
 			cir.setReturnValue(null);
-	}
-	@Inject(method = "getManyEntityHitResult*", at = @At("HEAD"), cancellable = true)
-	private static void injectGetManyEntityHitResultHead(CallbackInfoReturnable<Collection<EntityHitResult>> cir) {
-		if (isLocalPlayerGettingHitResult && PlayerCrosshairFilter.passThroughEntities.getBooleanValue() && Minecraft.getInstance().isSameThread())
-			cir.setReturnValue(new ArrayList<>());
 	}
 }

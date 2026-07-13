@@ -9,7 +9,6 @@ import fi.dy.masa.malilib.gui.button.IButtonActionListener;
 import fi.dy.masa.malilib.gui.interfaces.IKeybindConfigGui;
 import fi.dy.masa.malilib.gui.widgets.WidgetBase;
 import fi.dy.masa.malilib.gui.widgets.WidgetListConfigOptionsBase;
-import fi.dy.masa.malilib.gui.wrappers.TextFieldType;
 import net.minecraft.client.gui.Font;
 
 public interface ButtonConsumer {
@@ -18,7 +17,6 @@ public interface ButtonConsumer {
     @SuppressWarnings("unused") GuiTextFieldGeneric createTextField(int x, int y, int width, int height);
     int getMaxTextFieldTextLength();
     @Deprecated void addTextField(GuiTextFieldGeneric field, ConfigOptionChangeListenerTextField listener);
-    void addTextField(GuiTextFieldGeneric field, ConfigOptionChangeListenerTextField listener, TextFieldType textFieldType);
     void addExtraTextField(GuiTextFieldGeneric field, ConfigOptionChangeListenerTextField listener);
     ButtonGeneric createResetButton(int x, int y, IConfigResettable config);
     IKeybindConfigGui getKeybindHost();

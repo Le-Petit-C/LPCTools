@@ -15,11 +15,11 @@ import lpctools.lpcfymasaapi.render.IPositionVertex;
 import lpctools.lpcfymasaapi.render.LPCRenderPipelines;
 import lpctools.util.CachedSupplier;
 import lpctools.util.javaex.QuietAutoCloseable;
+import net.minecraft.Util;
 import net.minecraft.client.renderer.PerspectiveProjectionMatrixBuffer;
 import net.minecraft.client.renderer.culling.Frustum;
 import net.minecraft.core.SectionPos;
 import net.minecraft.util.Mth;
-import net.minecraft.util.Util;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.Contract;
@@ -140,7 +140,7 @@ public class RenderInstance implements QuietAutoCloseable, Registries.WorldPreMa
 			offset.set(0, 0, 0);
 		}
 		GpuBufferSlice dynamicTransforms = RenderSystem.getDynamicUniforms()
-			.writeTransform(modelViewMatrix, new Vector4f(1.0F, 1.0F, 1.0F, 1.0F), offset, new Matrix4f());
+			.writeTransform(modelViewMatrix, new Vector4f(1.0F, 1.0F, 1.0F, 1.0F), offset, new Matrix4f(), 0.0f);
 		try (RenderPass renderPass = commandEncoder
 			.createRenderPass(renderPassLabel, colorAttachmentView, OptionalInt.empty(), depthAttachmentView, OptionalDouble.empty())) {
 			renderPass.setPipeline(renderOption.pipeline());
@@ -441,7 +441,7 @@ public class RenderInstance implements QuietAutoCloseable, Registries.WorldPreMa
 			
 			int requiredIndexSize = indexBufferToUpload.limit();
 			if(indexBuffer == null || indexBuffer.size() < requiredIndexSize){
-				long oldSize = indexBuffer == null ? 0 : indexBuffer.size();
+				int oldSize = indexBuffer == null ? 0 : indexBuffer.size();
 				if(indexBuffer != null) indexBuffer.close();
 				indexBuffer = RenderSystem.getDevice().createBuffer(
 					indexBufferLabel, GpuBuffer.USAGE_INDEX | GpuBuffer.USAGE_COPY_DST,
@@ -454,7 +454,7 @@ public class RenderInstance implements QuietAutoCloseable, Registries.WorldPreMa
 			if(vertexBufferToUpload != null) {
 				int requiredVertexSize = vertexBufferToUpload.limit();
 				if(vertexBuffer == null || vertexBuffer.size() < requiredVertexSize){
-					long oldSize = vertexBuffer == null ? 0 : vertexBuffer.size();
+					int oldSize = vertexBuffer == null ? 0 : vertexBuffer.size();
 					if(vertexBuffer != null) vertexBuffer.close();
 					vertexBuffer = RenderSystem.getDevice().createBuffer(
 						vertexBufferLabel, GpuBuffer.USAGE_VERTEX | GpuBuffer.USAGE_COPY_DST,

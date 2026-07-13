@@ -2,7 +2,6 @@ package lpctools.generic;
 
 import fi.dy.masa.malilib.hotkeys.KeyAction;
 import fi.dy.masa.malilib.hotkeys.KeybindSettings;
-import it.unimi.dsi.fastutil.doubles.Double2DoubleFunction;
 import lpctools.lpcfymasaapi.LPCConfigList;
 import lpctools.lpcfymasaapi.configButtons.derivedConfigs.ConfigOpenGuiConfig;
 import lpctools.lpcfymasaapi.configButtons.transferredConfigs.HotkeyConfig;
@@ -12,7 +11,7 @@ import lpctools.lpcfymasaapi.configButtons.transferredConfigs.IntegerConfig;
 import lpctools.lpcfymasaapi.interfaces.ILPCValueChangeCallback;
 import lpctools.util.CachedSupplier;
 import lpctools.util.javaex.PriorityThreadPoolExecutor;
-import net.minecraft.world.entity.monster.zombie.Zombie;
+import net.minecraft.world.entity.monster.Zombie;
 import net.minecraft.world.phys.Vec3;
 
 import java.util.concurrent.ThreadPoolExecutor;

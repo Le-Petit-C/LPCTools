@@ -13,7 +13,6 @@ import net.minecraft.commands.arguments.blocks.BlockStateParser;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.network.chat.Component;
-import net.minecraft.server.permissions.Permissions;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.level.Level;
@@ -60,7 +59,7 @@ public class VanillaBlockInteractionModifier {
         var player = client.player;
         if(player == null) return false;
         if(!player.isCreative()
-            || !player.permissions().hasPermission(Permissions.COMMANDS_GAMEMASTER)
+            || !player.hasPermissions(2)
             || !(client.hitResult instanceof BlockHitResult hitResult))
             return normalReplacePair();
         var world = player.level();
@@ -89,7 +88,7 @@ public class VanillaBlockInteractionModifier {
         var client = Minecraft.getInstance();
         var player = client.player;
         if(player == null) return false;
-        if(!player.isCreative() || !player.permissions().hasPermission(Permissions.COMMANDS_GAMEMASTER)
+        if(!player.isCreative() || !player.hasPermissions(2)
             || !(client.hitResult instanceof BlockHitResult hitResult))
             return normalAttack();
         LinkedHashMap<BlockPos, BlockState> brokenStates = buildBrokenBlockPoses(hitResult.getBlockPos(), player.level());

@@ -4,9 +4,9 @@ import net.minecraft.core.Vec3i;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import org.apache.commons.lang3.mutable.MutableDouble;
+import org.jetbrains.annotations.Nullable;
 import org.joml.Vector3d;
 import org.joml.Vector3f;
-import org.jspecify.annotations.Nullable;
 
 @SuppressWarnings("unused")
 public class MutableAABB {

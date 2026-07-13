@@ -16,7 +16,7 @@ import lpctools.lpcfymasaapi.configButtons.transferredConfigs.IntegerConfig;
 import lpctools.lpcfymasaapi.interfaces.ILPCConfigReadable;
 import lpctools.util.CachedSupplier;
 import lpctools.util.RenderUtils;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import org.joml.*;
 import org.lwjgl.system.MemoryUtil;
 
@@ -37,9 +37,9 @@ public class MandelbrotSetRender extends BooleanThirdListConfig implements Regis
             = RenderPipeline.builder(MATRICES_PROJECTION_SNIPPET)
             .withUniform("Mandelbrot", UniformType.UNIFORM_BUFFER)
             .withVertexShader("core/position_tex")
-            .withFragmentShader(Identifier.fromNamespaceAndPath("lpctools", "core/mandelbrot_set"))
+            .withFragmentShader(ResourceLocation.fromNamespaceAndPath("lpctools", "core/mandelbrot_set"))
             .withVertexFormat(DefaultVertexFormat.POSITION_TEX, VertexFormat.Mode.QUADS)
-            .withLocation(Identifier.fromNamespaceAndPath("lpctools", "pipeline/mandelbrot"))
+            .withLocation(ResourceLocation.fromNamespaceAndPath("lpctools", "pipeline/mandelbrot"))
             .withBlend(BlendFunction.TRANSLUCENT)
             .withCull(false)
             .build();
@@ -50,7 +50,7 @@ public class MandelbrotSetRender extends BooleanThirdListConfig implements Regis
         private int lastMaxDepth = -1;
         private final GpuBuffer vertexBuffer = RenderSystem.getDevice()
             .createBuffer(() -> "Mandelbrot Vertex Buffer",
-                GpuBuffer.USAGE_VERTEX | GpuBuffer.USAGE_COPY_DST, (long)DefaultVertexFormat.POSITION_TEX.getVertexSize() * Float.BYTES);
+                GpuBuffer.USAGE_VERTEX | GpuBuffer.USAGE_COPY_DST, DefaultVertexFormat.POSITION_TEX.getVertexSize() * Float.BYTES);
         private float lastStretch = Float.NaN;
         public GpuBuffer getUpdatedMandelbrotUniformBuffer(){
             int maxDepth = MandelbrotSetRender.this.maxDepth.getAsInt();
@@ -113,7 +113,7 @@ public class MandelbrotSetRender extends BooleanThirdListConfig implements Regis
         GpuTextureView depthAttachmentView = fb.useDepth ? fb.getDepthTextureView() : null;
         GpuBufferSlice dynamicTransforms = RenderSystem.getDynamicUniforms()
             .writeTransform(new Matrix4f(RenderSystem.getModelViewMatrix()).translate(context.camera().position().toVector3f().mul(-1)),
-                new Vector4f(1.0F, 1.0F, 1.0F, 1.0F), new Vector3f(), new Matrix4f());
+                new Vector4f(1.0F, 1.0F, 1.0F, 1.0F), new Vector3f(), new Matrix4f(), 0.0f);
 		RenderSources renderSources = this.renderSources.get();
         GpuBuffer mandelbrotUniformBuffer = renderSources.getUpdatedMandelbrotUniformBuffer();
         GpuBuffer vertexBuffer = renderSources.getUpdatedVertexBuffer();

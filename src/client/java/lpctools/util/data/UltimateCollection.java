@@ -62,7 +62,7 @@ public class UltimateCollection<E> extends AvlTreeList<E> implements Set<E> {
 			res.setValue(n.value);
 			nodeMap.remove(n.value);
 		});
-		return res.get();
+		return res.getValue();
 	}
 	
 	@Override public boolean remove(Object o) {
@@ -192,7 +192,7 @@ public class UltimateCollection<E> extends AvlTreeList<E> implements Set<E> {
 				else {
 					MutableObject<Node<E>> res = new MutableObject<>();
 					right = right.removeAt(0, res::setValue);
-					var node = res.get();
+					var node = res.getValue();
 					replaceByNode(node);
 					node.recalculate();
 					return (UltimateNode<E>) node.balance();
@@ -241,27 +241,27 @@ public class UltimateCollection<E> extends AvlTreeList<E> implements Set<E> {
 		}
 		
 		@Override public void testBuild(StringBuilder builder, int depth){
-			builder.append("    ".repeat(depth));
+			builder.repeat("    ", depth);
 			builder.append(getClass().getName()).append("@").append(Integer.toHexString(hashCode())).append(":{\n");
 			if(left != left.getEmptyLeaf()) {
-				builder.append("    ".repeat(depth + 1));
+				builder.repeat("    ", depth + 1);
 				builder.append("left(parent check ");
 				builder.append(((UltimateNode<E>)left).parent == this ? "ok" : "failed");
 				builder.append("):\n");
 				left.testBuild(builder, depth + 1);
 			}
-			builder.append("    ".repeat(depth + 1));
+			builder.repeat("    ", depth + 1);
 			builder.append(String.format("UltimateNode(size=%d, height=%d, val=%s)\n", size, height, value));
-			builder.append("    ".repeat(depth + 1));
+			builder.repeat("    ", depth + 1);
 			builder.append(String.format("Extra:(index=%d, parentEmpty=%b)\n", getIndex(), parent == getEmptyLeaf()));
 			if(right != right.getEmptyLeaf()) {
-				builder.append("    ".repeat(depth + 1));
+				builder.repeat("    ", depth + 1);
 				builder.append("right(parent check ");
 				builder.append(((UltimateNode<E>)right).parent == this ? "ok" : "failed");
 				builder.append("):\n");
 				right.testBuild(builder, depth + 1);
 			}
-			builder.append("    ".repeat(depth));
+			builder.repeat("    ", depth);
 			builder.append("}\n");
 		}
 		

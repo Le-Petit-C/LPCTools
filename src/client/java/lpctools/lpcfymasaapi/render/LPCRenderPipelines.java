@@ -3,11 +3,9 @@ package lpctools.lpcfymasaapi.render;
 import com.mojang.blaze3d.pipeline.BlendFunction;
 import com.mojang.blaze3d.pipeline.RenderPipeline;
 import com.mojang.blaze3d.platform.DepthTestFunction;
-import com.mojang.blaze3d.vertex.DefaultVertexFormat;
-import com.mojang.blaze3d.vertex.VertexFormat;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import net.minecraft.client.renderer.RenderPipelines;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.Nullable;
 
@@ -22,13 +20,6 @@ public class LPCRenderPipelines {
 			throw new AssertionError(e);
 		}
 	}
-
-	public static final RenderPipeline spherePipeline = RenderPipeline.builder(RenderPipelines.MATRICES_PROJECTION_SNIPPET)
-		.withVertexFormat(DefaultVertexFormat.POSITION_COLOR_LINE_WIDTH, VertexFormat.Mode.TRIANGLES)
-		.withVertexShader(getId("core/sphere"))
-		.withFragmentShader(getId("core/sphere"))
-		.withBlend(BlendFunction.TRANSLUCENT)
-		.withLocation(getId("pipeline/sphere")).build();
 
 	public static RenderPipeline positionColorPipeline(boolean isLine, boolean translucentBlend, boolean depthTest, boolean depthWrite, OffsetMode offsetMode, boolean cull) {
 		return PositionColorPipelineLazyInitializer.positionColorPipeline(isLine, translucentBlend, depthTest, depthWrite, offsetMode, cull);
@@ -113,7 +104,6 @@ public class LPCRenderPipelines {
 				DEBUG_QUADS,
 				DEBUG_FILLED_BOX,
 				LINES,
-				LINES_TRANSLUCENT,
 				POSITION_COLOR_TRANSLUCENT_NO_DEPTH_NO_CULL,
 				POSITION_COLOR_TRANSLUCENT_NO_DEPTH,
 				POSITION_COLOR_TRANSLUCENT_LEQUAL_DEPTH_NO_CULL,
@@ -139,7 +129,7 @@ public class LPCRenderPipelines {
 			);
 		}
 
-		private static Identifier getLocationId(boolean isLine, boolean translucentBlend, boolean depthTest, boolean depthWrite, OffsetMode offsetMode, boolean cull) {
+		private static ResourceLocation getLocationId(boolean isLine, boolean translucentBlend, boolean depthTest, boolean depthWrite, OffsetMode offsetMode, boolean cull) {
 			String prefix = "pipeline/position_color";
 			String linePath = isLine ? "_lines" : "";
 			String translucentPath = translucentBlend ? "/translucent" : "";
@@ -167,5 +157,5 @@ public class LPCRenderPipelines {
 		}
 	}
 
-	private static Identifier getId(String id) { return Identifier.fromNamespaceAndPath("lpctools", id); }
+	private static ResourceLocation getId(String id) { return ResourceLocation.fromNamespaceAndPath("lpctools", id); }
 }

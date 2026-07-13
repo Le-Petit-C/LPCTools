@@ -2,10 +2,8 @@ package lpctools.lpcfymasaapi.screen;
 
 import fi.dy.masa.malilib.gui.GuiBase;
 import fi.dy.masa.malilib.gui.button.ButtonGeneric;
-import fi.dy.masa.malilib.render.GuiContext;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jspecify.annotations.NonNull;
 
 import java.util.ArrayList;
 import java.util.Map;
@@ -188,7 +186,7 @@ public class SelectionScreen<T> extends GuiBase {
 		this.callback = callback;
 	}
 	
-	@Override public void render(@NonNull GuiGraphics context, int mouseX, int mouseY, float deltaTicks) {
+	@Override public void render(GuiGraphics context, int mouseX, int mouseY, float deltaTicks) {
 		var client = Minecraft.getInstance();
 		double dMouseX = client.mouseHandler.getScaledXPos(client.getWindow());
 		double dMouseY = client.mouseHandler.getScaledYPos(client.getWindow());
@@ -230,7 +228,7 @@ public class SelectionScreen<T> extends GuiBase {
 		}
 	}
 	
-	@Override public boolean mouseClicked(@NonNull MouseButtonEvent click, boolean doubleClick) {
+	@Override public boolean mouseClicked(MouseButtonEvent click, boolean doubleClick) {
 		if(scrollBarInfo != null){
 			if(getScreenHeight() - 1 - scrollBarThickness <= click.y() && click.y() < getScreenHeight() - 1){
 				// 点击了横向滚动条
@@ -260,7 +258,7 @@ public class SelectionScreen<T> extends GuiBase {
 		return super.mouseClicked(click, doubleClick);
 	}
 	
-	@Override public boolean mouseReleased(@NonNull MouseButtonEvent click) {
+	@Override public boolean mouseReleased(MouseButtonEvent click) {
 		if(isHoldingScrollBar){
 			isHoldingScrollBar = false;
 			return true;
@@ -384,7 +382,6 @@ public class SelectionScreen<T> extends GuiBase {
 			int startIndex = (int) Math.floor(position / buttonStride);
 			int endIndex = Math.min((int) Math.ceil((position + getScreenHeight()) / buttonStride), optionButtons.length);
 			boolean canHighlight = mouseY >= 0 && mouseY < getScreenHeight();
-			GuiContext guiContext = GuiContext.fromGuiGraphics(context);
 			for(int i = Math.max(startIndex, 0); i < endIndex && i < optionButtons.length; ++i){
 				var button = optionButtons[i];
 				boolean highlight = i == selectedIndex || (canHighlight && optionButtons[i].isMouseOver((int) mouseX, (int) translatedMouseY));
@@ -397,7 +394,7 @@ public class SelectionScreen<T> extends GuiBase {
 					tx = (int) mouseX;
 					ty = (int) translatedMouseY;
 				}
-				button.render(guiContext, tx, ty, highlight);
+				button.render(context, tx, ty, highlight);
 			}
 		}
 		
@@ -418,7 +415,7 @@ public class SelectionScreen<T> extends GuiBase {
 			x = index == 0 ? 0 : optionList.get(index - 1).getRight() + 1;
 			int extraWidth = scrollBarInfo == null ? 4 : scrollBarThickness + 5;
 			int extraHeight = SelectionScreen.this.scrollBarInfo == null ? 0 : -(scrollBarThickness + 2);
-			resize(maxButtonWidth + extraWidth, SelectionScreen.this.getScreenHeight() - titleHeight + extraHeight);
+			resize(mc, maxButtonWidth + extraWidth, SelectionScreen.this.getScreenHeight() - titleHeight + extraHeight);
 			scrollBarInfo = ScrollBarInfo.recreate(scrollBarInfo, optionButtons.length * buttonStride, getScreenHeight());
 		}
 	}
@@ -428,7 +425,7 @@ public class SelectionScreen<T> extends GuiBase {
 			super(x, y, 20, height, option.getName().getString());
 			setWidth(calculateTextButtonWidth(displayString, textRenderer, buttonHeight));
 			if(option.getComment() instanceof Component comment) setHoverStrings(comment.getString());
-			setActionListener((button, mouseButton)->option.onSelected(yourDepth, screen));
+			setActionListener((_, _)->option.onSelected(yourDepth, screen));
 		}
 	}
 	

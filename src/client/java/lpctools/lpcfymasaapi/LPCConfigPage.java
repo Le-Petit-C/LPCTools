@@ -10,7 +10,7 @@ import fi.dy.masa.malilib.gui.widgets.WidgetBase;
 import fi.dy.masa.malilib.gui.widgets.WidgetListConfigOptions;
 import fi.dy.masa.malilib.registry.Registry;
 import fi.dy.masa.malilib.util.FileUtils;
-import fi.dy.masa.malilib.util.data.json.JsonUtils;
+import fi.dy.masa.malilib.util.JsonUtils;
 import fi.dy.masa.malilib.util.data.ModInfo;
 import fi.dy.masa.malilib.gui.GuiConfigsBase;
 import fi.dy.masa.malilib.gui.button.IButtonActionListener;
@@ -28,7 +28,6 @@ import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jspecify.annotations.NonNull;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -96,14 +95,14 @@ public class LPCConfigPage implements IConfigHandler, Supplier<GuiBase>, ILPCCon
     @Override public void load() {
         Path configFile = FileUtils.getConfigDirectoryAsPath().resolve(configFileName);
         if (Files.exists(configFile) && Files.isReadable(configFile)
-            && JsonUtils.parseJsonFile(configFile) instanceof JsonElement pageJson)
+            && JsonUtils.parseJsonFile(configFile.toFile()) instanceof JsonElement pageJson)
             setValueFromJsonElement(pageJson);
     }
     @Override public void save() {
         Path configFile = FileUtils.getConfigDirectoryAsPath().resolve(configFileName);
         JsonObject pageJson = null;
         if (Files.exists(configFile) && Files.isReadable(configFile)){
-            JsonElement element = JsonUtils.parseJsonFile(configFile);
+            JsonElement element = JsonUtils.parseJsonFile(configFile.toFile());
             if(element != null && element.isJsonObject())
                 pageJson = element.getAsJsonObject();
         }
@@ -115,7 +114,7 @@ public class LPCConfigPage implements IConfigHandler, Supplier<GuiBase>, ILPCCon
             FileUtils.createDirectoriesIfMissing(dir);
         if (Files.isDirectory(dir)) {
             Path file = dir.resolve(configFileName);
-            JsonUtils.writeJsonToFile(pageJson, file);
+            JsonUtils.writeJsonToFile(pageJson, file.toFile());
         }
     }
     @Override public @NotNull JsonObject getAsJsonElement() {
@@ -227,7 +226,7 @@ public class LPCConfigPage implements IConfigHandler, Supplier<GuiBase>, ILPCCon
                 widget.markConfigsModified();
         }
         
-        @Override public void render(@NonNull GuiGraphics drawContext, int mouseX, int mouseY, float partialTicks) {
+        @Override public void render(@NotNull GuiGraphics drawContext, int mouseX, int mouseY, float partialTicks) {
             if(needUpdate) {
                 initGui();
                 needUpdate = false;

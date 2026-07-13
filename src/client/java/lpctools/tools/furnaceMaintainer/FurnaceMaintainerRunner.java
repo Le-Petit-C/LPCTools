@@ -22,7 +22,6 @@ import net.minecraft.world.level.block.AbstractFurnaceBlock;
 import net.minecraft.world.level.block.HopperBlock;
 import net.minecraft.world.phys.BlockHitResult;
 import org.jetbrains.annotations.Nullable;
-import org.jspecify.annotations.NonNull;
 
 import static lpctools.tools.furnaceMaintainer.FurnaceMaintainer.*;
 import static lpctools.tools.furnaceMaintainer.FurnaceMaintainerData.*;
@@ -38,7 +37,7 @@ public class FurnaceMaintainerRunner implements QuietAutoCloseable, ClientTickEv
         Registries.BEFORE_SCREEN_CHANGE.register(this, b);
     }
     
-    @Override public void onEndTick(@NonNull Minecraft mc) {
+    @Override public void onEndTick(Minecraft mc) {
         if(runner != this) {
             close();
             return;

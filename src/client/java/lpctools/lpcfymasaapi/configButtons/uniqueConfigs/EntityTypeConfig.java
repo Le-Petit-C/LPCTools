@@ -8,7 +8,7 @@ import lpctools.lpcfymasaapi.screen.ChooseScreen;
 import lpctools.util.DataUtils;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.EntityType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -26,7 +26,7 @@ public class EntityTypeConfig extends UniqueStringConfig{
 	}
 	@Override public void getButtonOptions(ButtonOptionArrayList res) {
 		super.getButtonOptions(res);
-		res.add(ButtonWeightType.HEIGHT, 1, (button, mouseButton) -> choose(this::setEntityType), ()->"R", buttonGenericAllocator);
+		res.add(ButtonWeightType.HEIGHT, 1, (_, _) -> choose(this::setEntityType), ()->"R", buttonGenericAllocator);
 	}
 	public void setEntityType(EntityType<?> entity){
 		if(!this.entity.equals(entity)){
@@ -42,7 +42,7 @@ public class EntityTypeConfig extends UniqueStringConfig{
 		HashMap<String, ChooseScreen.OptionCallback<Consumer<EntityType<?>>>> map = new LinkedHashMap<>();
 		LinkedHashMap<String, String> tree = new LinkedHashMap<>();
 		for(EntityType<?> entityType : BuiltInRegistries.ENTITY_TYPE){
-			map.put(entityType.getDescriptionId(), (button, mouseButton, userData)->userData.accept(entityType));
+			map.put(entityType.getDescriptionId(), (_, _, userData)->userData.accept(entityType));
 			tree.put(entityType.getDescriptionId(), entityType.getDescriptionId());
 		}
 		ChooseScreen.openChooseScreen(
@@ -51,9 +51,9 @@ public class EntityTypeConfig extends UniqueStringConfig{
 		);
 	}
 	@Override public void setValueFromString(String s) {
-		Identifier id = Identifier.tryParse(s);
+		ResourceLocation id = ResourceLocation.tryParse(s);
 		if(id != null){
-			Identifier defId = BuiltInRegistries.ENTITY_TYPE.getDefaultKey();
+			ResourceLocation defId = BuiltInRegistries.ENTITY_TYPE.getDefaultKey();
 			EntityType<?> defEntity = BuiltInRegistries.ENTITY_TYPE.getValue(defId);
 			EntityType<?> newEntity = BuiltInRegistries.ENTITY_TYPE.getValue(id);
 			if(!defEntity.equals(newEntity) || defId.equals(id)){
@@ -65,7 +65,7 @@ public class EntityTypeConfig extends UniqueStringConfig{
 	}
 	@Override public UpdateTodo setValueFromJsonElementEx(@NotNull JsonElement element) {
 		 UpdateTodo todo = super.setValueFromJsonElementEx(element);
-		 Identifier id = Identifier.tryParse(stringValue);
+		ResourceLocation id = ResourceLocation.tryParse(stringValue);
 		 if(id != null) entity = BuiltInRegistries.ENTITY_TYPE.getValue(id);
 		 return todo;
 	}

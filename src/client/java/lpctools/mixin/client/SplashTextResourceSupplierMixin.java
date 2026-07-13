@@ -1,5 +1,6 @@
 package lpctools.mixin.client;
 
+import net.minecraft.resources.ResourceLocation;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
@@ -12,13 +13,12 @@ import java.util.ArrayList;
 import java.util.List;
 import net.minecraft.client.resources.SplashManager;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.Identifier;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.util.profiling.ProfilerFiller;
 
 @Mixin(SplashManager.class)
 public class SplashTextResourceSupplierMixin {
-    @Unique private static final Identifier RESOURCE_ID = Identifier.fromNamespaceAndPath("lpctools", "texts/splashes.txt");
+    @Unique private static final ResourceLocation RESOURCE_ID = ResourceLocation.fromNamespaceAndPath("lpctools", "texts/splashes.txt");
     @Inject(method = "prepare(Lnet/minecraft/server/packs/resources/ResourceManager;Lnet/minecraft/util/profiling/ProfilerFiller;)Ljava/util/List;",
     at = @At("RETURN"), cancellable = true)
     void injectPrepare(ResourceManager manager, ProfilerFiller profiler, CallbackInfoReturnable<List<Component>> cir){

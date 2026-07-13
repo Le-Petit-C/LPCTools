@@ -31,7 +31,6 @@ import net.minecraft.world.level.lighting.LevelLightEngine;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jspecify.annotations.NonNull;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -131,7 +130,7 @@ public class DataInstance implements AutoCloseable, Registries.ClientWorldChunkL
     @Override public void onClientWorldChunkLightUpdated(@NotNull ClientLevel level, @NotNull LevelChunk chunk) {
         addDelayedTask(level, chunk.getPos(), level.getLightEngine());
     }
-    @Override public void onChunkLoad(@NonNull ClientLevel level, @NonNull LevelChunk chunk) {
+    @Override public void onChunkLoad(ClientLevel level, LevelChunk chunk) {
         ChunkPos centerChunkPos = chunk.getPos();
         for(int dx = -1; dx <= 1; ++dx)
             for(int dz = -1; dz <= 1; ++dz)
@@ -207,7 +206,7 @@ public class DataInstance implements AutoCloseable, Registries.ClientWorldChunkL
         if(client.level != null && client.player != null)
             resetData(client.level, client.player.position());
     }
-    @Override public void afterWorldChange(@NonNull Minecraft minecraftClient, @NonNull ClientLevel clientWorld) {clearData();}
+    @Override public void afterWorldChange(Minecraft minecraftClient, ClientLevel clientWorld) {clearData();}
     
     private void tryPutDelayed(Level world, int x, int z){
         Combined3x3Chunk chunk = Combined3x3Chunk.createCentered(world, x, z);

@@ -20,7 +20,6 @@ import net.minecraft.util.Mth;
 import org.apache.commons.lang3.mutable.MutableInt;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jspecify.annotations.NonNull;
 
 import static lpctools.tools.ToolUtils.*;
 
@@ -125,7 +124,7 @@ public class BlockOuterEdgeHighlightInstance implements AutoCloseable, ClientWor
         taskInstance.close();
     }
     
-    @Override public void afterWorldChange(@NonNull Minecraft mc, @NonNull ClientLevel world) {clearData();}
+    @Override public void afterWorldChange(Minecraft mc, ClientLevel world) {clearData();}
     
     @Override public void betweenFrames() {
         var camPos = Minecraft.getInstance().gameRenderer.getMainCamera().position();

@@ -1,7 +1,7 @@
 package lpctools.util.data;
 
 import lpctools.util.AlgorithmUtils;
-import org.jspecify.annotations.NonNull;
+import org.jetbrains.annotations.NotNull;
 
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
@@ -10,7 +10,7 @@ import java.util.Iterator;
 public class WeakReferencedCollection<T> implements Iterable<T> {
 	private final ArrayList<WeakReference<T>> list = new ArrayList<>();
 	private int lastChecked = 0;
-	@Override public @NonNull Iterator<T> iterator() {
+	@Override public @NotNull Iterator<T> iterator() {
 		return AlgorithmUtils.iteratorWeakReferences(list);
 	}
 	public void add(T value) {

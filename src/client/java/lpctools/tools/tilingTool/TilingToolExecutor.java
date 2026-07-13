@@ -18,7 +18,6 @@ import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.phys.BlockHitResult;
 import org.apache.commons.lang3.mutable.MutableObject;
-import org.jspecify.annotations.NonNull;
 
 import java.util.ArrayList;
 
@@ -36,7 +35,7 @@ public class TilingToolExecutor implements AutoCloseable, ClientTickEvents.EndTi
     private void registerAll(boolean b){
         Registries.END_CLIENT_TICK.register(this, b);
     }
-    @Override public void onEndTick(@NonNull Minecraft mc) {
+    @Override public void onEndTick(Minecraft mc) {
         if(storedData == null) {
             if(autoRefresh.get().refreshOnExecuteNull)
                 autoRefreshOperation.get().run();
@@ -56,7 +55,7 @@ public class TilingToolExecutor implements AutoCloseable, ClientTickEvents.EndTi
         Block[][][] storedBlocks = storedData.storedBlocks();
         MutableObject<Block> block = new MutableObject<>();
         Object2BooleanFunction<Block> condition = b ->{
-            Block storedBlock = block.get();
+            Block storedBlock = block.getValue();
             if(b == storedBlock) return true;
             ArrayList<ImmutableSet<Block>> list = vagueBlocks.get(storedBlock);
             if(list == null) return false;
@@ -82,7 +81,7 @@ public class TilingToolExecutor implements AutoCloseable, ClientTickEvents.EndTi
             if(data.block == null){
                 data.count = HandRestock.restock(restockTest, offhandOperate.getAsBoolean() ? -1 : 0);
                 if(data.count == 0) return NO_OPERATION;
-                data.block = block.get();
+                data.block = block.getValue();
             }
             if(!condition.getBoolean(data.block)) return NO_OPERATION;
             BlockHitResult hitResult = new BlockHitResult(pos.getCenter(), Direction.DOWN, pos.immutable(), false);

@@ -21,7 +21,6 @@ import net.minecraft.world.level.chunk.ChunkAccess;
 import net.minecraft.world.level.chunk.LevelChunk;
 import org.apache.commons.lang3.mutable.MutableInt;
 import org.jetbrains.annotations.Nullable;
-import org.jspecify.annotations.NonNull;
 
 import static lpctools.tools.furnaceMaintainer.FurnaceMaintainerData.*;
 
@@ -80,7 +79,7 @@ public class DataInstance implements QuietAutoCloseable, Registries.ClientWorldC
 			highlightInstance.mark(pos.asLong(), null);
 	}
 	
-	@Override public void onEndTick(@NonNull Minecraft client) {
+	@Override public void onEndTick(Minecraft client) {
 		if(dataInstance != this || isEmpty()) {
 			DataUtils.clientMessage(Component.translatable("lpctools.configs.tools.FM.markedBlocksCleared"), true);
 			if(dataInstance == this) {

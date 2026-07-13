@@ -12,7 +12,7 @@ import lpctools.tools.ToolConfigs;
 import lpctools.tools.ToolUtils;
 import lpctools.util.CachedSupplier;
 import net.minecraft.network.chat.Component;
-import org.jspecify.annotations.Nullable;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.HashSet;
 

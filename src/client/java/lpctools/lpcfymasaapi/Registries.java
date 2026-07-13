@@ -4,7 +4,6 @@ import com.mojang.blaze3d.pipeline.RenderTarget;
 import fi.dy.masa.malilib.event.RenderEventHandler;
 import fi.dy.masa.malilib.interfaces.IRangeChangeListener;
 import fi.dy.masa.malilib.interfaces.IRenderer;
-import fi.dy.masa.malilib.render.GuiContext;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientChunkEvents;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientEntityEvents;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
@@ -13,6 +12,7 @@ import net.fabricmc.fabric.api.client.rendering.v1.world.WorldRenderEvents;
 import net.fabricmc.fabric.api.resource.v1.ResourceLoader;
 import net.minecraft.client.Camera;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.input.MouseButtonInfo;
 import net.minecraft.client.multiplayer.ClientLevel;
@@ -20,7 +20,7 @@ import net.minecraft.client.renderer.RenderBuffers;
 import net.minecraft.client.renderer.culling.Frustum;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.PackType;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.server.packs.resources.ResourceManagerReloadListener;
@@ -110,7 +110,7 @@ public class Registries {
         var toolTipComponentInsertLastRenderer = MASA_RENDER_TOOLTIP_COMPONENT_INSERTION_LAST.runner();
         var toolTipLastRenderer = MASA_RENDER_TOOLTIP_LAST.runner();
         IRenderer malilibRenderer = new IRenderer() {
-            @Override public void onRenderGameOverlayPostAdvanced(GuiContext ctx, float partialTicks, ProfilerFiller profiler) {
+            @Override public void onRenderGameOverlayPostAdvanced(GuiGraphics ctx, float partialTicks, ProfilerFiller profiler, Minecraft mc) {
                 overlayRenderer.renderGameOverlay(ctx, partialTicks, profiler);
             }
             @Override public void onRenderWorldPreWeather(RenderTarget fb, Matrix4f posMatrix, Matrix4f projMatrix, Frustum frustum, Camera camera, RenderBuffers buffers, ProfilerFiller profiler) {
@@ -128,7 +128,7 @@ public class Registries {
             @Override public void onRenderTooltipComponentInsertLast(Item.TooltipContext context, ItemStack stack, Consumer<Component> list) {
                 toolTipComponentInsertLastRenderer.onRenderTooltipComponentInsertLast(context, stack, list);
             }
-            @Override public void onRenderTooltipLast(GuiContext ctx, ItemStack stack, int x, int y) {
+            @Override public void onRenderTooltipLast(GuiGraphics ctx, ItemStack stack, int x, int y) {
                 toolTipLastRenderer.onRenderTooltipLast(ctx, stack, x, y);
             }
 
@@ -142,13 +142,13 @@ public class Registries {
         malilibRenderEventHandler.registerSpecialGuiRenderer(malilibRenderer);
     }
     static {
-        Identifier lpcRegistryClientResourceReloadCallbackId = Identifier.fromNamespaceAndPath("lpctools", "lpcfymasaapi_reload");
+        ResourceLocation lpcRegistryClientResourceReloadCallbackId = ResourceLocation.fromNamespaceAndPath("lpctools", "lpcfymasaapi_reload");
         ResourceLoader.get(PackType.CLIENT_RESOURCES).registerReloader(lpcRegistryClientResourceReloadCallbackId,
             (ResourceManagerReloadListener) manager -> CLIENT_RESOURCE_RELOAD.runner().onResourceReload(manager));
     }
     
     public interface GameOverlayRender {
-        void renderGameOverlay(GuiContext ctx, float partialTicks, ProfilerFiller profiler);
+        void renderGameOverlay(GuiGraphics ctx, float partialTicks, ProfilerFiller profiler);
     }
     public record MASAWorldRenderContext(RenderTarget fb, Matrix4f positionMatrix, Matrix4f projectionMatrix, Frustum frustum, Camera camera, RenderBuffers buffers, ProfilerFiller profiler) {}
     public interface WorldPreMainRender {
@@ -170,7 +170,7 @@ public class Registries {
         void onRenderTooltipComponentInsertLast(Item.TooltipContext context, ItemStack stack, Consumer<Component> list);
     }
     public interface TooltipLastRender {
-        void onRenderTooltipLast(GuiContext ctx, ItemStack stack, int x, int y);
+        void onRenderTooltipLast(GuiGraphics ctx, ItemStack stack, int x, int y);
     }
     public interface ClientWorldChunkSetBlockState {//at RETURN
         void onClientWorldChunkSetBlockState(LevelChunk chunk, BlockPos pos, @Nullable BlockState lastState, @Nullable BlockState newState);

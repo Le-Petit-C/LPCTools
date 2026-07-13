@@ -7,10 +7,8 @@ import com.mojang.blaze3d.systems.RenderPass;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.textures.GpuTextureView;
 import com.mojang.blaze3d.vertex.DefaultVertexFormat;
-import com.mojang.blaze3d.vertex.VertexFormat;
 import lpctools.lpcfymasaapi.Registries;
 import lpctools.lpcfymasaapi.render.LPCRenderPipelines;
-import lpctools.lpcfymasaapi.render.translucentShapes.Sphere;
 import lpctools.tools.ToolUtils;
 import lpctools.util.RenderUtils;
 import lpctools.util.javaex.QuietAutoCloseable;
@@ -35,8 +33,6 @@ public class DebugShapes implements ToolUtils.ToolRunner, WorldRenderEvents.Befo
 	@Override public void registerAll(boolean b) { Registries.BEFORE_TRANSLUCENT.register(this, b); }
 
 	GpuBuffer triangleVertexBuffer;
-	GpuBuffer sphereVertexBuffer;
-	GpuBuffer sphereIndexBuffer;
 
 	private void initializeBuffers() {
 		if(triangleVertexBuffer == null) {
@@ -52,43 +48,11 @@ public class DebugShapes implements ToolUtils.ToolRunner, WorldRenderEvents.Befo
 				GpuBuffer.USAGE_VERTEX | GpuBuffer.USAGE_COPY_DST, buf);
 			MemoryUtil.memFree(buf);
 		}
-		if(sphereVertexBuffer == null) {
-			int stride = DefaultVertexFormat.POSITION_COLOR_LINE_WIDTH.getVertexSize();
-			ByteBuffer buf = MemoryUtil.memAlloc(stride * 8);
-			for(int i = 0; i < 8; ++i)
-				buf.putFloat(0).putFloat(0).putFloat(0)
-					.putInt(0xFFFFFFFF).putFloat(0.5f);
-			buf.flip();
-			GpuDevice device = RenderSystem.getDevice();
-			sphereVertexBuffer = device.createBuffer(
-				() -> "DebugShapesSphereVertexBuffer",
-				GpuBuffer.USAGE_VERTEX | GpuBuffer.USAGE_COPY_DST, buf);
-			MemoryUtil.memFree(buf);
-		}
-		if(sphereIndexBuffer == null) {
-			int size = 0;
-			for(int[] face : Sphere.baseIndices)
-				size += face.length * 2;
-			ByteBuffer buf = MemoryUtil.memAlloc(size);
-			for(int[] face : Sphere.baseIndices)
-				for(int index : face)
-					buf.putShort((short) index);
-			buf.flip();
-			GpuDevice device = RenderSystem.getDevice();
-			sphereIndexBuffer = device.createBuffer(
-				() -> "DebugShapesSphereIndexBuffer",
-				GpuBuffer.USAGE_INDEX | GpuBuffer.USAGE_COPY_DST, buf);
-			MemoryUtil.memFree(buf);
-		}
 	}
 
 	@Override public void close() {
 		if(triangleVertexBuffer != null)
 			triangleVertexBuffer = QuietAutoCloseable.close(triangleVertexBuffer);
-		if(sphereVertexBuffer != null)
-			sphereVertexBuffer = QuietAutoCloseable.close(sphereVertexBuffer);
-		if(sphereIndexBuffer != null)
-			sphereIndexBuffer = QuietAutoCloseable.close(sphereIndexBuffer);
 	}
 
 	@Override public void beforeTranslucent(WorldRenderContext context) {
@@ -109,7 +73,7 @@ public class DebugShapes implements ToolUtils.ToolRunner, WorldRenderEvents.Befo
 		modelView.rotate(angle, 0, 1, 0);
 
 		GpuBufferSlice dyn = RenderSystem.getDynamicUniforms()
-			.writeTransform(modelView, new Vector4f(1, 1, 1, 1), new Vector3f(), new Matrix4f());
+			.writeTransform(modelView, new Vector4f(1, 1, 1, 1), new Vector3f(), new Matrix4f(), 0.0f);
 
 		try (RenderPass rp = enc.createRenderPass(
 				() -> "DebugTrianglePass", colorView,
@@ -119,18 +83,6 @@ public class DebugShapes implements ToolUtils.ToolRunner, WorldRenderEvents.Befo
 			rp.setUniform("DynamicTransforms", dyn);
 			rp.setVertexBuffer(0, triangleVertexBuffer);
 			rp.draw(0, 3);
-		}
-
-		//绘制球
-		try (RenderPass rp = enc.createRenderPass(
-			() -> "DebugSpherePass", colorView,
-			OptionalInt.empty(), depthView, OptionalDouble.empty())) {
-			rp.setPipeline(LPCRenderPipelines.spherePipeline);
-			RenderSystem.bindDefaultUniforms(rp);
-			rp.setUniform("DynamicTransforms", dyn);
-			rp.setVertexBuffer(0, sphereVertexBuffer);
-			rp.setIndexBuffer(sphereIndexBuffer, VertexFormat.IndexType.SHORT);
-			rp.drawIndexed(0, 0, 6 * 2 * 6, 1);
 		}
 	}
 }

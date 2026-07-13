@@ -1,9 +1,10 @@
 package lpctools.lpcfymasaapi.widgets;
 
 import fi.dy.masa.malilib.gui.widgets.WidgetBase;
-import fi.dy.masa.malilib.render.GuiContext;
 import java.util.ArrayList;
 import java.util.Arrays;
+
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.world.phys.Vec2;
 
 import static lpctools.lpcfymasaapi.LPCConfigUtils.calculateTextButtonWidth;
@@ -48,7 +49,7 @@ public class WHAutoAdjustStringWidget extends WidgetBase {
 		needUpdateSize = true;
 	}
 	
-	@Override public void render(GuiContext context, int mouseX, int mouseY, boolean selected) {
+	@Override public void render(GuiGraphics context, int mouseX, int mouseY, boolean selected) {
 		tryUpdateSize();
 		super.render(context, mouseX, mouseY, selected);
 		int x = getX(), y = getY(), w = getWidth(), h = getHeight();

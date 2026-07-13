@@ -25,7 +25,6 @@ import net.minecraft.world.level.chunk.LevelChunk;
 import net.minecraft.world.level.chunk.status.ChunkStatus;
 import org.apache.commons.lang3.mutable.MutableInt;
 import org.jetbrains.annotations.Nullable;
-import org.jspecify.annotations.NonNull;
 
 import java.util.HashMap;
 
@@ -63,7 +62,7 @@ class DataInstance implements AutoCloseable, ClientChunkEvents.Load, ClientWorld
         else testPos(chunk.getLevel(), pos);
     }
     
-    @Override public void onChunkLoad(@NonNull ClientLevel world, @NonNull LevelChunk chunk) {
+    @Override public void onChunkLoad(ClientLevel world, LevelChunk chunk) {
         ChunkPos pos = chunk.getPos();
         testChunkAsync(pos.x, pos.z, world);
         testChunkAsync(pos.x - 1, pos.z, world);
@@ -72,7 +71,7 @@ class DataInstance implements AutoCloseable, ClientChunkEvents.Load, ClientWorld
         testChunkAsync(pos.x, pos.z + 1, world);
     }
     
-    @Override public void afterWorldChange(@NonNull Minecraft minecraftClient, @NonNull ClientLevel clientWorld) {
+    @Override public void afterWorldChange(Minecraft minecraftClient, ClientLevel clientWorld) {
         testWorldAsync(clientWorld);
     }
     
