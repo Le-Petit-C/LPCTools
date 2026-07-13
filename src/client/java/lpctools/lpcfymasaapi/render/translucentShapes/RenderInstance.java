@@ -17,7 +17,6 @@ import lpctools.util.CachedSupplier;
 import lpctools.util.javaex.QuietAutoCloseable;
 import net.minecraft.Util;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gl.*;
 import net.minecraft.client.renderer.CoreShaders;
 import net.minecraft.client.renderer.culling.Frustum;
 import net.minecraft.core.SectionPos;
@@ -160,8 +159,8 @@ public class RenderInstance implements QuietAutoCloseable, Registries.WorldPreMa
 		GlStateManager._glBindVertexArray(glVertexArrayId);
 		var program = RenderSystem.setShader(renderOption.shader());
 		if (program != null) {
-			program.initializeUniforms(renderOption.drawMode(), modelViewMatrix, projectionMatrix, Minecraft.getInstance().getWindow());
-			program.bind();
+			program.setDefaultUniforms(renderOption.drawMode(), modelViewMatrix, projectionMatrix, Minecraft.getInstance().getWindow());
+			program.apply();
 			RenderSystem.depthMask(renderOption.useDepthBuffer());
 			boolean isBlendEnabled = GL11.glIsEnabled(GL11.GL_BLEND);
 			if(!isBlendEnabled) RenderSystem.enableBlend();
@@ -171,7 +170,7 @@ public class RenderInstance implements QuietAutoCloseable, Registries.WorldPreMa
 				subChunk.render();
 			RenderSystem.depthMask(true);
 			if(!isBlendEnabled) RenderSystem.disableBlend();
-			program.unbind();
+			program.clear();
 		}
 		GlStateManager._glBindVertexArray(0);
 	}

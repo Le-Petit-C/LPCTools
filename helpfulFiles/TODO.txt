@@ -1,0 +1,11 @@
+在客户端关闭时进行清理
+
+配置按钮状态更新修复
+
+适配26.2单Pipeline多顶点格式结构
+
+(每个版本)检查 DepthStencilState 为 null 时的默认操作
+
+master、26.2、26.1... 改Java版本
+	sourceCompatibility = JavaVersion.VERSION_24
+	targetCompatibility = JavaVersion.VERSION_24

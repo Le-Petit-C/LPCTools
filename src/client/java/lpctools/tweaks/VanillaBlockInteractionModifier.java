@@ -7,7 +7,6 @@ import lpctools.mixin.client.BlockReplaceAction;
 import lpctools.mixin.client.accessors.AbstractBlockAccessor;
 import lpctools.util.DataUtils;
 import lpctools.util.mixin.PacketRecorder;
-import net.minecraft.block.*;
 import net.minecraft.client.Minecraft;
 import net.minecraft.commands.arguments.blocks.BlockStateParser;
 import net.minecraft.core.BlockPos;
