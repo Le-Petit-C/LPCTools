@@ -20,10 +20,7 @@ import org.joml.Vector4f;
 import org.lwjgl.system.MemoryUtil;
 
 import java.nio.ByteBuffer;
-import java.util.Arrays;
-import java.util.OptionalDouble;
-import java.util.OptionalInt;
-import java.util.Random;
+import java.util.*;
 
 import static lpctools.lpcfymasaapi.LPCConfigStatics.*;
 
@@ -154,7 +151,7 @@ public class GpuCacheMissTest {
 			shuffleIntsUnited(basicVertexIndexes, vertexUnitLength, random);
 			float separateK = (float)Math.pow(shapeCount, 1.0 / 3);
 			Vector3f[] shapeCache = new Vector3f[vertexPerShape];
-			Arrays.setAll(shapeCache, indexType -> new Vector3f());
+			Arrays.setAll(shapeCache, _ -> new Vector3f());
 			var rotationCache = new Quaternionf();
 			var centerCache = new Vector3f();
 			Vector3f[] vertexCache = new Vector3f[vertexCount];
@@ -215,8 +212,8 @@ public class GpuCacheMissTest {
 			GpuTextureView colorAttachmentView = fb.getColorTextureView();
 			GpuTextureView depthAttachmentView = fb.useDepth ? fb.getDepthTextureView() : null;
 			GpuBufferSlice dynamicTransforms = RenderSystem.getDynamicUniforms()
-				.writeTransform(RenderSystem.getModelViewMatrix().translate(context.camera().position().toVector3f().mul(-1),
-					new Matrix4f()), new Vector4f(1.0F, 1.0F, 1.0F, 1.0F), new Vector3f(), new Matrix4f(), 1.0f);
+				.writeTransform(new Matrix4f(RenderSystem.getModelViewMatrix()).translate(context.camera().position().toVector3f().mul(-1)),
+					new Vector4f(1.0F, 1.0F, 1.0F, 1.0F), new Vector3f(), new Matrix4f(), 0.0f);
 			GpuBufferSlice projection = RenderSystem.getProjectionMatrixBuffer();
 			try(RenderPass renderPass = RenderSystem.getDevice()
 				.createCommandEncoder()

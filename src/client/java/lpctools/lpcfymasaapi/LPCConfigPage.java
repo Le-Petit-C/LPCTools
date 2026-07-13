@@ -95,14 +95,14 @@ public class LPCConfigPage implements IConfigHandler, Supplier<GuiBase>, ILPCCon
     @Override public void load() {
         Path configFile = FileUtils.getConfigDirectoryAsPath().resolve(configFileName);
         if (Files.exists(configFile) && Files.isReadable(configFile)
-            && JsonUtils.parseJsonFileAsPath(configFile) instanceof JsonElement pageJson)
+            && JsonUtils.parseJsonFile(configFile.toFile()) instanceof JsonElement pageJson)
             setValueFromJsonElement(pageJson);
     }
     @Override public void save() {
         Path configFile = FileUtils.getConfigDirectoryAsPath().resolve(configFileName);
         JsonObject pageJson = null;
         if (Files.exists(configFile) && Files.isReadable(configFile)){
-            JsonElement element = JsonUtils.parseJsonFileAsPath(configFile);
+            JsonElement element = JsonUtils.parseJsonFile(configFile.toFile());
             if(element != null && element.isJsonObject())
                 pageJson = element.getAsJsonObject();
         }
@@ -114,7 +114,7 @@ public class LPCConfigPage implements IConfigHandler, Supplier<GuiBase>, ILPCCon
             FileUtils.createDirectoriesIfMissing(dir);
         if (Files.isDirectory(dir)) {
             Path file = dir.resolve(configFileName);
-            JsonUtils.writeJsonToFileAsPath(pageJson, file);
+            JsonUtils.writeJsonToFile(pageJson, file.toFile());
         }
     }
     @Override public @NotNull JsonObject getAsJsonElement() {
@@ -226,7 +226,7 @@ public class LPCConfigPage implements IConfigHandler, Supplier<GuiBase>, ILPCCon
                 widget.markConfigsModified();
         }
         
-        @Override public void render(GuiGraphics drawContext, int mouseX, int mouseY, float partialTicks) {
+        @Override public void render(@NotNull GuiGraphics drawContext, int mouseX, int mouseY, float partialTicks) {
             if(needUpdate) {
                 initGui();
                 needUpdate = false;

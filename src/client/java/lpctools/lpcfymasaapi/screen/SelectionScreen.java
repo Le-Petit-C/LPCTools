@@ -424,7 +424,7 @@ public class SelectionScreen<T> extends GuiBase {
 			super(x, y, 20, height, option.getName().getString());
 			setWidth(calculateTextButtonWidth(displayString, textRenderer, buttonHeight));
 			if(option.getComment() instanceof Component comment) setHoverStrings(comment.getString());
-			setActionListener((button, mouseButton)->option.onSelected(yourDepth, screen));
+			setActionListener((_, _)->option.onSelected(yourDepth, screen));
 		}
 	}
 	

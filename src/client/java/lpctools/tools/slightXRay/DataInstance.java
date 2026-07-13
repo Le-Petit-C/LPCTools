@@ -7,15 +7,14 @@ import lpctools.lpcfymasaapi.Registries;
 import lpctools.lpcfymasaapi.render.BlockOuterEdgeHighlightInstance;
 import lpctools.tools.ToolUtils;
 import lpctools.util.AlgorithmUtils;
+import lpctools.util.DataUtils;
 import lpctools.util.Packed;
-import lpctools.util.instance.CameraPosMarker;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientChunkEvents;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientWorldEvents;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.util.Mth;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
@@ -38,7 +37,6 @@ import static lpctools.util.DataUtils.loadedChunks;
 class DataInstance implements AutoCloseable, ClientChunkEvents.Load, ClientWorldEvents.AfterClientWorldChange, Registries.ClientWorldChunkSetBlockState, Registries.BetweenRenderFrames {
     private final BlockOuterEdgeHighlightInstance highlightInstance = new BlockOuterEdgeHighlightInstance();
     private final ChunkedTaskInstance taskInstance = new ChunkedTaskInstance();
-    private final CameraPosMarker cameraPosMarker = new CameraPosMarker();
     
     DataInstance() {
         updateRangeLimit();
@@ -48,11 +46,12 @@ class DataInstance implements AutoCloseable, ClientChunkEvents.Load, ClientWorld
     }
     
     void registerAll(boolean b){
-        Registries.AFTER_CLIENT_WORLD_CHANGE.register(this, b);
+        Registries.AFTER_CLIENT_LEVEL_CHANGE.register(this, b);
         Registries.CLIENT_CHUNK_LOAD.register(this, b);
         Registries.CLIENT_WORLD_CHUNK_SET_BLOCK_STATE.register(this, b);
         Registries.BETWEEN_RENDER_FRAMES.register(this, b);
     }
+    
     @Override public void onClientWorldChunkSetBlockState(LevelChunk chunk, BlockPos pos, @Nullable BlockState lastState, @Nullable BlockState newState) {
         if(newState == null) newState = Blocks.AIR.defaultBlockState();
         if(isFluid(newState.getBlock())) return;
@@ -122,8 +121,9 @@ class DataInstance implements AutoCloseable, ClientChunkEvents.Load, ClientWorld
     
     private void buildAsyncTask(long packedChunkPos, ChunkData chunkData, ChunkedTaskInstance.DelayedCallback callback){
         HashMap<Block, MutableInt> recorded = SlightXRayData.getRecordedXRayBlocks();
+        Int2ObjectOpenHashMap<MutableInt> recordedMarkedPoses = ToolUtils.recordMap(new Int2ObjectOpenHashMap<>(), highlightInstance.getChunkMarks(packedChunkPos));
         callback.task = ()->{
-            var res = testChunkData(chunkData, recorded);
+            var res = testChunkData(chunkData, recorded, recordedMarkedPoses);
             return ()->{
                 highlightInstance.resetChunk(packedChunkPos, res);
                 return ChunkedTaskInstance.CallbackStatus.CONTINUE;
@@ -151,10 +151,8 @@ class DataInstance implements AutoCloseable, ClientChunkEvents.Load, ClientWorld
     
     @Override public void betweenFrames() {
         SlightXRay.tryRefreshXRayBlocks();
-        var camPos = Minecraft.getInstance().gameRenderer.getMainCamera().position();
-        cameraPosMarker.nextPos(ToolUtils.chunkedCoord(camPos.x), ToolUtils.chunkedCoord(camPos.z));
-        clearChunksOutOfRange(cameraPosMarker.getResX(), cameraPosMarker.getResZ(),
-            Mth.square(cameraPosMarker.getResR() + 2 * Minecraft.getInstance().options.renderDistance().get()));
+        DataUtils.executeWithRenderCenterPos((x, z, r)->clearChunksOutOfRange(x, z, r * r),
+            2 * Minecraft.getInstance().options.renderDistance().get());
     }
     
     private record ChunkData(ChunkAccess current, ChunkAccess west, ChunkAccess east, ChunkAccess north, ChunkAccess south){
@@ -171,7 +169,7 @@ class DataInstance implements AutoCloseable, ClientChunkEvents.Load, ClientWorld
         }
     }
     
-    private static Int2ObjectOpenHashMap<MutableInt> testChunkData(ChunkData data, HashMap<Block, MutableInt> colorMap){
+    private static Int2ObjectOpenHashMap<MutableInt> testChunkData(ChunkData data, HashMap<Block, MutableInt> colorMap, Int2ObjectOpenHashMap<MutableInt> recordedMarkedPoses){
         var res = new Int2ObjectOpenHashMap<MutableInt>();
         int bottom = data.current.getMinY(), height = data.current.getHeight(), top = bottom + height;
         ChunkTestData displaysNear = new ChunkTestData(bottom, height);
@@ -189,23 +187,28 @@ class DataInstance implements AutoCloseable, ClientChunkEvents.Load, ClientWorld
             displaysNear.set(pos1, true);
         for(BlockPos pos1 : AlgorithmUtils.iterateInBox(0, top, 0, 15, top, 15))
             displaysNear.set(pos1, true);
+        BlockPos.MutableBlockPos posCache = new BlockPos.MutableBlockPos();
         for(BlockPos pos1 : AlgorithmUtils.iterateInBox(0, bottom, 0, 15, top - 1, 15)){
             BlockState state = data.current.getBlockState(pos1);
-            MutableInt color = colorMap.get(state.getBlock());
-            if(color == null) continue;
-            if(displaysNear.get(pos1)){
-                int chunkLocalPos = Packed.ChunkLocal.pack(pos1);
-                res.put(chunkLocalPos, color);
-                continue;
-            }
-            for(Direction direction : Direction.values()){
-                if(displaysNear.get(pos1.getX() + direction.getStepX(), pos1.getY() + direction.getStepY(), pos1.getZ() + direction.getStepZ())){
-                    int chunkLocalPos = Packed.ChunkLocal.pack(pos1);
-                    res.put(chunkLocalPos, color);
-                    break;
+            boolean hasDisplayNear;
+            if(displaysNear.get(pos1)) hasDisplayNear = true;
+            else {
+                boolean b = false;
+                for(Direction direction : Direction.values()){
+                    if(displaysNear.get(posCache.set(pos1).move(direction))){
+                        b = true;
+                        break;
+                    }
                 }
+                hasDisplayNear = b;
             }
-        }
+            int packedChunkLocal = Packed.ChunkLocal.pack(pos1);
+            
+			MutableInt color;
+			if(hasDisplayNear) color = colorMap.get(state.getBlock());
+            else color = recordedMarkedPoses.get(packedChunkLocal);
+			if(color != null) res.put(packedChunkLocal, color);
+		}
         return res;
     }
     

@@ -21,6 +21,8 @@ void main() {
     if(s < 0) discard;
     vec2 depthVec = depthMul * s * posLenInv + depthBase;
     float ndcDepth = depthVec.x / depthVec.y;
+    // how to automatically detect glClipControl and glDepthRange parameters and convert this ndcDepth to gl_FragDepth?
+    // gl_FragDepth = ndcDepth;
     gl_FragDepth = ndcDepth * 0.5 + 0.5;
     fragColor = vertexColor;
 }

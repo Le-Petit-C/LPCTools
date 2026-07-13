@@ -18,6 +18,9 @@ classes/
 
 # vscode
 
+# reference sources (decompiled/downloaded)
+refSources/
+
 .settings/
 .vscode/
 bin/
@@ -40,8 +43,8 @@ replay_*.log
 *.jfr
 /local/
 /scripts/
-/简介.txt
 /libSources/
-/Hints.txt
 /old/
 /logs/
+/.profileconfig.json
+/helpfulFiles/

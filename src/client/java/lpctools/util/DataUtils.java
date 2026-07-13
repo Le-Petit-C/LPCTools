@@ -10,6 +10,7 @@ import lpctools.util.javaex.Object2BooleanFunction;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientChunkCache;
 import net.minecraft.client.multiplayer.ClientLevel;
+import net.minecraft.client.multiplayer.chat.ChatListener;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
 import net.minecraft.core.Registry;
@@ -23,6 +24,7 @@ import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
+import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.chunk.LevelChunk;
 import net.minecraft.world.phys.Vec3;
@@ -37,6 +39,7 @@ import org.joml.Vector4f;
 import org.lwjgl.opengl.GL30;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -47,11 +50,15 @@ public class DataUtils {
     public static @Nullable String getTextFileResource(ResourceManager manager, ResourceLocation resId){
         Optional<Resource> res = manager.getResource(resId);
         if(res.isEmpty()) return null;
-        try {return new String(res.get().open().readAllBytes());
-        } catch (IOException ignored) {return null;}
+        try(InputStream stream = res.get().open()) {
+            return new String(stream.readAllBytes());
+        } catch (IOException ignored) { return null; }
     }
-    public static void clientMessage(String message, boolean overlay){Minecraft.getInstance().getChatListener().handleSystemMessage(Component.nullToEmpty(message), overlay);}
-    public static void clientMessage(Component message, boolean overlay){Minecraft.getInstance().getChatListener().handleSystemMessage(message, overlay);}
+    public static void clientMessage(String message, boolean overlay) { clientMessage(Component.nullToEmpty(message), overlay); }
+    public static void clientMessage(Component message, boolean overlay) {
+        ChatListener chatListener = Minecraft.getInstance().getChatListener();
+        chatListener.handleSystemMessage(message, overlay);
+    }
     public static <T> void notifyPlayerIf(T value, Function<T, String> converter, Object2BooleanFunction<T> condition, boolean overlay){
         if(condition.getBoolean(value)) clientMessage(converter.apply(value), overlay);
     }
@@ -84,6 +91,11 @@ public class DataUtils {
         if(list != null) list.forEach(entityType->builder.add(getEntityTypeId(entityType)));
         return builder.build();
     }
+    
+    public static double chunkedCoord(double origin) {
+        return origin / 16 - 0.5;
+    }
+    
     public interface ClassCaster<T, U>{U cast(T v) throws ClassCastException;}
     public static @Nullable <T, U> U getObjectFromId(@NotNull String loggerInfo, @NotNull String id, Registry<T> registry, @NotNull ClassCaster<T, U> caster, boolean notifies){
         try{
@@ -192,10 +204,15 @@ public class DataUtils {
         };
     }
     
-    public static int argb2agbr(int color){
+    /**
+     * Swaps red and blue channels in a 32-bit color integer.
+     * Commonly used for ARGB <-> ABGR conversion.
+     */
+    public static int swapRedBlue(int color){
         int s = color & 0x00ff00ff;
         return (color & 0xff00ff00) | (s >> 16) | (s << 16);
     }
+    
     public static Vector4f argb2VectorABGRf(int color){
         return new Vector4f(
             ((color >>> 16) & 0xff) / 255.0f,
@@ -273,18 +290,22 @@ public class DataUtils {
         int startIndex = 0;
         while (startIndex < length && chunks.get(startIndex) == null) ++startIndex;
         int finalStartIndex = startIndex;
-        return () -> new Iterator<>() {
-			int nextIndex = finalStartIndex;
-			@Override public boolean hasNext() {
-				return nextIndex < length;
-			}
-			
-			@Override public LevelChunk next() {
-				var res = chunks.get(nextIndex++);
-				while (nextIndex < length && chunks.get(nextIndex) == null) ++nextIndex;
-				return res;
-			}
-		};
+        return new Iterable<>() {
+            @Override public @NotNull Iterator<LevelChunk> iterator() {
+                return new Iterator<>() {
+                    int nextIndex = finalStartIndex;
+                    @Override public boolean hasNext() {
+                        return nextIndex < length;
+                    }
+
+                    @Override public LevelChunk next() {
+                        var res = chunks.get(nextIndex++);
+                        while (nextIndex < length && chunks.get(nextIndex) == null) ++nextIndex;
+                        return res;
+                    }
+                };
+            }
+        };
     }
     /**
      * modified form {@link java.awt.Color#RGBtoHSB(int, int, int, float[])}
@@ -362,5 +383,46 @@ public class DataUtils {
     }
     public static int fRGB2iRGB(float r, float g, float b) {
         return 0xff000000 | ((int) (r * 255 + 0.5f)) | ((int) (g * 255 + 0.5f) << 8) | ((int) (b * 255 + 0.5f) << 16);
+    }
+    
+    public static ChunkPos getCenterChunkPos(ClientLevel world) {
+        ClientChunkMapAccessor accessor = (ClientChunkMapAccessor)(Object)((ClientChunkAccessor)world.getChunkSource()).getStorage();
+		//noinspection DataFlowIssue
+		return new ChunkPos(accessor.getViewCenterX(), accessor.getViewCenterZ());
+    }
+    
+    public interface CameraCenterPosConsumer {
+        void acceptPos(double chunkedCenterX, double chunkedCenterZ);
+    }
+    
+    public static void executeWithCameraCenterPos(CameraCenterPosConsumer consumer) {
+        Vec3 camPos = Minecraft.getInstance().gameRenderer.getMainCamera().position();
+        consumer.acceptPos(chunkedCoord(camPos.x), chunkedCoord(camPos.z));
+    }
+    
+    public interface RenderCenterPosConsumer {
+        void acceptPos(double chunkedCenterX, double chunkedCenterZ, double radius);
+    }
+    
+    public static void executeWithRenderCenterPos(RenderCenterPosConsumer consumer, double expandRadius) {
+        Minecraft mc = Minecraft.getInstance();
+        Vec3 camPos = mc.gameRenderer.getMainCamera().position();
+        double chunkedCamX = chunkedCoord(camPos.x);
+        double chunkedCamZ = chunkedCoord(camPos.z);
+        double chunkedX, chunkedZ, radius;
+        if(mc.level instanceof ClientLevel world) {
+            ChunkPos worldCenterChunkPos = getCenterChunkPos(world);
+            chunkedX = (worldCenterChunkPos.x + chunkedCamX) * 0.5;
+            chunkedZ = (worldCenterChunkPos.z + chunkedCamZ) * 0.5;
+            double XOffset = chunkedX - chunkedCamX;
+            double ZOffset = chunkedZ - chunkedCamZ;
+            radius = Math.sqrt(XOffset * XOffset + ZOffset * ZOffset) + expandRadius;
+        }
+        else {
+            chunkedX = chunkedCamX;
+            chunkedZ = chunkedCamZ;
+            radius = expandRadius;
+        }
+        consumer.acceptPos(chunkedX, chunkedZ, radius);
     }
 }

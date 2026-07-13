@@ -14,8 +14,8 @@ import java.util.List;
 @Mixin(EnumProperty.class)
 public class EnumPropertyMixin<T extends Enum<T> & StringRepresentable> {
 	@Inject(method = "<init>", at = @At("RETURN"))
-	private void onInit(String name, Class<T> type, List<T> values, CallbackInfo ci) {
-		ConstantEnum.enumInfo.registerEnum(type);
+	private void onInit(String name, Class<T> clazz, List<T> values, CallbackInfo ci) {
+		ConstantEnum.enumInfo.registerEnum(clazz);
 		BlockPropertyOperators.EnumPropertyOperator.propertyGetters.registerProperty((EnumProperty<?>) (Object) this);
 	}
 }

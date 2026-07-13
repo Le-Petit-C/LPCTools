@@ -5,14 +5,7 @@ import lpctools.lpcfymasaapi.configButtons.uniqueConfigs.*;
 import lpctools.tools.ToolConfigs;
 import lpctools.tools.ToolUtils;
 import lpctools.util.DataUtils;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.screens.Screen;
-import net.minecraft.client.gui.screens.inventory.AbstractFurnaceScreen;
-import net.minecraft.client.gui.screens.inventory.HopperScreen;
-import net.minecraft.client.multiplayer.MultiPlayerGameMode;
-import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.network.chat.Component;
-import net.minecraft.world.inventory.ClickType;
 
 import static lpctools.lpcfymasaapi.LPCConfigStatics.*;
 import static lpctools.tools.furnaceMaintainer.FurnaceMaintainerData.*;
@@ -34,19 +27,20 @@ public class FurnaceMaintainer {
     public static final UniqueBooleanConfig useCullFace = addConfigEx(l->new UniqueBooleanConfig(l, "useCullFace", true, applyToDataInstanceCallback(DataInstance::refreshUseCullFace)));
     
     static {listStack.pop();}
-    private static void switchCallback(){
-        if(FMConfig.getBooleanValue() && dataInstance != null){
+    private static void switchCallback() {
+        if(FMConfig.getBooleanValue()) {
             if(runner == null)
                 runner = new FurnaceMaintainerRunner();
+            runner.registerAll(true);
         }
         else {
-            if(runner != null){
+            if(runner != null) {
                 runner.close();
                 runner = null;
             }
         }
     }
-    private static void detectFurnacesCallback(){
+    private static void detectFurnacesCallback() {
         if(dataInstance == null) dataInstance = new DataInstance();
         dataInstance.retestFurnaces();
     }
@@ -55,37 +49,6 @@ public class FurnaceMaintainer {
             dataInstance.close();
             dataInstance = null;
         }
-    }
-    private static void clearClientScreen(Screen screen){
-        var mc = Minecraft.getInstance();
-        if(mc.screen == screen) mc.setScreen(null);
-    }
-    public static boolean screenCallback(Screen screen) {
-        if(!FMConfig.getBooleanValue() || dataInstance == null || runner == null || runner.lastInteractedPos == null) return false;
-        Minecraft client = Minecraft.getInstance();
-        LocalPlayer player = client.player;
-        MultiPlayerGameMode itm = client.gameMode;
-        if(player == null || itm == null) {
-            FMConfig.setBooleanValue(false);
-            return false;
-        }
-        // DataUtils.clientMessage(String.valueOf(player.currentScreenHandler.syncId), false);
-        boolean operated;
-        if(screen instanceof AbstractFurnaceScreen<?> screen1) {
-            itm.handleInventoryMouseClick(screen1.getMenu().containerId, 0, 0, ClickType.QUICK_MOVE, player);
-            operated = true;
-        }
-        else if(screen instanceof HopperScreen screen1) {
-            for(int i = 0; i < 5; ++i) itm.handleInventoryMouseClick(screen1.getMenu().containerId, i, 0, ClickType.QUICK_MOVE, player);
-            operated = true;
-        }
-        else operated = false;
-        if(operated) {
-            clearClientScreen(screen);
-            dataInstance.highlightInstance.mark(runner.lastInteractedPos, null);
-            runner.lastInteractedPos = null;
-        }
-        return operated;
     }
     public static void onBlockInteracted() {
         if(!FMConfig.getBooleanValue()) return;

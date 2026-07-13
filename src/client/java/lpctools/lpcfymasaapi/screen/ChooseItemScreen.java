@@ -32,7 +32,7 @@ public class ChooseItemScreen extends GuiBase {
 			ResourceLocation testId = ResourceLocation.tryParse(text);
 			if(testId != null) idTest = obj->obj.getNamespace().contains(testId.getNamespace())
 				&& obj.getPath().contains(testId.getPath());
-			else idTest = o->false;
+			else idTest = _ ->false;
 			searchedItems.clear();
 			for(T obj : items){
 				Item item = toItem.apply(obj);
@@ -99,7 +99,7 @@ public class ChooseItemScreen extends GuiBase {
 				int index = (a + shift) * width + b;
 				if(index >= searchedItems.size()) break break1;
 				SearchResult result = searchedItems.get(index);
-				addButton(new ItemButton(result.renderItem, x, y, result.hoverStrings), (button, mouseButton)->{
+				addButton(new ItemButton(result.renderItem, x, y, result.hoverStrings), (_, _)->{
 					result.chosenCallback.run();
 					closeGui(true);
 				});

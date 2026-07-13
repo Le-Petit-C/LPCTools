@@ -21,11 +21,11 @@ public class PlayerInputC2SPacketMixin {
     @Shadow @Final @Mutable
     private Input input;
     @Inject(method = "<init>", at = @At("TAIL"))
-    void initInject(Input playerInput, CallbackInfo ci){
+    void initInject(Input input, CallbackInfo ci){
         if(!isOnRenderThread()) return;
         if(!HappyGhastRidingTweak.happyGhastRidingTweak.getBooleanValue()) return;
         LocalPlayer player = Minecraft.getInstance().player;
         if(player == null || !(player.getVehicle() instanceof HappyGhast)) return;
-        input = new Input(input.forward(), input.backward(), input.left(), input.right(), input.jump(), HappyGhastRidingTweak.happyGhastDismountKey.getKeybind().isPressed(), input.sprint());
+        this.input = new Input(this.input.forward(), this.input.backward(), this.input.left(), this.input.right(), this.input.jump(), HappyGhastRidingTweak.happyGhastDismountKey.getKeybind().isPressed(), this.input.sprint());
     }
 }
