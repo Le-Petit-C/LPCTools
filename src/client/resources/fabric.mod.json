@@ -41,6 +41,9 @@
 		"fabric-api": "*"
 	},
 	"suggests": {
-		"malilib": "0.23.5"
+		"malilib": "0.23.5",
+		"minihud": "0.34.8",
+		"litematica": "0.21.7",
+		"tweakeroo": "0.23.6"
 	}
 }
