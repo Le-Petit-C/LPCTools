@@ -1,7 +1,7 @@
 package lpctools.util;
 
 import com.mojang.blaze3d.pipeline.RenderTarget;
-import com.mojang.blaze3d.textures.GpuTextureView;
+import com.mojang.blaze3d.textures.GpuTexture;
 import lpctools.LPCTools;
 import net.minecraft.client.Minecraft;
 import org.lwjgl.opengl.GL11;
@@ -10,12 +10,12 @@ import java.util.Objects;
 import java.util.function.IntConsumer;
 
 public class RenderUtils {
-	public static GpuTextureView colorAttachmentViewOrDef(RenderTarget target) {
-		return Objects.requireNonNullElse(target.getColorTextureView(), Minecraft.getInstance().getMainRenderTarget().getColorTextureView());
+	public static GpuTexture colorAttachmentViewOrDef(RenderTarget target) {
+		return Objects.requireNonNullElse(target.getColorTexture(), Minecraft.getInstance().getMainRenderTarget().getColorTexture());
 	}
 
-	public static GpuTextureView depthAttachmentViewOrDef(RenderTarget target) {
-		return Objects.requireNonNullElse(target.useDepth ? target.getDepthTextureView() : null, Minecraft.getInstance().getMainRenderTarget().getDepthTextureView());
+	public static GpuTexture depthAttachmentViewOrDef(RenderTarget target) {
+		return Objects.requireNonNullElse(target.useDepth ? target.getDepthTexture() : null, Minecraft.getInstance().getMainRenderTarget().getDepthTexture());
 	}
 
 	/** 检查并输出所有待处理的 OpenGL 错误到 LPCTools logger */

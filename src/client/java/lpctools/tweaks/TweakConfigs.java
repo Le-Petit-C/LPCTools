@@ -14,7 +14,6 @@ public class TweakConfigs {
             VanillaBlockInteractionModifier.setBlockReplaceHotkey,
             VanillaBlockInteractionModifier.quietBlockBreakHotkey,
             VanillaBlockInteractionModifier.useQSetBlock,
-            HappyGhastRidingTweak.happyGhastRidingTweak,
             BarTweaks.barTweaks,
             EnchantmentLevelFix.enchantmentLevelFix,
             modMenuPlayClickSound,

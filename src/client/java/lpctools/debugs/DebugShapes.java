@@ -1,11 +1,12 @@
 package lpctools.debugs;
 
+import com.mojang.blaze3d.buffers.BufferType;
+import com.mojang.blaze3d.buffers.BufferUsage;
 import com.mojang.blaze3d.buffers.GpuBuffer;
-import com.mojang.blaze3d.buffers.GpuBufferSlice;
 import com.mojang.blaze3d.systems.GpuDevice;
 import com.mojang.blaze3d.systems.RenderPass;
 import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.blaze3d.textures.GpuTextureView;
+import com.mojang.blaze3d.textures.GpuTexture;
 import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 import lpctools.lpcfymasaapi.Registries;
 import lpctools.lpcfymasaapi.render.LPCRenderPipelines;
@@ -16,8 +17,6 @@ import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents;
 import net.minecraft.client.Minecraft;
 import org.joml.Matrix4f;
-import org.joml.Vector3f;
-import org.joml.Vector4f;
 import org.lwjgl.system.MemoryUtil;
 
 import java.nio.ByteBuffer;
@@ -45,7 +44,7 @@ public class DebugShapes implements ToolUtils.ToolRunner, WorldRenderEvents.Afte
 			GpuDevice device = RenderSystem.getDevice();
 			triangleVertexBuffer = device.createBuffer(
 				() -> "DebugShapesTriangleVertexBuffer",
-				GpuBuffer.USAGE_VERTEX | GpuBuffer.USAGE_COPY_DST, buf);
+				BufferType.VERTICES, BufferUsage.STATIC_WRITE, buf);
 			MemoryUtil.memFree(buf);
 		}
 	}
@@ -59,31 +58,26 @@ public class DebugShapes implements ToolUtils.ToolRunner, WorldRenderEvents.Afte
 	@Override public void afterEntities(WorldRenderContext context) {
 		initializeBuffers();
 
-		var camPos = context.gameRenderer().getMainCamera().position();
+		var camPos = context.gameRenderer().getMainCamera().getPosition();
 		var fb = Minecraft.getInstance().getMainRenderTarget();
-		GpuTextureView colorView = RenderUtils.colorAttachmentViewOrDef(fb);
-		GpuTextureView depthView = RenderUtils.depthAttachmentViewOrDef(fb);
+		GpuTexture colorView = RenderUtils.colorAttachmentViewOrDef(fb);
+		GpuTexture depthView = RenderUtils.depthAttachmentViewOrDef(fb);
 		var device = RenderSystem.getDevice();
 		var enc = device.createCommandEncoder();
 
 		//绘制三角形
 		float angle = (float)(System.currentTimeMillis() / 1000.0 % (2 * Math.PI));
 
-		Matrix4f modelView = new Matrix4f(RenderSystem.getModelViewMatrix());
+		Matrix4f modelView = RenderSystem.getModelViewMatrix();
+		Matrix4f oldModelView = new Matrix4f(modelView);
 		modelView.translate((float)-camPos.x, (float)-camPos.y, (float)-camPos.z);
 		modelView.rotate(angle, 0, 1, 0);
 
-		GpuBufferSlice dyn = RenderSystem.getDynamicUniforms()
-			.writeTransform(modelView, new Vector4f(1, 1, 1, 1), new Vector3f(), new Matrix4f(), 0.0f);
-
-		try (RenderPass rp = enc.createRenderPass(
-				() -> "DebugTrianglePass", colorView,
-				OptionalInt.empty(), depthView, OptionalDouble.empty())) {
+		try (RenderPass rp = enc.createRenderPass(colorView, OptionalInt.empty(), depthView, OptionalDouble.empty())) {
 			rp.setPipeline(LPCRenderPipelines.positionColorPipeline(false, false));
-			RenderSystem.bindDefaultUniforms(rp);
-			rp.setUniform("DynamicTransforms", dyn);
 			rp.setVertexBuffer(0, triangleVertexBuffer);
 			rp.draw(0, 3);
 		}
+		modelView.set(oldModelView);
 	}
 }

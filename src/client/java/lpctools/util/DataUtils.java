@@ -1,11 +1,13 @@
 package lpctools.util;
 
 import com.google.common.collect.ImmutableList;
+import com.mojang.blaze3d.vertex.PoseStack;
 import it.unimi.dsi.fastutil.objects.Object2DoubleOpenHashMap;
 import lpctools.LPCTools;
 import lpctools.lpcfymasaapi.LPCAPIInit;
 import lpctools.mixin.client.accessors.ClientChunkAccessor;
 import lpctools.mixin.client.accessors.ClientChunkMapAccessor;
+import lpctools.mixin.client.accessors.MatrixStackEntryAccessor;
 import lpctools.util.javaex.Object2BooleanFunction;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientChunkCache;
@@ -384,6 +386,9 @@ public class DataUtils {
     public static int fRGB2iRGB(float r, float g, float b) {
         return 0xff000000 | ((int) (r * 255 + 0.5f)) | ((int) (g * 255 + 0.5f) << 8) | ((int) (b * 255 + 0.5f) << 16);
     }
+    public static void copy(PoseStack.Pose dst, PoseStack.Pose src){
+        ((MatrixStackEntryAccessor)(Object)dst).invokeSet(src);
+    }
     
     public static ChunkPos getCenterChunkPos(ClientLevel world) {
         ClientChunkMapAccessor accessor = (ClientChunkMapAccessor)(Object)((ClientChunkAccessor)world.getChunkSource()).getStorage();
@@ -396,7 +401,7 @@ public class DataUtils {
     }
     
     public static void executeWithCameraCenterPos(CameraCenterPosConsumer consumer) {
-        Vec3 camPos = Minecraft.getInstance().gameRenderer.getMainCamera().position();
+        Vec3 camPos = Minecraft.getInstance().gameRenderer.getMainCamera().getPosition();
         consumer.acceptPos(chunkedCoord(camPos.x), chunkedCoord(camPos.z));
     }
     
@@ -406,7 +411,7 @@ public class DataUtils {
     
     public static void executeWithRenderCenterPos(RenderCenterPosConsumer consumer, double expandRadius) {
         Minecraft mc = Minecraft.getInstance();
-        Vec3 camPos = mc.gameRenderer.getMainCamera().position();
+        Vec3 camPos = mc.gameRenderer.getMainCamera().getPosition();
         double chunkedCamX = chunkedCoord(camPos.x);
         double chunkedCamZ = chunkedCoord(camPos.z);
         double chunkedX, chunkedZ, radius;

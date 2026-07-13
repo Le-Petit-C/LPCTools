@@ -29,7 +29,7 @@ public class WidgetConfigOptionBaseMixin implements IWidgetConfigOptionBaseEx {
         parent.addTextField(wrapper);
     }
     @Inject(method = "drawTextFields", at = @At("TAIL"))
-    void drawExtraTextFields(GuiGraphics drawContext, int mouseX, int mouseY, CallbackInfo ci){
+    void drawExtraTextFields(int mouseX, int mouseY, GuiGraphics drawContext, CallbackInfo ci){
         for(TextFieldWrapper<? extends GuiTextFieldGeneric> textFieldWrapper : extraTextFieldWrappers)
             textFieldWrapper.getTextField().render(drawContext, mouseX, mouseY, 0f);
     }
