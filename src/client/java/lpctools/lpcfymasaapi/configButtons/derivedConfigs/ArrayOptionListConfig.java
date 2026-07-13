@@ -39,8 +39,8 @@ public class ArrayOptionListConfig<T> extends OptionListConfig implements Suppli
         }
         @Override public boolean equals(Object obj) {
             if(obj == this) return true;
-            if(obj instanceof ArrayOptionListConfig.EmptyOptionData<?> emptyOptionData){
-                return Objects.equals(options, emptyOptionData.options)
+            if(obj instanceof EmptyOptionData<?>(ArrayOptionListConfig.OptionList<?> options1)){
+                return Objects.equals(options, options1)
                     && options.getFirst().equals(this);
             }
             else if(obj instanceof ArrayOptionListConfig.OptionData<?> data){
@@ -74,8 +74,8 @@ public class ArrayOptionListConfig<T> extends OptionListConfig implements Suppli
             else return options.getFirst().userData;}
         @Override public boolean equals(Object obj) {
             if(this == obj) return true;
-            if(obj instanceof ArrayOptionListConfig.EmptyOptionData<?> emptyOptionData)
-                return Objects.equals(this.options(), emptyOptionData.options());
+            if(obj instanceof EmptyOptionData<?>(ArrayOptionListConfig.OptionList<?> options1))
+                return Objects.equals(this.options(), options1);
             if(options.isEmpty()) return false;
             else return options.getFirst().equals(obj);
         }

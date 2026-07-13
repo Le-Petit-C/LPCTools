@@ -4,7 +4,6 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
-import fi.dy.masa.malilib.config.IConfigBase;
 import fi.dy.masa.malilib.config.IConfigResettable;
 import fi.dy.masa.malilib.gui.GuiConfigsBase;
 import fi.dy.masa.malilib.gui.LeftRight;
@@ -25,7 +24,7 @@ import static lpctools.lpcfymasaapi.LPCConfigUtils.warnFailedLoadingConfig;
 import static lpctools.lpcfymasaapi.interfaces.ILPCUniqueConfigBase.iconButtonAllocator;
 import static lpctools.util.AlgorithmUtils.convertIterable;
 
-public class ConfigListConfig<T extends ILPCUniqueConfigBase> extends LPCUniqueConfigBase implements ILPCConfigReadable, IMutableConfig, IConfigResettable, IConfigBase, ILPCConfigNotifiable {
+public class ConfigListConfig<T extends ILPCUniqueConfigBase> extends LPCUniqueConfigBase implements ILPCConfigReadable, IMutableConfig, IConfigResettable {
     public final @NotNull Function<? super ConfigListConfig<T>, ? extends T> configSupplier;
     protected @Nullable Consumer<T> removeCallback;
     protected boolean condenseOperationButton = true;
@@ -108,14 +107,14 @@ public class ConfigListConfig<T extends ILPCUniqueConfigBase> extends LPCUniqueC
     }
     
     @Override public void getButtonOptions(ButtonOptionArrayList res) {
-        res.add(new ButtonOption(-1, (button, mouseButton)->setExpanded(!expanded), null,
+        res.add(new ButtonOption(-1, (_, _)->setExpanded(!expanded), null,
             ILPCUniqueConfigBase.iconButtonAllocator(expanded ? MaLiLibIcons.ARROW_UP : MaLiLibIcons.ARROW_DOWN, LeftRight.CENTER)));
-        res.add(new ButtonOption(1, (button, mouseButton)->onAddConfigClicked(subConfigs.size()), ()->buttonName, buttonGenericAllocator));
+        res.add(new ButtonOption(1, (_, _)->onAddConfigClicked(subConfigs.size()), ()->buttonName, buttonGenericAllocator));
         if(getParent() instanceof IMutableConfig) return;
-        res.add(new ButtonOption(-1, (button, mouseButton)->setHideOperationButton(!hideOperationButton),
+        res.add(new ButtonOption(-1, (_, _)->setHideOperationButton(!hideOperationButton),
             ()->hideOperationButton ? "<" : ">", buttonGenericAllocator));
         if(!hideOperationButton)
-            res.add(new ButtonOption(-1, (button, mouseButton)->setCondenseOperationButton(!condenseOperationButton),
+            res.add(new ButtonOption(-1, (_, _)->setCondenseOperationButton(!condenseOperationButton),
                 ()->condenseOperationButton ? "<>" : "><", buttonGenericAllocator));
     }
     
@@ -188,10 +187,10 @@ public class ConfigListConfig<T extends ILPCUniqueConfigBase> extends LPCUniqueC
                 res.add(new ButtonOption(-1, this::minusListener, null, iconButtonAllocator(flipMinusButton ? MaLiLibIcons.PLUS : MaLiLibIcons.MINUS, LeftRight.CENTER)));
             }
             else{
-                res.add(new ButtonOption(-1, (b, m)->posListener(b, 0), null, parent.subConfigs.getFirst() != this ? iconButtonAllocator(MaLiLibIcons.ARROW_UP, LeftRight.CENTER) : null));
-                res.add(new ButtonOption(-1, (b, m)->posListener(b, 1), null, parent.subConfigs.getLast() != this ? iconButtonAllocator(MaLiLibIcons.ARROW_DOWN, LeftRight.CENTER) : null));
-                res.add(new ButtonOption(-1, (b, m)->minusListener(b, 1), null, iconButtonAllocator(MaLiLibIcons.PLUS, LeftRight.CENTER)));
-                res.add(new ButtonOption(-1, (b, m)->minusListener(b, 0), null, iconButtonAllocator(MaLiLibIcons.MINUS, LeftRight.CENTER)));
+                res.add(new ButtonOption(-1, (b, _)->posListener(b, 0), null, parent.subConfigs.getFirst() != this ? iconButtonAllocator(MaLiLibIcons.ARROW_UP, LeftRight.CENTER) : null));
+                res.add(new ButtonOption(-1, (b, _)->posListener(b, 1), null, parent.subConfigs.getLast() != this ? iconButtonAllocator(MaLiLibIcons.ARROW_DOWN, LeftRight.CENTER) : null));
+                res.add(new ButtonOption(-1, (b, _)->minusListener(b, 1), null, iconButtonAllocator(MaLiLibIcons.PLUS, LeftRight.CENTER)));
+                res.add(new ButtonOption(-1, (b, _)->minusListener(b, 0), null, iconButtonAllocator(MaLiLibIcons.MINUS, LeftRight.CENTER)));
             }
         }
         private int getPosition(){

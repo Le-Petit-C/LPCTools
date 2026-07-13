@@ -340,7 +340,7 @@ public class AvlTreeList<E> extends AbstractList<E> {
 		}
 		
 		public void testBuild(StringBuilder builder, int depth){
-			builder.append("    ".repeat(depth));
+			builder.repeat("    ", depth);
 			builder.append("{\n");
 			if(left != left.getEmptyLeaf()) {
 				builder.append("left");
@@ -352,7 +352,7 @@ public class AvlTreeList<E> extends AbstractList<E> {
 				builder.append(":\n");
 				right.testBuild(builder, depth + 1);
 			}
-			builder.append("    ".repeat(depth));
+			builder.repeat("    ", depth);
 			builder.append("}\n");
 		}
 		

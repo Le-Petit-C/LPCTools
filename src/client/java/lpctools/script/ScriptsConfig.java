@@ -53,7 +53,7 @@ public class ScriptsConfig extends ConfigListConfig<ScriptConfig> {
 		Path scriptDirectoryPath = FileUtils.getConfigDirectoryAsPath().resolve(scriptDirectoryName);
 		if(!FileUtils.createDirectoriesIfMissing(scriptDirectoryPath)) return;
 		Path scriptPath = scriptDirectoryPath.resolve(script.script.getId() + ".json");
-		JsonUtils.writeJsonToFileAsPath(script.getAsJsonElement(), scriptPath);
+		JsonUtils.writeJsonToFile(script.getAsJsonElement(), scriptPath.toFile());
 	}
 	
 	@Override public UpdateTodo setValueFromJsonElementEx(@NotNull JsonElement data) {
@@ -93,7 +93,7 @@ public class ScriptsConfig extends ConfigListConfig<ScriptConfig> {
 	void loadScript(String scriptId){
 		if(existScript.contains(scriptId)) return;
 		Path scriptPath = FileUtils.getConfigDirectoryAsPath().resolve(scriptDirectoryName).resolve(scriptId + ".json");
-		JsonElement scriptJson = JsonUtils.parseJsonFileAsPath(scriptPath);
+		JsonElement scriptJson = JsonUtils.parseJsonFile(scriptPath.toFile());
 		if(scriptJson != null){
 			@SuppressWarnings("resource")
 			ScriptConfig config = allocateAndAddConfig();

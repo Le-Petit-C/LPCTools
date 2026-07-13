@@ -1,10 +1,14 @@
 package lpctools.tools.furnaceMaintainer;
 
 import lpctools.lpcfymasaapi.Registries;
+import lpctools.tools.ToolUtils;
 import lpctools.util.DataUtils;
 import lpctools.util.javaex.QuietAutoCloseable;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.gui.screens.inventory.AbstractFurnaceScreen;
+import net.minecraft.client.gui.screens.inventory.HopperScreen;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.multiplayer.MultiPlayerGameMode;
 import net.minecraft.client.player.LocalPlayer;
@@ -12,6 +16,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.InteractionHand;
+import net.minecraft.world.inventory.ClickType;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.AbstractFurnaceBlock;
 import net.minecraft.world.level.block.HopperBlock;
@@ -22,25 +27,22 @@ import static lpctools.tools.furnaceMaintainer.FurnaceMaintainer.*;
 import static lpctools.tools.furnaceMaintainer.FurnaceMaintainerData.*;
 
 // 或许可以预测syncId提前发送interact网络包以加速？
-public class FurnaceMaintainerRunner implements QuietAutoCloseable, ClientTickEvents.EndTick {
+public class FurnaceMaintainerRunner implements QuietAutoCloseable, ClientTickEvents.EndTick, ToolUtils.ToolRunner, Registries.BeforeScreenChangeCallback {
     double operationReserved = 0;
     long lastInteractTimeMillis = 0;
     @Nullable BlockPos lastInteractedPos = null;
-    FurnaceMaintainerRunner(){ registerAll(true); }
     @Override public void close(){ registerAll(false); }
-    private void registerAll(boolean b){Registries.END_CLIENT_TICK.register(this, b);}
+    @Override public void registerAll(boolean b){
+        Registries.END_CLIENT_TICK.register(this, b);
+        Registries.BEFORE_SCREEN_CHANGE.register(this, b);
+    }
     
     @Override public void onEndTick(Minecraft mc) {
         if(runner != this) {
             close();
             return;
         }
-        else if(dataInstance == null) {
-			runner = null;
-            FMConfig.setBooleanValue(false);
-			close();
-			return;
-		}
+        else if(dataInstance == null) return;
         
         LocalPlayer player = mc.player;
         ClientLevel world = mc.level;
@@ -96,5 +98,38 @@ public class FurnaceMaintainerRunner implements QuietAutoCloseable, ClientTickEv
             }
         }
         if(operationReserved > 1) operationReserved = 1;
+    }
+
+    // 清理熔炉，熔炉/漏斗为空点一下也没事，不用等熔炉/漏斗menu物品初始化完毕。
+    @Override public boolean beforeScreenChange(Screen newScreen) {
+        if(!FMConfig.getBooleanValue() || dataInstance == null || runner == null || runner.lastInteractedPos == null) return false;
+        Minecraft client = Minecraft.getInstance();
+        LocalPlayer player = client.player;
+        MultiPlayerGameMode itm = client.gameMode;
+        if(player == null || itm == null) {
+            FMConfig.setBooleanValue(false);
+            return false;
+        }
+        boolean operated;
+        if(newScreen instanceof AbstractFurnaceScreen<?> screen1) {
+            itm.handleInventoryMouseClick(screen1.getMenu().containerId, 0, 0, ClickType.QUICK_MOVE, player);
+            operated = true;
+        }
+        else if(newScreen instanceof HopperScreen screen1) {
+            for(int i = 0; i < 5; ++i) itm.handleInventoryMouseClick(screen1.getMenu().containerId, i, 0, ClickType.QUICK_MOVE, player);
+            operated = true;
+        }
+        else operated = false;
+        if(operated) {
+            closeClientContainer(newScreen);
+            dataInstance.highlightInstance.mark(runner.lastInteractedPos, null);
+            runner.lastInteractedPos = null;
+        }
+        return operated;
+    }
+    private static void closeClientContainer(Screen screen){
+        var mc = Minecraft.getInstance();
+        if(mc.screen == screen && mc.player instanceof LocalPlayer player)
+            player.closeContainer();
     }
 }

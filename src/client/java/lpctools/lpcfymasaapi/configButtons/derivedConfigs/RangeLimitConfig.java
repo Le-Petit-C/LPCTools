@@ -13,7 +13,7 @@ import org.jetbrains.annotations.NotNull;
 import static lpctools.lpcfymasaapi.configButtons.derivedConfigs.DerivedConfigUtils.*;
 
 //不只在配置被修改时会调用onValueChanged，形状发生变化时也会
-public class RangeLimitConfig extends BooleanThirdListConfig implements Registries.ScreenChangeCallback, AutoCloseable, IRangeChangeListener {
+public class RangeLimitConfig extends BooleanThirdListConfig implements Registries.ScreenChangedCallback, AutoCloseable, IRangeChangeListener {
     public final StringConfig prefix;
     public final BooleanThirdListConfig litematica;//决定是否启用投影渲染范围限制
     public final ArrayOptionListConfig<SimpleTestableShape.TestType> testType;//决定投影渲染范围检测方式

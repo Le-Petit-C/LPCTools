@@ -21,16 +21,17 @@ import java.util.ArrayList;
 @Mixin(value = WidgetConfigOptionBase.class, remap = false)
 public class WidgetConfigOptionBaseMixin implements IWidgetConfigOptionBaseEx {
     @Shadow @Final protected WidgetListConfigOptionsBase<?, ?> parent;
-    @Unique ArrayList<TextFieldWrapper<? extends GuiTextFieldGeneric>> extraTextFieldWrappers = new ArrayList<>();
+    @Unique
+	final ArrayList<TextFieldWrapper<? extends GuiTextFieldGeneric>> extraTextFieldWrappers = new ArrayList<>();
     @Unique @Override public void lPCTools$addExtraTextField(GuiTextFieldGeneric field, ConfigOptionChangeListenerTextField listener) {
         TextFieldWrapper<? extends GuiTextFieldGeneric> wrapper = new TextFieldWrapper<>(field, listener);
         extraTextFieldWrappers.add(wrapper);
         parent.addTextField(wrapper);
     }
     @Inject(method = "drawTextFields", at = @At("TAIL"))
-    void drawExtraTextFields(int mouseX, int mouseY, GuiGraphics context, CallbackInfo ci){
+    void drawExtraTextFields(int mouseX, int mouseY, GuiGraphics drawContext, CallbackInfo ci){
         for(TextFieldWrapper<? extends GuiTextFieldGeneric> textFieldWrapper : extraTextFieldWrappers)
-            textFieldWrapper.getTextField().render(context, mouseX, mouseY, 0f);
+            textFieldWrapper.getTextField().render(drawContext, mouseX, mouseY, 0f);
     }
     @Inject(method = "onMouseClickedImpl", at = @At("RETURN"), cancellable = true)
     void onMouseClickedImpl(int mouseX, int mouseY, int mouseButton, CallbackInfoReturnable<Boolean> cir){
