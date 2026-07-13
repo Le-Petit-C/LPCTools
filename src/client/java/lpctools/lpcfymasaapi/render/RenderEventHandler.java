@@ -9,7 +9,6 @@ import lpctools.LPCTools;
 import lpctools.lpcfymasaapi.Registries;
 import net.minecraft.client.Camera;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.render.*;
 import net.minecraft.client.renderer.FogParameters;
 import net.minecraft.client.renderer.LevelTargetBundle;
 import net.minecraft.client.renderer.RenderBuffers;

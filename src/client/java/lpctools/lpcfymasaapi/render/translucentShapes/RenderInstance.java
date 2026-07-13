@@ -469,7 +469,7 @@ public class RenderInstance implements QuietAutoCloseable, Registries.WorldPreMa
 		
 		void buildIndexByteBuffer(){
 			if(indexBufferToUpload != null) MemoryUtil.memFree(indexBufferToUpload);
-			indexBufferToUpload = MemoryUtil.memAlloc(elements_size * indexType.size);
+			indexBufferToUpload = MemoryUtil.memAlloc(elements_size * indexType.bytes);
 			IntConsumer indexConsumer = switch(indexType){
 				case SHORT -> i->indexBufferToUpload.putShort((short)i);
 				case INT -> i->indexBufferToUpload.putInt(i);
@@ -512,7 +512,7 @@ public class RenderInstance implements QuietAutoCloseable, Registries.WorldPreMa
 			}
 			verticesChanged = false;
 			veryInitialized = true;
-			uploadedSize = requiredIndexSize / indexType.size;
+			uploadedSize = requiredIndexSize / indexType.bytes;
 		}
 		
 		void render(RenderPass renderPass) {

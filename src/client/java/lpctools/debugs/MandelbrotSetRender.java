@@ -41,12 +41,12 @@ public class MandelbrotSetRender extends BooleanThirdListConfig implements Regis
             .withUniform("maxDepth", UniformType.INT)
             .withVertexShader("core/position_tex")
             .withFragmentShader(ResourceLocation.fromNamespaceAndPath("lpctools", "core/mandelbrot_set"))
-            .withVertexFormat(DefaultVertexFormat.POSITION_TEX, VertexFormat.DrawMode.QUADS)
+            .withVertexFormat(DefaultVertexFormat.POSITION_TEX, VertexFormat.Mode.QUADS)
             .withLocation(ResourceLocation.fromNamespaceAndPath("lpctools", "pipeline/mandelbrot"))
             .withBlend(BlendFunction.TRANSLUCENT)
             .withCull(false)
             .build();
-        public static final RenderSystem.AutoStorageIndexBuffer mandelbrotSetShapeIndexBuffer = RenderSystem.getSequentialBuffer(VertexFormat.DrawMode.QUADS);
+        public static final RenderSystem.AutoStorageIndexBuffer mandelbrotSetShapeIndexBuffer = RenderSystem.getSequentialBuffer(VertexFormat.Mode.QUADS);
         private final GpuBuffer vertexBuffer = RenderSystem.getDevice()
             .createBuffer(() -> "Mandelbrot Vertex Buffer", BufferType.VERTICES, BufferUsage.STATIC_WRITE, DefaultVertexFormat.POSITION_TEX.getVertexSize() * Float.BYTES);
         private float lastStretch = Float.NaN;
@@ -94,8 +94,8 @@ public class MandelbrotSetRender extends BooleanThirdListConfig implements Regis
         var renderSources = this.renderSources.get();
         GpuBuffer vertexBuffer = renderSources.getUpdatedVertexBuffer();
         RenderSystem.AutoStorageIndexBuffer shapeIndexBuffer = RenderSources.mandelbrotSetShapeIndexBuffer;
-        GpuBuffer indexBuffer = shapeIndexBuffer.getIndexBuffer(6);
-        VertexFormat.IndexType indexType = shapeIndexBuffer.getIndexType();
+        GpuBuffer indexBuffer = shapeIndexBuffer.getBuffer(6);
+        VertexFormat.IndexType indexType = shapeIndexBuffer.type();
         var camPos = context.camera().getPosition();
         var modelViewMat = new Matrix4f(RenderSystem.getModelViewMatrix()).translate((float)-camPos.x, (float)-camPos.y, (float)-camPos.z);
         modelViewMat.swap(RenderSystem.getModelViewMatrix());
