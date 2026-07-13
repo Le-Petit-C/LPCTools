@@ -2,8 +2,8 @@ package lpctools.mixin.client.utils;
 
 import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
 import com.llamalad7.mixinextras.injector.ModifyReceiver;
-import net.minecraft.client.render.GameRenderer;
-import net.minecraft.client.util.math.MatrixStack;
+import com.mojang.blaze3d.vertex.PoseStack;
+import net.minecraft.client.renderer.GameRenderer;
 import org.joml.Matrix4f;
 import org.joml.Quaternionf;
 import org.joml.Vector3fc;
@@ -18,22 +18,22 @@ import static lpctools.lpcfymasaapi.render.translucentShapes.RenderInstance.*;
 
 @Mixin(GameRenderer.class)
 public class RenderInstance {
-	@ModifyExpressionValue(method = "renderWorld", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/render/GameRenderer;getBasicProjectionMatrix(F)Lorg/joml/Matrix4f;"))
+	@ModifyExpressionValue(method = "renderLevel", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/GameRenderer;getProjectionMatrix(F)Lorg/joml/Matrix4f;"))
 	Matrix4f recordBasicProjectionMatrix(Matrix4f original) {
 		worldBasicProjectionMatrix.set(original);
 		return original;
 	}
-	@ModifyArg(method = "renderWorld", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/render/RawProjectionMatrix;set(Lorg/joml/Matrix4f;)Lcom/mojang/blaze3d/buffers/GpuBufferSlice;"))
+	@ModifyArg(method = "renderLevel", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/PerspectiveProjectionMatrixBuffer;getBuffer(Lorg/joml/Matrix4f;)Lcom/mojang/blaze3d/buffers/GpuBufferSlice;"))
 	Matrix4f recordWorldProjectionMatrix(Matrix4f projectionMatrix) {
 		worldProjectionMatrix.set(projectionMatrix);
 		return projectionMatrix;
 	}
-	@ModifyReceiver(method = "renderWorld", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/util/math/MatrixStack$Entry;getPositionMatrix()Lorg/joml/Matrix4f;"))
-	MatrixStack.Entry recordMatrixStackEntry(MatrixStack.Entry instance) {
-		worldProjectionTranslateMatrix.set(instance.getPositionMatrix());
+	@ModifyReceiver(method = "renderLevel", at = @At(value = "INVOKE", target = "Lcom/mojang/blaze3d/vertex/PoseStack$Pose;pose()Lorg/joml/Matrix4f;"))
+	PoseStack.Pose recordMatrixStackEntry(PoseStack.Pose instance) {
+		worldProjectionTranslateMatrix.set(instance.pose());
 		return instance;
 	}
-	@ModifyArgs(method = "renderWorld", at = @At(value = "INVOKE", target = "Lorg/joml/Matrix4f;scale(FFF)Lorg/joml/Matrix4f;", remap = false))
+	@ModifyArgs(method = "renderLevel", at = @At(value = "INVOKE", target = "Lorg/joml/Matrix4f;scale(FFF)Lorg/joml/Matrix4f;", remap = false))
 	void recordScaleEffects(Args args) {
 		float x = args.get(0);
 		float y = args.get(1);
@@ -42,7 +42,7 @@ public class RenderInstance {
 		worldProjectionTranslateMatrix.scaleLocal(1.0f / x, 1.0f / y, 1.0f / z).scale(x, y, z);
 	}
 	@Unique Quaternionf qCache = new Quaternionf();
-	@ModifyArgs(method = "renderWorld", at = @At(value = "INVOKE", target = "Lorg/joml/Matrix4f;rotate(FLorg/joml/Vector3fc;)Lorg/joml/Matrix4f;", remap = false))
+	@ModifyArgs(method = "renderLevel", at = @At(value = "INVOKE", target = "Lorg/joml/Matrix4f;rotate(FLorg/joml/Vector3fc;)Lorg/joml/Matrix4f;", remap = false))
 	void recordRotateEffects(Args args) {
 		float angle = args.get(0);
 		Vector3fc axis = args.get(1);
