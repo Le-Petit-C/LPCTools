@@ -100,7 +100,7 @@ public class RenderInstance implements QuietAutoCloseable, Registries.WorldPreMa
 	}
 
 	public static RenderInstance defaultRenderInstance(boolean isLine, boolean depthless) {
-		return getRenderInstance(new RenderOption(LPCRenderPipelines.positionColorPipeline(isLine, depthless), depthless ? RenderTiming.END_MAIN : RenderTiming.BEFORE_TRANSLUCENT, true, ImmutableSet.of()));
+		return getRenderInstance(new RenderOption(LPCRenderPipelines.positionColorPipeline(isLine, depthless), depthless ? RenderTiming.ON_LAST : RenderTiming.AFTER_ENTITIES, true, ImmutableSet.of()));
 	}
 	
 	ShapeReference addShape(Shape<? extends IPositionVertex> shape) {

@@ -8,13 +8,13 @@ import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientChunkEvents;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientEntityEvents;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientWorldEvents;
-import net.fabricmc.fabric.api.client.rendering.v1.world.WorldRenderEvents;
-import net.fabricmc.fabric.api.resource.v1.ResourceLoader;
+import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents;
+import net.fabricmc.fabric.api.resource.ResourceManagerHelper;
+import net.fabricmc.fabric.api.resource.SimpleSynchronousResourceReloadListener;
 import net.minecraft.client.Camera;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
-import net.minecraft.client.input.MouseButtonInfo;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.renderer.RenderBuffers;
 import net.minecraft.client.renderer.culling.Frustum;
@@ -23,7 +23,6 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.PackType;
 import net.minecraft.server.packs.resources.ResourceManager;
-import net.minecraft.server.packs.resources.ResourceManagerReloadListener;
 import net.minecraft.util.profiling.ProfilerFiller;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.item.Item;
@@ -65,16 +64,18 @@ public class Registries {
     public static final UnregistrableRegistry<ClientChunkEvents.Load> CLIENT_CHUNK_LOAD = UnregistrableRegistry.fanOut(ClientChunkEvents.Load.class, ClientChunkEvents.CHUNK_LOAD);
     public static final UnregistrableRegistry<ClientChunkEvents.Unload> CLIENT_CHUNK_UNLOAD = UnregistrableRegistry.fanOut(ClientChunkEvents.Unload.class, ClientChunkEvents.CHUNK_UNLOAD);
     public static final UnregistrableRegistry<WorldPreMainRender> PRE_MAIN = UnregistrableRegistry.fanOut(WorldPreMainRender.class);
-    public static final UnregistrableRegistry<WorldRenderEvents.AfterBlockOutlineExtraction> AFTER_BLOCK_OUTLINE_EXTRACTION = UnregistrableRegistry.fanOut(WorldRenderEvents.AfterBlockOutlineExtraction.class, WorldRenderEvents.AFTER_BLOCK_OUTLINE_EXTRACTION);
-    public static final UnregistrableRegistry<WorldRenderEvents.EndExtraction> END_EXTRACTION = UnregistrableRegistry.fanOut(WorldRenderEvents.EndExtraction.class, WorldRenderEvents.END_EXTRACTION);
-    public static final UnregistrableRegistry<WorldRenderEvents.StartMain> START_MAIN = UnregistrableRegistry.fanOut(WorldRenderEvents.StartMain.class, WorldRenderEvents.START_MAIN);
+    public static final UnregistrableRegistry<WorldRenderEvents.Start> START = UnregistrableRegistry.fanOut(WorldRenderEvents.Start.class, WorldRenderEvents.START);
+    public static final UnregistrableRegistry<WorldRenderEvents.AfterSetup> AFTER_SETUP = UnregistrableRegistry.fanOut(WorldRenderEvents.AfterSetup.class, WorldRenderEvents.AFTER_SETUP);
     public static final UnregistrableRegistry<WorldRenderEvents.BeforeEntities> BEFORE_ENTITIES = UnregistrableRegistry.fanOut(WorldRenderEvents.BeforeEntities.class, WorldRenderEvents.BEFORE_ENTITIES);
     public static final UnregistrableRegistry<WorldRenderEvents.AfterEntities> AFTER_ENTITIES = UnregistrableRegistry.fanOut(WorldRenderEvents.AfterEntities.class, WorldRenderEvents.AFTER_ENTITIES);
-    public static final UnregistrableRegistry<WorldRenderEvents.DebugRender> BEFORE_DEBUG_RENDER = UnregistrableRegistry.fanOut(WorldRenderEvents.DebugRender.class, WorldRenderEvents.BEFORE_DEBUG_RENDER);
-    public static final UnregistrableRegistry<WorldRenderEvents.BeforeTranslucent> BEFORE_TRANSLUCENT = UnregistrableRegistry.fanOut(WorldRenderEvents.BeforeTranslucent.class, WorldRenderEvents.BEFORE_TRANSLUCENT);
     public static final UnregistrableRegistry<WorldRenderEvents.BeforeBlockOutline> BEFORE_BLOCK_OUTLINE = new UnregistrableRegistry<>(
         callbacks->(context, outlineRenderState)->callbacks.andNonCircuit(callback->callback.beforeBlockOutline(context, outlineRenderState)), WorldRenderEvents.BEFORE_BLOCK_OUTLINE);
-    public static final UnregistrableRegistry<WorldRenderEvents.EndMain> END_MAIN = UnregistrableRegistry.fanOut(WorldRenderEvents.EndMain.class, WorldRenderEvents.END_MAIN);
+    public static final UnregistrableRegistry<WorldRenderEvents.BlockOutline> BLOCK_OUTLINE = new UnregistrableRegistry<>(
+        callbacks->(context, outlineRenderState)->callbacks.andNonCircuit(callback->callback.onBlockOutline(context, outlineRenderState)), WorldRenderEvents.BLOCK_OUTLINE);
+    public static final UnregistrableRegistry<WorldRenderEvents.DebugRender> BEFORE_DEBUG_RENDER = UnregistrableRegistry.fanOut(WorldRenderEvents.DebugRender.class, WorldRenderEvents.BEFORE_DEBUG_RENDER);
+    public static final UnregistrableRegistry<WorldRenderEvents.AfterTranslucent> AFTER_TRANSLUCENT = UnregistrableRegistry.fanOut(WorldRenderEvents.AfterTranslucent.class, WorldRenderEvents.AFTER_TRANSLUCENT);
+    public static final UnregistrableRegistry<WorldRenderEvents.Last> ON_LAST = UnregistrableRegistry.fanOut(WorldRenderEvents.Last.class, WorldRenderEvents.LAST);
+    public static final UnregistrableRegistry<WorldRenderEvents.End> ON_END = UnregistrableRegistry.fanOut(WorldRenderEvents.End.class, WorldRenderEvents.END);
     public static final UnregistrableRegistry<ClientWorldChunkSetBlockState> CLIENT_WORLD_CHUNK_SET_BLOCK_STATE = UnregistrableRegistry.fanOut(ClientWorldChunkSetBlockState.class);
     public static final UnregistrableRegistry<GameOverlayRender> MASA_RENDER_GAME_OVERLAY = UnregistrableRegistry.fanOut(GameOverlayRender.class);
     public static final UnregistrableRegistry<WorldPreWeatherRender> MASA_RENDER_WORLD_PRE_WEATHER = UnregistrableRegistry.fanOut(WorldPreWeatherRender.class);
@@ -143,8 +144,10 @@ public class Registries {
     }
     static {
         ResourceLocation lpcRegistryClientResourceReloadCallbackId = ResourceLocation.fromNamespaceAndPath("lpctools", "lpcfymasaapi_reload");
-        ResourceLoader.get(PackType.CLIENT_RESOURCES).registerReloader(lpcRegistryClientResourceReloadCallbackId,
-            (ResourceManagerReloadListener) manager -> CLIENT_RESOURCE_RELOAD.runner().onResourceReload(manager));
+        ResourceManagerHelper.get(PackType.CLIENT_RESOURCES).registerReloadListener(new SimpleSynchronousResourceReloadListener() {
+            @Override public ResourceLocation getFabricId() {return lpcRegistryClientResourceReloadCallbackId;}
+            @Override public void onResourceManagerReload(ResourceManager manager) {CLIENT_RESOURCE_RELOAD.runner().onResourceReload(manager);}
+        });
     }
     
     public interface GameOverlayRender {
@@ -186,7 +189,7 @@ public class Registries {
         void onClientWorldChunkLightUpdated(@NotNull ClientLevel world, @NotNull LevelChunk chunk);
     }
     public interface InGameEndMouse {
-        void onInGameEndMouse(MouseButtonInfo input, int action);
+        void onInGameEndMouse(int button, int action, int mods);
     }
     public interface ResourceReloadCallback{
         void onResourceReload(ResourceManager manager);

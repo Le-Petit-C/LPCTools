@@ -12,8 +12,8 @@ import lpctools.lpcfymasaapi.render.LPCRenderPipelines;
 import lpctools.tools.ToolUtils;
 import lpctools.util.RenderUtils;
 import lpctools.util.javaex.QuietAutoCloseable;
-import net.fabricmc.fabric.api.client.rendering.v1.world.WorldRenderContext;
-import net.fabricmc.fabric.api.client.rendering.v1.world.WorldRenderEvents;
+import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext;
+import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents;
 import net.minecraft.client.Minecraft;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
@@ -28,9 +28,9 @@ import java.util.OptionalInt;
  * CPU 预变换顶点：在 CPU 上完成 ModelView 变换，
  * GPU 只做投影（bindDefaultUniforms 提供 ProjMat）。
  */
-public class DebugShapes implements ToolUtils.ToolRunner, WorldRenderEvents.BeforeTranslucent, QuietAutoCloseable {
+public class DebugShapes implements ToolUtils.ToolRunner, WorldRenderEvents.AfterEntities, QuietAutoCloseable {
 
-	@Override public void registerAll(boolean b) { Registries.BEFORE_TRANSLUCENT.register(this, b); }
+	@Override public void registerAll(boolean b) { Registries.AFTER_ENTITIES.register(this, b); }
 
 	GpuBuffer triangleVertexBuffer;
 
@@ -55,7 +55,8 @@ public class DebugShapes implements ToolUtils.ToolRunner, WorldRenderEvents.Befo
 			triangleVertexBuffer = QuietAutoCloseable.close(triangleVertexBuffer);
 	}
 
-	@Override public void beforeTranslucent(WorldRenderContext context) {
+
+	@Override public void afterEntities(WorldRenderContext context) {
 		initializeBuffers();
 
 		var camPos = context.gameRenderer().getMainCamera().position();
