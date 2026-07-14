@@ -4,19 +4,23 @@ import com.google.common.collect.ImmutableSet;
 import com.mojang.blaze3d.buffers.BufferType;
 import com.mojang.blaze3d.buffers.BufferUsage;
 import com.mojang.blaze3d.buffers.GpuBuffer;
-import com.mojang.blaze3d.systems.CommandEncoder;
-import com.mojang.blaze3d.systems.RenderPass;
+import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.blaze3d.textures.GpuTexture;
+import com.mojang.blaze3d.vertex.DefaultVertexFormat;
+import com.mojang.blaze3d.vertex.VertexBuffer;
 import com.mojang.blaze3d.vertex.VertexFormat;
 import it.unimi.dsi.fastutil.ints.*;
 import it.unimi.dsi.fastutil.longs.Long2IntOpenHashMap;
 import lpctools.lpcfymasaapi.Registries;
 import lpctools.lpcfymasaapi.render.IPositionVertex;
-import lpctools.lpcfymasaapi.render.LPCRenderPipelines;
+import lpctools.lpcfymasaapi.render.OffsetMode;
 import lpctools.util.CachedSupplier;
 import lpctools.util.javaex.QuietAutoCloseable;
 import net.minecraft.Util;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.CompiledShaderProgram;
+import net.minecraft.client.renderer.CoreShaders;
+import net.minecraft.client.renderer.RenderStateShard;
 import net.minecraft.client.renderer.culling.Frustum;
 import net.minecraft.core.SectionPos;
 import net.minecraft.util.Mth;
@@ -83,6 +87,7 @@ public class RenderInstance implements QuietAutoCloseable, Registries.WorldPreMa
 	private final ArrayList<SubChunk> sortedRenderSubChunks = new ArrayList<>();
 	private final HashSet<SubChunk> subChunksNeedUpload = new HashSet<>();
 	private final CachedSupplier<ArrayList<ArrayList<SubChunk>>> subChunkSortingCache = new CachedSupplier<>(ArrayList::new);
+	private final int vertexArrayId;
 	
 	private @Nullable CompletableFuture<Void> prepareTasks;
 	private @Nullable CompletableFuture<CompletableFuture<Void>> dispatchTask;
@@ -92,6 +97,7 @@ public class RenderInstance implements QuietAutoCloseable, Registries.WorldPreMa
 		this.renderOption = renderOption;
 		Registries.PRE_MAIN.register(this);
 		renderOption.timing().register(this, true);
+		vertexArrayId = GlStateManager._glGenVertexArrays();
 	}
 	
 	public static RenderInstance getRenderInstance(RenderOption renderOption) {
@@ -99,7 +105,9 @@ public class RenderInstance implements QuietAutoCloseable, Registries.WorldPreMa
 	}
 
 	public static RenderInstance defaultRenderInstance(boolean isLine, boolean depthless) {
-		return getRenderInstance(new RenderOption(LPCRenderPipelines.positionColorPipeline(isLine, depthless), depthless ? RenderTiming.ON_LAST : RenderTiming.AFTER_ENTITIES, true, ImmutableSet.of()));
+		return getRenderInstance(new RenderOption(CoreShaders.POSITION_COLOR, DefaultVertexFormat.POSITION_COLOR,
+			isLine ? VertexFormat.Mode.DEBUG_LINES : VertexFormat.Mode.QUADS, !depthless, !depthless, depthless ? OffsetMode.NONE : OffsetMode.OFFSET_1,
+			true, depthless ? RenderTiming.ON_LAST : RenderTiming.AFTER_ENTITIES, ImmutableSet.of()));
 	}
 	
 	ShapeReference addShape(Shape<? extends IPositionVertex> shape) {
@@ -123,17 +131,12 @@ public class RenderInstance implements QuietAutoCloseable, Registries.WorldPreMa
 		var context = recordedWorldRenderContext;
 		if(context == null) return;
 		waitForTasks();
-		var commandEncoder = RenderSystem.getDevice().createCommandEncoder();
 		if(!subChunksNeedUpload.isEmpty()) {
-			for (var subChunk : subChunksNeedUpload) subChunk.upload(commandEncoder);
+			for (var subChunk : subChunksNeedUpload) subChunk.upload();
 			subChunksNeedUpload.clear();
 		}
-		var fb = context.fb();
-		GpuTexture colorAttachmentView = lpctools.util.RenderUtils.colorAttachmentViewOrDef(fb);
-		GpuTexture depthAttachmentView = fb.useDepth ? fb.getDepthTexture() : null;
 		Vec3 camPos = context.camera().getPosition();
-		Vector3f offset = RenderSystem.getModelOffset();
-		Vector3f oldOffset = new Vector3f(offset);
+		Vector3f offset = new Vector3f();
 		Matrix4f modelViewMatrix = RenderSystem.getModelViewMatrix();
 		Matrix4f oldModelViewMatrix = new Matrix4f(modelViewMatrix);
 		offset.set((float) (basePoint.x - camPos.x), (float) (basePoint.y - camPos.y), (float) (basePoint.z - camPos.z));
@@ -141,15 +144,25 @@ public class RenderInstance implements QuietAutoCloseable, Registries.WorldPreMa
 			modelViewMatrix.translate(offset);
 			offset.set(0, 0, 0);
 		}
-		try (RenderPass renderPass = commandEncoder
-			.createRenderPass(colorAttachmentView, OptionalInt.empty(), depthAttachmentView, OptionalDouble.empty())) {
-			renderPass.setPipeline(renderOption.pipeline());
-			for(var extraBindings : renderOption.extraBindings())
-				extraBindings.bindExtra(renderPass);
+		CompiledShaderProgram shaderProgram = RenderSystem.setShader(renderOption.shader());
+		if (shaderProgram != null) {
+			RenderStateShard.POLYGON_OFFSET_LAYERING.setupRenderState();
+			shaderProgram.setDefaultUniforms(renderOption.drawMode(),
+				RenderSystem.getModelViewMatrix(),
+				RenderSystem.getProjectionMatrix(),
+				Minecraft.getInstance().getWindow());
+			if (shaderProgram.MODEL_OFFSET != null)
+				shaderProgram.MODEL_OFFSET.set(offset);
+			shaderProgram.apply();
+			GlStateManager._glBindVertexArray(vertexArrayId);
+			for(var extraBindings : renderOption.extraOperations())
+				extraBindings.run();
 			for (var subChunk : sortedRenderSubChunks)
-				subChunk.render(renderPass);
+				subChunk.render();
+			GlStateManager._glBindVertexArray(0);
+			shaderProgram.clear();
+			RenderStateShard.POLYGON_OFFSET_LAYERING.clearRenderState();
 		}
-		offset.set(oldOffset);
 		modelViewMatrix.set(oldModelViewMatrix);
 	}
 	
@@ -178,10 +191,10 @@ public class RenderInstance implements QuietAutoCloseable, Registries.WorldPreMa
 		sortedRenderSubChunks.clear();
 		subChunksNeedUpload.clear();
 		subChunkSortingCache.close();
-		// rawProjectionMatrixBuffer.close();
 		
 		Registries.PRE_MAIN.unregister(this);
 		renderOption.timing().unregister(this);
+		GlStateManager._glDeleteVertexArrays(vertexArrayId);
 	}
 	
 	private void waitForTasks() {
@@ -381,7 +394,7 @@ public class RenderInstance implements QuietAutoCloseable, Registries.WorldPreMa
 		
 		void buildVertexByteBuffer(){
 			if(vertexBufferToUpload != null) MemoryUtil.memFree(vertexBufferToUpload);
-			int vertexSize = renderOption.pipeline().getVertexFormat().getVertexSize();
+			int vertexSize = renderOption.vertexFormat().getVertexSize();
 			vertexBufferToUpload = MemoryUtil.memAlloc(vertices_size * vertexSize);
 			indexType = vertices_size > 65536 ? VertexFormat.IndexType.INT : VertexFormat.IndexType.SHORT;
 			int gpuIndex = 0;
@@ -436,31 +449,29 @@ public class RenderInstance implements QuietAutoCloseable, Registries.WorldPreMa
 			indexBufferToUpload.flip();
 		}
 		
-		void upload(CommandEncoder encoder){
+		void upload(){
 			if(indexBufferToUpload == null) return;
 			
 			int requiredIndexSize = indexBufferToUpload.limit();
-			if(indexBuffer == null || indexBuffer.size() < requiredIndexSize){
-				int oldSize = indexBuffer == null ? 0 : indexBuffer.size();
+			if(indexBuffer == null || indexBuffer.size < requiredIndexSize){
+				int oldSize = indexBuffer == null ? 0 : indexBuffer.size;
 				if(indexBuffer != null) indexBuffer.close();
-				indexBuffer = RenderSystem.getDevice().createBuffer(
-					indexBufferLabel, BufferType.INDICES, BufferUsage.STATIC_WRITE,
+				indexBuffer = new GpuBuffer(BufferType.INDICES, BufferUsage.STATIC_WRITE,
 					Math.max(oldSize * 2, requiredIndexSize));
 			}
-			encoder.writeToBuffer(indexBuffer, indexBufferToUpload, 0);
+			indexBuffer.write(indexBufferToUpload, 0);
 			MemoryUtil.memFree(indexBufferToUpload);
 			indexBufferToUpload = null;
 			
 			if(vertexBufferToUpload != null) {
 				int requiredVertexSize = vertexBufferToUpload.limit();
-				if(vertexBuffer == null || vertexBuffer.size() < requiredVertexSize){
-					int oldSize = vertexBuffer == null ? 0 : vertexBuffer.size();
+				if(vertexBuffer == null || vertexBuffer.size < requiredVertexSize){
+					int oldSize = vertexBuffer == null ? 0 : vertexBuffer.size;
 					if(vertexBuffer != null) vertexBuffer.close();
-					vertexBuffer = RenderSystem.getDevice().createBuffer(
-						vertexBufferLabel, BufferType.VERTICES, BufferUsage.STATIC_WRITE,
+					vertexBuffer = new GpuBuffer(BufferType.VERTICES, BufferUsage.STATIC_WRITE,
 						Math.max(oldSize * 2, requiredVertexSize));
 				}
-				encoder.writeToBuffer(vertexBuffer, vertexBufferToUpload, 0);
+				vertexBuffer.write(vertexBufferToUpload, 0);
 				MemoryUtil.memFree(vertexBufferToUpload);
 				vertexBufferToUpload = null;
 			}
@@ -469,11 +480,11 @@ public class RenderInstance implements QuietAutoCloseable, Registries.WorldPreMa
 			uploadedSize = requiredIndexSize / indexType.bytes;
 		}
 		
-		void render(RenderPass renderPass) {
+		void render() {
 			if(!veryInitialized) return;
-			renderPass.setVertexBuffer(0, vertexBuffer);
-			renderPass.setIndexBuffer(indexBuffer, indexType);
-			renderPass.drawIndexed(0, uploadedSize);
+			vertexBuffer.bind();
+			indexBuffer.bind();
+			RenderSystem.drawElements(renderOption.drawMode().asGLMode, uploadedSize, indexType.asGLType);
 		}
 		
 		@Contract("_,_->null")

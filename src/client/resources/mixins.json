@@ -12,7 +12,6 @@
     "accessors.ClientChunkMapAccessor",
     "accessors.GameRendererAccessor",
     "accessors.GuiBaseAccessor",
-    "accessors.MatrixStackEntryAccessor",
     "accessors.SpriteContentsAccessor",
     "accessors.TextFieldWidgetAccessor",
     "events.MinecraftClientMixin",
@@ -27,6 +26,7 @@
     "TweakerooMixin.GuiConfigsMixin",
     "tweaks.barTweak.ClientPlayerInteractionManagerMixin",
     "tweaks.enchantmentLevelFix.MixinTranslationStorage",
+    "utils.MatrixStackEntryMixin",
     "utils.RenderInstance"
   ],
   "mixins": [
