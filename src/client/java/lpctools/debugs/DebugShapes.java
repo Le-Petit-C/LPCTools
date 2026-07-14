@@ -3,25 +3,22 @@ package lpctools.debugs;
 import com.mojang.blaze3d.buffers.BufferType;
 import com.mojang.blaze3d.buffers.BufferUsage;
 import com.mojang.blaze3d.buffers.GpuBuffer;
-import com.mojang.blaze3d.systems.GpuDevice;
-import com.mojang.blaze3d.systems.RenderPass;
+import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.blaze3d.textures.GpuTexture;
 import com.mojang.blaze3d.vertex.DefaultVertexFormat;
+import com.mojang.blaze3d.vertex.VertexFormat;
 import lpctools.lpcfymasaapi.Registries;
-import lpctools.lpcfymasaapi.render.LPCRenderPipelines;
 import lpctools.tools.ToolUtils;
-import lpctools.util.RenderUtils;
 import lpctools.util.javaex.QuietAutoCloseable;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.CompiledShaderProgram;
+import net.minecraft.client.renderer.CoreShaders;
 import org.joml.Matrix4f;
 import org.lwjgl.system.MemoryUtil;
 
 import java.nio.ByteBuffer;
-import java.util.OptionalDouble;
-import java.util.OptionalInt;
 
 /**
  * CPU 预变换顶点：在 CPU 上完成 ModelView 变换，
@@ -32,6 +29,9 @@ public class DebugShapes implements ToolUtils.ToolRunner, WorldRenderEvents.Afte
 	@Override public void registerAll(boolean b) { Registries.AFTER_ENTITIES.register(this, b); }
 
 	GpuBuffer triangleVertexBuffer;
+	GpuBuffer triangleIndexBuffer;
+
+	private int vertexArrayId;
 
 	private void initializeBuffers() {
 		if(triangleVertexBuffer == null) {
@@ -41,17 +41,30 @@ public class DebugShapes implements ToolUtils.ToolRunner, WorldRenderEvents.Afte
 			buf.putFloat(-0.500000f).putFloat(0).putFloat( 0.866025f).putInt(0xff00ff00);
 			buf.putFloat(-0.500000f).putFloat(0).putFloat( -0.866025f).putInt(0xffff0000);
 			buf.flip();
-			GpuDevice device = RenderSystem.getDevice();
-			triangleVertexBuffer = device.createBuffer(
-				() -> "DebugShapesTriangleVertexBuffer",
-				BufferType.VERTICES, BufferUsage.STATIC_WRITE, buf);
+			triangleVertexBuffer = new GpuBuffer(BufferType.VERTICES, BufferUsage.STATIC_WRITE, buf.remaining());
+			triangleVertexBuffer.write(buf, 0);
 			MemoryUtil.memFree(buf);
 		}
+		if(triangleIndexBuffer == null) {
+			ByteBuffer buf = MemoryUtil.memAlloc(6);
+			buf.asShortBuffer().put(new short[]{0, 1, 2}).flip();
+			triangleIndexBuffer = new GpuBuffer(BufferType.INDICES, BufferUsage.STATIC_WRITE, 6);
+			triangleIndexBuffer.write(buf, 0);
+			MemoryUtil.memFree(buf);
+		}
+		if(vertexArrayId == 0)
+			vertexArrayId = GlStateManager._glGenVertexArrays();
 	}
 
 	@Override public void close() {
 		if(triangleVertexBuffer != null)
 			triangleVertexBuffer = QuietAutoCloseable.close(triangleVertexBuffer);
+		if(triangleIndexBuffer != null)
+			triangleIndexBuffer = QuietAutoCloseable.close(triangleIndexBuffer);
+		if(vertexArrayId != 0) {
+			GlStateManager._glDeleteVertexArrays(vertexArrayId);
+			vertexArrayId = 0;
+		}
 	}
 
 
@@ -59,11 +72,6 @@ public class DebugShapes implements ToolUtils.ToolRunner, WorldRenderEvents.Afte
 		initializeBuffers();
 
 		var camPos = context.gameRenderer().getMainCamera().getPosition();
-		var fb = Minecraft.getInstance().getMainRenderTarget();
-		GpuTexture colorView = RenderUtils.colorAttachmentViewOrDef(fb);
-		GpuTexture depthView = RenderUtils.depthAttachmentViewOrDef(fb);
-		var device = RenderSystem.getDevice();
-		var enc = device.createCommandEncoder();
 
 		//绘制三角形
 		float angle = (float)(System.currentTimeMillis() / 1000.0 % (2 * Math.PI));
@@ -73,10 +81,15 @@ public class DebugShapes implements ToolUtils.ToolRunner, WorldRenderEvents.Afte
 		modelView.translate((float)-camPos.x, (float)-camPos.y, (float)-camPos.z);
 		modelView.rotate(angle, 0, 1, 0);
 
-		try (RenderPass rp = enc.createRenderPass(colorView, OptionalInt.empty(), depthView, OptionalDouble.empty())) {
-			rp.setPipeline(LPCRenderPipelines.positionColorPipeline(false, false));
-			rp.setVertexBuffer(0, triangleVertexBuffer);
-			rp.draw(0, 3);
+		CompiledShaderProgram shaderProgram = RenderSystem.setShader(CoreShaders.POSITION_COLOR);
+		if (shaderProgram != null) {
+			shaderProgram.setDefaultUniforms(VertexFormat.Mode.TRIANGLES, modelView,
+				RenderSystem.getProjectionMatrix(), Minecraft.getInstance().getWindow());
+			shaderProgram.apply();
+			triangleVertexBuffer.bind();
+			triangleIndexBuffer.bind();
+			RenderSystem.drawElements(VertexFormat.Mode.TRIANGLES.asGLMode, 3, VertexFormat.IndexType.SHORT.asGLType);
+			shaderProgram.clear();
 		}
 		modelView.set(oldModelView);
 	}
