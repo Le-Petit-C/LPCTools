@@ -1,6 +1,5 @@
 package lpctools.lpcfymasaapi;
 
-import com.mojang.blaze3d.pipeline.RenderTarget;
 import fi.dy.masa.malilib.event.RenderEventHandler;
 import fi.dy.masa.malilib.interfaces.IRangeChangeListener;
 import fi.dy.masa.malilib.interfaces.IRenderer;
@@ -16,9 +15,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.multiplayer.ClientLevel;
-import net.minecraft.client.renderer.RenderBuffers;
 import net.minecraft.client.renderer.FogParameters;
-import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.culling.Frustum;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
@@ -31,14 +28,11 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.chunk.LevelChunk;
-import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Matrix4f;
 
-import com.mojang.blaze3d.vertex.PoseStack;
-
-import java.util.function.Consumer;
+import java.util.List;
 
 @SuppressWarnings("unused")
 public class Registries {
@@ -85,8 +79,6 @@ public class Registries {
     public static final UnregistrableRegistry<GameOverlayRender> MASA_RENDER_GAME_OVERLAY = UnregistrableRegistry.fanOut(GameOverlayRender.class);
     public static final UnregistrableRegistry<OverlayLastRender> MASA_RENDER_OVERLAY_LAST = new UnregistrableRegistry<>(
         callbacks->(a, b, c)->callbacks.forEach(renderer->renderer.renderOverlayLast(a, b, c)));
-    public static final UnregistrableRegistry<PostDebugRender> MASA_RENDER_POST_DEBUG = new UnregistrableRegistry<>(
-        callbacks->(a, b, c, d, e)->callbacks.forEach(renderer->renderer.renderPostDebug(a, b, c, d, e)));
     public static final UnregistrableRegistry<WorldPreWeatherRender> MASA_RENDER_WORLD_PRE_WEATHER = UnregistrableRegistry.fanOut(WorldPreWeatherRender.class);
     public static final UnregistrableRegistry<WorldLastRender> MASA_WORLD_RENDER_LAST = UnregistrableRegistry.fanOut(WorldLastRender.class);
     public static final UnregistrableRegistry<TooltipComponentInsertFirstRender> MASA_RENDER_TOOLTIP_COMPONENT_INSERTION_FIRST = UnregistrableRegistry.fanOut(TooltipComponentInsertFirstRender.class);
@@ -114,7 +106,6 @@ public class Registries {
     static{
         var overlayLastRenderer = MASA_RENDER_OVERLAY_LAST.runner();
         var overlayRenderer = MASA_RENDER_GAME_OVERLAY.runner();
-        var postDebugRender = MASA_RENDER_POST_DEBUG.runner();
         var worldPreWeatherRenderer = MASA_RENDER_WORLD_PRE_WEATHER.runner();
         var worldLastRenderer = MASA_WORLD_RENDER_LAST.runner();
         var toolTipComponentInsertFirstRenderer = MASA_RENDER_TOOLTIP_COMPONENT_INSERTION_FIRST.runner();
@@ -128,22 +119,19 @@ public class Registries {
             @Override public void onRenderGameOverlayPostAdvanced(GuiGraphics ctx, float partialTicks, ProfilerFiller profiler, Minecraft mc) {
                 overlayRenderer.renderGameOverlay(ctx, partialTicks, profiler);
             }
-            @Override public void onRenderWorldPostDebugRender(PoseStack matrices, Frustum frustum, MultiBufferSource.BufferSource immediate, Vec3 camera, ProfilerFiller profiler) {
-                postDebugRender.renderPostDebug(matrices, frustum, immediate, camera, profiler);
+            @Override public void onRenderWorldPreWeather(Matrix4f posMatrix, Matrix4f projMatrix, Frustum frustum, Camera camera, FogParameters fog, ProfilerFiller profiler) {
+                worldPreWeatherRenderer.onRenderWorldPreWeather(new MASAWorldRenderContext(posMatrix, projMatrix, frustum, camera, profiler));
             }
-            @Override public void onRenderWorldPreWeather(RenderTarget fb, Matrix4f posMatrix, Matrix4f projMatrix, Frustum frustum, Camera camera, FogParameters fog, RenderBuffers buffers, ProfilerFiller profiler) {
-                worldPreWeatherRenderer.onRenderWorldPreWeather(new MASAWorldRenderContext(fb, posMatrix, projMatrix, frustum, camera, buffers, profiler));
+            @Override public void onRenderWorldLastAdvanced(Matrix4f posMatrix, Matrix4f projMatrix, Frustum frustum, Camera camera, FogParameters fog, ProfilerFiller profiler) {
+                worldLastRenderer.onLast(new MASAWorldRenderContext(posMatrix, projMatrix, frustum, camera, profiler));
             }
-            @Override public void onRenderWorldLastAdvanced(RenderTarget fb, Matrix4f posMatrix, Matrix4f projMatrix, Frustum frustum, Camera camera, FogParameters fog, RenderBuffers buffers, ProfilerFiller profiler) {
-                worldLastRenderer.onLast(new MASAWorldRenderContext(fb, posMatrix, projMatrix, frustum, camera, buffers, profiler));
-            }
-            @Override public void onRenderTooltipComponentInsertFirst(Item.TooltipContext context, ItemStack stack, Consumer<Component> list) {
+            @Override public void onRenderTooltipComponentInsertFirst(Item.TooltipContext context, ItemStack stack, List<Component> list) {
                 toolTipComponentInsertFirstRenderer.onRenderTooltipComponentInsertFirst(context, stack, list);
             }
-            @Override public void onRenderTooltipComponentInsertMiddle(Item.TooltipContext context, ItemStack stack, Consumer<Component> list) {
+            @Override public void onRenderTooltipComponentInsertMiddle(Item.TooltipContext context, ItemStack stack, List<Component> list) {
                 toolTipComponentInsertMiddleRenderer.onRenderTooltipComponentInsertMiddle(context, stack, list);
             }
-            @Override public void onRenderTooltipComponentInsertLast(Item.TooltipContext context, ItemStack stack, Consumer<Component> list) {
+            @Override public void onRenderTooltipComponentInsertLast(Item.TooltipContext context, ItemStack stack, List<Component> list) {
                 toolTipComponentInsertLastRenderer.onRenderTooltipComponentInsertLast(context, stack, list);
             }
             @Override public void onRenderTooltipLast(GuiGraphics ctx, ItemStack stack, int x, int y) {
@@ -154,7 +142,6 @@ public class Registries {
         var malilibRenderEventHandler = RenderEventHandler.getInstance();
         malilibRenderEventHandler.registerGameOverlayRenderer(malilibRenderer);
         malilibRenderEventHandler.registerTooltipLastRenderer(malilibRenderer);
-        malilibRenderEventHandler.registerWorldPostDebugRenderer(malilibRenderer);
         malilibRenderEventHandler.registerWorldPreWeatherRenderer(malilibRenderer);
         malilibRenderEventHandler.registerWorldLastRenderer(malilibRenderer);
     }
@@ -172,10 +159,7 @@ public class Registries {
     public interface OverlayLastRender {
         void renderOverlayLast(GuiGraphics ctx, float partialTicks, ProfilerFiller profiler);
     }
-    public interface PostDebugRender {
-        void renderPostDebug(PoseStack matrices, Frustum frustum, MultiBufferSource.BufferSource immediate, Vec3 camera, ProfilerFiller profiler);
-    }
-    public record MASAWorldRenderContext(RenderTarget fb, Matrix4f positionMatrix, Matrix4f projectionMatrix, Frustum frustum, Camera camera, RenderBuffers buffers, ProfilerFiller profiler) {}
+    public record MASAWorldRenderContext(Matrix4f positionMatrix, Matrix4f projectionMatrix, Frustum frustum, Camera camera, ProfilerFiller profiler) {}
     public interface WorldPreMainRender {
         void onRenderWorldPreMain(MASAWorldRenderContext context);
     }
@@ -186,13 +170,13 @@ public class Registries {
         void onLast(MASAWorldRenderContext context);
     }
     public interface TooltipComponentInsertFirstRender {
-        void onRenderTooltipComponentInsertFirst(Item.TooltipContext context, ItemStack stack, Consumer<Component> list);
+        void onRenderTooltipComponentInsertFirst(Item.TooltipContext context, ItemStack stack, List<Component> list);
     }
     public interface TooltipComponentInsertMiddleRender {
-        void onRenderTooltipComponentInsertMiddle(Item.TooltipContext context, ItemStack stack, Consumer<Component> list);
+        void onRenderTooltipComponentInsertMiddle(Item.TooltipContext context, ItemStack stack, List<Component> list);
     }
     public interface TooltipComponentInsertLastRender {
-        void onRenderTooltipComponentInsertLast(Item.TooltipContext context, ItemStack stack, Consumer<Component> list);
+        void onRenderTooltipComponentInsertLast(Item.TooltipContext context, ItemStack stack, List<Component> list);
     }
     public interface TooltipLastRender {
         void onRenderTooltipLast(GuiGraphics ctx, ItemStack stack, int x, int y);
