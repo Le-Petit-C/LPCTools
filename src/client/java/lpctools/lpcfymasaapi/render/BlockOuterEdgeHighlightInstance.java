@@ -227,12 +227,16 @@ public class BlockOuterEdgeHighlightInstance implements AutoCloseable, ClientWor
             }
         }
     }
+
+    private static LongComparator comparingDoublesFromLong(Long2DoubleFunction func) {
+        return (long1, long2)->Double.compare(func.applyAsDouble(long1), func.applyAsDouble(long2));
+    }
     
     void updatePosesNeedToUpdate(double chunkedCamX, double chunkedCamZ) {
         if(UpdateCounter.isTired()) return;
         if(!posesNeedToUpdateRender.isEmpty()) {
             LongHeapPriorityQueue chunksNeedToUpdate = new LongHeapPriorityQueue(posesNeedToUpdateRender.keySet(),
-                LongComparator.comparingDouble(packedChunkPos->{
+                comparingDoublesFromLong(packedChunkPos->{
                 int x = Packed.ChunkPos.unpackX(packedChunkPos);
                 int z = Packed.ChunkPos.unpackZ(packedChunkPos);
                 return Mth.square(x - chunkedCamX) + Mth.square(z - chunkedCamZ);

@@ -7,10 +7,7 @@ import lpctools.lpcfymasaapi.render.RenderEventHandler;
 import net.minecraft.client.Camera;
 import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.GameRenderer;
-import net.minecraft.client.renderer.LevelRenderer;
-import net.minecraft.client.renderer.LevelTargetBundle;
-import net.minecraft.client.renderer.RenderBuffers;
+import net.minecraft.client.renderer.*;
 import net.minecraft.client.renderer.culling.Frustum;
 import net.minecraft.util.profiling.ProfilerFiller;
 import org.joml.Matrix4f;
@@ -33,7 +30,7 @@ public abstract class MixinWorldRenderer
 		at = @At(value = "INVOKE",
 			target = "Lnet/minecraft/client/renderer/LevelRenderer;addMainPass(Lcom/mojang/blaze3d/framegraph/FrameGraphBuilder;Lnet/minecraft/client/renderer/culling/Frustum;Lnet/minecraft/client/Camera;Lorg/joml/Matrix4f;Lorg/joml/Matrix4f;Lnet/minecraft/client/renderer/FogParameters;ZZLnet/minecraft/client/DeltaTracker;Lnet/minecraft/util/profiling/ProfilerFiller;)V",
 			shift = At.Shift.BEFORE))
-	private void lpctools_onRenderWorldMain(GraphicsResourceAllocator allocator, DeltaTracker tickCounter, boolean renderBlockOutline, Camera camera, GameRenderer gameRenderer, Matrix4f positionMatrix, Matrix4f projectionMatrix, CallbackInfo ci, @Local ProfilerFiller profiler, @Local Frustum frustum, @Local FrameGraphBuilder frameGraphBuilder)
+	private void lpctools_onRenderWorldMain(GraphicsResourceAllocator graphicsResourceAllocator, DeltaTracker deltaTracker, boolean renderBlockOutline, Camera camera, GameRenderer gameRenderer, LightTexture lightTexture, Matrix4f positionMatrix, Matrix4f projectionMatrix, CallbackInfo ci, @Local ProfilerFiller profiler, @Local Frustum frustum, @Local FrameGraphBuilder frameGraphBuilder)
 	{
 		RenderEventHandler.runRenderWorldPreMain(positionMatrix, projectionMatrix, this.minecraft, frameGraphBuilder, this.targets, frustum, camera, profiler);
 	}
