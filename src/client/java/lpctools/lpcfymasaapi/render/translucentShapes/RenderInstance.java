@@ -4,14 +4,15 @@ import com.google.common.collect.ImmutableSet;
 import com.mojang.blaze3d.buffers.BufferType;
 import com.mojang.blaze3d.buffers.BufferUsage;
 import com.mojang.blaze3d.buffers.GpuBuffer;
+import com.mojang.blaze3d.platform.GlConst;
 import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.DefaultVertexFormat;
-import com.mojang.blaze3d.vertex.VertexBuffer;
 import com.mojang.blaze3d.vertex.VertexFormat;
 import it.unimi.dsi.fastutil.ints.*;
 import it.unimi.dsi.fastutil.longs.Long2IntOpenHashMap;
 import lpctools.lpcfymasaapi.Registries;
+import lpctools.lpcfymasaapi.render.GLStates;
 import lpctools.lpcfymasaapi.render.IPositionVertex;
 import lpctools.lpcfymasaapi.render.OffsetMode;
 import lpctools.util.CachedSupplier;
@@ -20,7 +21,6 @@ import net.minecraft.Util;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.CompiledShaderProgram;
 import net.minecraft.client.renderer.CoreShaders;
-import net.minecraft.client.renderer.RenderStateShard;
 import net.minecraft.client.renderer.culling.Frustum;
 import net.minecraft.core.SectionPos;
 import net.minecraft.util.Mth;
@@ -39,28 +39,22 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executor;
 import java.util.function.Consumer;
 import java.util.function.IntConsumer;
-import java.util.function.Supplier;
 
 // TODO:
 //  trim清理
 //  渲染优先级（或许可以在渲染选项中指定）
 public class RenderInstance implements QuietAutoCloseable, Registries.WorldPreMainRender, IRenderCallback {
 	private static final ConcurrentHashMap<RenderOption, RenderInstance> renderInstances = new ConcurrentHashMap<>();
-	
+
 	// 进行重排的最小tan值，值越小重排越频繁，也就越卡，但是对应地出现深度错误的情况越少
 	private static final double resortTan = 0.25;
 	private static final double resortTanSquare = resortTan * resortTan;
-	
-	private static final String baseLabel = "LPCTools TranslucentQuadsRenderInstance";
-	private static final Supplier<String> indexBufferLabel = () -> appendLabel("IndexBuffer");
-	private static final Supplier<String> vertexBufferLabel = () -> appendLabel("VertexBuffer");
+
 	// should only be modified in referred mixin
 	public static final Matrix4f worldBasicProjectionMatrix = new Matrix4f();
 	public static final Matrix4f worldProjectionMatrix = new Matrix4f();
 	public static final Matrix4f worldProjectionTranslateMatrix = new Matrix4f();
-	
-	private static String appendLabel(String tail) { return baseLabel + ' ' + tail; }
-	
+
 	// 比ChunkSection大一圈的Section，叫做Greater Section没什么不妥吧？
 	private static final int greaterExponent = 1;
 	private static final int greaterSectionSideLength = SectionPos.sectionToBlockCoord(1) << greaterExponent;
@@ -76,9 +70,8 @@ public class RenderInstance implements QuietAutoCloseable, Registries.WorldPreMa
 	private static int getBlockCoordYGreater(long packed){ return getBlockCoordGreater(unpackGreaterSectionY(packed)); }
 	private static int getBlockCoordZGreater(long packed){ return getBlockCoordGreater(unpackGreaterSectionZ(packed)); }
 	private static long toPackedGreaterSectionPos(Vector3d pos){ return getPackedGreaterSectionPos(pos.x, pos.y, pos.z); }
-	
+
 	private final RenderOption renderOption;
-	// private final PerspectiveProjectionMatrixBuffer rawProjectionMatrixBuffer = new PerspectiveProjectionMatrixBuffer("LPCToolsRenderInstance");
 	// 变换基点，所有vertex以此为基点进行变换
 	private final Vector3d basePoint = new Vector3d();
 	private final ArrayList<SubChunk> subChunks = new ArrayList<>();
@@ -87,29 +80,29 @@ public class RenderInstance implements QuietAutoCloseable, Registries.WorldPreMa
 	private final ArrayList<SubChunk> sortedRenderSubChunks = new ArrayList<>();
 	private final HashSet<SubChunk> subChunksNeedUpload = new HashSet<>();
 	private final CachedSupplier<ArrayList<ArrayList<SubChunk>>> subChunkSortingCache = new CachedSupplier<>(ArrayList::new);
-	private final int vertexArrayId;
-	
+	private int vertexArrayId;
+
 	private @Nullable CompletableFuture<Void> prepareTasks;
 	private @Nullable CompletableFuture<CompletableFuture<Void>> dispatchTask;
 	private @Nullable Registries.MASAWorldRenderContext recordedWorldRenderContext;
-	
+
 	private RenderInstance(RenderOption renderOption) {
 		this.renderOption = renderOption;
 		Registries.PRE_MAIN.register(this);
 		renderOption.timing().register(this, true);
-		vertexArrayId = GlStateManager._glGenVertexArrays();
 	}
-	
+
 	public static RenderInstance getRenderInstance(RenderOption renderOption) {
 		return renderInstances.computeIfAbsent(renderOption, RenderInstance::new);
 	}
 
 	public static RenderInstance defaultRenderInstance(boolean isLine, boolean depthless) {
 		return getRenderInstance(new RenderOption(CoreShaders.POSITION_COLOR, DefaultVertexFormat.POSITION_COLOR,
-			isLine ? VertexFormat.Mode.DEBUG_LINES : VertexFormat.Mode.QUADS, !depthless, !depthless, depthless ? OffsetMode.NONE : OffsetMode.OFFSET_1,
+			isLine ? VertexFormat.Mode.DEBUG_LINES : VertexFormat.Mode.QUADS,
+			true, false, !depthless, !depthless, depthless ? OffsetMode.NONE : OffsetMode.OFFSET_1,
 			true, depthless ? RenderTiming.ON_LAST : RenderTiming.AFTER_ENTITIES, ImmutableSet.of()));
 	}
-	
+
 	ShapeReference addShape(Shape<? extends IPositionVertex> shape) {
 		long packedGreaterSectionPos = toPackedGreaterSectionPos(shape.center);
 		int index;
@@ -131,46 +124,50 @@ public class RenderInstance implements QuietAutoCloseable, Registries.WorldPreMa
 		var context = recordedWorldRenderContext;
 		if(context == null) return;
 		waitForTasks();
+		if(vertexArrayId == 0) vertexArrayId = GlStateManager._glGenVertexArrays();
 		if(!subChunksNeedUpload.isEmpty()) {
-			for (var subChunk : subChunksNeedUpload) subChunk.upload();
+			try(GLStates _ = new GLStates().vertexArray(vertexArrayId).vertexBuffer(0)) {
+				for (var subChunk : subChunksNeedUpload) subChunk.upload();
+			}
 			subChunksNeedUpload.clear();
 		}
+		if(sortedRenderSubChunks.isEmpty()) return;
 		Vec3 camPos = context.camera().getPosition();
 		Vector3f offset = new Vector3f();
-		Matrix4f modelViewMatrix = RenderSystem.getModelViewMatrix();
-		Matrix4f oldModelViewMatrix = new Matrix4f(modelViewMatrix);
+		Matrix4fStack modelViewStack = RenderSystem.getModelViewStack();
+		modelViewStack.pushMatrix();
 		offset.set((float) (basePoint.x - camPos.x), (float) (basePoint.y - camPos.y), (float) (basePoint.z - camPos.z));
 		if(renderOption.modelOffsetOntoMatrix()) {
-			modelViewMatrix.translate(offset);
+			modelViewStack.translate(offset);
 			offset.set(0, 0, 0);
 		}
+		CompiledShaderProgram oldShader = RenderSystem.getShader();
 		CompiledShaderProgram shaderProgram = RenderSystem.setShader(renderOption.shader());
 		if (shaderProgram != null) {
-			RenderStateShard.POLYGON_OFFSET_LAYERING.setupRenderState();
 			shaderProgram.setDefaultUniforms(renderOption.drawMode(),
-				RenderSystem.getModelViewMatrix(),
-				RenderSystem.getProjectionMatrix(),
+				modelViewStack, RenderSystem.getProjectionMatrix(),
 				Minecraft.getInstance().getWindow());
 			if (shaderProgram.MODEL_OFFSET != null)
 				shaderProgram.MODEL_OFFSET.set(offset);
 			shaderProgram.apply();
-			GlStateManager._glBindVertexArray(vertexArrayId);
-			for(var extraBindings : renderOption.extraOperations())
-				extraBindings.run();
-			for (var subChunk : sortedRenderSubChunks)
-				subChunk.render();
-			GlStateManager._glBindVertexArray(0);
+			try(GLStates glStates = renderOption.setupRenderState(vertexArrayId)) {
+				for(var extraBindings : renderOption.extraOperations())
+					extraBindings.run();
+				for (var subChunk : sortedRenderSubChunks)
+					subChunk.render(glStates);
+				GlStateManager._glBindBuffer(GlConst.GL_ELEMENT_ARRAY_BUFFER, 0);
+			}
 			shaderProgram.clear();
-			RenderStateShard.POLYGON_OFFSET_LAYERING.clearRenderState();
 		}
-		modelViewMatrix.set(oldModelViewMatrix);
+		RenderSystem.setShader(oldShader);
+		modelViewStack.popMatrix();
 	}
-	
+
 	@Override public void onRenderWorldPreMain(Registries.MASAWorldRenderContext context) {
 		recordedWorldRenderContext = context;
 		prepareRenderDataAsync(Util.backgroundExecutor(), true);
 	}
-	
+
 	public void prepareRenderDataAsync(Executor executor, boolean recordData) {
 		var context = recordedWorldRenderContext;
 		RenderSystem.assertOnRenderThread();
@@ -181,7 +178,7 @@ public class RenderInstance implements QuietAutoCloseable, Registries.WorldPreMa
 			prepareTasks = dispatchTask.thenCompose(tasks -> tasks);
 		}
 	}
-	
+
 	@Override public void close() {
 		waitForTasks();
 		for (SubChunk subChunk : subChunks) subChunk.close();
@@ -191,29 +188,29 @@ public class RenderInstance implements QuietAutoCloseable, Registries.WorldPreMa
 		sortedRenderSubChunks.clear();
 		subChunksNeedUpload.clear();
 		subChunkSortingCache.close();
-		
+
 		Registries.PRE_MAIN.unregister(this);
 		renderOption.timing().unregister(this);
-		GlStateManager._glDeleteVertexArrays(vertexArrayId);
+		if(vertexArrayId != 0) GlStateManager._glDeleteVertexArrays(vertexArrayId);
 	}
-	
+
 	private void waitForTasks() {
 		if (prepareTasks == null) return;
 		prepareTasks.join();
 		prepareTasks = null;
 	}
-	
+
 	private void waitForDispatchTask() {
 		if (dispatchTask == null) return;
 		dispatchTask.join();
 		dispatchTask = null;
 	}
-	
+
 	private CompletableFuture<Void> dispatchPrepareTasks(Frustum frustum, Vec3 camPos, Executor executor) {
 		ArrayList<CompletableFuture<Void>> tasks = new ArrayList<>();
 		double dstMax = Math.max(Math.max(Math.abs(camPos.x - basePoint.x), Math.abs(camPos.z - basePoint.z)), Math.abs(camPos.y - basePoint.y));
 		if(dstMax > 1024) basePoint.set(camPos.x, camPos.y, camPos.z);
-		
+
 		// 计数排序
 		int camSectionX = getGreaterSectionCoord(camPos.x);
 		int camSectionY = getGreaterSectionCoord(camPos.y);
@@ -230,19 +227,19 @@ public class RenderInstance implements QuietAutoCloseable, Registries.WorldPreMa
 			while(cacheList.size() <= manhattanDistance) cacheList.add(new ArrayList<>());
 			cacheList.get(manhattanDistance).add(subChunk);
 		});
-		
+
 		sortedRenderSubChunks.clear();
 		for(int i = cacheList.size() - 1; i >= 0; --i)
 			for(var subChunk : cacheList.get(i))
 				subChunk.updateIfVisible(tasks, this, frustum, camPos, executor);
-		
+
 		return CompletableFuture.allOf(tasks.toArray(new CompletableFuture[0]));
 	}
-	
+
 	private class SubChunk implements QuietAutoCloseable {
 		final Vector3d markerPos = new Vector3d();
 		final Vector3d basePoint = new Vector3d();
-		
+
 		long packedGreaterSectionPos;
 		AABB sectionBox;
 		GpuBuffer vertexBuffer = null;
@@ -250,30 +247,30 @@ public class RenderInstance implements QuietAutoCloseable, Registries.WorldPreMa
 		VertexFormat.IndexType indexType = null;
 		ByteBuffer vertexBufferToUpload = null;
 		ByteBuffer indexBufferToUpload = null;
-		
+
 		final ArrayList<ShapeInfo> shapes = new ArrayList<>();
 		final ArrayList<ElementReference> elements = new ArrayList<>();
 		int vertices_size = 0, elements_size = 0;
-		
+
 		int uploadedSize = 0;
 		boolean verticesChanged = false;
 		@SuppressWarnings("unused") boolean isEmpty(){ return shapes.isEmpty(); }
 		boolean veryInitialized = false;
-		
+
 		CompletableFuture<Void> subChunkPrepareTask = null;
-		
+
 		void waitForSubChunkTask() {
 			waitForDispatchTask();
 			if (subChunkPrepareTask == null) return;
 			subChunkPrepareTask.join();
 			subChunkPrepareTask = null;
 		}
-		
+
 		void removeElement(ElementReference element){
 			var last = elements.removeLast();
 			if(last != element) elements.set(last.index = element.index, last);
 		}
-		
+
 		class ShapeInfo implements ShapeReference {
 			final Shape<? extends IPositionVertex> shape;
 			final ElementReference[] elementReferences;
@@ -286,7 +283,7 @@ public class RenderInstance implements QuietAutoCloseable, Registries.WorldPreMa
 				for(int i = 0; i < shape.baseIndices.length; ++i)
 					elementReferences[i] = new ElementReference(this, i, shape.centers[i]);
 			}
-			
+
 			@Override public void removeShape() {
 				RenderSystem.assertOnRenderThread();
 				if(index < 0) return;
@@ -302,7 +299,7 @@ public class RenderInstance implements QuietAutoCloseable, Registries.WorldPreMa
 				markVerticesChanged();
 			}
 		}
-		
+
 		static class ElementReference {
 			final ShapeInfo shapeInfo;
 			final Vector3d pos;
@@ -315,15 +312,15 @@ public class RenderInstance implements QuietAutoCloseable, Registries.WorldPreMa
 				this.pos = pos;
 			}
 		}
-		
+
 		SubChunk() {}
-		
+
 		void markVerticesChanged(){
 			verticesChanged = true;
 			vertexBufferToUpload = closeIfExist(vertexBufferToUpload, MemoryUtil::memFree);
 			indexBufferToUpload = closeIfExist(indexBufferToUpload, MemoryUtil::memFree);
 		}
-		
+
 		void setSectionPos(long packedGreaterSectionPos) {
 			this.packedGreaterSectionPos = packedGreaterSectionPos;
 			sectionBox = new AABB(
@@ -334,7 +331,7 @@ public class RenderInstance implements QuietAutoCloseable, Registries.WorldPreMa
 				getBlockCoordYGreater(packedGreaterSectionPos) + greaterSectionSideLength,
 				getBlockCoordZGreater(packedGreaterSectionPos) + greaterSectionSideLength);
 		}
-		
+
 		ShapeReference addShape(Shape<? extends IPositionVertex> shape) {
 			RenderSystem.assertOnRenderThread();
 			var res = new ShapeInfo(shape, shapes.size());
@@ -349,7 +346,7 @@ public class RenderInstance implements QuietAutoCloseable, Registries.WorldPreMa
 			markVerticesChanged();
 			return res;
 		}
-		
+
 		void updateIfVisible(ArrayList<CompletableFuture<Void>> taskOutput, RenderInstance caller, Frustum frustum, Vec3 camPos, Executor executor) {
 			if(shapes.isEmpty() || !frustum.isVisible(sectionBox)) return;
 			caller.sortedRenderSubChunks.add(this);
@@ -371,7 +368,7 @@ public class RenderInstance implements QuietAutoCloseable, Registries.WorldPreMa
 				taskOutput.add(task);
 			}
 		}
-		
+
 		boolean updateMarkerPos(Vec3 camPos){
 			double mx = Math.clamp(camPos.x, sectionBox.minX, sectionBox.maxX);
 			double my = Math.clamp(camPos.y, sectionBox.minY, sectionBox.maxY);
@@ -391,7 +388,7 @@ public class RenderInstance implements QuietAutoCloseable, Registries.WorldPreMa
 			if(res) markerPos.set(mx, my, mz);
 			return res;
 		}
-		
+
 		void buildVertexByteBuffer(){
 			if(vertexBufferToUpload != null) MemoryUtil.memFree(vertexBufferToUpload);
 			int vertexSize = renderOption.vertexFormat().getVertexSize();
@@ -411,7 +408,7 @@ public class RenderInstance implements QuietAutoCloseable, Registries.WorldPreMa
 			}
 			vertexBufferToUpload.flip();
 		}
-		
+
 		void resort(Vec3 camPos) {
 			// 更新摄像机距离
 			for(var shape : shapes){
@@ -433,7 +430,7 @@ public class RenderInstance implements QuietAutoCloseable, Registries.WorldPreMa
 			// 更新缓冲
 			buildIndexByteBuffer();
 		}
-		
+
 		void buildIndexByteBuffer(){
 			if(indexBufferToUpload != null) MemoryUtil.memFree(indexBufferToUpload);
 			indexBufferToUpload = MemoryUtil.memAlloc(elements_size * indexType.bytes);
@@ -448,10 +445,10 @@ public class RenderInstance implements QuietAutoCloseable, Registries.WorldPreMa
 			}
 			indexBufferToUpload.flip();
 		}
-		
+
 		void upload(){
 			if(indexBufferToUpload == null) return;
-			
+
 			int requiredIndexSize = indexBufferToUpload.limit();
 			if(indexBuffer == null || indexBuffer.size < requiredIndexSize){
 				int oldSize = indexBuffer == null ? 0 : indexBuffer.size;
@@ -462,10 +459,10 @@ public class RenderInstance implements QuietAutoCloseable, Registries.WorldPreMa
 			indexBuffer.write(indexBufferToUpload, 0);
 			MemoryUtil.memFree(indexBufferToUpload);
 			indexBufferToUpload = null;
-			
+
 			if(vertexBufferToUpload != null) {
 				int requiredVertexSize = vertexBufferToUpload.limit();
-				if(vertexBuffer == null || vertexBuffer.size < requiredVertexSize){
+				if(vertexBuffer == null || vertexBuffer.size < requiredVertexSize) {
 					int oldSize = vertexBuffer == null ? 0 : vertexBuffer.size;
 					if(vertexBuffer != null) vertexBuffer.close();
 					vertexBuffer = new GpuBuffer(BufferType.VERTICES, BufferUsage.STATIC_WRITE,
@@ -479,10 +476,11 @@ public class RenderInstance implements QuietAutoCloseable, Registries.WorldPreMa
 			veryInitialized = true;
 			uploadedSize = requiredIndexSize / indexType.bytes;
 		}
-		
-		void render() {
+
+		void render(GLStates states) {
 			if(!veryInitialized) return;
-			vertexBuffer.bind();
+			states.vertexBuffer(vertexBuffer.handle);
+			renderOption.vertexFormat().setupBufferState();
 			indexBuffer.bind();
 			RenderSystem.drawElements(renderOption.drawMode().asGLMode, uploadedSize, indexType.asGLType);
 		}

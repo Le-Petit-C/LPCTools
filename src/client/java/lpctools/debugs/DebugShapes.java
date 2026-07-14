@@ -3,11 +3,14 @@ package lpctools.debugs;
 import com.mojang.blaze3d.buffers.BufferType;
 import com.mojang.blaze3d.buffers.BufferUsage;
 import com.mojang.blaze3d.buffers.GpuBuffer;
+import com.mojang.blaze3d.pipeline.RenderTarget;
+import com.mojang.blaze3d.platform.GlConst;
 import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 import com.mojang.blaze3d.vertex.VertexFormat;
 import lpctools.lpcfymasaapi.Registries;
+import lpctools.lpcfymasaapi.render.GLStates;
 import lpctools.tools.ToolUtils;
 import lpctools.util.javaex.QuietAutoCloseable;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext;
@@ -41,19 +44,23 @@ public class DebugShapes implements ToolUtils.ToolRunner, WorldRenderEvents.Afte
 			buf.putFloat(-0.500000f).putFloat(0).putFloat( 0.866025f).putInt(0xff00ff00);
 			buf.putFloat(-0.500000f).putFloat(0).putFloat( -0.866025f).putInt(0xffff0000);
 			buf.flip();
-			triangleVertexBuffer = new GpuBuffer(BufferType.VERTICES, BufferUsage.STATIC_WRITE, buf.remaining());
-			triangleVertexBuffer.write(buf, 0);
-			MemoryUtil.memFree(buf);
-		}
-		if(triangleIndexBuffer == null) {
-			ByteBuffer buf = MemoryUtil.memAlloc(6);
-			buf.asShortBuffer().put(new short[]{0, 1, 2}).flip();
-			triangleIndexBuffer = new GpuBuffer(BufferType.INDICES, BufferUsage.STATIC_WRITE, 6);
-			triangleIndexBuffer.write(buf, 0);
+			try(GLStates _ = new GLStates().vertexArray(0).vertexBuffer(0)) {
+				triangleVertexBuffer = new GpuBuffer(BufferType.VERTICES, BufferUsage.STATIC_WRITE, buf.remaining());
+				triangleVertexBuffer.write(buf, 0);
+			}
 			MemoryUtil.memFree(buf);
 		}
 		if(vertexArrayId == 0)
 			vertexArrayId = GlStateManager._glGenVertexArrays();
+		if(triangleIndexBuffer == null) {
+			ByteBuffer buf = MemoryUtil.memAlloc(6);
+			buf.asShortBuffer().put(new short[]{0, 1, 2}).flip();
+			try(GLStates _ = new GLStates().vertexArray(vertexArrayId).vertexBuffer(0)) {
+				triangleIndexBuffer = new GpuBuffer(BufferType.INDICES, BufferUsage.STATIC_WRITE, 6);
+				triangleIndexBuffer.write(buf, 0);
+			}
+			MemoryUtil.memFree(buf);
+		}
 	}
 
 	@Override public void close() {
@@ -66,7 +73,6 @@ public class DebugShapes implements ToolUtils.ToolRunner, WorldRenderEvents.Afte
 			vertexArrayId = 0;
 		}
 	}
-
 
 	@Override public void afterEntities(WorldRenderContext context) {
 		initializeBuffers();
@@ -86,9 +92,16 @@ public class DebugShapes implements ToolUtils.ToolRunner, WorldRenderEvents.Afte
 			shaderProgram.setDefaultUniforms(VertexFormat.Mode.TRIANGLES, modelView,
 				RenderSystem.getProjectionMatrix(), Minecraft.getInstance().getWindow());
 			shaderProgram.apply();
-			triangleVertexBuffer.bind();
-			triangleIndexBuffer.bind();
-			RenderSystem.drawElements(VertexFormat.Mode.TRIANGLES.asGLMode, 3, VertexFormat.IndexType.SHORT.asGLType);
+			try(GLStates _ = new GLStates().vertexArray(vertexArrayId)
+				.depthFuncEx(GlConst.GL_LEQUAL)
+				.cullFace(false)
+				.depthWriteMask(true)
+			) {
+				triangleVertexBuffer.bind();
+				DefaultVertexFormat.POSITION_COLOR.setupBufferState();
+				triangleIndexBuffer.bind();
+				RenderSystem.drawElements(VertexFormat.Mode.TRIANGLES.asGLMode, 3, VertexFormat.IndexType.SHORT.asGLType);
+			}
 			shaderProgram.clear();
 		}
 		modelView.set(oldModelView);

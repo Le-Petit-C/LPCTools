@@ -1,6 +1,6 @@
 package lpctools.tools.leakPreventer;
 
-import fi.dy.masa.malilib.util.data.Color4f;
+import fi.dy.masa.malilib.util.Color4f;
 import lpctools.lpcfymasaapi.configButtons.transferredConfigs.ColorConfig;
 import lpctools.lpcfymasaapi.configButtons.uniqueConfigs.BooleanHotkeyThirdListConfig;
 import lpctools.lpcfymasaapi.render.BlockOuterEdgeHighlightInstance;
