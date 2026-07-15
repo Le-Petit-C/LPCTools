@@ -34,7 +34,8 @@
 	"depends": {
 		"fabricloader": "*",
 		"minecraft": [
-			"1.21.2"
+			"1.21.2",
+			"1.21.3"
 		],
 		"java": ">=24",
 		"malilib": "*",
