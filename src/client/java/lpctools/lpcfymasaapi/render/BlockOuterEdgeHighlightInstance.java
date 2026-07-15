@@ -11,7 +11,6 @@ import lpctools.lpcfymasaapi.render.translucentShapes.ShapeReference;
 import lpctools.lpcfymasaapi.render.translucentShapes.ShapeRegister;
 import lpctools.util.DataUtils;
 import lpctools.util.Packed;
-import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientWorldEvents;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.core.BlockPos;
@@ -23,7 +22,7 @@ import org.jetbrains.annotations.Nullable;
 
 import static lpctools.tools.ToolUtils.*;
 
-public class BlockOuterEdgeHighlightInstance implements AutoCloseable, ClientWorldEvents.AfterClientWorldChange, Registries.BetweenRenderFrames {
+public class BlockOuterEdgeHighlightInstance implements AutoCloseable, Registries.AfterClientWorldChange, Registries.BetweenRenderFrames {
     private final ChunkedTaskInstance taskInstance = new ChunkedTaskInstance(-2);
     
     // 为方便清理操作，给markedPoses分块，区块坐标->区块local坐标->颜色

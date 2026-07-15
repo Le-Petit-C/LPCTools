@@ -15,7 +15,6 @@ import lpctools.util.Packed;
 import lpctools.util.data.minecraft.CombinedBlockGetters;
 import lpctools.util.javaex.QuietAutoCloseable;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientChunkEvents;
-import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientWorldEvents;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.core.BlockPos;
@@ -40,7 +39,7 @@ import java.util.function.Supplier;
 
 import static lpctools.tools.ToolUtils.clearMapDataOutOfRange;
 
-public class DataInstance implements AutoCloseable, Registries.ClientWorldChunkLightUpdated, ClientChunkEvents.Load, Registries.BetweenRenderFrames, Registries.ClientWorldChunkSetBlockState, GenericRegistry.SpawnConditionChanged, ClientWorldEvents.AfterClientWorldChange {
+public class DataInstance implements AutoCloseable, Registries.ClientWorldChunkLightUpdated, ClientChunkEvents.Load, Registries.BetweenRenderFrames, Registries.ClientWorldChunkSetBlockState, GenericRegistry.SpawnConditionChanged, Registries.AfterClientWorldChange {
     
     private record DelayedTask(long packedChunkPos, Supplier<RunningTask> task){}
     private record RunningTask(long packedChunkPos, CompletableFuture<TaskResult> task){}

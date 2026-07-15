@@ -10,7 +10,6 @@ import lpctools.util.AlgorithmUtils;
 import lpctools.util.DataUtils;
 import lpctools.util.Packed;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientChunkEvents;
-import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientWorldEvents;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.core.BlockPos;
@@ -34,7 +33,7 @@ import static lpctools.util.AlgorithmUtils.iterateInManhattanDistance;
 import static lpctools.util.BlockUtils.isFluid;
 import static lpctools.util.DataUtils.loadedChunks;
 
-class DataInstance implements AutoCloseable, ClientChunkEvents.Load, ClientWorldEvents.AfterClientWorldChange, Registries.ClientWorldChunkSetBlockState, Registries.BetweenRenderFrames {
+class DataInstance implements AutoCloseable, ClientChunkEvents.Load, Registries.AfterClientWorldChange, Registries.ClientWorldChunkSetBlockState, Registries.BetweenRenderFrames {
     private final BlockOuterEdgeHighlightInstance highlightInstance = new BlockOuterEdgeHighlightInstance();
     private final ChunkedTaskInstance taskInstance = new ChunkedTaskInstance();
     

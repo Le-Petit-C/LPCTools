@@ -3,6 +3,7 @@ package lpctools.mixin.client.events;
 import lpctools.lpcfymasaapi.Registries;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.multiplayer.ClientLevel;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -26,5 +27,12 @@ public class MinecraftClientMixin {
 	@Inject(method = "setScreen", at = @At("TAIL"))
 	void injectSetScreenTail(Screen screen, CallbackInfo ci){
 		ON_SCREEN_CHANGED.runner().run();
+	}
+	@Inject(method = "updateLevelInEngines", at = @At("TAIL"))
+	private void injectUpdateLevelInEnginesTail(ClientLevel world, CallbackInfo ci) {
+		if (world != null) {
+			Minecraft client = (Minecraft) (Object) this;
+			Registries.AFTER_CLIENT_LEVEL_CHANGE.runner().afterWorldChange(client, world);
+		}
 	}
 }

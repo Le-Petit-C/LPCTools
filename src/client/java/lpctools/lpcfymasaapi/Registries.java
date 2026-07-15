@@ -6,7 +6,6 @@ import fi.dy.masa.malilib.interfaces.IRenderer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientChunkEvents;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientEntityEvents;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
-import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientWorldEvents;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents;
 import net.fabricmc.fabric.api.resource.ResourceManagerHelper;
 import net.fabricmc.fabric.api.resource.SimpleSynchronousResourceReloadListener;
@@ -36,8 +35,7 @@ import java.util.List;
 
 @SuppressWarnings("unused")
 public class Registries {
-    public static final UnregistrableRegistry<ClientWorldEvents.AfterClientWorldChange> AFTER_CLIENT_LEVEL_CHANGE = UnregistrableRegistry.fanOut(
-        ClientWorldEvents.AfterClientWorldChange.class, ClientWorldEvents.AFTER_CLIENT_WORLD_CHANGE);
+    public static final UnregistrableRegistry<AfterClientWorldChange> AFTER_CLIENT_LEVEL_CHANGE = UnregistrableRegistry.fanOut(AfterClientWorldChange.class);
     // orCircuit: 返回 true 表示终止 screen change — 不能使用 fanOut
     public static final UnregistrableRegistry<BeforeScreenChangeCallback> BEFORE_SCREEN_CHANGE = new UnregistrableRegistry<>(
         callbacks->screen->callbacks.orCircuit(callback->callback.beforeScreenChange(screen)));
@@ -205,5 +203,8 @@ public class Registries {
     }
     public interface ContainerContentInitializedCallback {
         void onContainerContentInitialized(AbstractContainerMenu menu);
+    }
+    public interface AfterClientWorldChange{
+        void afterWorldChange(Minecraft client, ClientLevel world);
     }
 }
