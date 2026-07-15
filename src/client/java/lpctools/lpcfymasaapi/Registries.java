@@ -14,7 +14,6 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.multiplayer.ClientLevel;
-import net.minecraft.client.renderer.FogParameters;
 import net.minecraft.client.renderer.culling.Frustum;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
@@ -77,7 +76,6 @@ public class Registries {
     public static final UnregistrableRegistry<GameOverlayRender> MASA_RENDER_GAME_OVERLAY = UnregistrableRegistry.fanOut(GameOverlayRender.class);
     public static final UnregistrableRegistry<OverlayLastRender> MASA_RENDER_OVERLAY_LAST = new UnregistrableRegistry<>(
         callbacks->(a, b, c)->callbacks.forEach(renderer->renderer.renderOverlayLast(a, b, c)));
-    public static final UnregistrableRegistry<WorldPreWeatherRender> MASA_RENDER_WORLD_PRE_WEATHER = UnregistrableRegistry.fanOut(WorldPreWeatherRender.class);
     public static final UnregistrableRegistry<WorldLastRender> MASA_WORLD_RENDER_LAST = UnregistrableRegistry.fanOut(WorldLastRender.class);
     public static final UnregistrableRegistry<TooltipComponentInsertFirstRender> MASA_RENDER_TOOLTIP_COMPONENT_INSERTION_FIRST = UnregistrableRegistry.fanOut(TooltipComponentInsertFirstRender.class);
     public static final UnregistrableRegistry<TooltipComponentInsertMiddleRender> MASA_RENDER_TOOLTIP_COMPONENT_INSERTION_MIDDLE = UnregistrableRegistry.fanOut(TooltipComponentInsertMiddleRender.class);
@@ -104,7 +102,6 @@ public class Registries {
     static{
         var overlayLastRenderer = MASA_RENDER_OVERLAY_LAST.runner();
         var overlayRenderer = MASA_RENDER_GAME_OVERLAY.runner();
-        var worldPreWeatherRenderer = MASA_RENDER_WORLD_PRE_WEATHER.runner();
         var worldLastRenderer = MASA_WORLD_RENDER_LAST.runner();
         var toolTipComponentInsertFirstRenderer = MASA_RENDER_TOOLTIP_COMPONENT_INSERTION_FIRST.runner();
         var toolTipComponentInsertMiddleRenderer = MASA_RENDER_TOOLTIP_COMPONENT_INSERTION_MIDDLE.runner();
@@ -114,14 +111,11 @@ public class Registries {
             @Override public void onRenderGameOverlayLastDrawer(GuiGraphics drawContext, float partialTicks, ProfilerFiller profiler, Minecraft mc) {
                 overlayLastRenderer.renderOverlayLast(drawContext, partialTicks, profiler);
             }
-            @Override public void onRenderGameOverlayPostAdvanced(GuiGraphics ctx, float partialTicks, ProfilerFiller profiler, Minecraft mc) {
-                overlayRenderer.renderGameOverlay(ctx, partialTicks, profiler);
+            @Override public void onRenderGameOverlayPost(GuiGraphics ctx) {
+                overlayRenderer.renderGameOverlay(ctx);
             }
-            @Override public void onRenderWorldPreWeather(Matrix4f posMatrix, Matrix4f projMatrix, Frustum frustum, Camera camera, FogParameters fog, ProfilerFiller profiler) {
-                worldPreWeatherRenderer.onRenderWorldPreWeather(new MASAWorldRenderContext(posMatrix, projMatrix, frustum, camera, profiler));
-            }
-            @Override public void onRenderWorldLastAdvanced(Matrix4f posMatrix, Matrix4f projMatrix, Frustum frustum, Camera camera, FogParameters fog, ProfilerFiller profiler) {
-                worldLastRenderer.onLast(new MASAWorldRenderContext(posMatrix, projMatrix, frustum, camera, profiler));
+            @Override public void onRenderWorldLast(Matrix4f posMatrix, Matrix4f projMatrix) {
+                worldLastRenderer.onLast(posMatrix, projMatrix);
             }
             @Override public void onRenderTooltipComponentInsertFirst(Item.TooltipContext context, ItemStack stack, List<Component> list) {
                 toolTipComponentInsertFirstRenderer.onRenderTooltipComponentInsertFirst(context, stack, list);
@@ -140,7 +134,6 @@ public class Registries {
         var malilibRenderEventHandler = RenderEventHandler.getInstance();
         malilibRenderEventHandler.registerGameOverlayRenderer(malilibRenderer);
         malilibRenderEventHandler.registerTooltipLastRenderer(malilibRenderer);
-        malilibRenderEventHandler.registerWorldPreWeatherRenderer(malilibRenderer);
         malilibRenderEventHandler.registerWorldLastRenderer(malilibRenderer);
     }
     static {
@@ -152,7 +145,7 @@ public class Registries {
     }
     
     public interface GameOverlayRender {
-        void renderGameOverlay(GuiGraphics ctx, float partialTicks, ProfilerFiller profiler);
+        void renderGameOverlay(GuiGraphics ctx);
     }
     public interface OverlayLastRender {
         void renderOverlayLast(GuiGraphics ctx, float partialTicks, ProfilerFiller profiler);
@@ -161,11 +154,8 @@ public class Registries {
     public interface WorldPreMainRender {
         void onRenderWorldPreMain(MASAWorldRenderContext context);
     }
-    public interface WorldPreWeatherRender {
-        void onRenderWorldPreWeather(MASAWorldRenderContext context);
-    }
     public interface WorldLastRender {
-        void onLast(MASAWorldRenderContext context);
+        void onLast(Matrix4f posMatrix, Matrix4f projMatrix);
     }
     public interface TooltipComponentInsertFirstRender {
         void onRenderTooltipComponentInsertFirst(Item.TooltipContext context, ItemStack stack, List<Component> list);

@@ -82,9 +82,9 @@ public class DebugConfigs {
         else finalState = state;
         if(briefBlockState.getAsBoolean()){
             String msg = "isOpaque:" + finalState.canOcclude() + '\n' +
-                "isTransparent:" + finalState.propagatesSkylightDown() + '\n' +
-                "isOpaqueFullCube:" + finalState.isSolidRender() + '\n' +
-                "mayMobSpawnOn:" + mayMobSpawnOn(finalState) + '\n';
+                "isTransparent:" + finalState.propagatesSkylightDown(world, pos) + '\n' +
+                "isOpaqueFullCube:" + finalState.isSolidRender(world, pos) + '\n' +
+                "mayMobSpawnOn:" + mayMobSpawnOn(finalState, world, pos) + '\n';
             player.displayClientMessage(Component.nullToEmpty(msg), false);
         }
         else player.displayClientMessage(Component.nullToEmpty(finalState.toString()), false);

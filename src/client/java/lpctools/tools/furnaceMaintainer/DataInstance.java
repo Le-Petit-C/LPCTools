@@ -106,7 +106,7 @@ public class DataInstance implements QuietAutoCloseable, Registries.ClientWorldC
 	
 	private Int2ObjectOpenHashMap<MutableInt> detectFurnace(ChunkAccess chunk, boolean includesHopperAbove){
 		Int2ObjectOpenHashMap<MutableInt> result = new Int2ObjectOpenHashMap<>();
-		for(BlockPos pos : AlgorithmUtils.iterateInBox(0, chunk.getMinY(), 0, 15, chunk.getMinY() + chunk.getHeight() - 1, 15)){
+		for(BlockPos pos : AlgorithmUtils.iterateInBox(0, chunk.getMinBuildHeight(), 0, 15, chunk.getMinBuildHeight() + chunk.getHeight() - 1, 15)){
 			if(chunk.getBlockState(pos).getBlock() instanceof AbstractFurnaceBlock) {
 				result.put(Packed.ChunkLocal.pack(pos), color);
 				if(includesHopperAbove) {

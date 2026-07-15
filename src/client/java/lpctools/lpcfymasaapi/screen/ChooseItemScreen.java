@@ -54,7 +54,7 @@ public class ChooseItemScreen extends GuiBase {
 		data.refreshSearchedItems("", searchedItems);
 	}
 	public static <T extends Item> ChooseItemScreen ofItems(@Nullable Screen parent, List<T> items, int width, int height, Consumer<T> callback){
-		return new ChooseItemScreen(parent, items, item->item, BuiltInRegistries.ITEM::getKey, item->item.getName().getString(), width, height, callback);
+		return new ChooseItemScreen(parent, items, item->item, BuiltInRegistries.ITEM::getKey, item->item.getName(item.getDefaultInstance()).getString(), width, height, callback);
 	}
 	public static <T extends Block> ChooseItemScreen ofBlocks(@Nullable Screen parent, List<T> items, int width, int height, Consumer<T> callback){
 		return new ChooseItemScreen(parent, items, Block::asItem, BuiltInRegistries.BLOCK::getKey, block->block.getName().getString(), width, height, callback);
@@ -83,7 +83,7 @@ public class ChooseItemScreen extends GuiBase {
 		super.initGui();
 		int y0 = (getScreenHeight() - h * (height - 1)) / 2;
 		int x0 = (getScreenWidth() - w * (width - 1)) / 2;
-		if(searchBar == null) searchBar = new GuiTextFieldGeneric(0, 0, w * width, 15, getFont());
+		if(searchBar == null) searchBar = new GuiTextFieldGeneric(0, 0, w * width, 15, textRenderer);
 		searchBar.setPosition(x0 - w / 2, y0 - h / 2 - 16);
 		addTextField(searchBar, textField -> {
 			data.refreshSearchedItems(textField.getValue(), searchedItems);

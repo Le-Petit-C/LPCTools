@@ -1,6 +1,7 @@
 package lpctools.script.suppliers;
 
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
+import lpctools.mixin.client.accessors.IntegerPropertyAccessor;
 import lpctools.util.operatorUtils.DefaultedSignInfo;
 import lpctools.util.operatorUtils.Operators.SignBase;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
@@ -95,9 +96,9 @@ public class BlockPropertyOperators {
 			if(withValueDetails){
 				builder.append(", ");
 				if(property instanceof IntegerProperty intProp) {
-					builder.append("min=").append(intProp.getPossibleValues().getFirst());
+					builder.append("min=").append(((IntegerPropertyAccessor)intProp).getMin());
 					builder.append(", ");
-					builder.append("max=").append(intProp.getPossibleValues().getLast());
+					builder.append("max=").append(((IntegerPropertyAccessor)intProp).getMax());
 				}
 				else builder.append("values=").append(property.getPossibleValues());
 			}

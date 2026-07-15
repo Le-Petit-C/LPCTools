@@ -45,7 +45,7 @@ public class ScriptDisplayWidget extends AbstractWidget{
 		Component prefix = parentScript != null ? parentScript.getSubScriptNamePrefix(script) : null;
 		String nameStr = (prefix == null ? "" : prefix.getString() + ": ") + (name == null ? "" : name.getString());
 		if(!nameStr.isEmpty())
-			nameButton = new ButtonGeneric(0, 0, calculateTextButtonWidth(nameStr, editScreen.getFont(), 20),
+			nameButton = new ButtonGeneric(0, 0, calculateTextButtonWidth(nameStr, editScreen.textRenderer, 20),
 				20, nameStr, comment == null ? null : comment.getString())
 				.setRenderDefaultBackground(false);
 		else nameButton = null;

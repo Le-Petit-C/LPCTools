@@ -63,16 +63,17 @@ public class GenericUtils {
                 if(liquidPlacesAsCanSpawn.getAsBoolean()) return fluidLevel >= 8;
                 else return false;
             }
-            return mayMobSpawnOn(world.getBlockState(pos.below()));
+            BlockPos below = pos.below();
+            return mayMobSpawnOn(world.getBlockState(below), world, below);
         }
     }
     public static MobSpawnTest createSpawnTest() { return new MobSpawnTest(); }
     //检测是不是可生成方块
-    public static boolean mayMobSpawnOn(BlockState steppedBlock){
+    public static boolean mayMobSpawnOn(BlockState steppedBlock, BlockGetter blockGetter, BlockPos blockPos){
         if(extraNoSpawnBlocks.contains(steppedBlock.getBlock())) return false;
         if(extraSpawnBlocks.contains(steppedBlock.getBlock())) return true;
         if(!steppedBlock.canOcclude()) return false;
-        if(steppedBlock.isSolidRender()) return true;
+        if(steppedBlock.isSolidRender(blockGetter, blockPos)) return true;
         return steppedBlock.isFaceSturdy(EmptyBlockGetter.INSTANCE, BlockPos.ZERO, Direction.UP, SupportType.FULL);
     }
     

@@ -57,7 +57,7 @@ public class AutoReconnectRunner implements QuietAutoCloseable, Registries.Befor
 			ServerData capturedServerData = this.capturedServerData;
 			reconnectTask = new TimerTask() {
 				@Override public void run() {
-					Minecraft.getInstance().schedule(
+					Minecraft.getInstance().tell(
 						() -> ConnectScreen.startConnecting(
 							new TitleScreen(), Minecraft.getInstance(),
 							ServerAddress.parseString(capturedServerData.ip),

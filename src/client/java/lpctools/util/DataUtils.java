@@ -101,7 +101,7 @@ public class DataUtils {
     public interface ClassCaster<T, U>{U cast(T v) throws ClassCastException;}
     public static @Nullable <T, U> U getObjectFromId(@NotNull String loggerInfo, @NotNull String id, Registry<T> registry, @NotNull ClassCaster<T, U> caster, boolean notifies){
         try{
-            T ret = registry.getValue(ResourceLocation.parse(id));
+            T ret = registry.get(ResourceLocation.parse(id));
             Optional<Holder.Reference<T>> defOpt = registry.getAny();
             Holder.Reference<T> defRef = defOpt.orElse(null);
             T def = defRef != null ? defRef.value() : null;

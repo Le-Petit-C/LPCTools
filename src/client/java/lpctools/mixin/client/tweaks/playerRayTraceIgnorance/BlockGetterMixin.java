@@ -22,7 +22,7 @@ public interface BlockGetterMixin {
         if (isLocalPlayerGettingHitResult && PlayerCrosshairFilter.passThroughBlocks.getBooleanValue() && Minecraft.getInstance().isSameThread()) {
             Vec3 to = c.getTo();
             Vec3 delta = c.getFrom().subtract(to);
-            cir.setReturnValue(BlockHitResult.miss(to, Direction.getApproximateNearest(delta.x, delta.y, delta.z), BlockPos.containing(to)));
+            cir.setReturnValue(BlockHitResult.miss(to, Direction.getNearest(delta.x, delta.y, delta.z), BlockPos.containing(to)));
         }
     }
 }

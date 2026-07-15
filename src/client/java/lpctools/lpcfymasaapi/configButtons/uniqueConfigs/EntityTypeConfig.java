@@ -54,8 +54,8 @@ public class EntityTypeConfig extends UniqueStringConfig{
 		ResourceLocation id = ResourceLocation.tryParse(s);
 		if(id != null){
 			ResourceLocation defId = BuiltInRegistries.ENTITY_TYPE.getDefaultKey();
-			EntityType<?> defEntity = BuiltInRegistries.ENTITY_TYPE.getValue(defId);
-			EntityType<?> newEntity = BuiltInRegistries.ENTITY_TYPE.getValue(id);
+			EntityType<?> defEntity = BuiltInRegistries.ENTITY_TYPE.get(defId);
+			EntityType<?> newEntity = BuiltInRegistries.ENTITY_TYPE.get(id);
 			if(!defEntity.equals(newEntity) || defId.equals(id)){
 				entity = newEntity;
 				super.setValueFromString(s);
@@ -66,7 +66,7 @@ public class EntityTypeConfig extends UniqueStringConfig{
 	@Override public UpdateTodo setValueFromJsonElementEx(@NotNull JsonElement element) {
 		 UpdateTodo todo = super.setValueFromJsonElementEx(element);
 		ResourceLocation id = ResourceLocation.tryParse(stringValue);
-		 if(id != null) entity = BuiltInRegistries.ENTITY_TYPE.getValue(id);
+		 if(id != null) entity = BuiltInRegistries.ENTITY_TYPE.get(id);
 		 return todo;
 	}
 }

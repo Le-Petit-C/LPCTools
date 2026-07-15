@@ -70,7 +70,7 @@ public class WidthAutoAdjustTextField extends GuiTextFieldGeneric{
 	public void setCallback(@Nullable Consumer<String> callback){this.callback = callback;}
 	
 	private void recalculateWidth(String text){
-		var textRenderer = parent.editScreen.getFont();
+		var textRenderer = parent.editScreen.textRenderer;
 		int newWidth = Math.max(minWidth, calculateTextButtonWidth(text, textRenderer, getHeight()) + textRenderer.lineHeight);
 		if(newWidth != getWidth()){
 			setWidth(newWidth);

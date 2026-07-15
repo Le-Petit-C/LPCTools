@@ -69,7 +69,7 @@ public class BedrockKiller {
 				BlockState blockState = level.getBlockState(pos);
 				boolean ignoreNotAttachingBedrock = ignoreTorchNotAttachingBedrock.getAsBoolean();
 				boolean isValid1 = blockState.getBlock() == Blocks.REDSTONE_TORCH && (!ignoreNotAttachingBedrock || level.getBlockState(pos.below()).getBlock() == Blocks.BEDROCK);
-				boolean isValid2 = blockState.getBlock() == Blocks.REDSTONE_WALL_TORCH && (!ignoreNotAttachingBedrock || level.getBlockState(pos.relative(blockState.getValueOrElse(RedstoneWallTorchBlock.FACING, Direction.DOWN))).getBlock() == Blocks.BEDROCK);
+				boolean isValid2 = blockState.getBlock() == Blocks.REDSTONE_WALL_TORCH && (!ignoreNotAttachingBedrock || level.getBlockState(pos.relative(blockState.getOptionalValue(RedstoneWallTorchBlock.FACING).orElse(Direction.DOWN))).getBlock() == Blocks.BEDROCK);
 				if(isValid1 || isValid2){
 					MinecraftAccessor accessor = (MinecraftAccessor)mc;
 					accessor.invokeStartAttack();

@@ -1,9 +1,6 @@
 package lpctools.lpcfymasaapi.render.translucentShapes;
 
 import com.google.common.collect.ImmutableSet;
-import com.mojang.blaze3d.buffers.BufferType;
-import com.mojang.blaze3d.buffers.BufferUsage;
-import com.mojang.blaze3d.buffers.GpuBuffer;
 import com.mojang.blaze3d.platform.GlConst;
 import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
@@ -12,15 +9,13 @@ import com.mojang.blaze3d.vertex.VertexFormat;
 import it.unimi.dsi.fastutil.ints.*;
 import it.unimi.dsi.fastutil.longs.Long2IntOpenHashMap;
 import lpctools.lpcfymasaapi.Registries;
-import lpctools.lpcfymasaapi.render.GLStates;
-import lpctools.lpcfymasaapi.render.IPositionVertex;
-import lpctools.lpcfymasaapi.render.OffsetMode;
+import lpctools.lpcfymasaapi.render.*;
 import lpctools.util.CachedSupplier;
 import lpctools.util.javaex.QuietAutoCloseable;
 import net.minecraft.Util;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.CompiledShaderProgram;
-import net.minecraft.client.renderer.CoreShaders;
+import net.minecraft.client.renderer.GameRenderer;
+import net.minecraft.client.renderer.ShaderInstance;
 import net.minecraft.client.renderer.culling.Frustum;
 import net.minecraft.core.SectionPos;
 import net.minecraft.util.Mth;
@@ -49,11 +44,6 @@ public class RenderInstance implements QuietAutoCloseable, Registries.WorldPreMa
 	// 进行重排的最小tan值，值越小重排越频繁，也就越卡，但是对应地出现深度错误的情况越少
 	private static final double resortTan = 0.25;
 	private static final double resortTanSquare = resortTan * resortTan;
-
-	// should only be modified in referred mixin
-	public static final Matrix4f worldBasicProjectionMatrix = new Matrix4f();
-	public static final Matrix4f worldProjectionMatrix = new Matrix4f();
-	public static final Matrix4f worldProjectionTranslateMatrix = new Matrix4f();
 
 	// 比ChunkSection大一圈的Section，叫做Greater Section没什么不妥吧？
 	private static final int greaterExponent = 1;
@@ -97,7 +87,7 @@ public class RenderInstance implements QuietAutoCloseable, Registries.WorldPreMa
 	}
 
 	public static RenderInstance defaultRenderInstance(boolean isLine, boolean depthless) {
-		return getRenderInstance(new RenderOption(CoreShaders.POSITION_COLOR, DefaultVertexFormat.POSITION_COLOR,
+		return getRenderInstance(new RenderOption(GameRenderer.getPositionColorShader(), DefaultVertexFormat.POSITION_COLOR,
 			isLine ? VertexFormat.Mode.DEBUG_LINES : VertexFormat.Mode.QUADS,
 			true, false, !depthless, !depthless, depthless ? OffsetMode.NONE : OffsetMode.OFFSET_1,
 			true, depthless ? RenderTiming.ON_LAST : RenderTiming.AFTER_ENTITIES, ImmutableSet.of()));
@@ -141,15 +131,14 @@ public class RenderInstance implements QuietAutoCloseable, Registries.WorldPreMa
 			modelViewStack.translate(offset);
 			offset.set(0, 0, 0);
 		}
-		CompiledShaderProgram oldShader = RenderSystem.getShader();
-		CompiledShaderProgram shaderProgram = RenderSystem.setShader(renderOption.shader());
-		if (shaderProgram != null) {
-			shaderProgram.setDefaultUniforms(renderOption.drawMode(),
+		ShaderInstance shader = renderOption.shader();
+		if (shader != null) {
+			shader.setDefaultUniforms(renderOption.drawMode(),
 				modelViewStack, RenderSystem.getProjectionMatrix(),
 				Minecraft.getInstance().getWindow());
-			if (shaderProgram.MODEL_OFFSET != null)
-				shaderProgram.MODEL_OFFSET.set(offset);
-			shaderProgram.apply();
+			if (shader.CHUNK_OFFSET != null)
+				shader.CHUNK_OFFSET.set(offset);
+			shader.apply();
 			try(GLStates glStates = renderOption.setupRenderState(vertexArrayId)) {
 				for(var extraBindings : renderOption.extraOperations())
 					extraBindings.run();
@@ -157,9 +146,8 @@ public class RenderInstance implements QuietAutoCloseable, Registries.WorldPreMa
 					subChunk.render(glStates);
 				GlStateManager._glBindBuffer(GlConst.GL_ELEMENT_ARRAY_BUFFER, 0);
 			}
-			shaderProgram.clear();
+			shader.clear();
 		}
-		RenderSystem.setShader(oldShader);
 		modelViewStack.popMatrix();
 	}
 

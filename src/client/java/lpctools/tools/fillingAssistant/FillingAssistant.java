@@ -15,13 +15,16 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.material.FluidState;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import static lpctools.lpcfymasaapi.LPCConfigStatics.*;
 import static lpctools.tools.ToolUtils.*;
 import static lpctools.tools.fillingAssistant.FillingAssistantData.*;
+import static net.minecraft.world.level.block.Blocks.VOID_AIR;
 
 public class FillingAssistant {
     public static final BooleanHotkeyThirdListConfig FAConfig = new BooleanHotkeyThirdListConfig(ToolConfigs.toolConfigs, "FA", FillingAssistant::switchCallback);
@@ -66,8 +69,8 @@ public class FillingAssistant {
         displayDisableReason(FAConfig, reasonKey);
     }
     public static @NotNull ImmutableSet<BlockItem> getPlaceableItems(){return placeableItemsConfig.getBlockItems();}
-    public static boolean isBlockUnpassable(Block block){
-        if(transparentAsPassableConfig.getAsBoolean() && block.defaultBlockState().propagatesSkylightDown()) return false;
+    public static boolean isBlockUnpassable(Block block, BlockGetter world, BlockPos pos){
+        if(transparentAsPassableConfig.getAsBoolean() && block.defaultBlockState().propagatesSkylightDown(world, pos)) return false;
         if(notOpaqueAsPassableConfig.getAsBoolean() && !block.defaultBlockState().canOcclude()) return false;
         return !passableBlocksConfig.contains(block);
     }
@@ -75,7 +78,7 @@ public class FillingAssistant {
         ClientLevel world = Minecraft.getInstance().level;
         if (world != null){
             Block block = world.getBlockState(pos).getBlock();
-            return isBlockUnpassable(block);
+            return isBlockUnpassable(block, world, pos);
         }
         else return true;
     }
@@ -86,10 +89,16 @@ public class FillingAssistant {
         else return false;
     }
     public interface OuterRangeBlockMethod {
-        boolean isBlockUnpassable(Block block);
+        boolean isBlockUnpassable(Block block, BlockGetter world, BlockPos pos);
         default boolean isUnpassable(BlockPos pos, @Nullable BlockGetter world){
-            if(world != null) return isBlockUnpassable(world.getBlockState(pos).getBlock());
-            else return isBlockUnpassable(Blocks.VOID_AIR);
+            if(world != null) return isBlockUnpassable(world.getBlockState(pos).getBlock(), world, pos);
+            else return isBlockUnpassable(VOID_AIR, new BlockGetter() {
+                @Override public @Nullable BlockEntity getBlockEntity(BlockPos blockPos) { return null; }
+                @Override public @NotNull BlockState getBlockState(BlockPos blockPos) { return VOID_AIR.defaultBlockState(); }
+                @Override public @NotNull FluidState getFluidState(BlockPos blockPos) { return VOID_AIR.defaultBlockState().getFluidState(); }
+                @Override public int getHeight() { return 256; }
+                @Override public int getMinBuildHeight() { return 0; }
+            }, pos);
         }
     }
 

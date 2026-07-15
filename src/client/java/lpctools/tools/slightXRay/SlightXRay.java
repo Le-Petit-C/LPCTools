@@ -69,7 +69,7 @@ public class SlightXRay{
             float r = 0, g = 0, b = 0;
             float t = 0;
             for(NativeImage image : ((SpriteContentsAccessor)particleSprite.contents()).getByMipLevel()){
-                for(int color : image.getPixels()){
+                for(int color : image.getPixelsRGBA()){
                     float k = (color >>> 24) / 255.0f;
                     r += (color & 0xff) * k;
                     g += ((color >>> 8) & 0xff) * k;

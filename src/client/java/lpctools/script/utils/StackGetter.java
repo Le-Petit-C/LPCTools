@@ -20,8 +20,8 @@ public enum StackGetter {
 	CHEST_STACK(entity -> entity.getItemBySlot(EquipmentSlot.CHEST), Component.translatable("lpctools.script.utils.stackGetter.chestStack"), "chest"),
 	HEAD_STACK(entity -> entity.getItemBySlot(EquipmentSlot.HEAD), Component.translatable("lpctools.script.utils.stackGetter.headStack"), "head"),
 	BODY_STACK(entity -> entity.getItemBySlot(EquipmentSlot.BODY), Component.translatable("lpctools.script.utils.stackGetter.bodyStack"), "body"),
-	LEFT_HAND_STACK(entity -> entity.getItemHeldByArm(HumanoidArm.LEFT), Component.translatable("lpctools.script.utils.stackGetter.leftHandStack"), "leftHand"),
-	RIGHT_HAND_STACK(entity -> entity.getItemHeldByArm(HumanoidArm.RIGHT), Component.translatable("lpctools.script.utils.stackGetter.rightHandStack"), "rightHand"),;
+	LEFT_HAND_STACK(entity -> entity.getMainArm() == HumanoidArm.LEFT ? entity.getMainHandItem() : entity.getOffhandItem(), Component.translatable("lpctools.script.utils.stackGetter.leftHandStack"), "leftHand"),
+	RIGHT_HAND_STACK(entity -> entity.getMainArm() != HumanoidArm.LEFT ? entity.getMainHandItem() : entity.getOffhandItem(), Component.translatable("lpctools.script.utils.stackGetter.rightHandStack"), "rightHand"),;
 	private final Function<LivingEntity, ItemStack> slotGetter;
 	public final Component name;
 	public final String id;

@@ -1,8 +1,6 @@
 package lpctools.mixin.client.events;
 
 import com.llamalad7.mixinextras.sugar.Local;
-import com.mojang.blaze3d.framegraph.FrameGraphBuilder;
-import com.mojang.blaze3d.resource.GraphicsResourceAllocator;
 import lpctools.lpcfymasaapi.render.RenderEventHandler;
 import net.minecraft.client.Camera;
 import net.minecraft.client.DeltaTracker;
@@ -20,18 +18,12 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(value = LevelRenderer.class)
-public abstract class MixinWorldRenderer
-{
+public abstract class MixinWorldRenderer {
 	@Shadow @Final private Minecraft minecraft;
-	@Shadow @Final private LevelTargetBundle targets;
 	@Shadow @Final private RenderBuffers renderBuffers;
 	
-	@SuppressWarnings("DiscouragedShift") @Inject(method = "renderLevel",
-		at = @At(value = "INVOKE",
-			target = "Lnet/minecraft/client/renderer/LevelRenderer;addMainPass(Lcom/mojang/blaze3d/framegraph/FrameGraphBuilder;Lnet/minecraft/client/renderer/culling/Frustum;Lnet/minecraft/client/Camera;Lorg/joml/Matrix4f;Lorg/joml/Matrix4f;Lnet/minecraft/client/renderer/FogParameters;ZZLnet/minecraft/client/DeltaTracker;Lnet/minecraft/util/profiling/ProfilerFiller;)V",
-			shift = At.Shift.BEFORE))
-	private void lpctools_onRenderWorldMain(GraphicsResourceAllocator graphicsResourceAllocator, DeltaTracker deltaTracker, boolean renderBlockOutline, Camera camera, GameRenderer gameRenderer, LightTexture lightTexture, Matrix4f positionMatrix, Matrix4f projectionMatrix, CallbackInfo ci, @Local ProfilerFiller profiler, @Local Frustum frustum, @Local FrameGraphBuilder frameGraphBuilder)
-	{
-		RenderEventHandler.runRenderWorldPreMain(positionMatrix, projectionMatrix, this.minecraft, frameGraphBuilder, this.targets, frustum, camera, profiler);
+	@Inject(method = "renderLevel", at = @At(value = "INVOKE", target = "Lcom/mojang/blaze3d/pipeline/RenderTarget;clear(Z)V", shift = At.Shift.AFTER))
+	private void lpctools_onRenderWorldMain(DeltaTracker deltaTracker, boolean bl, Camera camera, GameRenderer gameRenderer, LightTexture lightTexture, Matrix4f positionMatrix, Matrix4f projectionMatrix, CallbackInfo ci, @Local ProfilerFiller profiler, @Local Frustum frustum) {
+		RenderEventHandler.runRenderWorldPreMain(positionMatrix, projectionMatrix, this.minecraft, frustum, camera, profiler);
 	}
 }

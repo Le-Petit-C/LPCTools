@@ -26,13 +26,13 @@
     "TweakerooMixin.GuiConfigsMixin",
     "tweaks.barTweak.ClientPlayerInteractionManagerMixin",
     "tweaks.enchantmentLevelFix.MixinTranslationStorage",
-    "utils.MatrixStackEntryMixin",
-    "utils.RenderInstance"
+    "utils.MatrixStackEntryMixin"
   ],
   "mixins": [
     "accessors.AbstractBlockAccessor",
     "accessors.BlockItemAccessor",
     "accessors.ConfigStringListAccessor",
+    "accessors.IntegerPropertyAccessor",
     "accessors.LayerRangeAccessor",
     "accessors.MinecraftAccessor",
     "accessors.MultiPlayerGameModeAccessor",

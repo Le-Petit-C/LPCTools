@@ -120,7 +120,7 @@ public class LPCfyTweakerooList {
 				tweakerooGuiConfigs = configs;
 			if(updateMarked) return;
 			updateMarked = true;
-			client.schedule(()->{
+			client.tell(()->{
 				updateConfigs(lpcfyTweakerooList.getAsBoolean());
 				if(tweakerooGuiConfigs != null)
 					tweakerooGuiConfigs.initGui();

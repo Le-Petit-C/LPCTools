@@ -17,8 +17,8 @@ public class CombinedBlockGetters implements BlockGetter {
 	public BlockState blockStateOutOfRange = Blocks.VOID_AIR.defaultBlockState();
 	public void putChunk(long packedChunkPos, BlockGetter chunk) {
 		storedChunks.put(packedChunkPos, chunk);
-		bottomY = Math.min(bottomY, chunk.getMinY());
-		topY = Math.max(topY, chunk.getMinY() + chunk.getHeight());
+		bottomY = Math.min(bottomY, chunk.getMinBuildHeight());
+		topY = Math.max(topY, chunk.getMinBuildHeight() + chunk.getHeight());
 	}
 	public void putChunk(ChunkPos chunkPos, BlockGetter chunk){ putChunk(chunkPos.toLong(), chunk); }
 	public void putChunk(ChunkAccess chunk){ putChunk(chunk.getPos(), chunk); }
@@ -39,14 +39,14 @@ public class CombinedBlockGetters implements BlockGetter {
 	}
 	
 	@Override public int getHeight() { return topY - bottomY; }
-	@Override public int getMinY() { return bottomY; }
+	@Override public int getMinBuildHeight() { return bottomY; }
 	
 	private int bottomY = 0, topY = 0;
 	
 	private BlockGetter getChunk(BlockPos pos) {
 		BlockGetter chunk = storedChunks.getOrDefault(Packed.ChunkPos.packCoords(pos.getX(), pos.getZ()), null);
 		if(chunk == null) return null;
-		if(chunk.getMinY() <= pos.getY() && pos.getY() <= chunk.getMaxY()) return chunk;
+		if(chunk.getMinBuildHeight() <= pos.getY() && pos.getY() <= chunk.getMinBuildHeight()) return chunk;
 		else return null;
 	}
 	

@@ -5,10 +5,10 @@ import com.mojang.blaze3d.platform.GlConst;
 import com.mojang.blaze3d.vertex.VertexFormat;
 import lpctools.lpcfymasaapi.render.GLStates;
 import lpctools.lpcfymasaapi.render.OffsetMode;
-import net.minecraft.client.renderer.ShaderProgram;
+import net.minecraft.client.renderer.ShaderInstance;
 import org.jetbrains.annotations.NotNull;
 
-public record RenderOption(ShaderProgram shader, VertexFormat vertexFormat, VertexFormat.Mode drawMode,
+public record RenderOption(ShaderInstance shader, VertexFormat vertexFormat, VertexFormat.Mode drawMode,
 						   boolean blend, boolean cull, boolean depthTest, boolean depthWrite, OffsetMode offsetMode,
                            boolean modelOffsetOntoMatrix, RenderTiming timing, @NotNull ImmutableSet<Runnable> extraOperations) {
 	// 具有相同参数的RenderOption应当在HashMap中对应同一个RenderInstance

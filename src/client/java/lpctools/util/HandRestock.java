@@ -71,7 +71,7 @@ public class HandRestock {
             if(i == -2) itm.handleInventoryMouseClick(player.containerMenu.containerId, getHotbarStartSlotIndex(player) + inventory.selected, Inventory.SLOT_OFFHAND, ClickType.SWAP, player);
             else {
                 int hotbarStart = getHotbarStartSlotIndex(player);
-                if(i >= hotbarStart && i < hotbarStart + 9) inventory.setSelectedHotbarSlot(i - hotbarStart);
+                if(i >= hotbarStart && i < hotbarStart + 9) inventory.selected = i - hotbarStart;
                 else itm.handleInventoryMouseClick(player.containerMenu.containerId, i, inventory.selected, ClickType.SWAP, player);
             }
         }

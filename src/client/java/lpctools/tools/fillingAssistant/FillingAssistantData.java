@@ -20,8 +20,8 @@ public class FillingAssistantData {
     public static final @NotNull ImmutableList<Block> defaultPassableBlockList = ImmutableList.of();
     public static final @NotNull ImmutableList<Block> defaultRequiredBlockWhiteList = initDefaultRequiredBlockWhiteList();
     public static final Map<String, OuterRangeBlockMethod> outerRangeBlockMethods = Map.of(
-        "lpctools.configs.tools.outerRangeBlockMethods.asUnpassable", block -> true,
-        "lpctools.configs.tools.outerRangeBlockMethods.asPassable", block -> false,
+        "lpctools.configs.tools.outerRangeBlockMethods.asUnpassable", (_, _, _) -> true,
+        "lpctools.configs.tools.outerRangeBlockMethods.asPassable", (_, _, _) -> false,
         "lpctools.configs.tools.outerRangeBlockMethods.asOrigin", FillingAssistant::isBlockUnpassable
     );
     private static @NotNull ImmutableList<Item> initDefaultPlaceableItemList(){

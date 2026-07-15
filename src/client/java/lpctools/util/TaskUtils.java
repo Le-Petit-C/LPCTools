@@ -9,7 +9,7 @@ import net.minecraft.client.Minecraft;
 //TODO 可能需要测试一下ClientModInitializer初始化的时候MinecraftClient中的send是不是已经能用了
 public class TaskUtils {
 	public static void queueATaskInRenderThread(Runnable runnable){
-		Minecraft.getInstance().schedule(runnable);
+		Minecraft.getInstance().tell(runnable);
 	}
 	public static TaskKey registerTask(Runnable runnable){
 		TaskKey key;

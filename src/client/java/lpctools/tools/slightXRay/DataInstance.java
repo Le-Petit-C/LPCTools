@@ -14,6 +14,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
@@ -54,7 +55,7 @@ class DataInstance implements AutoCloseable, ClientChunkEvents.Load, Registries.
     @Override public void onClientWorldChunkSetBlockState(LevelChunk chunk, BlockPos pos, @Nullable BlockState lastState, @Nullable BlockState newState) {
         if(newState == null) newState = Blocks.AIR.defaultBlockState();
         if(isFluid(newState.getBlock())) return;
-        if(doShowAround(newState)){
+        if(doShowAround(newState, chunk, pos)){
             for(BlockPos pos1 : iterateInManhattanDistance(pos, 2))
                 testPos(chunk.getLevel(), pos1);
         }
@@ -80,7 +81,9 @@ class DataInstance implements AutoCloseable, ClientChunkEvents.Load, Registries.
         taskInstance.close();
     }
     
-    private static boolean doShowAround(BlockState state){ return !state.canOcclude() || state.propagatesSkylightDown(); }
+    private static boolean doShowAround(BlockState state, BlockGetter world, BlockPos pos) {
+        return !state.canOcclude() || state.propagatesSkylightDown(world, pos);
+    }
     
     void setRangeLimit(ShapeList rangeLimit) {
         highlightInstance.setRangeLimit(rangeLimit);
@@ -103,7 +106,7 @@ class DataInstance implements AutoCloseable, ClientChunkEvents.Load, Registries.
         MutableInt res = null;
         if(color != null) {
             for(BlockPos pos1 : iterateInManhattanDistance(pos, 2)) {
-                if(doShowAround(world.getBlockState(pos1))){
+                if(doShowAround(world.getBlockState(pos1), world, pos1)){
                     res = color;
                     break;
                 }
@@ -170,18 +173,18 @@ class DataInstance implements AutoCloseable, ClientChunkEvents.Load, Registries.
     
     private static Int2ObjectOpenHashMap<MutableInt> testChunkData(ChunkData data, HashMap<Block, MutableInt> colorMap, Int2ObjectOpenHashMap<MutableInt> recordedMarkedPoses){
         var res = new Int2ObjectOpenHashMap<MutableInt>();
-        int bottom = data.current.getMinY(), height = data.current.getHeight(), top = bottom + height;
+        int bottom = data.current.getMinBuildHeight(), height = data.current.getHeight(), top = bottom + height;
         ChunkTestData displaysNear = new ChunkTestData(bottom, height);
         for(BlockPos pos1 : AlgorithmUtils.iterateInBox(0, bottom, 0, 15, top - 1, 15))
-            displaysNear.set(pos1, doShowAround(data.current.getBlockState(pos1)));
+            displaysNear.set(pos1, doShowAround(data.current.getBlockState(pos1), data.current, pos1));
         for(BlockPos pos1 : AlgorithmUtils.iterateInBox(-1, bottom, 0, -1, top - 1, 15))
-            displaysNear.set(pos1, doShowAround(data.west.getBlockState(pos1)));
+            displaysNear.set(pos1, doShowAround(data.west.getBlockState(pos1), data.west, pos1));
         for(BlockPos pos1 : AlgorithmUtils.iterateInBox(16, bottom, 0, 16, top - 1, 15))
-            displaysNear.set(pos1, doShowAround(data.east.getBlockState(pos1)));
+            displaysNear.set(pos1, doShowAround(data.east.getBlockState(pos1), data.east, pos1));
         for(BlockPos pos1 : AlgorithmUtils.iterateInBox(0, bottom, -1, 15, top - 1, -1))
-            displaysNear.set(pos1, doShowAround(data.north.getBlockState(pos1)));
+            displaysNear.set(pos1, doShowAround(data.north.getBlockState(pos1), data.north, pos1));
         for(BlockPos pos1 : AlgorithmUtils.iterateInBox(0, bottom, 16, 15, top - 1, 16))
-            displaysNear.set(pos1, doShowAround(data.south.getBlockState(pos1)));
+            displaysNear.set(pos1, doShowAround(data.south.getBlockState(pos1), data.south, pos1));
         for(BlockPos pos1 : AlgorithmUtils.iterateInBox(0, bottom - 1, 0, 15, bottom - 1, 15))
             displaysNear.set(pos1, true);
         for(BlockPos pos1 : AlgorithmUtils.iterateInBox(0, top, 0, 15, top, 15))

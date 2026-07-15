@@ -239,7 +239,7 @@ public class DataInstance implements AutoCloseable, Registries.ClientWorldChunkL
         int z = Packed.getBlockCoord(Packed.ChunkPos.unpackZ(packedChunkPos));
         GenericUtils.MobSpawnTest spawnTest = GenericUtils.createSpawnTest();
         Iterable<BlockPos> blockPoses = AlgorithmUtils.iterateInBox(
-            x, chunk.getMinY(), z, x + 15, chunk.getMinY() + chunk.getHeight() - 1, z + 15);
+            x, chunk.getMinBuildHeight(), z, x + 15, chunk.getMinBuildHeight() + chunk.getHeight() - 1, z + 15);
         for(BlockPos pos1 : blockPoses) {
             if(spawnTest.mayMobSpawnAt(chunk, light, pos1))
                 result.result.add(pos1.immutable());

@@ -1,23 +1,22 @@
 package lpctools.debugs;
 
-import com.mojang.blaze3d.buffers.BufferType;
-import com.mojang.blaze3d.buffers.BufferUsage;
-import com.mojang.blaze3d.buffers.GpuBuffer;
-import com.mojang.blaze3d.pipeline.RenderTarget;
 import com.mojang.blaze3d.platform.GlConst;
 import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 import com.mojang.blaze3d.vertex.VertexFormat;
 import lpctools.lpcfymasaapi.Registries;
+import lpctools.lpcfymasaapi.render.BufferType;
+import lpctools.lpcfymasaapi.render.BufferUsage;
 import lpctools.lpcfymasaapi.render.GLStates;
+import lpctools.lpcfymasaapi.render.GpuBuffer;
 import lpctools.tools.ToolUtils;
 import lpctools.util.javaex.QuietAutoCloseable;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.CompiledShaderProgram;
-import net.minecraft.client.renderer.CoreShaders;
+import net.minecraft.client.renderer.GameRenderer;
+import net.minecraft.client.renderer.ShaderInstance;
 import org.joml.Matrix4f;
 import org.lwjgl.system.MemoryUtil;
 
@@ -87,11 +86,12 @@ public class DebugShapes implements ToolUtils.ToolRunner, WorldRenderEvents.Afte
 		modelView.translate((float)-camPos.x, (float)-camPos.y, (float)-camPos.z);
 		modelView.rotate(angle, 0, 1, 0);
 
-		CompiledShaderProgram shaderProgram = RenderSystem.setShader(CoreShaders.POSITION_COLOR);
-		if (shaderProgram != null) {
-			shaderProgram.setDefaultUniforms(VertexFormat.Mode.TRIANGLES, modelView,
+		// RenderSystem.setShader(GameRenderer::getPositionColorShader);
+		ShaderInstance shader = GameRenderer.getPositionColorShader();
+		if (shader != null) {
+			shader.setDefaultUniforms(VertexFormat.Mode.TRIANGLES, modelView,
 				RenderSystem.getProjectionMatrix(), Minecraft.getInstance().getWindow());
-			shaderProgram.apply();
+			shader.apply();
 			try(GLStates _ = new GLStates().vertexArray(vertexArrayId)
 				.depthFuncEx(GlConst.GL_LEQUAL)
 				.cullFace(false)
@@ -102,7 +102,7 @@ public class DebugShapes implements ToolUtils.ToolRunner, WorldRenderEvents.Afte
 				triangleIndexBuffer.bind();
 				RenderSystem.drawElements(VertexFormat.Mode.TRIANGLES.asGLMode, 3, VertexFormat.IndexType.SHORT.asGLType);
 			}
-			shaderProgram.clear();
+			shader.clear();
 		}
 		modelView.set(oldModelView);
 	}
