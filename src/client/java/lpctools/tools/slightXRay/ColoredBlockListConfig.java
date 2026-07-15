@@ -117,7 +117,7 @@ public class ColoredBlockListConfig extends ConfigListConfig<ColoredBlockListCon
 				getPage().markNeedUpdate();
 			}
 			public void updateDefaultColor(){
-				defaultColor = Color4f.fromColor(DataUtils.swapRedBlue(SlightXRay.defaultColorMethod.get().right.applyAsInt(getBlock())));
+				defaultColor = Color4f.fromColor(SlightXRay.defaultColorMethod.get().right.applyAsInt(getBlock()));
 				if(followDefault) setColor(defaultColor);
 			}
 			
