@@ -51,10 +51,6 @@ public class RenderInstance implements QuietAutoCloseable, Registries.WorldPreMa
 	private static final Supplier<String> indexBufferLabel = () -> appendLabel("IndexBuffer");
 	private static final Supplier<String> vertexBufferLabel = () -> appendLabel("VertexBuffer");
 	private static final Supplier<String> renderPassLabel = () -> appendLabel("RenderPass");
-	// should only be modified in referred mixin
-	public static final Matrix4f worldBasicProjectionMatrix = new Matrix4f();
-	public static final Matrix4f worldProjectionMatrix = new Matrix4f();
-	public static final Matrix4f worldProjectionTranslateMatrix = new Matrix4f();
 	
 	private static String appendLabel(String tail) { return baseLabel + ' ' + tail; }
 	

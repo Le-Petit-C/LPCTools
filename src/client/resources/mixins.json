@@ -27,8 +27,7 @@
     "tweaks.barTweak.ClientPlayerInteractionManagerMixin",
     "tweaks.barTweak.InGameHudMixin",
     "tweaks.enchantmentLevelFix.MixinTranslationStorage",
-    "tweaks.happyGhastRidingTweak.ClientPlayerEntityMixin",
-    "utils.RenderInstance"
+    "tweaks.happyGhastRidingTweak.ClientPlayerEntityMixin"
   ],
   "mixins": [
     "accessors.AbstractBlockAccessor",

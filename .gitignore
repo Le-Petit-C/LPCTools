@@ -48,3 +48,4 @@ replay_*.log
 /logs/
 /.profileconfig.json
 /helpfulFiles/
+/remappedSrc/
