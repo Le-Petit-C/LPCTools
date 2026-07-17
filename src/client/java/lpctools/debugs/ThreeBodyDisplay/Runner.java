@@ -3,15 +3,18 @@ package lpctools.debugs.ThreeBodyDisplay;
 import com.mojang.blaze3d.IndexType;
 import com.mojang.blaze3d.buffers.GpuBuffer;
 import com.mojang.blaze3d.buffers.GpuBufferSlice;
+import com.mojang.blaze3d.pipeline.RenderPipeline;
 import com.mojang.blaze3d.pipeline.RenderTarget;
 import com.mojang.blaze3d.systems.RenderPass;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.textures.GpuTextureView;
 import com.mojang.blaze3d.vertex.DefaultVertexFormat;
+import fi.dy.masa.malilib.util.data.Color4f;
 import lpctools.LPCTools;
 import lpctools.lpcfymasaapi.Registries;
 import lpctools.lpcfymasaapi.render.LPCRenderPipelines;
 import lpctools.lpcfymasaapi.render.translucentShapes.*;
+import lpctools.util.DataUtils;
 import lpctools.util.RenderUtils;
 import lpctools.util.javaex.QuietAutoCloseable;
 import net.fabricmc.fabric.api.client.rendering.v1.level.LevelRenderContext;
@@ -37,11 +40,14 @@ class Runner implements QuietAutoCloseable, Registries.WorldPreMainRender, Level
 	private static final Supplier<String> indexBufferLabel = () -> appendLabel("IndexBuffer");
 	private static final Supplier<String> vertexBufferLabel = () -> appendLabel("VertexBuffer");
 	private static final Supplier<String> renderPassLabel = () -> appendLabel("RenderPass");
+	private static final Supplier<String> dropCircleIndexBufferBufferLabel = () -> appendLabel("DropCircleIndexBuffer");
+	private static final Supplier<String> dropCircleVertexBufferLabel = () -> appendLabel("DropCircleVertexBuffer");
 	
 	private static String appendLabel(String tail) { return baseLabel + ' ' + tail; }
 	
 	private static final int ticksPerLoop = 256;
 	private static final double tickFactor = 1.0 / 256.0 / ticksPerLoop;
+	private static final int dropCircleSplitCount = 1024;
 	
 	private final Star[] stars = new Star[3];
 	private final StarRenderData[] starsRenderData = new StarRenderData[3];
@@ -49,7 +55,8 @@ class Runner implements QuietAutoCloseable, Registries.WorldPreMainRender, Level
 	private final ByteBuffer dataBuffer;
 	private final GpuBuffer indexBuffer;
 	private final GpuBuffer vertexBuffer;
-	
+	private GpuBuffer dropCircleIndexBuffer;
+	private GpuBuffer dropCircleVertexBuffer;
 	
 	private volatile boolean running = true;
 	private volatile RunnerDataPack runnerDataPack;
@@ -106,6 +113,35 @@ class Runner implements QuietAutoCloseable, Registries.WorldPreMainRender, Level
 			currentTrackCount = settingTrackCount;
 		}
 	}
+
+	private GpuBuffer getDropCircleIndexBuffer() {
+		if(dropCircleIndexBuffer != null) return dropCircleIndexBuffer;
+		ByteBuffer buffer = MemoryUtil.memAlloc(4 * 2 * (dropCircleSplitCount + 1));
+		buffer.putInt(0);
+		for(int i = 1; i < dropCircleSplitCount; ++i)
+			buffer.putInt(i).putInt(i);
+		buffer.putInt(0);
+		buffer.putInt(dropCircleSplitCount).putInt(dropCircleSplitCount + 1);
+		buffer.flip();
+		dropCircleIndexBuffer = RenderSystem.getDevice().createBuffer(dropCircleIndexBufferBufferLabel, GpuBuffer.USAGE_INDEX | GpuBuffer.USAGE_COPY_DST, buffer);
+		MemoryUtil.memFree(buffer);
+		return dropCircleIndexBuffer;
+	}
+
+	private GpuBuffer getDropCircleVertexBuffer() {
+		if(dropCircleVertexBuffer != null) return dropCircleVertexBuffer;
+		ByteBuffer buffer = MemoryUtil.memAlloc(DefaultVertexFormat.POSITION_COLOR_LINE_WIDTH.getVertexSize() * (dropCircleSplitCount + 2));
+		for(int i = 0; i < dropCircleSplitCount; ++i) {
+			double angle = Math.PI * 2 * i / dropCircleSplitCount;
+			buffer.putFloat(Mth.cos(angle)).putFloat(0).putFloat(Mth.sin(angle)).putInt(0xffffffff).putFloat(1.0f);
+		}
+		buffer.putFloat(0).putFloat(0).putFloat(0).putInt(0xffffffff).putFloat(1.0f);
+		buffer.putFloat(0).putFloat(1).putFloat(0).putInt(0xffffffff).putFloat(1.0f);
+		buffer.flip();
+		dropCircleVertexBuffer = RenderSystem.getDevice().createBuffer(dropCircleVertexBufferLabel, GpuBuffer.USAGE_VERTEX | GpuBuffer.USAGE_COPY_DST, buffer);
+		MemoryUtil.memFree(buffer);
+		return dropCircleVertexBuffer;
+	}
 	
 	@Override public void close() {
 		registerAll(false);
@@ -114,8 +150,9 @@ class Runner implements QuietAutoCloseable, Registries.WorldPreMainRender, Level
 		MemoryUtil.memFree(dataBuffer);
 		indexBuffer.close();
 		vertexBuffer.close();
-		for (var star : starsRenderData)
-			star.close();
+		for (var star : starsRenderData) star.close();
+		if(dropCircleIndexBuffer != null) dropCircleIndexBuffer.close();
+		if(dropCircleVertexBuffer != null) dropCircleVertexBuffer.close();
 	}
 	
 	@Override public void beforeTranslucentTerrain(@NonNull LevelRenderContext ignored) {
@@ -151,8 +188,10 @@ class Runner implements QuietAutoCloseable, Registries.WorldPreMainRender, Level
 		GpuTextureView colorAttachmentView = RenderUtils.colorAttachmentViewOrDef(fb);
 		GpuTextureView depthAttachmentView = fb.useDepth ? fb.getDepthTextureView() : null;
 		Vector3f offset = new Vector3f((float) (basePoint.x - camPos.x), (float) (basePoint.y - camPos.y), (float) (basePoint.z - camPos.z));
+		Vector4f colorModulator = new Vector4f(1.0f, 1.0f, 1.0f, 1.0f);
+		Matrix4f identity = new Matrix4f();
 		GpuBufferSlice dynamicTransforms = RenderSystem.getDynamicUniforms()
-			.writeTransform(RenderSystem.getModelViewStack(), new Vector4f(1.0F, 1.0F, 1.0F, 1.0F), offset, new Matrix4f());
+			.writeTransform(RenderSystem.getModelViewMatrixCopy(), colorModulator, offset, identity);
 		try (RenderPass renderPass = commandEncoder
 			.createRenderPass(renderPassLabel, colorAttachmentView, Optional.empty(), depthAttachmentView, OptionalDouble.empty())) {
 			renderPass.setPipeline(LPCRenderPipelines.spherePipeline);
@@ -161,6 +200,34 @@ class Runner implements QuietAutoCloseable, Registries.WorldPreMainRender, Level
 			renderPass.setIndexBuffer(indexBuffer, IndexType.SHORT);
 			renderPass.setVertexBuffer(0, vertexBuffer.slice());
 			renderPass.drawIndexed(3 * Sphere.baseIndices.length * Sphere.baseIndices[0].length, 1, 0, 0, 0);
+		}
+		if(starProjectionRenderingEnabled.getAsBoolean()) {
+			GpuBuffer dropCircleIndexBuffer = getDropCircleIndexBuffer();
+			GpuBuffer dropCircleVertexBuffer = getDropCircleVertexBuffer();
+			Vector3d dOffset = new Vector3d();
+			double projOffset = projectionPlaneYOffset.getDoubleValue();
+			Vector3f zeroOffset = new Vector3f();
+			RenderPipeline pipeline = LPCRenderPipelines.positionColorPipeline(true, false);
+			for (StarRenderData star : starsRenderData) {
+				Matrix4f modelView = RenderSystem.getModelViewMatrixCopy();
+				float height = (float) (star.position.y() - projOffset);
+				dOffset.set(star.position.x, projOffset, star.position.z).add(offset);
+				modelView.translate((float) dOffset.x(), (float) dOffset.y(), (float) dOffset.z());
+				modelView.scale(star.radius * runnerDataPack.starRadiusFactor(), height, star.radius * runnerDataPack.starRadiusFactor());
+				Color4f color = Color4f.fromColor(star.lineColor);
+				colorModulator.set(color.r, color.g, color.b, color.a);
+				GpuBufferSlice starDropLineTransforms = RenderSystem.getDynamicUniforms()
+					.writeTransform(modelView, colorModulator, zeroOffset, identity);
+				try (RenderPass renderPass = commandEncoder
+					.createRenderPass(renderPassLabel, colorAttachmentView, Optional.empty(), depthAttachmentView, OptionalDouble.empty())) {
+					renderPass.setPipeline(pipeline);
+					RenderSystem.bindDefaultUniforms(renderPass);
+					renderPass.setUniform("DynamicTransforms", starDropLineTransforms);
+					renderPass.setIndexBuffer(dropCircleIndexBuffer, IndexType.INT);
+					renderPass.setVertexBuffer(0, dropCircleVertexBuffer.slice());
+					renderPass.drawIndexed(2 * (dropCircleSplitCount + 1), 1, 0, 0, 0);
+				}
+			}
 		}
 	}
 	
