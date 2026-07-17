@@ -14,7 +14,6 @@ import lpctools.LPCTools;
 import lpctools.lpcfymasaapi.Registries;
 import lpctools.lpcfymasaapi.render.LPCRenderPipelines;
 import lpctools.lpcfymasaapi.render.translucentShapes.*;
-import lpctools.util.DataUtils;
 import lpctools.util.RenderUtils;
 import lpctools.util.javaex.QuietAutoCloseable;
 import net.fabricmc.fabric.api.client.rendering.v1.level.LevelRenderContext;
@@ -42,6 +41,7 @@ class Runner implements QuietAutoCloseable, Registries.WorldPreMainRender, Level
 	private static final Supplier<String> renderPassLabel = () -> appendLabel("RenderPass");
 	private static final Supplier<String> dropCircleIndexBufferBufferLabel = () -> appendLabel("DropCircleIndexBuffer");
 	private static final Supplier<String> dropCircleVertexBufferLabel = () -> appendLabel("DropCircleVertexBuffer");
+	private static final Supplier<String> gridVertexBufferLabel = () -> appendLabel("DropCircleVertexBuffer");
 	
 	private static String appendLabel(String tail) { return baseLabel + ' ' + tail; }
 	
@@ -57,6 +57,8 @@ class Runner implements QuietAutoCloseable, Registries.WorldPreMainRender, Level
 	private final GpuBuffer vertexBuffer;
 	private GpuBuffer dropCircleIndexBuffer;
 	private GpuBuffer dropCircleVertexBuffer;
+	private GpuBuffer gridVertexBuffer;
+	private int lastGridSize;
 	
 	private volatile boolean running = true;
 	private volatile RunnerDataPack runnerDataPack;
@@ -98,8 +100,7 @@ class Runner implements QuietAutoCloseable, Registries.WorldPreMainRender, Level
 			timeSpeed.getDoubleValue(),
 			spreadRadius.getDoubleValue(),
 			spreadSpeed.getDoubleValue(),
-			massDeviation.getDoubleValue(),
-			(float) starRadiusFactor.getDoubleValue()
+			massDeviation.getDoubleValue()
 		);
 	}
 	
@@ -142,6 +143,23 @@ class Runner implements QuietAutoCloseable, Registries.WorldPreMainRender, Level
 		MemoryUtil.memFree(buffer);
 		return dropCircleVertexBuffer;
 	}
+
+	private GpuBuffer getGridVertexBuffer(int gridSize) {
+		if(gridVertexBuffer != null && gridSize == lastGridSize) return gridVertexBuffer;
+		if(gridVertexBuffer != null) gridVertexBuffer.close();
+		lastGridSize = gridSize;
+		ByteBuffer buffer = MemoryUtil.memAlloc(DefaultVertexFormat.POSITION_COLOR_LINE_WIDTH.getVertexSize() * (gridSize + 1) * 4);
+		float min = -gridSize * 0.5f, max = -min;
+		for(int i = 0; i <= gridSize; ++i) {
+			float pos = min + i;
+			buffer.putFloat(pos).putFloat(0).putFloat(min).putInt(0xffffffff).putFloat(1.0f);
+			buffer.putFloat(pos).putFloat(0).putFloat(max).putInt(0xffffffff).putFloat(1.0f);
+			buffer.putFloat(min).putFloat(0).putFloat(pos).putInt(0xffffffff).putFloat(1.0f);
+			buffer.putFloat(max).putFloat(0).putFloat(pos).putInt(0xffffffff).putFloat(1.0f);
+		}
+		buffer.flip();
+		return gridVertexBuffer = RenderSystem.getDevice().createBuffer(gridVertexBufferLabel, GpuBuffer.USAGE_VERTEX | GpuBuffer.USAGE_COPY_DST, buffer);
+	}
 	
 	@Override public void close() {
 		registerAll(false);
@@ -153,6 +171,7 @@ class Runner implements QuietAutoCloseable, Registries.WorldPreMainRender, Level
 		for (var star : starsRenderData) star.close();
 		if(dropCircleIndexBuffer != null) dropCircleIndexBuffer.close();
 		if(dropCircleVertexBuffer != null) dropCircleVertexBuffer.close();
+		if(gridVertexBuffer != null) gridVertexBuffer.close();
 	}
 	
 	@Override public void beforeTranslucentTerrain(@NonNull LevelRenderContext ignored) {
@@ -163,12 +182,13 @@ class Runner implements QuietAutoCloseable, Registries.WorldPreMainRender, Level
 		lastTimeSeconds += deltaSeconds;
 		double brightness = 0;
 		Vector3d basePoint = ThreeBodyDisplay.massCenter.getPos(new Vector3d());
+		float radiusFactor = (float) starRadiusFactor.getDoubleValue();
 		synchronized (this) {
 			for (var star : starsRenderData) {
 				double starBrightness = getBrightness(star.light);
 				for (int i = 0; i < 8; ++i) {
 					dataBuffer.putFloat((float)star.position.x).putFloat((float)star.position.y).putFloat((float)star.position.z)
-						.putInt(vector3d2Color(star.light, lightFactor)).putFloat(star.radius * runnerDataPack.starRadiusFactor());
+						.putInt(vector3d2Color(star.light, lightFactor)).putFloat(star.radius * radiusFactor);
 				}
 				double dstSqr = star.position.distanceSquared(camPos.x, camPos.y, camPos.z);
 				brightness = Math.max(starBrightness * (dstSqr <= star.rSquare ? 1.0 : 1.0 / (1.0 + Math.log(dstSqr / star.rSquare))), brightness);
@@ -201,11 +221,11 @@ class Runner implements QuietAutoCloseable, Registries.WorldPreMainRender, Level
 			renderPass.setVertexBuffer(0, vertexBuffer.slice());
 			renderPass.drawIndexed(3 * Sphere.baseIndices.length * Sphere.baseIndices[0].length, 1, 0, 0, 0);
 		}
-		if(starProjectionRenderingEnabled.getAsBoolean()) {
+		double projOffset = projectionPlaneYOffset.getDoubleValue();
+		if(renderStarProjection.getAsBoolean()) {
 			GpuBuffer dropCircleIndexBuffer = getDropCircleIndexBuffer();
 			GpuBuffer dropCircleVertexBuffer = getDropCircleVertexBuffer();
 			Vector3d dOffset = new Vector3d();
-			double projOffset = projectionPlaneYOffset.getDoubleValue();
 			Vector3f zeroOffset = new Vector3f();
 			RenderPipeline pipeline = LPCRenderPipelines.positionColorPipeline(true, false);
 			for (StarRenderData star : starsRenderData) {
@@ -213,9 +233,9 @@ class Runner implements QuietAutoCloseable, Registries.WorldPreMainRender, Level
 				float height = (float) (star.position.y() - projOffset);
 				dOffset.set(star.position.x, projOffset, star.position.z).add(offset);
 				modelView.translate((float) dOffset.x(), (float) dOffset.y(), (float) dOffset.z());
-				modelView.scale(star.radius * runnerDataPack.starRadiusFactor(), height, star.radius * runnerDataPack.starRadiusFactor());
-				Color4f color = Color4f.fromColor(star.lineColor);
-				colorModulator.set(color.r, color.g, color.b, color.a);
+				modelView.scale(star.radius * radiusFactor, height, star.radius * radiusFactor);
+				Color4f lineColor = Color4f.fromColor(star.lineColor);
+				colorModulator.set(lineColor.r, lineColor.g, lineColor.b, (float)projectionAlpha.getDoubleValue());
 				GpuBufferSlice starDropLineTransforms = RenderSystem.getDynamicUniforms()
 					.writeTransform(modelView, colorModulator, zeroOffset, identity);
 				try (RenderPass renderPass = commandEncoder
@@ -227,6 +247,27 @@ class Runner implements QuietAutoCloseable, Registries.WorldPreMainRender, Level
 					renderPass.setVertexBuffer(0, dropCircleVertexBuffer.slice());
 					renderPass.drawIndexed(2 * (dropCircleSplitCount + 1), 1, 0, 0, 0);
 				}
+			}
+		}
+		if(renderProjectionPlaneGrid.getAsBoolean()) {
+			int gridSize = ThreeBodyDisplay.gridSize.getIntegerValue();
+			GpuBuffer gridVertexBuffer = getGridVertexBuffer(gridSize);
+			Vector3f zeroOffset = new Vector3f();
+			RenderPipeline pipeline = LPCRenderPipelines.positionColorPipeline(true, false);
+			Matrix4f modelView = RenderSystem.getModelViewMatrixCopy();
+			modelView.translate(offset).translate(0, (float)projOffset, 0);
+			modelView.scale((float) gridUnitLength.getDoubleValue());
+			Color4f color = gridColor.getColor();
+			colorModulator.set(color.r, color.g, color.b, color.a);
+			GpuBufferSlice gridTransforms = RenderSystem.getDynamicUniforms()
+				.writeTransform(modelView, colorModulator, zeroOffset, identity);
+			try (RenderPass renderPass = commandEncoder
+				.createRenderPass(renderPassLabel, colorAttachmentView, Optional.empty(), depthAttachmentView, OptionalDouble.empty())) {
+				renderPass.setPipeline(pipeline);
+				RenderSystem.bindDefaultUniforms(renderPass);
+				renderPass.setUniform("DynamicTransforms", gridTransforms);
+				renderPass.setVertexBuffer(0, gridVertexBuffer.slice());
+				renderPass.draw(4 * (gridSize + 1), 1, 0, 0);
 			}
 		}
 	}

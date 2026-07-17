@@ -1,8 +1,9 @@
 package lpctools.debugs.ThreeBodyDisplay;
 
+import fi.dy.masa.malilib.util.data.Color4f;
 import lpctools.debugs.DebugConfigs;
 import lpctools.lpcfymasaapi.configButtons.transferredConfigs.BooleanConfig;
-import lpctools.lpcfymasaapi.configButtons.transferredConfigs.DoubleConfig;
+import lpctools.lpcfymasaapi.configButtons.transferredConfigs.ColorConfig;
 import lpctools.lpcfymasaapi.configButtons.uniqueConfigs.BooleanThirdListConfig;
 import lpctools.lpcfymasaapi.configButtons.uniqueConfigs.UniqueDoubleConfig;
 import lpctools.lpcfymasaapi.configButtons.uniqueConfigs.UniqueIntegerConfig;
@@ -28,9 +29,14 @@ public class ThreeBodyDisplay {
 	public static final UniqueDoubleConfig spreadRadius = addConfigEx(l->new UniqueDoubleConfig(l, "spreadRadius", 4, 0, Double.MAX_VALUE, dataPackUpdater));
 	public static final UniqueDoubleConfig spreadSpeed = addConfigEx(l->new UniqueDoubleConfig(l, "spreadSpeed", 0.25, 0, Double.MAX_VALUE, dataPackUpdater));
 	public static final UniqueDoubleConfig massDeviation = addConfigEx(l->new UniqueDoubleConfig(l, "massDeviation", 0.5, 0, Double.MAX_VALUE, dataPackUpdater));
-	public static final UniqueDoubleConfig starRadiusFactor = addConfigEx(l->new UniqueDoubleConfig(l, "starRadiusFactor", 0.5, 0, Double.MAX_VALUE, dataPackUpdater));
-	public static final BooleanConfig starProjectionRenderingEnabled = addBooleanConfig("starProjectionRenderingEnabled", true);
+	public static final UniqueDoubleConfig starRadiusFactor = addConfigEx(l->new UniqueDoubleConfig(l, "starRadiusFactor", 0.5, 0, Double.MAX_VALUE, null));
+	public static final BooleanConfig renderStarProjection = addBooleanConfig("renderStarProjection", true);
+	public static final BooleanConfig renderProjectionPlaneGrid = addBooleanConfig("renderProjectionPlaneGrid", true);
 	public static final UniqueDoubleConfig projectionPlaneYOffset = addConfigEx(l->new UniqueDoubleConfig(l, "projectionPlaneYOffset", 0));
+	public static final UniqueDoubleConfig projectionAlpha = addConfigEx(l->new UniqueDoubleConfig(l, "projectionAlpha", 0.5, 0, 1, null));
+	public static final UniqueIntegerConfig gridSize = addConfigEx(l->new UniqueIntegerConfig(l, "gridSize", 16, 0, 65536, null));
+	public static final UniqueDoubleConfig gridUnitLength = addConfigEx(l->new UniqueDoubleConfig(l, "gridUnitLength", 1));
+	public static final ColorConfig gridColor = addColorConfig("gridColor", Color4f.fromColor(0x7fffffff));
 	static { listStack.pop(); }
 	private static @Nullable Runner runner;
 	

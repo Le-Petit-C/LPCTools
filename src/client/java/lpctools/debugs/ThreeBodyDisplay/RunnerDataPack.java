@@ -6,6 +6,5 @@ public record RunnerDataPack(
 	double timeSpeed,
 	double spreadRadius,
 	double spreadSpeed,
-	double massDeviation,
-	float starRadiusFactor)
+	double massDeviation)
 {}
