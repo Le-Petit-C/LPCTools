@@ -1,5 +1,6 @@
 package lpctools.util;
 
+import lpctools.mixinData.MixinData;
 import net.minecraft.world.inventory.ContainerInput;
 import org.jetbrains.annotations.NotNull;
 
@@ -22,15 +23,8 @@ public class HandRestock {
             return set.contains(stack.getItem());
         }
     }
-    //O(n)复杂度。。。但是这样是兼容性最好的方法
     public static int getHotbarStartSlotIndex(Player player){
-        ItemStack stack = player.getInventory().getItem(0);
-        var slots = player.containerMenu.slots;
-        for (int i = 0; i < slots.size(); i++)
-            if(slots.get(i).getItem() == stack)
-                return i;
-        //没找到则返回一个合理的默认值
-        return slots.size() - (player.containerMenu.containerId == 0 ? 9 : 10);
+        return MixinData.getData(player.containerMenu).getHotbarStartIndexOrDefault(player.containerMenu);
     }
     //从当前GUI界面所有槽里寻找第一个满足条件的物品槽索引，主手槽位先于一般槽检测。没找到则返回-1，找到则返回槽位索引，找到副手返回-2
     //offhandPriority:副手槽位的检测优先级，-1表示在主手之前，0表示在主手之后但是在其他槽位之前，1表示在所有槽位之后，其他表示不检测
@@ -64,7 +58,8 @@ public class HandRestock {
         if(i == -2) count = inventory.getItem(Inventory.SLOT_OFFHAND).getCount();
         else count = slots.get(i).getItem().getCount();
         if(offhandPriority == -1){
-            if(i != -2) itm.handleContainerInput(player.containerMenu.containerId, i, Inventory.SLOT_OFFHAND, ContainerInput.SWAP, player);
+            if(i != -2)
+                itm.handleContainerInput(player.containerMenu.containerId, i, Inventory.SLOT_OFFHAND, ContainerInput.SWAP, player);
         }
         else{
             if(i == -2) itm.handleContainerInput(player.containerMenu.containerId, getHotbarStartSlotIndex(player) + inventory.getSelectedSlot(), Inventory.SLOT_OFFHAND, ContainerInput.SWAP, player);

@@ -2,6 +2,7 @@ package lpctools.tools.tilingTool;
 
 import com.google.common.collect.ImmutableSet;
 import lpctools.lpcfymasaapi.Registries;
+import lpctools.tools.ToolUtils;
 import lpctools.util.HandRestock;
 import lpctools.util.MathUtils;
 import lpctools.util.javaex.Object2BooleanFunction;
@@ -27,14 +28,13 @@ import static lpctools.lpcfymasaapi.configButtons.derivedConfigs.LimitOperationS
 import static lpctools.tools.tilingTool.TilingTool.*;
 import static lpctools.tools.tilingTool.TilingToolData.*;
 
-public class TilingToolExecutor implements AutoCloseable, ClientTickEvents.EndTick{
+public class TilingToolExecutor implements ToolUtils.ToolRunner, ClientTickEvents.EndTick{
     TilingToolExecutor(){
         registerAll(true);
         if(autoRefresh.get().refreshOnToolEnabled)
             autoRefreshOperation.get().run();
     }
-    @Override public void close() {registerAll(false);}
-    private void registerAll(boolean b){
+    @Override public void registerAll(boolean b){
         Registries.END_CLIENT_TICK.register(this, b);
     }
     @Override public void onEndTick(@NonNull Minecraft mc) {

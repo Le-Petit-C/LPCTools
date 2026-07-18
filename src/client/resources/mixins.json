@@ -47,6 +47,7 @@
     "MASAMixins.muteableConfigDefaults.ConfigDoubleMixin",
     "MASAMixins.muteableConfigDefaults.ConfigIntegerMixin",
     "MASAMixins.muteableConfigDefaults.ConfigStringListMixin",
+    "recorders.AbstractContainerMenuMixin",
     "scriptMixins.TagKeyMixin",
     "scriptMixins.propertiesMixin.BooleanPropertyRegisterMixin",
     "scriptMixins.propertiesMixin.EnumPropertyMixin",

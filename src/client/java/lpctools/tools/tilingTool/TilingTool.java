@@ -7,7 +7,7 @@ import lpctools.compact.litematica.LitematicaMethods;
 import lpctools.lpcfymasaapi.configButtons.derivedConfigs.*;
 import lpctools.lpcfymasaapi.configButtons.transferredConfigs.BooleanConfig;
 import lpctools.lpcfymasaapi.configButtons.uniqueConfigs.*;
-import lpctools.tools.ToolConfigs;
+import lpctools.tools.ToolUtils;
 import lpctools.util.data.Box3i;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
@@ -18,13 +18,11 @@ import java.util.LinkedHashMap;
 import java.util.List;
 
 import static lpctools.lpcfymasaapi.LPCConfigStatics.*;
-import static lpctools.tools.ToolUtils.*;
 import static lpctools.tools.tilingTool.TilingToolData.*;
 import static lpctools.util.DataUtils.clientMessage;
 
 public class TilingTool {
-    public static final BooleanHotkeyThirdListConfig TTConfig = new BooleanHotkeyThirdListConfig(ToolConfigs.toolConfigs, "TT", TilingTool::switchCallback);
-    static {setLPCToolsToggleText(TTConfig);}
+    public static final BooleanHotkeyThirdListConfig TTConfig = ToolUtils.configBuilder("TT").withToolRunner(TilingToolExecutor::new).build();
     static {listStack.push(TTConfig);}
     public static final ReachDistanceConfig reachDistance = addReachDistanceConfig();
     public static final LimitOperationSpeedConfig limitOperationSpeed = addLimitOperationSpeedConfig(false, 1);
@@ -88,17 +86,6 @@ public class TilingTool {
         }
     }
     static {listStack.pop();}
-    private static void switchCallback(){
-        if(TTConfig.getBooleanValue()){
-            if(executor == null) executor = new TilingToolExecutor();
-        }
-        else {
-            if(executor != null){
-                executor.close();
-                executor = null;
-            }
-        }
-    }
     static void refreshCallback(){refresh(getConfigBox());}
     private static void litematicaSetCoordinates(){
         if(CompactMain.getLitematicaInstance() instanceof LitematicaMethods methods){
@@ -121,7 +108,7 @@ public class TilingTool {
         vagueBlocks.clear();
         for(BlockListConfig config : vagueBlocksConfig.iterateConfigs())
             for(Block block : config.getBlocks())
-                vagueBlocks.computeIfAbsent(block, v->new ArrayList<>()).add(config.getBlocks());
+                vagueBlocks.computeIfAbsent(block, _ ->new ArrayList<>()).add(config.getBlocks());
     }
     static void setConfigBox(Box3i box){
         cornerPos1.setPos(box.pos1);
