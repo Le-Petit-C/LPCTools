@@ -5,6 +5,8 @@ import it.unimi.dsi.fastutil.longs.Long2BooleanFunction;
 import it.unimi.dsi.fastutil.longs.LongArrayList;
 import it.unimi.dsi.fastutil.longs.LongIterable;
 import it.unimi.dsi.fastutil.longs.LongIterator;
+import it.unimi.dsi.fastutil.objects.ObjectDoubleImmutablePair;
+import lpctools.util.data.OrderedContainer;
 import lpctools.util.data.minecraft.MutableAABB;
 import lpctools.util.javaex.Object2BooleanFunction;
 import net.minecraft.core.BlockPos;
@@ -24,17 +26,16 @@ import org.joml.Vector2i;
 import java.lang.ref.WeakReference;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
-import java.util.function.BiConsumer;
-import java.util.function.BiFunction;
-import java.util.function.Consumer;
-import java.util.function.Function;
+import java.util.function.*;
 
 import static lpctools.util.MathUtils.*;
 
 @SuppressWarnings("unused")
 public class AlgorithmUtils {
-    public static final BiFunction<Vec3, BlockPos, PriorityQueue<BlockPos>> euclideanClosestQueueContainerGenerator =
-        (center, bCenter)->new PriorityQueue<>(Comparator.comparingDouble(pos->pos.distToCenterSqr(center)));
+    public static final ToDoubleBiFunction<Vec3, BlockPos> toCenterEuclideanClosestComparator =
+        (center, pos) -> pos.distToCenterSqr(center);
+    public static final ToDoubleBiFunction<Vec3, BlockPos> toEuclideanClosestBoundsComparator =
+        (center, pos) -> MathUtils.cycledSquaredClosestDistance(center.x, center.y, center.z, pos.getX(), pos.getY(), pos.getZ(), 1, 1, 1);
     //遍历长方体形状内的方块坐标
     public static Iterable<BlockPos> iterateInBox(int minX, int minY, int minZ, int maxX, int maxY, int maxZ){
         return new InBoxIterable(minX, minY, minZ, maxX, maxY, maxZ);
@@ -60,25 +61,31 @@ public class AlgorithmUtils {
             (int) Math.floor(Math.max(x1, x2)), (int) Math.floor(Math.max(y1, y2)), (int) Math.floor(Math.max(z1, z2))
         );
     }
-    public static Iterable<BlockPos> iterateInBoxTouched(MutableAABB box){
+    public static Iterable<BlockPos> iterateInBoxTouched(MutableAABB box) {
         return iterateInBoxTouched(box.x1, box.y1, box.z1, box.x2, box.y2, box.z2);
     }
     public static Iterable<BlockPos> iterateInBoxTouched(AABB box){
         return iterateInBoxTouched(box.minX, box.minY, box.minZ, box.maxX, box.maxY, box.maxZ);
     }
     //遍历曼哈顿距离内的方块坐标
-    public static Iterable<BlockPos> iterateInManhattanDistance(BlockPos center, int distance){
+    public static Iterable<BlockPos> iterateInManhattanDistance(BlockPos center, int distance) {
         return new ManhattanIterable(center, distance);
     }
     //从近到远遍历方块坐标
-    public static Iterable<BlockPos> iterateFromClosest(Vec3 center){
-        return () -> new ClosestIterator3D(center, euclideanClosestQueueContainerGenerator);
+    public static Iterable<BlockPos> iterateFromClosest(Vec3 center) {
+        return () -> new ContainerBasedIterator3D(center, toCenterEuclideanClosestComparator);
     }
-    public static Iterable<BlockPos> iterateFromClosestInDistance(Vec3 center, double distance){
-        return () -> new EuclideanInClosestIterator3D(center, distance);
+    public static Iterable<BlockPos> iterateFromClosestInDistance(Vec3 center, double distance) {
+        return () -> new EuclideanInClosestIterator3D(center, toCenterEuclideanClosestComparator, distance);
+    }
+    public static Iterable<BlockPos> iterateFromClosestBounds(Vec3 center) {
+        return () -> new ContainerBasedIterator3D(center, toEuclideanClosestBoundsComparator);
+    }
+    public static Iterable<BlockPos> iterateFromClosestBoundsInDistance(Vec3 center, double distance) {
+        return () -> new EuclideanInClosestIterator3D(center, toEuclideanClosestBoundsComparator, distance);
     }
     //从远到近遍历方块坐标
-    public static Iterable<BlockPos> iterateFromFurthestInDistance(Vec3 center, double distance){
+    public static Iterable<BlockPos> iterateFromFurthestInDistance(Vec3 center, double distance) {
         ArrayList<BlockPos> list = new ArrayList<>();
         for(BlockPos pos : iterateFromClosestInDistance(center, distance))
             list.add(pos.mutable());
@@ -224,30 +231,24 @@ public class AlgorithmUtils {
             };
         }
     }
-    
-    public static class ClosestIterator3D implements Iterator<BlockPos>{
-        private final @NotNull Vec3 center;
-        private final BlockPos startPos;
-        protected final Queue<BlockPos> poses;
-        ClosestIterator3D(@NotNull Vec3 center, BiFunction<Vec3, BlockPos, ? extends Queue<BlockPos>> containerGenerator){
-            this.center = center;
-            startPos = BlockPos.containing(center);
-            poses = containerGenerator.apply(center, startPos);
+
+    public static class ContainerBasedIterator3D implements Iterator<BlockPos> {
+		private final BlockPos startPos;
+        protected final OrderedContainer<BlockPos> poses;
+        ContainerBasedIterator3D(@NotNull Vec3 center, OrderedContainer<BlockPos> container){
+			startPos = BlockPos.containing(center);
+            poses = container;
             poses.add(startPos);
         }
-        public double getSquaredDistance(BlockPos pos) {
-            return pos.distToCenterSqr(center);
+        ContainerBasedIterator3D(@NotNull Vec3 center, ToDoubleBiFunction<Vec3, BlockPos> distanceCalculator) {
+            this(center, OrderedContainer.doubleCachedPriorityQueue(pos->distanceCalculator.applyAsDouble(center, pos)));
         }
-        public double getNextDistance(){
-            assert !poses.isEmpty();
-            return getSquaredDistance(poses.peek());
-        }
-        @Override public boolean hasNext() {return true;}
+        @Override public boolean hasNext() { return true; }
         @Override public BlockPos next() {
-            assert !poses.isEmpty();
-            BlockPos res = poses.remove();
+            BlockPos res = poses.poll();
             int opIndex;
-            if(res.getX() != startPos.getX()) {
+			//noinspection DataFlowIssue
+			if(res.getX() != startPos.getX()) {
                 poses.add(res.offset(res.getX() < startPos.getX() ? -1 : 1, 0, 0));
                 // 热点代码，直接返回可以省下跳过else{}代码块的“跳转开销”
                 return res;
@@ -276,13 +277,16 @@ public class AlgorithmUtils {
 			}
 		}
     }
-    public static class EuclideanInClosestIterator3D extends ClosestIterator3D {
+    public static class EuclideanInClosestIterator3D extends ContainerBasedIterator3D {
         public final double maxSquaredDistance;
-        EuclideanInClosestIterator3D(@NotNull Vec3 center, double maxDistance) {
-            super(center, euclideanClosestQueueContainerGenerator);
+        EuclideanInClosestIterator3D(@NotNull Vec3 center, ToDoubleBiFunction<Vec3, BlockPos> distanceCalculator, double maxDistance) {
+            super(center, distanceCalculator);
             maxSquaredDistance = maxDistance * maxDistance;
         }
-        @Override public boolean hasNext() {return getNextDistance() <= maxSquaredDistance;}
+        @Override public boolean hasNext() {
+            return ((OrderedContainer.DoubleCachedOrderedContainer<BlockPos>)poses).peekPair() instanceof ObjectDoubleImmutablePair<BlockPos> pair
+                && pair.rightDouble() <= maxSquaredDistance;
+        }
     }
     public static class ClosestIterator2i implements Iterator<Vector2i>{
         private final @NotNull Vector2i center;

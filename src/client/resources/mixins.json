@@ -48,6 +48,7 @@
     "MASAMixins.muteableConfigDefaults.ConfigIntegerMixin",
     "MASAMixins.muteableConfigDefaults.ConfigStringListMixin",
     "recorders.AbstractContainerMenuMixin",
+    "recorders.MultiPlayerGameModeMixin",
     "scriptMixins.TagKeyMixin",
     "scriptMixins.propertiesMixin.BooleanPropertyRegisterMixin",
     "scriptMixins.propertiesMixin.EnumPropertyMixin",
@@ -65,6 +66,7 @@
     "tweaks.playerRayTraceIgnorance.BlockGetterMixin",
     "tweaks.playerRayTraceIgnorance.LocalPlayerMixin",
     "tweaks.playerRayTraceIgnorance.ProjectileUtilMixin",
-    "utils.PacketRecorder"
+    "utils.PacketRecorder",
+    "utils.blockBreaking.MinecraftMixin"
   ]
 }

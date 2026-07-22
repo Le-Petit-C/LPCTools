@@ -17,7 +17,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 public class AbstractContainerMenuMixin implements AbstractContainerMenuExtraData.Getter {
 	@Shadow @Final public NonNullList<Slot> slots;
 
-	@Unique final AbstractContainerMenuExtraData.Mutable data = new AbstractContainerMenuExtraData.Mutable();
+	@Unique final AbstractContainerMenuExtraData.Mutable data = new AbstractContainerMenuExtraData.Mutable((AbstractContainerMenu)(Object)this);
 
 	@Override public AbstractContainerMenuExtraData lpctools$getAbstractContainerMenuExtraData() { return data; }
 

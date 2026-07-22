@@ -14,6 +14,8 @@ import java.lang.Math;
 @SuppressWarnings("unused")
 public class MathUtils {
     @Contract(pure = true)
+    public static double square(double v) { return v * v; }
+    @Contract(pure = true)
     public static Matrix4f inverseOffsetMatrix4f(Vector3f offset){
         return new Matrix4f().setColumn(3, new Vector4f(offset.mul(-1), 1));
     }
@@ -42,6 +44,46 @@ public class MathUtils {
     public static double squaredDistance(Vec3 pos, ChunkPos chunkPos){
         return Mth.square(chunkPos.x() * 16 + 8.0 - pos.x) + Mth.square(chunkPos.z() * 16 + 8.0 - pos.z);
     }
+    // TODO 其他比较手长的工具也使用此距离计算
+    @Contract(pure = true)
+    public static double minSquaredDistanceToBlock(Vec3 pos, BlockPos blockPos) {
+        double dx = pos.x - Math.clamp(pos.x, blockPos.getX(), blockPos.getX() + 1);
+        double dy = pos.y - Math.clamp(pos.y, blockPos.getY(), blockPos.getY() + 1);
+        double dz = pos.z - Math.clamp(pos.z, blockPos.getZ(), blockPos.getZ() + 1);
+        return dx * dx + dy * dy + dz * dz;
+    }
+
+    public static double cycledSquaredClosestDistance(double v, int start, int width) {
+        v = v - start;
+        if(v >= (1L << 32) || v < -(1L << 32)) v = v % (1L << 32);
+        if(v < 0) v = v + (1L << 32);
+        long uWidth = Integer.toUnsignedLong(width);
+        if(v < uWidth) return 0;
+        else return MathUtils.square(Math.min(Math.abs(v - uWidth), Math.abs(v - (1L << 32))));
+    }
+
+    public static double cycledSquaredClosestDistance(double v, int start) {
+        v = v - start;
+        if(v >= (1L << 32) || v < -(1L << 32)) v = v % (1L << 32);
+        if(v >= (1L << 31)) v -= 1L << 32;
+        else if(v < -(1L << 31)) v += 1L << 32;
+        return v * v;
+    }
+
+    public static double cycledSquaredClosestDistance(double startX, double startY, double startZ, int x, int y, int z, int dx, int dy, int dz) {
+        return cycledSquaredClosestDistance(startX, x, dx)
+            + cycledSquaredClosestDistance(startY, y, dy)
+            + cycledSquaredClosestDistance(startZ, z, dz);
+    }
+
+    public static double cycledSquaredClosestDistance(double startX, double startY, double startZ, int x, int y, int z) {
+        return cycledSquaredClosestDistance(startX, x) + cycledSquaredClosestDistance(startY, y) + cycledSquaredClosestDistance(startZ, z);
+    }
+
+    public static double cycledSquaredClosestDistance(Vec3 start, Vec3i pos, Vec3i expand) {
+        return cycledSquaredClosestDistance(start.x, start.y, start.z, pos.getX(), pos.getY(), pos.getZ(), expand.getX(), expand.getY(), expand.getZ());
+    }
+
     @Contract(pure = true)
     public static Vector3i getSubChunkPos(BlockPos pos){
         return new Vector3i(pos.getX() >> 4, pos.getY() >> 4, pos.getZ() >> 4);
