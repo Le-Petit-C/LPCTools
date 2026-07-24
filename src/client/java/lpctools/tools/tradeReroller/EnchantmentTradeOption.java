@@ -18,10 +18,12 @@ public record EnchantmentTradeOption(EnchantmentWithLevel enchantment, int cost)
 	}
 	public record EnchantmentWithLevel(Identifier id, int level) {
 		int minCost(Registry<Enchantment> registry) {
-			var o = registry.get(id);
 			int rawCost = 2 + level * 3;
-			if(o.isPresent() && o.get().is(EnchantmentTags.DOUBLE_TRADE_PRICE)) return rawCost * 2;
-			else return rawCost;
+			if(TradeReroller.testDoublePrice.getBooleanValue()) {
+				var o = registry.get(id);
+				if(o.isPresent() && o.get().is(EnchantmentTags.DOUBLE_TRADE_PRICE)) return rawCost * 2;
+			}
+			return rawCost;
 		}
 	}
 	public @NonNull JsonArray toJson() {

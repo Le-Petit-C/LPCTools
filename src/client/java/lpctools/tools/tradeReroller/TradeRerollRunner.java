@@ -67,7 +67,8 @@ class TradeRerollRunner implements ToolUtils.ToolRunner, ClientTickEvents.EndTic
 		IntHeapPriorityQueue queue = neededEnchantments.get(option.enchantment());
 		if (queue == null || option.cost() > queue.firstInt()) return false;
 		queue.dequeueInt();
-		if(reserveCheaperTraders.getBooleanValue() && option.cost() > option.enchantment().minCost(enchantmentRegistry))
+		if(reserveCheaperTraders.getBooleanValue() &&
+			(pursueBelowMinPrice.getBooleanValue() || option.cost() > option.enchantment().minCost(enchantmentRegistry)))
 			queue.enqueue(option.cost() - 1);
 		else if(queue.isEmpty()) neededEnchantments.remove(option.enchantment());
 		return true;
