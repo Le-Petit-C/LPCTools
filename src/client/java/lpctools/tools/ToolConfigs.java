@@ -19,6 +19,7 @@ import lpctools.tools.slightXRay.SlightXRay;
 import lpctools.tools.fillingAssistant.FillingAssistant;
 import lpctools.tools.liquidCleaner.LiquidCleaner;
 import lpctools.tools.tilingTool.TilingTool;
+import lpctools.tools.tradeReroller.TradeReroller;
 
 public class ToolConfigs {
     public static final LPCConfigList toolConfigs = new LPCConfigList(LPCTools.page, "tools");
@@ -44,7 +45,8 @@ public class ToolConfigs {
             EntityHighlight.EHConfig,
 			LeakPreventer.LPConfig,
 			BedrockKiller.BKConfig,
-			LitematicaMaterial.LMConfig
+			LitematicaMaterial.LMConfig,
+			TradeReroller.TRConfig
         );
     }
 }

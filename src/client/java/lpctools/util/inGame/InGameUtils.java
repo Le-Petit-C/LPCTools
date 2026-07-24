@@ -1,16 +1,19 @@
 package lpctools.util.inGame;
 
 import lpctools.mixinData.MixinData;
-import lpctools.util.DataUtils;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.multiplayer.MultiPlayerGameMode;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.Registry;
 import net.minecraft.network.protocol.game.ServerboundPlayerActionPacket;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.ContainerInput;
 import net.minecraft.world.item.ItemStack;
+import org.jspecify.annotations.Nullable;
 
 public class InGameUtils {
 	public static void swapHandsHotkeyStyle(LocalPlayer player) {
@@ -19,7 +22,6 @@ public class InGameUtils {
 		ItemStack offHandStack = inv.getItem(Inventory.SLOT_OFFHAND);
 		inv.setItem(Inventory.SLOT_OFFHAND, inv.getSelectedItem());
 		inv.setSelectedItem(offHandStack);
-		DataUtils.clientMessage("Set main hand stack to " + offHandStack, true);
 	}
 	public static void swapHandsMenuStyle(LocalPlayer player, MultiPlayerGameMode gameMode) {
 		gameMode.handleContainerInput(player.containerMenu.containerId,
@@ -29,5 +31,17 @@ public class InGameUtils {
 	public static void swapHandsAutoStyle(LocalPlayer player, MultiPlayerGameMode gameMode) {
 		if(Minecraft.getInstance().gui.screen() != null) swapHandsMenuStyle(player, gameMode);
 		else swapHandsHotkeyStyle(player);
+	}
+	public static @Nullable InGameManager getInGameGenericData(Minecraft mc) {
+		LocalPlayer player = mc.player;
+		MultiPlayerGameMode gameMode = mc.gameMode;
+		ClientLevel level = mc.level;
+		if(player == null || gameMode == null || level == null) return null;
+		else return new InGameManager(player, gameMode, level);
+	}
+	public static <T> @Nullable Registry<T> getRegistry(ResourceKey<Registry<T>> key) {
+		LocalPlayer player = Minecraft.getInstance().player;
+		if(player == null) return null;
+		return player.connection.registryAccess().lookup(key).orElse(null);
 	}
 }

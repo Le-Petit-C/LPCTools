@@ -26,10 +26,12 @@ import java.util.function.BiConsumer;
 
 public class BlockBreaking {
 	public enum BreakingState {
-		SUCCEEDED,
-		BREAKING,
-		WAITING,
-		CANCELED
+		SUCCEEDED(true),
+		BREAKING(false),
+		WAITING(false),
+		CANCELED(true);
+		public final boolean isResultState;
+		BreakingState(boolean isResultState) { this.isResultState = isResultState; }
 	}
 
 	private BiConsumer<BlockBreaking, BreakingState> callback;
@@ -41,7 +43,7 @@ public class BlockBreaking {
 	public BlockPos getPos() { return pos; }
 	@SuppressWarnings("UnusedReturnValue")
 	public BlockBreaking putToMap(Map<? super BlockPos, BlockBreaking> map) { return map.put(pos, this); }
-	public boolean isRemoved() { return getState() == BreakingState.SUCCEEDED || getState() == BreakingState.CANCELED; }
+	public boolean isRemoved() { return getState().isResultState; }
 
 	@Contract("_->this")
 	public BlockBreaking callback(@NotNull BiConsumer<BlockBreaking, BreakingState> callback) {
@@ -63,8 +65,10 @@ public class BlockBreaking {
 	}
 
 	public void cancel() {
-		setState(BreakingState.CANCELED);
-		scheduleUpdate();
+		if(state != BreakingState.CANCELED && state != BreakingState.SUCCEEDED) {
+			setState(BreakingState.CANCELED);
+			scheduleUpdate();
+		}
 	}
 
 	private BlockBreaking(BlockPos pos) { this.pos = pos.immutable(); }

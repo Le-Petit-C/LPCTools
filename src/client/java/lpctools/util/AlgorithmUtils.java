@@ -12,6 +12,7 @@ import lpctools.util.javaex.Object2BooleanFunction;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.SectionPos;
 import net.minecraft.util.Mth;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.chunk.ChunkAccess;
@@ -83,6 +84,9 @@ public class AlgorithmUtils {
     }
     public static Iterable<BlockPos> iterateFromClosestBoundsInDistance(Vec3 center, double distance) {
         return () -> new EuclideanInClosestIterator3D(center, toEuclideanClosestBoundsComparator, distance);
+    }
+    public static Iterable<BlockPos> playerTouchablePoses(Player player) {
+        return iterateFromClosestBoundsInDistance(player.getEyePosition(), player.blockInteractionRange());
     }
     //从远到近遍历方块坐标
     public static Iterable<BlockPos> iterateFromFurthestInDistance(Vec3 center, double distance) {

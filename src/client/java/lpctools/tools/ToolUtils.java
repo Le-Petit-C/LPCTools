@@ -12,6 +12,7 @@ import lpctools.lpcfymasaapi.interfaces.IBooleanConfig;
 import lpctools.lpcfymasaapi.interfaces.ILPCConfig;
 import lpctools.lpcfymasaapi.interfaces.ILPCConfigList;
 import lpctools.lpcfymasaapi.interfaces.ILPCValueChangeCallback;
+import lpctools.util.DataUtils;
 import lpctools.util.LPCMathHelper;
 import lpctools.util.Packed;
 import lpctools.util.javaex.QuietAutoCloseable;
@@ -24,7 +25,6 @@ import java.util.Collection;
 import java.util.Map;
 import java.util.function.Consumer;
 import java.util.function.Function;
-import java.util.function.Supplier;
 
 @SuppressWarnings({"UnusedReturnValue", "unused"})
 public class ToolUtils {
@@ -36,18 +36,27 @@ public class ToolUtils {
             return true;
         });
     }
+    public static class RunnerCreateFailedException extends Exception {
+        public final @Nullable Component failReason;
+        public RunnerCreateFailedException(@Nullable Component failReason) { this.failReason = failReason; }
+        public RunnerCreateFailedException(@Nullable String failReason) { this(failReason == null ? null : Component.literal(failReason)); }
+        public RunnerCreateFailedException() { this.failReason = null; }
+    }
+    public interface ToolRunnerSupplier {
+        ToolRunner createRunner() throws RunnerCreateFailedException;
+    }
     // TODO: 其他工具也用这个Builder构建
     public static class ToolConfigBuilder {
         private final String key;
         private @NotNull ILPCConfigList parent = ToolConfigs.toolConfigs;
         private @Nullable ILPCValueChangeCallback callback;
-        private @Nullable Supplier<ToolRunner> toolRunner;
+        private @Nullable ToolRunnerSupplier toolRunner;
         private ToolConfigBuilder(String key) { this.key = key; }
         public ToolConfigBuilder withExtraCallback(ILPCValueChangeCallback callback) {
             this.callback = callback;
             return this;
         }
-        public ToolConfigBuilder withToolRunner(Supplier<ToolRunner> toolRunner) {
+        public ToolConfigBuilder withToolRunner(ToolRunnerSupplier toolRunner) {
             this.toolRunner = toolRunner;
             return this;
         }
@@ -76,17 +85,25 @@ public class ToolUtils {
 
 		private static final class ToolRunnerCallback implements ILPCValueChangeCallback {
 			private final IBooleanConfig config;
-			private final Supplier<ToolRunner> toolRunner;
+			private final ToolRunnerSupplier toolRunner;
             private @Nullable ToolRunner runner;
 
-			private ToolRunnerCallback(IBooleanConfig config, Supplier<ToolRunner> toolRunner) {
+			private ToolRunnerCallback(IBooleanConfig config, ToolRunnerSupplier toolRunner) {
 				this.config = config;
 				this.toolRunner = toolRunner;
 			}
 
 			@Override public void onValueChanged() {
 				if (config.getBooleanValue()) {
-                    if(runner == null) runner = toolRunner.get();
+                    if(runner == null) {
+	                    try {
+							runner = toolRunner.createRunner();
+	                    } catch (RunnerCreateFailedException e) {
+                            config.setBooleanValue(false);
+                            DataUtils.clientMessage(e.failReason, true);
+                            return;
+						}
+                    }
                     runner.registerAll(true);
 				}
                 else {

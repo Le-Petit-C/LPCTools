@@ -44,8 +44,10 @@ public class HandRestock {
         if(offhandPriority == 1 && restockTest.isStackOk(inventory.getItem(Inventory.SLOT_OFFHAND))) return -2;
         return -1;
     }
-    //从背包里寻找集合中的物品并将其换到手上，成功使目标手拿上给定物品返回拿到的物品数量，失败返回0
-    //offhandPriority与search中的offhandPriority同义，进一步地，如果offhandPriority=-1即副手优先级比主手高，则变成填充副手而不是主手
+    /**
+     * 从背包里寻找集合中的物品并将其换到手上，成功使目标手拿上给定物品返回拿到的物品数量，失败返回0
+     * offhandPriority与search中的offhandPriority同义，进一步地，如果offhandPriority=-1即副手优先级比主手高，则变成填充副手而不是主手
+     */
     public static int restock(IRestockTest restockTest, int offhandPriority){
         int i = search(restockTest, offhandPriority);
         if(i == -1) return 0;

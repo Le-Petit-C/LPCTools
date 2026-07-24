@@ -25,4 +25,8 @@ public class AbstractContainerMenuMixin implements AbstractContainerMenuExtraDat
 	void injectAddInventoryHotbarSlotsHead(Container inventory, int left, int top, CallbackInfo ci) {
 		data.setHotbarStartIndex(slots.size());
 	}
+	@Inject(method = "addInventoryExtendedSlots", at = @At("HEAD"))
+	void injectAddInventoryExtendedSlotsHead(Container inventory, int left, int top, CallbackInfo ci) {
+		data.setExtendedSlotsStartIndex(slots.size());
+	}
 }
