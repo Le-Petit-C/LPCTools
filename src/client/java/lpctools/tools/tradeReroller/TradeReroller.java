@@ -2,8 +2,10 @@ package lpctools.tools.tradeReroller;
 
 import com.google.common.collect.ImmutableList;
 import lpctools.lpcfymasaapi.configButtons.transferredConfigs.BooleanConfig;
+import lpctools.lpcfymasaapi.configButtons.transferredConfigs.IntegerConfig;
 import lpctools.lpcfymasaapi.configButtons.transferredConfigs.StringListConfig;
 import lpctools.lpcfymasaapi.configButtons.uniqueConfigs.BooleanHotkeyThirdListConfig;
+import lpctools.lpcfymasaapi.configButtons.uniqueConfigs.BooleanThirdListConfig;
 import lpctools.mixin.client.accessors.ConfigStringListAccessor;
 import lpctools.tools.ToolUtils;
 import lpctools.util.inGame.InGameUtils;
@@ -23,6 +25,9 @@ public class TradeReroller {
 	static {listStack.push(TRConfig);}
 	public static final StringListConfig targetEnchantments = addStringListConfig("targetEnchantments", ImmutableList.of());
 	public static final BooleanConfig reserveCheaperTraders = addBooleanConfig("reserveCheaperTraders", false);
+	public static final BooleanThirdListConfig displayRolls = addBooleanThirdListConfig("displayRolls", true, null);
+	public static final BooleanConfig onlyDisplaySucceededRolls = addBooleanConfig(displayRolls, "onlyDisplaySucceededRolls", false, null);
+	public static final IntegerConfig timeOutTicks = addIntegerConfig("timeOutTicks", 20 * 60 * 60); // default for 60 minutes (an hour or 3 minecraft days)
 	static {listStack.pop();}
 	static {
 		ClientPlayConnectionEvents.JOIN.register((_, _, _)->updateEnchantments());

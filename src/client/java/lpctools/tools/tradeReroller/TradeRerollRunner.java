@@ -13,6 +13,7 @@ import lpctools.util.inGame.ClientTickExecutor;
 import lpctools.util.inGame.InGameManager;
 import lpctools.util.inGame.InGameUtils;
 import lpctools.util.javaex.QuietAutoCloseable;
+import lpctools.util.javaex.ToBooleanFunction;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
@@ -20,6 +21,7 @@ import net.minecraft.core.NonNullList;
 import net.minecraft.core.Registry;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.network.chat.TextColor;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.InteractionHand;
@@ -29,6 +31,7 @@ import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.AnvilMenu;
 import net.minecraft.world.inventory.ContainerInput;
 import net.minecraft.world.inventory.MerchantMenu;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.enchantment.Enchantment;
@@ -70,13 +73,12 @@ class TradeRerollRunner implements ToolUtils.ToolRunner, ClientTickEvents.EndTic
 		return true;
 	}
 
-	private static void disableUnexpectedState() throws DisableSignal { throw new DisableSignal(); }
-	private static void tryPlaceBlockByOffhand(BlockPos pos, Block block, InGameManager data) throws DisableSignal {
+	private static void tryPlaceBlockByOffhand(BlockPos pos, ToBooleanFunction<? super Block> predicator, Item itemToReplace, InGameManager data) throws DisableSignal {
 		BlockState state = data.getBlockState(pos);
-		if(state.getBlock() == block) return;
-		if(!state.canBeReplaced()) throw new DisableSignal();
-		if(HandRestock.restock(item -> item.getItem() == block.asItem(), -1) <= 0)
-			throw new DisableSignal();
+		if(predicator.applyAsBoolean(state.getBlock())) return;
+		if(!state.canBeReplaced()) throw new DisableSignal(Component.translatable("lpctools.configs.tools.TR.cannotReplaceBlock", itemToReplace.getName(itemToReplace.getDefaultInstance())));
+		if(HandRestock.restock(item -> item.getItem() == itemToReplace, -1) <= 0)
+			throw new DisableSignal(Component.translatable("lpctools.configs.tools.TR.noBlocksLeft", itemToReplace.getName(itemToReplace.getDefaultInstance())));
 		data.useItemOn(InteractionHand.OFF_HAND, pos);
 	}
 	private @Nullable Villager getVillagerAroundLectern(InGameManager data) {
@@ -93,9 +95,8 @@ class TradeRerollRunner implements ToolUtils.ToolRunner, ClientTickEvents.EndTic
 	}
 
 	private static class DisableSignal extends Throwable {
-		final Component reason;
-		DisableSignal(Component reason) { this.reason = reason; }
-		DisableSignal() { this(Component.empty()); }
+		final MutableComponent reason;
+		DisableSignal(MutableComponent reason) { this.reason = reason; }
 	}
 
 	private interface ProcessStage {
@@ -105,13 +106,14 @@ class TradeRerollRunner implements ToolUtils.ToolRunner, ClientTickEvents.EndTic
 	}
 
 	private abstract static class AbstractProcessStage implements ProcessStage {
-		@Override public void onContainerContentInitialized(AbstractContainerMenu menu, InGameManager data) throws DisableSignal { disableUnexpectedState(); }
-		@Override public void onMerchantOffersUpdated(MerchantMenu menu, InGameManager data) throws DisableSignal { disableUnexpectedState(); }
+		@Override public void onContainerContentInitialized(AbstractContainerMenu menu, InGameManager data) throws DisableSignal {}
+		@Override public void onMerchantOffersUpdated(MerchantMenu menu, InGameManager data) throws DisableSignal {}
 		@Override public void onEndTick(Minecraft client, InGameManager data) throws DisableSignal {}
 	}
 
 	// 等待村民转换回无业
 	private class WaitingNone extends AbstractProcessStage {
+		@Override public void onMerchantOffersUpdated(MerchantMenu menu, InGameManager data) { /* ignore restock events */ }
 		@Override public void onEndTick(Minecraft client, InGameManager data) {
 			Villager villager = getVillagerAroundLectern(data);
 			if(villager != null && villager.getVillagerData().profession().is(NONE)) {
@@ -129,7 +131,7 @@ class TradeRerollRunner implements ToolUtils.ToolRunner, ClientTickEvents.EndTic
 	// 等待无业转化为图书管理员
 	private class WaitingLibrarian extends AbstractProcessStage {
 		@Override public void onEndTick(Minecraft client, InGameManager data) throws DisableSignal {
-			tryPlaceBlockByOffhand(lecternPos, Blocks.LECTERN, data);
+			tryPlaceBlockByOffhand(lecternPos, b -> b == Blocks.LECTERN, Items.LECTERN, data);
 			Villager villager = getVillagerAroundLectern(data);
 			if(villager != null && villager.getVillagerData().profession().is(LIBRARIAN)) {
 				operator.schedule(manager->manager.interact(villager, InteractionHand.MAIN_HAND));
@@ -141,17 +143,20 @@ class TradeRerollRunner implements ToolUtils.ToolRunner, ClientTickEvents.EndTic
 	// 等待交易界面加载
 	private class WaitingMerchantScreen extends AbstractProcessStage {
 		final Villager villager;
-		int menuUpdateCounter = 2;
+		int menuUpdateMask = 0;
 		WaitingMerchantScreen(Villager villager) { this.villager = villager; }
 		@Override public void onContainerContentInitialized(AbstractContainerMenu menu, InGameManager data) throws DisableSignal {
-			if (Objects.requireNonNull(menu) instanceof MerchantMenu merchantMenu)
+			if (Objects.requireNonNull(menu) instanceof MerchantMenu merchantMenu) {
+				menuUpdateMask |= 1;
 				tryHandleMerchant(merchantMenu, data);
+			}
 		}
 		@Override public void onMerchantOffersUpdated(MerchantMenu menu, InGameManager data) throws DisableSignal {
+			menuUpdateMask |= 2;
 			tryHandleMerchant(menu, data);
 		}
 		void tryHandleMerchant(MerchantMenu menu, InGameManager data) throws DisableSignal {
-			if(--menuUpdateCounter > 0) return;
+			if((menuUpdateMask & 3) != 3) return;
 			Merchant merchant = ((MerchantMenuAccessor)menu).getTrader();
 			EnchantmentTradeOption bookResult = null;
 			int lockTrade = -1;
@@ -172,16 +177,16 @@ class TradeRerollRunner implements ToolUtils.ToolRunner, ClientTickEvents.EndTic
 					if(!enchantments.isEmpty()) {
 						var firstEntry = enchantments.entrySet().iterator().next();
 						Identifier enchantmentId = enchantmentRegistry.getKey(firstEntry.getKey().value());
-						if(enchantmentId == null) {
-							// TODO msg("Unknown Enchantment: %s")
-							DataUtils.clientMessage("", false);
-						}
+						if(enchantmentId == null)
+							DataUtils.clientMessage(Component.translatable("lpctools.configs.tools.TR.unknownEnchantment", firstEntry.getKey().value().description().getString()), false);
 						else if(bookResult == null) {
 							var trade = new EnchantmentTradeOption(enchantmentId, firstEntry.getIntValue(), costA.count());
 							boolean valid = foundValidTrade(trade);
-							String msg = String.format("%s%s $%d", firstEntry.getKey().value().description().getString(), MathUtils.romanNumerals(firstEntry.getIntValue()), costA.count());
 							if(valid) bookResult = trade;
-							DataUtils.clientMessage(Component.literal(msg).withColor(valid ? TextColor.GREEN : TextColor.YELLOW), false);
+							if(displayRolls.getBooleanValue() && (valid || ! onlyDisplaySucceededRolls.getBooleanValue())) {
+								String msg = String.format("%s%s $%d", firstEntry.getKey().value().description().getString(), MathUtils.romanNumerals(firstEntry.getIntValue()), costA.count());
+								DataUtils.clientMessage(Component.literal(msg).withColor(valid ? TextColor.GREEN : TextColor.YELLOW), false);
+							}
 						}
 					}
 				}
@@ -203,12 +208,14 @@ class TradeRerollRunner implements ToolUtils.ToolRunner, ClientTickEvents.EndTic
 					}
 				}
 				if(!costA.isEmpty() || !costB.isEmpty())
-					throw new DisableSignal();
+					throw new DisableSignal(Component.translatable("lpctools.configs.tools.TR.missingLockItems"));
 				int finalLockTrade = lockTrade;
-				operator.schedule(manager->manager.selectMerchant(menu, finalLockTrade));
-				operator.schedule(manager->manager.handleContainerInput(menu.containerId, 2, 0, ContainerInput.PICKUP));
-				operator.schedule(InGameManager::closeContainer);
-				operator.schedule(manager->runCaught(()->tryPlaceBlockByOffhand(anvilPos, Blocks.ANVIL, manager)));
+				if(merchant.getVillagerXp() == 0) {
+					operator.schedule(manager->manager.selectMerchant(menu, finalLockTrade));
+					operator.schedule(manager->manager.handleContainerInput(menu.containerId, 2, 0, ContainerInput.PICKUP));
+					operator.schedule(InGameManager::closeContainer);
+				}
+				operator.schedule(manager->runCaught(()->tryPlaceBlockByOffhand(anvilPos, block -> block instanceof AnvilBlock, Items.ANVIL, manager)));
 				EnchantmentTradeOption finalBookResult = bookResult;
 				operator.schedule(manager->{
 					manager.useItemOn(InteractionHand.MAIN_HAND, anvilPos);
@@ -216,12 +223,14 @@ class TradeRerollRunner implements ToolUtils.ToolRunner, ClientTickEvents.EndTic
 				});
 				stage = null;
 			}
+			else if(bookResult != null)
+				disableToolExceptional(Component.translatable("lpctools.configs.tools.TR.notVanillaTrade"));
 			else {
-				if(bookResult != null) {
-					// TODO warning not vanilla?
-				}
-				operator.schedule(InGameManager::closeContainer);
-				stage = new WaitingNone();
+				operator.schedule(manager -> {
+					manager.closeContainer();
+					stage = new WaitingNone();
+				});
+				stage = null;
 			}
 		}
 	}
@@ -235,9 +244,7 @@ class TradeRerollRunner implements ToolUtils.ToolRunner, ClientTickEvents.EndTic
 			if(menu instanceof AnvilMenu anvilMenu) tryHandleAnvil(anvilMenu, data);
 		}
 		void tryHandleAnvil(AnvilMenu menu, InGameManager data) throws DisableSignal {
-			Villager villager = getVillagerAroundLectern(data);
-			if(villager == null) throw new IllegalStateException();
-			if(data.player().experienceLevel <= 0) throw new DisableSignal();
+			if(data.player().experienceLevel <= 0) throw new DisableSignal(Component.translatable("lpctools.configs.tools.TR.noExperience"));
 			NonNullList<ItemStack> menuItems = menu.getItems();
 			for(int i = 0; i < menuItems.size(); ++i) {
 				ItemStack stack = menuItems.get(i);
@@ -253,14 +260,16 @@ class TradeRerollRunner implements ToolUtils.ToolRunner, ClientTickEvents.EndTic
 					operator.schedule(_->runCaught(()->{
 						if(HandRestock.restock(s->s.is(Items.NAME_TAG)
 							&& s.getOrDefault(DataComponents.CUSTOM_NAME, Component.empty()).getString().equals(newName), -1) <= 0)
-							throw new DisableSignal(); // 大概率是背包没有空间了
+							throw new DisableSignal(Component.translatable("lpctools.configs.tools.TR.noNameTag")); // 大概率是背包没有空间了
 						}));
 					operator.schedule(InGameManager::closeContainer);
 					operator.schedule(InGameManager::swapHandsAutoStyle);
 					operator.schedule(manager->manager.interact(villager, InteractionHand.MAIN_HAND));
 					operator.schedule(InGameManager::swapHandsAutoStyle);
-					operator.schedule(manager->manager.useItemOn(InteractionHand.MAIN_HAND, nextButton));
-					operator.schedule(_ ->stage = new WaitingNone());
+					operator.schedule(manager->{
+						manager.useItemOn(InteractionHand.MAIN_HAND, nextButton);
+						stage = new WaitingNone();
+					});
 					stage = null;
 					return;
 				}
@@ -271,7 +280,8 @@ class TradeRerollRunner implements ToolUtils.ToolRunner, ClientTickEvents.EndTic
 	public TradeRerollRunner() throws ToolUtils.RunnerCreateFailedException {
 		InGameManager data = InGameManager.get();
 		var enchantmentRegistry = InGameUtils.getRegistry(net.minecraft.core.registries.Registries.ENCHANTMENT);
-		if(data == null || enchantmentRegistry == null) throw new ToolUtils.RunnerCreateFailedException();
+		if(data == null || enchantmentRegistry == null)
+			throw new ToolUtils.RunnerCreateFailedException(Component.translatable("lpctools.configs.tools.TR.createFailedNoData"));
 		this.enchantmentRegistry = enchantmentRegistry;
 		playerPos = data.playerPos();
 		BlockPos lecturePos = null, nextButton = null, anvilPos = null;
@@ -285,7 +295,8 @@ class TradeRerollRunner implements ToolUtils.ToolRunner, ClientTickEvents.EndTic
 			}
 			if(lecturePos != null && nextButton != null && anvilPos != null) break;
 		}
-		if(lecturePos == null || nextButton == null || anvilPos == null) throw new ToolUtils.RunnerCreateFailedException();
+		if(lecturePos == null || nextButton == null || anvilPos == null)
+			throw new ToolUtils.RunnerCreateFailedException(Component.translatable("lpctools.configs.tools.TR.createFailedNoBlocks"));
 		this.lecternPos = lecturePos;
 		this.nextButton = nextButton;
 		this.anvilPos = anvilPos;
@@ -318,9 +329,13 @@ class TradeRerollRunner implements ToolUtils.ToolRunner, ClientTickEvents.EndTic
 		Registries.CLIENT_MERCHANT_OFFERS_UPDATED.register(this, b);
 	}
 
+	private void disableToolExceptional(MutableComponent reason) {
+		disableTool(reason.withColor(TextColor.RED));
+	}
+
 	private void disableTool(Component reason) {
 		TradeReroller.TRConfig.setBooleanValue(false);
-		DataUtils.clientMessage(reason, true);
+		DataUtils.clientMessage(reason, false);
 	}
 
 	private interface StageEvent { void applyToStage(ProcessStage stage, InGameManager data) throws DisableSignal; }
@@ -330,7 +345,7 @@ class TradeRerollRunner implements ToolUtils.ToolRunner, ClientTickEvents.EndTic
 		try {
 			runnable.runThrowable();
 		} catch (DisableSignal e) {
-			disableTool(e.reason);
+			disableToolExceptional(e.reason);
 		}
 	}
 
@@ -342,15 +357,21 @@ class TradeRerollRunner implements ToolUtils.ToolRunner, ClientTickEvents.EndTic
 	}
 
 	@Override public void onEndTick(@NonNull Minecraft client) {
+		if(neededEnchantments.isEmpty()) {
+			disableTool(Component.translatable("lpctools.configs.tools.TR.allEnchantmentsObtained").withColor(TextColor.GREEN));
+			return;
+		}
 		if(client.isPaused()) return;
 		++timeOutCounter;
+		ProcessStage lastStage = stage;
 		processStageEvent((stage, data)->{
 			if(!data.playerPos().equals(playerPos))
-				// TODO message("别乱动！")
-				disableTool(Component.empty());
+				disableToolExceptional(Component.translatable("lpctools.configs.tools.TR.playerMoved"));
 			stage.onEndTick(client, data);
 		});
-		if(timeOutCounter >= 20 * 60) disableTool(Component.empty());
+		if(lastStage != stage) timeOutCounter = 0;
+		if(timeOutCounter >= timeOutTicks.getIntegerValue())
+			disableToolExceptional(Component.translatable("lpctools.configs.tools.TR.timeout"));
 	}
 
 	@Override public void onContainerContentInitialized(AbstractContainerMenu menu) {
