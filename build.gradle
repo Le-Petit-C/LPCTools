@@ -8,7 +8,21 @@ test {
 	failOnNoDiscoveredTests = false
 }
 
-project.mod_version = mod_version_prefix + mod_version_suffix
+// Get short git commit hash (e.g. "a1b2c3d"), returns "unknown" if git unavailable
+def gitHash = {
+	try {
+		def hash = "git rev-parse --short=8 HEAD".execute().text.trim()
+		return hash.isEmpty() ? "unknown" : hash
+	} catch (Throwable ignored) {
+		return "unknown"
+	}
+}
+
+def gitSuffix = project.hasProperty('append_git_hash') && append_git_hash.toBoolean() \
+	? "+" + gitHash() \
+	: ""
+
+project.mod_version = mod_version_prefix + mod_version_suffix + gitSuffix
 
 group = project.maven_group
 
