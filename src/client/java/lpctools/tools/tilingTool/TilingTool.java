@@ -22,10 +22,10 @@ import static lpctools.tools.tilingTool.TilingToolData.*;
 import static lpctools.util.DataUtils.clientMessage;
 
 public class TilingTool {
-    public static final BooleanHotkeyThirdListConfig TTConfig = ToolUtils.configBuilder("TT").withToolRunner(TilingToolExecutor::new).build();
+    public static final BooleanHotkeyThirdListConfig TTConfig = ToolUtils.configBuilder("TT").withToolRunner(TilingToolRunner::new).build();
     static {listStack.push(TTConfig);}
+    public static final LimitOperationSpeedConfig limitOperationSpeedConfig = addLimitOperationSpeedConfig(false);
     public static final ReachDistanceConfig reachDistance = addReachDistanceConfig();
-    public static final LimitOperationSpeedConfig limitOperationSpeed = addLimitOperationSpeedConfig(false, 1);
     public static final RangeLimitConfig rangeLimit = addRangeLimitConfig();
     static {rangeLimit.setValueChangeCallback(()->shapeList = rangeLimit.buildShapeList());}
     public static final BooleanConfig offhandOperate = addBooleanConfig("offhandOperate", false);

@@ -13,7 +13,7 @@ public class MossBorer {
     public static final BooleanHotkeyThirdListConfig MBConfig = new BooleanHotkeyThirdListConfig(ToolConfigs.toolConfigs, "MB", MossBorer::switchCallback);
     static {ToolUtils.setLPCToolsToggleText(MBConfig);}
     static {listStack.push(MBConfig);}
-    public static final LimitOperationSpeedConfig operationSpeed = addLimitOperationSpeedConfig(false, 1);
+    public static final LimitOperationSpeedConfig limitOperationSpeedConfig = addLimitOperationSpeedConfig(false);
     public static final ReachDistanceConfig reachDistance = addReachDistanceConfig();
     static {listStack.pop();}
     private static void switchCallback(){

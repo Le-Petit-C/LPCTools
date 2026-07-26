@@ -1,14 +1,13 @@
 package lpctools.tools.fillingAssistant;
 
 import com.google.common.collect.ImmutableSet;
-import fi.dy.masa.malilib.hotkeys.KeyCallbackToggleBoolean;
-import lpctools.lpcfymasaapi.Registries;
 import lpctools.lpcfymasaapi.configButtons.derivedConfigs.*;
 import lpctools.lpcfymasaapi.configButtons.transferredConfigs.*;
 import lpctools.lpcfymasaapi.configButtons.uniqueConfigs.BlockItemListConfig;
 import lpctools.lpcfymasaapi.configButtons.uniqueConfigs.BlockListConfig;
 import lpctools.lpcfymasaapi.configButtons.uniqueConfigs.BooleanHotkeyThirdListConfig;
-import lpctools.tools.ToolConfigs;
+import lpctools.tools.ToolUtils;
+import lpctools.util.inGame.InGameManager;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.core.BlockPos;
@@ -24,12 +23,11 @@ import static lpctools.tools.ToolUtils.*;
 import static lpctools.tools.fillingAssistant.FillingAssistantData.*;
 
 public class FillingAssistant {
-    public static final BooleanHotkeyThirdListConfig FAConfig = new BooleanHotkeyThirdListConfig(ToolConfigs.toolConfigs, "FA", FillingAssistant::switchCallback);
-    static {FAConfig.getKeybind().setCallback(new KeyCallbackToggleBoolean(FAConfig));}
+    public static final BooleanHotkeyThirdListConfig FAConfig = ToolUtils.configBuilder("FA").withToolRunner(FillingAssistantRunner::new).build();
     static {listStack.push(FAConfig);}
-    public static final LimitOperationSpeedConfig limitPlaceSpeedConfig = addLimitOperationSpeedConfig(false, 1);
+    public static final LimitOperationSpeedConfig limitOperationSpeedConfig = addLimitOperationSpeedConfig(false);
     public static final ReachDistanceConfig reachDistanceConfig = addReachDistanceConfig(FillingAssistant::reachDistanceConfigCallback);
-    public static final IntegerConfig testDistanceConfig = addIntegerConfig("testDistance", 6, 6, 64, FillingAssistant::testDistanceChangeCallback);
+    public static final IntegerConfig testDistanceConfig = addIntegerConfig("testDistance", 6, 6, 64);
     public static final BooleanConfig disableOnLeftDownConfig = addBooleanConfig("disableOnLeftDown", true);
     public static final BooleanConfig disableOnGUIOpened = addBooleanConfig("disableOnGUIOpened", false);
     public static final BlockItemListConfig placeableItemsConfig = addBlockItemListConfig("placeableItems", defaultPlaceableItemList);
@@ -41,27 +39,10 @@ public class FillingAssistant {
     public static final RangeLimitConfig limitFillingRange = addRangeLimitConfig();
     public static final ArrayOptionListConfig<OuterRangeBlockMethod> outerRangeBlockMethod = addArrayOptionListConfig(limitFillingRange, "outerRangeBlockMethod", outerRangeBlockMethods);
     static {listStack.pop();}
-    
-    private static void switchCallback() {
-        if(FAConfig.getBooleanValue()) enableTool();
-        else disableTool(null);
-    }
-    private static void reachDistanceConfigCallback(){testDistanceConfig.setMin((int)reachDistanceConfig.getAsDouble() + 1);}
-    private static void testDistanceChangeCallback(){if(runner != null) runner.setTestDistance(testDistanceConfig.getAsInt());}
-    
-    public static void enableTool(){
-        if(runner != null) return;
-        runner = new PlaceBlockTick();
-        FAConfig.setBooleanValue(true);
-        Registries.END_CLIENT_TICK.register(runner);
-        Registries.IN_GAME_END_MOUSE.register(runner);
-        displayEnableMessage(FAConfig);
-    }
+
+    private static void reachDistanceConfigCallback(){ testDistanceConfig.setMin((int)reachDistanceConfig.getAsDouble() + 1); }
+
     public static void disableTool(@Nullable String reasonKey){
-        if(runner == null) return;
-        Registries.END_CLIENT_TICK.unregister(runner);
-        Registries.IN_GAME_END_MOUSE.unregister(runner);
-        runner = null;
         FAConfig.setBooleanValue(false);
         displayDisableReason(FAConfig, reasonKey);
     }
@@ -80,11 +61,7 @@ public class FillingAssistant {
         else return true;
     }
     public static boolean required(Block block){return requiredBlocksConfig.contains(block);}
-    public static boolean required(BlockPos pos){
-        ClientLevel world = Minecraft.getInstance().level;
-        if (world != null) return required(world.getBlockState(pos).getBlock());
-        else return false;
-    }
+    public static boolean required(InGameManager manager, BlockPos pos){ return required(manager.getBlockState(pos).getBlock()); }
     public interface OuterRangeBlockMethod {
         boolean isBlockUnpassable(Block block);
         default boolean isUnpassable(BlockPos pos, @Nullable BlockGetter world){
@@ -92,6 +69,4 @@ public class FillingAssistant {
             else return isBlockUnpassable(Blocks.VOID_AIR);
         }
     }
-
-    @Nullable private static PlaceBlockTick runner = null;
 }

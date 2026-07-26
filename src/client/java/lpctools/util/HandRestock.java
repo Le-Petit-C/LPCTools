@@ -62,7 +62,7 @@ public class HandRestock {
         else count = slots.get(i).getItem().getCount();
         if(offhandPriority == -1){
             if(i != -2) {
-                if(i == getHotbarStartSlotIndex(player)) InGameUtils.swapHandsAutoStyle(player, itm);
+                if(i == getHotbarStartSlotIndex(player) + inventory.getSelectedSlot()) InGameUtils.swapHandsAutoStyle(player, itm);
                 else itm.handleContainerInput(player.containerMenu.containerId, i, Inventory.SLOT_OFFHAND, ContainerInput.SWAP, player);
             }
         }

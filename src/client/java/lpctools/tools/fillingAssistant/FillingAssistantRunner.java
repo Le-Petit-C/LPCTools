@@ -1,13 +1,15 @@
 package lpctools.tools.fillingAssistant;
 
 import lpctools.compact.derived.ShapeList;
+import lpctools.generic.OperationSpeedLimit;
 import lpctools.lpcfymasaapi.Registries;
+import lpctools.tools.ToolUtils;
 import lpctools.util.GuiUtils;
 import lpctools.util.HandRestock;
+import lpctools.util.inGame.InGameManager;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.input.MouseButtonInfo;
-import net.minecraft.client.multiplayer.MultiPlayerGameMode;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Vec3i;
@@ -20,41 +22,31 @@ import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jspecify.annotations.NonNull;
 
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.Queue;
 
-import static lpctools.lpcfymasaapi.configButtons.derivedConfigs.LimitOperationSpeedConfig.OperationResult.*;
 import static lpctools.tools.fillingAssistant.FillingAssistant.*;
 import static lpctools.util.BlockUtils.*;
 
-public class PlaceBlockTick implements ClientTickEvents.EndTick, Registries.InGameEndMouse {
-    public PlaceBlockTick(){
-        setTestDistance(testDistanceConfig.getAsInt());
-    }
+public class FillingAssistantRunner implements ClientTickEvents.EndTick, Registries.InGameEndMouse, ToolUtils.ToolRunner {
     public void setTestDistance(int distance){
+        if(testDistance == distance) return;
         testDistance = distance;
         testSize = distance * 2 + 1;
         map = new boolean[testSize][testSize][testSize];
         testBuffer = new boolean[testSize][testSize][testSize];
     }
 
-    @Override public void onEndTick(Minecraft client){
-        if(client.level == null){
-            disableTool("nullClientWorld");
+    @Override public void onEndTick(@NonNull Minecraft client){
+        InGameManager manager = InGameManager.get(client);
+        if(manager == null) {
+            disableTool("notInGame");
             return;
         }
-        if(client.player == null){
-            disableTool("nullClientPlayerEntity");
-            return;
-        }
-        MultiPlayerGameMode manager = client.gameMode;
-        if(manager == null){
-            disableTool("nullInteractionManager");
-            return;
-        }
-        if (manager.getPlayerMode() == GameType.SPECTATOR || manager.getPlayerMode() == GameType.ADVENTURE){
+        if (manager.gameType() == GameType.SPECTATOR || manager.gameType() == GameType.ADVENTURE){
             disableTool("unsupportedGameMode");
             return;
         }
@@ -67,49 +59,44 @@ public class PlaceBlockTick implements ClientTickEvents.EndTick, Registries.InGa
             disableTool("placeableItemRanOut");
             return;
         }
-        Vec3 eyePos = client.player.getEyePosition();
+        setTestDistance(testDistanceConfig.getAsInt());
+        Vec3 eyePos = manager.playerEyePos();
         BlockPos eyeBlockPos = new BlockPos((int)Math.floor(eyePos.x()), (int)Math.floor(eyePos.y()), (int)Math.floor(eyePos.z()));
         ShapeList shapeList = limitFillingRange.buildShapeList();
-        initializeMap(shapeList, eyeBlockPos, client.level);
-        DimensionType dimensionType = client.level.dimensionType();
+        initializeMap(shapeList, eyeBlockPos, manager.level);
+        DimensionType dimensionType = manager.dimensionType();
         int bottom = dimensionType.minY();
         int ceiling = bottom + dimensionType.height();
-        limitPlaceSpeedConfig.resetOperationTimes();
-        limitPlaceSpeedConfig.iterableOperate(reachDistanceConfig.iterateFromFurthest(eyePos), pos-> {
-             if(pos.getY() < bottom) return NO_OPERATION;
-             if(pos.getY() >= ceiling) return NO_OPERATION;
-             if(!shapeList.testPos(pos)) return NO_OPERATION;
-             if(tryPut(pos, restockTest)){
-                 if(isUnpassable(pos)){
-                     setMapVec3i(pos.subtract(currentPosition), true);
-                     return OPERATED;
-                 }
-             }
-             if(!FAConfig.getBooleanValue()) return SHOULD_BREAK;
-             return NO_OPERATION;
-        });
+        var limit = limitOperationSpeedConfig.getLimit().limitWithRestock(restockTest, offhandFillingConfig.getAsBoolean() ? -1 : 0);
+        for(BlockPos pos : reachDistanceConfig.iterateFromFurthest(eyePos)) {
+            if(!limit.hasReservedTimes()) break;
+            if(pos.getY() < bottom) continue;
+            if(pos.getY() >= ceiling) continue;
+            if(!shapeList.testPos(pos)) continue;
+            if(tryPut(manager, pos, limit)) {
+                if(isUnpassable(pos)){
+                    setMapVec3i(pos.subtract(currentPosition), true);
+                    continue;
+                }
+            }
+            if(!FAConfig.getBooleanValue()) break;
+		}
     }
     @Override public void onInGameEndMouse(MouseButtonInfo input, int action) {
         if(disableOnLeftDownConfig.getAsBoolean() && input.button() == 0 && action == 1)
             disableTool("mouseLeftDown");
     }
 
-    private boolean put(BlockPos blockPos, HandRestock.IRestockTest restockTest){
-        Minecraft client = Minecraft.getInstance();
-        if(client.gameMode == null || client.player == null) return false;
-        limitPlaceSpeedConfig.limitWithRestock(restockTest, offhandFillingConfig.getAsBoolean() ? -1 : 0);
+    private boolean put(InGameManager manager, BlockPos blockPos, OperationSpeedLimit restockLimit) {
+        restockLimit.costInteractBlock(); // 不管有没有成功，useItemOn一次都算是use了一次。另外这里同时也能立刻触发restock而避免放下“上一次拿着的方块”
         BlockHitResult hit = new BlockHitResult(Vec3.atCenterOf(blockPos), Direction.UP, blockPos.mutable(), false);
-        return client.gameMode.useItemOn(
-                client.player,
-                offhandFillingConfig.getAsBoolean() ? InteractionHand.OFF_HAND : InteractionHand.MAIN_HAND,
-                hit
-        ) == InteractionResult.SUCCESS;
+        return manager.useItemOn(offhandFillingConfig.getAsBoolean() ? InteractionHand.OFF_HAND : InteractionHand.MAIN_HAND, hit) == InteractionResult.SUCCESS;
     }
     private BlockPos currentPosition;//当前map区域的xyz值最小角坐标
-    private int testDistance;
-    private int testSize;
-    private boolean@NotNull [] @NotNull [] @NotNull [] map = new boolean[0][][];
-    private boolean@NotNull [] @NotNull [] @NotNull [] testBuffer = new boolean[0][][];
+    private int testDistance = -1;
+    private int testSize = -1;
+    private boolean @NotNull [] @NotNull [] @NotNull [] map = new boolean[0][][];
+    private boolean @NotNull [] @NotNull [] @NotNull [] testBuffer = new boolean[0][][];
     private void resetTestBuffer(){
         for (boolean[][] bufferX : testBuffer) {
             for (boolean[] bufferXY : bufferX) {
@@ -260,18 +247,23 @@ public class PlaceBlockTick implements ClientTickEvents.EndTick, Registries.InGa
         setMapVec3i(mapPos, false);
         return a == numPositions;
     }
-    private boolean tryPut(BlockPos pos, HandRestock.IRestockTest restockTest){
+    private boolean tryPut(InGameManager manager, BlockPos pos, OperationSpeedLimit restockLimit){
         if (!isReplaceable(pos)) return false;
         if (isUnpassable(pos)) return false;
-        if (required(pos)) return false;
-        if (required(pos.east())) return false;
-        if (required(pos.west())) return false;
-        if (required(pos.north())) return false;
-        if (required(pos.south())) return false;
-        if (required(pos.above())) return false;
-        if (required(pos.below())) return false;
+        if (required(manager, pos)) return false;
+        if (required(manager, pos.east())) return false;
+        if (required(manager, pos.west())) return false;
+        if (required(manager, pos.north())) return false;
+        if (required(manager, pos.south())) return false;
+        if (required(manager, pos.above())) return false;
+        if (required(manager, pos.below())) return false;
         if (canPut(pos.subtract(currentPosition)))
-            return put(pos, restockTest);
+            return put(manager, pos, restockLimit);
         return false;
+    }
+
+    @Override public void registerAll(boolean b) {
+        Registries.END_CLIENT_TICK.register(this, b);
+        Registries.IN_GAME_END_MOUSE.register(this, b);
     }
 }

@@ -1,58 +1,58 @@
 package lpctools.tools.antiSpawner;
 
 import lpctools.compact.derived.ShapeList;
-import lpctools.generic.GenericUtils;
-import lpctools.util.DataUtils;
+import lpctools.lpcfymasaapi.Registries;
+import lpctools.tools.ToolUtils;
 import lpctools.util.HandRestock;
+import lpctools.util.inGame.InGameManager;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
+import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
+import org.jspecify.annotations.NonNull;
 
-import static lpctools.lpcfymasaapi.configButtons.derivedConfigs.LimitOperationSpeedConfig.OperationResult.*;
 import static lpctools.tools.antiSpawner.AntiSpawner.*;
-import static lpctools.tools.antiSpawner.AntiSpawnerData.*;
 
-public class AntiSpawnerRunner implements ClientTickEvents.EndTick {
-    @Override public void onEndTick(Minecraft mc) {
-        if (mc.player == null || mc.level == null || mc.gameMode == null) {
+public class AntiSpawnerRunner implements ClientTickEvents.EndTick, ToolUtils.ToolRunner {
+    @Override public void onEndTick(@NonNull Minecraft mc) {
+        InGameManager manager = InGameManager.get(mc);
+        if (manager == null) {
             ASConfig.setBooleanValue(false);
             return;
         }
         if (mc.gui.screen() != null) return;
+        HandRestock.IRestockTest restockTest = item -> item.getItem() instanceof BlockItem blockItem && placeableItems.contains(blockItem);
+        var limit = limitOperationSpeedConfig.getLimit().limitWithRestock(restockTest, 0);
         if (HandRestock.search(restockTest, 0) == -1) return;
         ShapeList shapeList = rangeLimitConfig.buildShapeList();
-        limitOperationSpeedConfig.resetOperationTimes();
         //默认遍历的距离判断是与方块中心的距离，但是这里选择interact底下方块的上表面中心，所以添加了一个y+0.5的偏移修正
-        GenericUtils.MobSpawnTest spawnTest = GenericUtils.createSpawnTest();
-        limitOperationSpeedConfig.iterableOperate(
-            reachDistanceConfig.iterateFromClosest(mc.player.getEyePosition().add(0, 0.5, 0)),
-            pos -> {
-                if (!shapeList.testPos(pos)) return NO_OPERATION;
-                if (!spawnTest.mayMobSpawnAt(mc.level, mc.level.getLightEngine(), pos)) return NO_OPERATION;
-                if (!mc.level.getBlockState(pos).canBeReplaced()) return NO_OPERATION;
-                BlockPos downPos = pos.below();
-                BlockPos hitPos;
-                if (mc.level.getBlockState(pos.below()).canBeReplaced()) hitPos = pos;
-                else hitPos = downPos;
-                BlockHitResult hitResult = new BlockHitResult(
-                    Vec3.atBottomCenterOf(pos), Direction.UP, hitPos, false);
-                if (!mc.player.isShiftKeyDown()) {
-                    BlockState below = mc.level.getBlockState(pos.below());
-                    InteractionResult result = below.useWithoutItem(mc.level, mc.player, hitResult);
-                    if (result == InteractionResult.SUCCESS) {
-                        DataUtils.clientMessage(String.format("onUse at %s", pos.below().toString()), false);
-                        return NO_OPERATION;
-                    }
-                }
-                limitOperationSpeedConfig.limitWithRestock(restockTest, 0);
-                mc.gameMode.useItemOn(mc.player, InteractionHand.MAIN_HAND, hitResult);
-                return OPERATED;
-            });
+        for(BlockPos pos : reachDistanceConfig.iterateFromClosest(manager.player.getEyePosition().add(0, 0.5, 0))) {
+            if (!limit.hasReservedTimes()) break;
+            if (!shapeList.testPos(pos)) continue;
+            if (!manager.mayMobSpawnAt(pos)) continue;
+            if (!manager.getBlockState(pos).canBeReplaced()) continue;
+            BlockPos belowPos = pos.below();
+            BlockPos hitPos;
+            if (manager.getBlockState(belowPos).canBeReplaced()) hitPos = pos.immutable();
+            else hitPos = belowPos;
+            BlockHitResult hitResult = new BlockHitResult(
+                Vec3.atBottomCenterOf(pos), Direction.UP, hitPos, false);
+            // 非潜行时试探下方方块是否会拦截右键交互（如拉杆、按钮、工作台、熔炉等），若是则跳过此位置
+            if (!manager.isShiftKeyDown()) {
+                BlockState belowState = manager.getBlockState(belowPos);
+                InteractionResult result = belowState.useWithoutItem(manager.level, manager.player, hitResult);
+                if (result == InteractionResult.SUCCESS) continue;
+            }
+            manager.useItemOn(InteractionHand.MAIN_HAND, hitResult);
+            limit.costInteractBlock();
+        }
     }
+
+    @Override public void registerAll(boolean b) { Registries.END_CLIENT_TICK.register(this, b); }
 }

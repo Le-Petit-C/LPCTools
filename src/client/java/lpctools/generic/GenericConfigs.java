@@ -60,6 +60,7 @@ public class GenericConfigs {
     public static final UniqueDoubleConfig zFightBias = addConfigEx(l->new UniqueDoubleConfig(l, "zFightBias", 1.0 / (1 << 18), 1.0 / (1 << 30), 1, GenericConfigs::zFightBiasCallback)).logMode();
     public static final UniqueIntegerConfig maxCommandLength = addConfigEx(l->new UniqueIntegerConfig(l, "maxCommandLength", 32767, 0, Integer.MAX_VALUE, null));
     static {threadCountConfig.onValueChanged();}
+    static {addConfig(OperationSpeedLimit.limitOperationSpeed);}
     static {listStack.pop();}
     
     private static double hitBoxClamp(double x) {

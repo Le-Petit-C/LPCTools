@@ -1,13 +1,11 @@
 package lpctools.tools.liquidCleaner;
 
 import lpctools.compact.derived.ShapeList;
+import lpctools.generic.OperationSpeedLimit;
 import lpctools.util.GuiUtils;
-import lpctools.util.HandRestock;
+import lpctools.util.inGame.InGameManager;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.multiplayer.ClientLevel;
-import net.minecraft.client.multiplayer.MultiPlayerGameMode;
-import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.InteractionHand;
@@ -15,35 +13,20 @@ import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.GameType;
-import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.phys.BlockHitResult;
-import net.minecraft.world.phys.Vec3;
-import org.jetbrains.annotations.NotNull;
+import org.jspecify.annotations.NonNull;
 
-import static lpctools.lpcfymasaapi.configButtons.derivedConfigs.LimitOperationSpeedConfig.OperationResult.NO_OPERATION;
-import static lpctools.lpcfymasaapi.configButtons.derivedConfigs.LimitOperationSpeedConfig.OperationResult.OPERATED;
 import static lpctools.tools.liquidCleaner.LiquidCleaner.*;
 import static lpctools.util.BlockUtils.*;
 
 public class LiquidCleanerRunner implements ClientTickEvents.EndTick {
-    @Override public void onEndTick(Minecraft client) {
-        LocalPlayer player = client.player;
-        if (player == null) {
-            disableTool("nullClientPlayerEntity");
-            return;
-        }
-        ClientLevel world = client.level;
-        if (world == null) {
-            disableTool("nullClientWorld");
-            return;
-        }
-        MultiPlayerGameMode manager = client.gameMode;
+    @Override public void onEndTick(@NonNull Minecraft client) {
+        InGameManager manager = InGameManager.get(client);
         if (manager == null) {
-            disableTool("nullInteractionManager");
+            disableTool("notInGame");
             return;
         }
-        if (manager.getPlayerMode() == GameType.SPECTATOR || manager.getPlayerMode() == GameType.ADVENTURE){
+        if (manager.gameType() == GameType.SPECTATOR || manager.gameType() == GameType.ADVENTURE){
             disableTool("unsupportedGameMode");
             return;
         }
@@ -51,22 +34,23 @@ public class LiquidCleanerRunner implements ClientTickEvents.EndTick {
             disableTool("GUIOpened");
             return;
         }
-        Iterable<BlockPos> iterateRegion = reachDistanceConfig.iterateFromClosest(player.getEyePosition());
+        Iterable<BlockPos> iterateRegion = reachDistanceConfig.iterateFromClosest(manager.playerEyePos());
         ShapeList list = limitCleaningRange.buildShapeList();
-        limitOperationSpeedConfig.resetOperationTimes();
-        limitOperationSpeedConfig.iterableOperate(iterateRegion, pos -> {
-            if (shouldAttackBlock(list, player, pos)) {
+        var rootLimit = limitOperationSpeedConfig.getLimit();
+        for(BlockPos pos : iterateRegion) {
+            if(!rootLimit.hasReservedTimes()) break;
+            if (shouldAttackBlock(manager, list, pos)) {
                 manager.startDestroyBlock(pos.immutable(), Direction.DOWN);
-                return OPERATED;
-            }
-            return NO_OPERATION;
-        });
+                rootLimit.costBreakBlock();
+			}
+		}
         int offhandPriority = offhandFillingConfig.getAsBoolean() ? -1 : 0;
         InteractionHand hand = offhandFillingConfig.getAsBoolean() ? InteractionHand.OFF_HAND : InteractionHand.MAIN_HAND;
-        if (HandRestock.search(this::isStackOk, offhandPriority) == -1) return;
-        limitOperationSpeedConfig.iterableOperate(iterateRegion, pos -> {
+        var restockedLimit = rootLimit.limitWithRestock(this::isStackOk, offhandPriority);
+        for(BlockPos pos : iterateRegion) {
+            if(!restockedLimit.hasReservedTimes()) break;
             if (!list.testPos(pos)) {
-                if (!expandRange.getAsBoolean()) return NO_OPERATION;
+                if (!expandRange.getAsBoolean()) continue;
                 boolean shouldContinue = true;
                 for (Direction direction : Direction.values()) {
                     if (ignoreDownwardTest.getAsBoolean() && direction == Direction.UP) continue;
@@ -75,18 +59,14 @@ public class LiquidCleanerRunner implements ClientTickEvents.EndTick {
                         break;
                     }
                 }
-                if (shouldContinue) return NO_OPERATION;
+                if (shouldContinue) continue;
             }
-            BlockState state = world.getBlockState(pos);
+            BlockState state = manager.getBlockState(pos);
             if (isAllowedReplaceableLiquid(state)) {
-                limitOperationSpeedConfig.limitWithRestock(this::isStackOk, offhandPriority);
-                Vec3 midPos = Vec3.atCenterOf(pos);
-                BlockHitResult hitResult = new BlockHitResult(midPos, Direction.DOWN, pos.mutable(), false);
-                manager.useItemOn(player, hand, hitResult);
-                return OPERATED;
+                restockedLimit.costInteractBlock();
+                manager.useItemOn(hand, pos);
             }
-            return NO_OPERATION;
-        });
+        }
     }
     
     private static boolean isAllowedReplaceableLiquid(BlockState state) {
@@ -94,9 +74,8 @@ public class LiquidCleanerRunner implements ClientTickEvents.EndTick {
 		return !liquidSourceOnly.getAsBoolean() || state.getFluidState().isSource();
 	}
 
-    private static boolean shouldAttackBlock(@NotNull ShapeList shapeList, @NotNull LocalPlayer player, @NotNull BlockPos pos){
-        Level world = player.level();
-        BlockState state = world.getBlockState(pos);
+    private static boolean shouldAttackBlock(InGameManager manager, ShapeList shapeList, BlockPos pos){
+        BlockState state = manager.getBlockState(pos);
         if(!shapeList.testPos(pos)){
             if(!expandRange.getAsBoolean()) return false;
             boolean isNear = false;
@@ -110,12 +89,12 @@ public class LiquidCleanerRunner implements ClientTickEvents.EndTick {
             if(!isNear) return false;
             else if(!isContainingLiquid(state)) return false;
         }
-        if(!canBreakInstantly(player, pos)) return false;
+        if(!canBreakInstantly(manager.player, pos)) return false;
         if(!isReplaceable(state) && isContainingLiquid(state)) return true;
         if(!cleaningBlocks.contains(state.getBlock())) return false;
         for(Direction direction : Direction.values()){
             if(ignoreDownwardTest.getAsBoolean() && direction == Direction.DOWN) continue;
-            if(isContainingLiquid(world.getBlockState(pos.relative(direction)))) return false;
+            if(isContainingLiquid(manager.getBlockState(pos.relative(direction)))) return false;
         }
         return true;
     }

@@ -16,7 +16,7 @@ public class LiquidCleaner {
     public static final BooleanHotkeyThirdListConfig LCConfig = new BooleanHotkeyThirdListConfig(ToolConfigs.toolConfigs, "LC", LiquidCleaner::switchCallback);
     static {LCConfig.getKeybind().setCallback(new KeyCallbackToggleBoolean(LCConfig));}
     static {listStack.push(LCConfig);}
-    public static final LimitOperationSpeedConfig limitOperationSpeedConfig = addLimitOperationSpeedConfig(false, 1);
+    public static final LimitOperationSpeedConfig limitOperationSpeedConfig = addLimitOperationSpeedConfig(false);
     public static final ReachDistanceConfig reachDistanceConfig = addReachDistanceConfig();
     public static final BooleanConfig disableOnGUIOpened = addBooleanConfig("disableOnGUIOpened", false);
     public static final BooleanConfig offhandFillingConfig = addBooleanConfig("offhandFilling", false);

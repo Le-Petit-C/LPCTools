@@ -245,7 +245,7 @@ class TradeRerollRunner implements ToolUtils.ToolRunner, ClientTickEvents.EndTic
 			if(menu instanceof AnvilMenu anvilMenu) tryHandleAnvil(anvilMenu, data);
 		}
 		void tryHandleAnvil(AnvilMenu menu, InGameManager data) throws DisableSignal {
-			if(data.player().experienceLevel <= 0) throw new DisableSignal(Component.translatable("lpctools.configs.tools.TR.noExperience"));
+			if(data.player.experienceLevel <= 0) throw new DisableSignal(Component.translatable("lpctools.configs.tools.TR.noExperience"));
 			NonNullList<ItemStack> menuItems = menu.getItems();
 			for(int i = 0; i < menuItems.size(); ++i) {
 				ItemStack stack = menuItems.get(i);
@@ -286,7 +286,7 @@ class TradeRerollRunner implements ToolUtils.ToolRunner, ClientTickEvents.EndTic
 		this.enchantmentRegistry = enchantmentRegistry;
 		playerPos = data.playerPos();
 		BlockPos lecturePos = null, nextButton = null, anvilPos = null;
-		for(BlockPos pos : AlgorithmUtils.playerTouchablePoses(data.player())) {
+		for(BlockPos pos : AlgorithmUtils.playerTouchablePoses(data.player)) {
 			BlockState state = data.getBlockState(pos);
 			switch (state.getBlock()) {
 				case LecternBlock _ -> { if(lecturePos == null) lecturePos = pos.immutable(); }

@@ -9,22 +9,23 @@ import lpctools.lpcfymasaapi.interfaces.ILPCValueChangeCallback;
 import lpctools.lpcfymasaapi.interfaces.ILPC_MASAConfigWrapper;
 import lpctools.lpcfymasaapi.interfaces.data.LPCConfigData;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.function.DoubleConsumer;
 import java.util.function.DoubleSupplier;
 
 @SuppressWarnings({"UnusedReturnValue", "unused"})
 public class DoubleConfig extends ConfigDouble implements ILPC_MASAConfigWrapper<ConfigDouble>, DoubleSupplier, DoubleConsumer {
-    public DoubleConfig(ILPCConfigReadable parent, String nameKey, double defaultDouble){
+    public DoubleConfig(ILPCConfigReadable parent, String nameKey, double defaultDouble) {
         this(parent, nameKey, defaultDouble, Double.MIN_VALUE, Double.MAX_VALUE, null);
     }
-    public DoubleConfig(ILPCConfigReadable parent, String nameKey, double defaultDouble, ILPCValueChangeCallback callback){
+    public DoubleConfig(ILPCConfigReadable parent, String nameKey, double defaultDouble, @Nullable ILPCValueChangeCallback callback) {
         this(parent, nameKey, defaultDouble, Double.MIN_VALUE, Double.MAX_VALUE, callback);
     }
-    public DoubleConfig(ILPCConfigReadable parent, String nameKey, double defaultDouble, double minValue, double maxValue){
+    public DoubleConfig(ILPCConfigReadable parent, String nameKey, double defaultDouble, double minValue, double maxValue) {
         this(parent, nameKey, defaultDouble, minValue, maxValue, null);
     }
-    public DoubleConfig(ILPCConfigReadable parent, String nameKey, double defaultDouble, double minValue, double maxValue, ILPCValueChangeCallback callback){
+    public DoubleConfig(ILPCConfigReadable parent, String nameKey, double defaultDouble, double minValue, double maxValue, @Nullable ILPCValueChangeCallback callback) {
         super(nameKey, defaultDouble, minValue, maxValue);
         data = new LPCConfigData(parent, false);
         ILPC_MASAConfigWrapperDefaultInit(callback);
