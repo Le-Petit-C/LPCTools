@@ -1,4 +1,4 @@
-package lpctools.tools.antiSpawner;
+package lpctools.tools.spawnProofer;
 
 import com.google.common.collect.ImmutableList;
 import lpctools.util.BlockUtils;
@@ -9,7 +9,7 @@ import java.util.ArrayList;
 
 import static lpctools.util.DataUtils.getBlockId;
 
-public class AntiSpawnerData {
+public class SpawnProoferData {
     public static final ImmutableList<BlockItem> defaultPlaceableItems;
     static {
         ArrayList<BlockItem> placeableItems = new ArrayList<>();

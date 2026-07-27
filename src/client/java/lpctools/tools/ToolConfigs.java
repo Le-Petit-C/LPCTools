@@ -7,7 +7,7 @@ import lpctools.lpcfymasaapi.configButtons.uniqueConfigs.ButtonConfig;
 import lpctools.tools.bedrockKiller.BedrockKiller;
 import lpctools.tools.leakPreventer.LeakPreventer;
 import lpctools.tools.autoGrindstone.AutoGrindstone;
-import lpctools.tools.antiSpawner.AntiSpawner;
+import lpctools.tools.spawnProofer.SpawnProofer;
 import lpctools.tools.autoReconnect.AutoReconnect;
 import lpctools.tools.breakRestriction.BreakRestriction;
 import lpctools.tools.canSpawnDisplay.CanSpawnDisplay;
@@ -35,7 +35,7 @@ public class ToolConfigs {
             LiquidCleaner.LCConfig,
             SlightXRay.SXConfig,
             AutoGrindstone.AGConfig,
-            AntiSpawner.ASConfig,
+            SpawnProofer.ASConfig,
             CanSpawnDisplay.CSConfig,
             BreakRestriction.BRConfig,
             TilingTool.TTConfig,

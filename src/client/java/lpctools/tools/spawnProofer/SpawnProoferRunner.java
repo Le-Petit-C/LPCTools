@@ -1,4 +1,4 @@
-package lpctools.tools.antiSpawner;
+package lpctools.tools.spawnProofer;
 
 import lpctools.compact.derived.ShapeList;
 import lpctools.generic.OperationSpeedLimit;
@@ -18,9 +18,9 @@ import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
 import org.jspecify.annotations.NonNull;
 
-import static lpctools.tools.antiSpawner.AntiSpawner.*;
+import static lpctools.tools.spawnProofer.SpawnProofer.*;
 
-public class AntiSpawnerRunner implements ClientTickEvents.EndTick, ToolUtils.ToolRunner {
+public class SpawnProoferRunner implements ClientTickEvents.EndTick, ToolUtils.ToolRunner {
     @Override public void onEndTick(@NonNull Minecraft mc) {
         InGameManager manager = InGameManager.get(mc);
         if (manager == null) {
