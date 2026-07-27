@@ -1,0 +1,128 @@
+# 发布工作流 — 仅手动触发，master 分支不会自动发布
+
+name: Publish to Modrinth & CurseForge
+
+# 🔒 只允许手动触发，绝不自动发布！
+# 在 GitHub 仓库页面 → Actions → "Publish to Modrinth & CurseForge" → Run workflow
+on:
+  workflow_dispatch:
+    inputs:
+      release-type:
+        description: '发布类型'
+        required: true
+        type: choice
+        default: 'beta'
+        options:
+          - 'release'
+          - 'beta'
+          - 'alpha'
+      changelog:
+        description: '更新日志'
+        required: false
+        type: string
+
+env:
+  MOD_LOADER: fabric
+
+permissions:
+  contents: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-22.04
+
+    steps:
+      # 1. 拉取代码
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # 2. 从 fabric.mod.json / build.gradle / gradle.properties 读取所有版本号
+      - name: Extract versions
+        id: versions
+        run: |
+          MC_VERSIONS=$(jq -r '.depends.minecraft | if type == "array" then join(" ") else . end' src/client/resources/fabric.mod.json)
+          JAVA_VER=$(grep -oP 'release\s*=\s*\K\d+' build.gradle | head -1)
+          MOD_PREFIX=$(grep -oP 'mod_version_prefix=\K.*' gradle.properties)
+          MOD_SUFFIX=$(grep -oP 'mod_version_suffix=\K.*' gradle.properties)
+          MOD_VER="${MOD_PREFIX}${MOD_SUFFIX}"
+          echo "mc_versions=$MC_VERSIONS" >> $GITHUB_OUTPUT
+          echo "java_version=$JAVA_VER" >> $GITHUB_OUTPUT
+          echo "mod_version=$MOD_VER" >> $GITHUB_OUTPUT
+          echo "MC=$MC_VERSIONS  Java=$JAVA_VER  Mod=$MOD_VER"
+
+      # 3. 强制使用官方 Gradle 源
+      - name: Force official Gradle distribution
+        run: |
+          sed -i 's#https://[^/]*/gradle/#https://services.gradle.org/distributions/#g' gradle/wrapper/gradle-wrapper.properties
+
+      # 4. 安装 Java
+      - name: Setup JDK ${{ steps.versions.outputs.java_version }}
+        uses: actions/setup-java@v4
+        with:
+          java-version: ${{ steps.versions.outputs.java_version }}
+          distribution: 'temurin'
+
+      # 5. 缓存 Gradle
+      - name: Cache Gradle
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: gradle-${{ runner.os }}-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: |
+            gradle-${{ runner.os }}-
+
+      # 6. 赋予执行权限
+      - name: Make Gradle wrapper executable
+        run: chmod +x ./gradlew
+
+      # 7. 构建
+      - name: Build
+        run: ./gradlew build --no-daemon
+
+      # 8. 发布到 Modrinth + CurseForge + GitHub Releases
+      - name: Publish
+        uses: Kir-Antipov/mc-publish@v3.3.1
+        with:
+          # ========== CurseForge ==========
+          curseforge-id: "1300485"
+          curseforge-token: ${{ secrets.CURSEFORGE_TOKEN }}
+
+          # ========== Modrinth ==========
+          modrinth-id: "mogwUCSX"
+          modrinth-token: ${{ secrets.MODRINTH_TOKEN }}
+
+          # ========== GitHub Releases ==========
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          github-tag: "v${{ steps.versions.outputs.mod_version }}"
+          github-draft: false
+          github-commitish: ${{ github.ref_name }}
+
+          # ========== 版本信息（均从 gradle.properties / build.gradle 自动读取） ==========
+          version: ${{ steps.versions.outputs.mod_version }}
+          version-type: ${{ inputs.release-type }}
+
+          # 如果手动输入了 changelog 就用它，没有则留空
+          changelog: ${{ inputs.changelog || '' }}
+
+          # ========== 平台信息 ==========
+          loaders: ${{ env.MOD_LOADER }}
+          game-versions: ${{ steps.versions.outputs.mc_versions }}
+          java: ${{ steps.versions.outputs.java_version }}
+
+          # ========== 依赖 ==========
+          # required  = fabric.mod.json 中 depends   → 没有则崩溃
+          # optional  = fabric.mod.json 中 suggests  → 没有则正常加载
+          dependencies: |
+            fabric-api(required)
+            malilib(required)
+            minihud(optional)
+            litematica(optional)
+            tweakeroo(optional)
+
+          # 上传 remapped jar（排除 -dev、-sources、-javadoc）
+          files: build/libs/!(*-@(dev|sources|javadoc)).jar
+
+          # 遇到发布失败时的行为：fail=立即失败 / warn=警告但继续 / skip=跳过并最后报错
+          fail-mode: fail
