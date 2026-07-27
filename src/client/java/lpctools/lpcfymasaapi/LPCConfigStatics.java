@@ -145,9 +145,6 @@ public interface LPCConfigStatics {
     static ReachDistanceConfig addReachDistanceConfig(ILPCConfigList list, @Nullable ILPCValueChangeCallback callback){
         return list.addConfig(new ReachDistanceConfig(list, callback));
     }
-    static LimitOperationSpeedConfig addLimitOperationSpeedConfig(ILPCConfigList list, boolean defaultBoolean){
-        return list.addConfig(new LimitOperationSpeedConfig(list, OperationSpeedLimit.root(), defaultBoolean));
-    }
     static <T> ConfigListOptionListConfigEx<T> addConfigListOptionListConfigEx(ILPCConfigList list, @NotNull String nameKey){
         return list.addConfig(new ConfigListOptionListConfigEx<>(list, nameKey));
     }
@@ -352,9 +349,6 @@ public interface LPCConfigStatics {
     }
     static ReachDistanceConfig addReachDistanceConfig(@Nullable ILPCValueChangeCallback callback){
         return addReachDistanceConfig(peekConfigList(), callback);
-    }
-    static LimitOperationSpeedConfig addLimitOperationSpeedConfig(boolean defaultBoolean){
-        return addLimitOperationSpeedConfig(peekConfigList(), defaultBoolean);
     }
     static <T> ConfigListOptionListConfigEx<T> addConfigListOptionListConfigEx(@NotNull String nameKey){
         return addConfigListOptionListConfigEx(peekConfigList(), nameKey);

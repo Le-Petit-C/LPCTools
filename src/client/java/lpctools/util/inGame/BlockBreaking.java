@@ -1,17 +1,16 @@
 package lpctools.util.inGame;
 
+import it.unimi.dsi.fastutil.objects.ObjectBooleanBiConsumer;
+import lpctools.generic.OperationSpeedLimit;
 import lpctools.lpcfymasaapi.Registries;
-import lpctools.mixin.client.accessors.MultiPlayerGameModeAccessor;
-import lpctools.mixinData.MixinData;
 import lpctools.util.GameTime;
 import lpctools.util.MathUtils;
 import lpctools.util.data.SimpleSpaceOctreeMap;
+import lpctools.util.javaex.QuietAutoCloseable;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientLevelEvents;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
-import net.minecraft.client.multiplayer.MultiPlayerGameMode;
-import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Vec3i;
@@ -46,7 +45,7 @@ public class BlockBreaking {
 	public boolean isRemoved() { return getState().isResultState; }
 
 	@Contract("_->this")
-	public BlockBreaking callback(@NotNull BiConsumer<BlockBreaking, BreakingState> callback) {
+	public BlockBreaking appendCallback(@NotNull BiConsumer<BlockBreaking, BreakingState> callback) {
 		if(this.callback == null) this.callback = callback;
 		else {
 			BiConsumer<BlockBreaking, BreakingState> lastCallback = this.callback;
@@ -58,10 +57,48 @@ public class BlockBreaking {
 		return this;
 	}
 
+	public BlockBreaking appendOnResultCallback(@NotNull ObjectBooleanBiConsumer<BlockBreaking> callback) {
+		return appendCallback((breaking, state) -> { if(state.isResultState) callback.accept(breaking, state == BreakingState.SUCCEEDED); });
+	}
+
+	public BlockBreaking appendRemoveOnResultCallback(Map<BlockPos, BlockBreaking> map) {
+		return appendOnResultCallback((breaking, _) -> map.remove(breaking.getPos()));
+	}
+
 	public static BlockBreaking scheduleBreak(BlockPos pos) {
 		BlockBreaking instance = new BlockBreaking(pos);
 		instance.scheduleUpdate();
 		return instance;
+	}
+
+	public static BlockBreaking scheduleRemoveOnResultBreakIfAbsent(Map<BlockPos, BlockBreaking> map, BlockPos pos) {
+		return map.computeIfAbsent(pos.immutable(), p->BlockBreaking.scheduleBreak(p).appendRemoveOnResultCallback(map));
+	}
+
+	public static BlockBreakingCollection createBreakingCollection() { return new BlockBreakingCollection(); }
+
+	public static class BlockBreakingCollection implements QuietAutoCloseable {
+		private final HashMap<BlockPos, BlockBreaking> breakingCache = new HashMap<>();
+		private final HashSet<BlockPos> posCache = new HashSet<>();
+		public interface BreakingScheduler extends QuietAutoCloseable { void scheduleBreak(BlockPos pos); }
+		public BreakingScheduler startUpdateBreakings() {
+			posCache.addAll(breakingCache.keySet());
+			return new BreakingScheduler() {
+				@Override public void scheduleBreak(BlockPos pos) {
+					scheduleRemoveOnResultBreakIfAbsent(breakingCache, pos);
+					posCache.remove(pos);
+				}
+				@Override public void close() {
+					posCache.forEach(p->breakingCache.remove(p).cancel());
+					posCache.clear();
+				}
+			};
+		}
+		@Override public void close() {
+			ArrayList<BlockBreaking> stored = new ArrayList<>(breakingCache.values());
+			stored.forEach(BlockBreaking::cancel);
+			breakingCache.clear();
+		}
 	}
 
 	public void cancel() {
@@ -104,10 +141,9 @@ public class BlockBreaking {
 		}
 		@Override public void onEndTick(@NonNull Minecraft client) {
 			if(client.isPaused()) return;
-			LocalPlayer player = client.player;
-			MultiPlayerGameMode gameMode = client.gameMode;
-			ClientLevel level = client.level;
-			if(player == null || gameMode == null || level == null) {
+			InGameManager manager = InGameManager.get(client);
+			var limit = OperationSpeedLimit.root();
+			if(manager == null) {
 				clear();
 				assert map.isEmpty();
 			}
@@ -138,47 +174,45 @@ public class BlockBreaking {
 				registerAll(false);
 				return;
 			}
-			if(MixinData.getData(gameMode).continueBreakUpdatedThisTick()) return;
-			Vec3 playerEyePos = player.getEyePosition();
-			double reachSqr = MathUtils.square(player.blockInteractionRange());
-			if(gameMode.isDestroying()) {
-				MultiPlayerGameModeAccessor gameModeAccessor = (MultiPlayerGameModeAccessor)gameMode;
-				BlockPos currentPos = gameModeAccessor.getDestroyBlockPos();
+			if(manager.gameModeExtraData().continueBreakUpdatedThisTick()) return;
+			Vec3 playerEyePos = manager.playerEyePos();
+			double reachSqr = MathUtils.square(manager.blockInteractionRange());
+			if(manager.isDestroying()) {
+				BlockPos currentPos = manager.getDestroyBlockPos();
 				if(MathUtils.minSquaredDistanceToBlock(playerEyePos, currentPos) >= reachSqr) {
-					gameMode.stopDestroyBlock();
+					manager.stopDestroyBlock();
 					breakState(currentPos, BreakingState.WAITING);
 				}
 			}
-			if(!gameMode.isDestroying()) {
+			if(!manager.isDestroying() && limit.hasReservedTimes()) {
 				BlockPos.MutableBlockPos cache = new BlockPos.MutableBlockPos();
 				Vec3i expand = new Vec3i(1, 1, 1);
 				for(var entry : map.fromClosestBounds(playerEyePos)) {
 					if(MathUtils.cycledSquaredClosestDistance(playerEyePos, entry.getKey(cache), expand) >= reachSqr) break;
-					if(!level.getBlockState(cache).isAir()) {
-						gameMode.startDestroyBlock(cache, player.getDirection().getOpposite());
-						if(gameMode.isDestroying()) {
+					if(!manager.getBlockState(cache).isAir()) {
+						manager.startDestroyBlock(cache, manager.playerDirection().getOpposite());
+						limit.costBreakBlock();
+						if(manager.isDestroying()) {
 							breakState(cache, BreakingState.BREAKING);
 							break;
 						}
 					}
 					breakSuccess(cache);
+					if(!limit.hasReservedTimes()) break;
 				}
 			}
-			if(gameMode.isDestroying()) {
-				MultiPlayerGameModeAccessor gameModeAccessor = (MultiPlayerGameModeAccessor)gameMode;
-				BlockPos pos = gameModeAccessor.getDestroyBlockPos();
-				Direction direction = player.getDirection().getOpposite();
-				if (gameMode.continueDestroyBlock(pos, direction)) {
-					level.addBreakingBlockEffect(pos, direction);
-					player.swing(InteractionHand.MAIN_HAND);
+			if(manager.isDestroying()) {
+				BlockPos pos = manager.getDestroyBlockPos();
+				Direction direction = manager.playerDirection().getOpposite();
+				if (manager.continueDestroyBlock(pos, direction)) {
+					manager.addBreakingBlockEffect(pos, direction);
+					manager.swing(InteractionHand.MAIN_HAND);
 				}
-				if(!gameMode.isDestroying()) breakSuccess(pos);
+				if(!manager.isDestroying()) breakSuccess(pos);
 				else lastProgressTick = GameTime.getClientTickCount();
 			}
 		}
-		@Override public void afterLevelChange(@NonNull Minecraft client, @NonNull ClientLevel level) {
-			clear();
-		}
+		@Override public void afterLevelChange(@NonNull Minecraft client, @NonNull ClientLevel level) { clear(); }
 		private void breakState(BlockPos pos, BreakingState state) {
 			Collection<BlockBreaking> breakings = map.get(pos);
 			for(BlockBreaking breaking : breakings) breaking.setState(state);

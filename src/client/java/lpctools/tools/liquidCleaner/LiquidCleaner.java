@@ -1,11 +1,10 @@
 package lpctools.tools.liquidCleaner;
 
-import fi.dy.masa.malilib.hotkeys.KeyCallbackToggleBoolean;
 import lpctools.lpcfymasaapi.configButtons.derivedConfigs.*;
 import lpctools.lpcfymasaapi.configButtons.transferredConfigs.BooleanConfig;
 import lpctools.lpcfymasaapi.configButtons.uniqueConfigs.BlockItemListConfig;
 import lpctools.lpcfymasaapi.configButtons.uniqueConfigs.BooleanHotkeyThirdListConfig;
-import lpctools.tools.ToolConfigs;
+import lpctools.tools.ToolUtils;
 import org.jetbrains.annotations.Nullable;
 
 import static lpctools.lpcfymasaapi.LPCConfigStatics.*;
@@ -13,10 +12,8 @@ import static lpctools.tools.ToolUtils.*;
 import static lpctools.tools.liquidCleaner.LiquidCleanerData.*;
 
 public class LiquidCleaner {
-    public static final BooleanHotkeyThirdListConfig LCConfig = new BooleanHotkeyThirdListConfig(ToolConfigs.toolConfigs, "LC", LiquidCleaner::switchCallback);
-    static {LCConfig.getKeybind().setCallback(new KeyCallbackToggleBoolean(LCConfig));}
+    public static final BooleanHotkeyThirdListConfig LCConfig = ToolUtils.configBuilder("LC").withToolRunner(LiquidCleanerRunner::new).build();
     static {listStack.push(LCConfig);}
-    public static final LimitOperationSpeedConfig limitOperationSpeedConfig = addLimitOperationSpeedConfig(false);
     public static final ReachDistanceConfig reachDistanceConfig = addReachDistanceConfig();
     public static final BooleanConfig disableOnGUIOpened = addBooleanConfig("disableOnGUIOpened", false);
     public static final BooleanConfig offhandFillingConfig = addBooleanConfig("offhandFilling", false);
@@ -26,21 +23,8 @@ public class LiquidCleaner {
     public static final BooleanConfig expandRange = addBooleanConfig(limitCleaningRange, "expandRange", false);
     public static final BooleanConfig liquidSourceOnly = addBooleanConfig("liquidSourceOnly", false);
     static {listStack.pop();}
-    private static void switchCallback() {
-        if(LCConfig.getBooleanValue()) enableTool();
-        else disableTool(null);
-    }
-    public static boolean isEnabled(){return runner != null;}
-    public static void enableTool(){
-        if(isEnabled()) return;
-        displayEnableMessage(LCConfig);
-        runner = new LiquidCleanerRunner();
-        lpctools.lpcfymasaapi.Registries.END_CLIENT_TICK.register(runner);
-    }
-    public static void disableTool(@Nullable String reasonKey){
-        if(!isEnabled()) return;
-        lpctools.lpcfymasaapi.Registries.END_CLIENT_TICK.unregister(runner);
-        runner = null;
+    public static void disableTool(@Nullable String reasonKey) {
+        LCConfig.setBooleanValue(false);
         displayDisableReason(LCConfig, reasonKey);
     }
 }

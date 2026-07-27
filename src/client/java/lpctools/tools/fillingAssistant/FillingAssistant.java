@@ -25,7 +25,6 @@ import static lpctools.tools.fillingAssistant.FillingAssistantData.*;
 public class FillingAssistant {
     public static final BooleanHotkeyThirdListConfig FAConfig = ToolUtils.configBuilder("FA").withToolRunner(FillingAssistantRunner::new).build();
     static {listStack.push(FAConfig);}
-    public static final LimitOperationSpeedConfig limitOperationSpeedConfig = addLimitOperationSpeedConfig(false);
     public static final ReachDistanceConfig reachDistanceConfig = addReachDistanceConfig(FillingAssistant::reachDistanceConfigCallback);
     public static final IntegerConfig testDistanceConfig = addIntegerConfig("testDistance", 6, 6, 64);
     public static final BooleanConfig disableOnLeftDownConfig = addBooleanConfig("disableOnLeftDown", true);

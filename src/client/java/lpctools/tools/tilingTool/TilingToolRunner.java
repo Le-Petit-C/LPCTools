@@ -1,6 +1,7 @@
 package lpctools.tools.tilingTool;
 
 import com.google.common.collect.ImmutableSet;
+import lpctools.generic.OperationSpeedLimit;
 import lpctools.lpcfymasaapi.Registries;
 import lpctools.tools.ToolUtils;
 import lpctools.util.HandRestock;
@@ -29,6 +30,7 @@ public class TilingToolRunner implements ToolUtils.ToolRunner, ClientTickEvents.
     }
     @Override public void registerAll(boolean b){ Registries.END_CLIENT_TICK.register(this, b); }
     @Override public void onEndTick(@NonNull Minecraft mc) {
+        if(mc.isPaused()) return;
         if(storedData == null) {
             if(autoRefresh.get().refreshOnExecuteNull)
                 autoRefreshOperation.get().run();
@@ -56,7 +58,7 @@ public class TilingToolRunner implements ToolUtils.ToolRunner, ClientTickEvents.
             return blockFitsBlockAtPos.getBoolean(blockItem.getBlock());
         };
         int offhandPriority = offhandOperate.getAsBoolean() ? -1 : 0;
-        var limit = limitOperationSpeedConfig.getLimit().limitWithRestock(restockTest, offhandPriority);
+        var limit = OperationSpeedLimit.root().limitWithRestock(restockTest, offhandPriority);
         for(BlockPos pos : reachDistance.iterateFromClosest(manager.playerEyePos())) {
             if(!limit.hasReservedTimesRegardlessRestock()) break;
             if(!shapeList.testPos(pos)) continue;

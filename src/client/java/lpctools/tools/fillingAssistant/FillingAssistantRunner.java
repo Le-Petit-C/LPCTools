@@ -41,6 +41,7 @@ public class FillingAssistantRunner implements ClientTickEvents.EndTick, Registr
     }
 
     @Override public void onEndTick(@NonNull Minecraft client){
+        if(client.isPaused()) return;
         InGameManager manager = InGameManager.get(client);
         if(manager == null) {
             disableTool("notInGame");
@@ -67,7 +68,7 @@ public class FillingAssistantRunner implements ClientTickEvents.EndTick, Registr
         DimensionType dimensionType = manager.dimensionType();
         int bottom = dimensionType.minY();
         int ceiling = bottom + dimensionType.height();
-        var limit = limitOperationSpeedConfig.getLimit().limitWithRestock(restockTest, offhandFillingConfig.getAsBoolean() ? -1 : 0);
+        var limit = OperationSpeedLimit.root().limitWithRestock(restockTest, offhandFillingConfig.getAsBoolean() ? -1 : 0);
         for(BlockPos pos : reachDistanceConfig.iterateFromFurthest(eyePos)) {
             if(!limit.hasReservedTimes()) break;
             if(pos.getY() < bottom) continue;

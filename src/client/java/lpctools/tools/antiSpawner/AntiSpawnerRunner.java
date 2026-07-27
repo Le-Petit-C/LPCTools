@@ -1,6 +1,7 @@
 package lpctools.tools.antiSpawner;
 
 import lpctools.compact.derived.ShapeList;
+import lpctools.generic.OperationSpeedLimit;
 import lpctools.lpcfymasaapi.Registries;
 import lpctools.tools.ToolUtils;
 import lpctools.util.HandRestock;
@@ -28,7 +29,7 @@ public class AntiSpawnerRunner implements ClientTickEvents.EndTick, ToolUtils.To
         }
         if (mc.gui.screen() != null) return;
         HandRestock.IRestockTest restockTest = item -> item.getItem() instanceof BlockItem blockItem && placeableItems.contains(blockItem);
-        var limit = limitOperationSpeedConfig.getLimit().limitWithRestock(restockTest, 0);
+        var limit = OperationSpeedLimit.root().limitWithRestock(restockTest, 0);
         if (HandRestock.search(restockTest, 0) == -1) return;
         ShapeList shapeList = rangeLimitConfig.buildShapeList();
         //默认遍历的距离判断是与方块中心的距离，但是这里选择interact底下方块的上表面中心，所以添加了一个y+0.5的偏移修正

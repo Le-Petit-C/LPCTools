@@ -16,7 +16,6 @@ import static lpctools.util.BlockUtils.canAnyBucketPlaceAt;
 
 public class LiquidCleanerData {
     public static final ImmutableList<BlockItem> defaultCleaningBlocks;
-    @Nullable static LiquidCleanerRunner runner;
     static {
         ArrayList<BlockItem> _defaultCleaningBlocks = new ArrayList<>();
         BuiltInRegistries.BLOCK.forEach(block->{

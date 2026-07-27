@@ -2,8 +2,12 @@ package lpctools.tools.liquidCleaner;
 
 import lpctools.compact.derived.ShapeList;
 import lpctools.generic.OperationSpeedLimit;
+import lpctools.lpcfymasaapi.Registries;
+import lpctools.tools.ToolUtils;
 import lpctools.util.GuiUtils;
+import lpctools.util.inGame.BlockBreaking;
 import lpctools.util.inGame.InGameManager;
+import lpctools.util.javaex.QuietAutoCloseable;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
@@ -19,8 +23,10 @@ import org.jspecify.annotations.NonNull;
 import static lpctools.tools.liquidCleaner.LiquidCleaner.*;
 import static lpctools.util.BlockUtils.*;
 
-public class LiquidCleanerRunner implements ClientTickEvents.EndTick {
+class LiquidCleanerRunner implements ClientTickEvents.EndTick, ToolUtils.ToolRunner, QuietAutoCloseable {
+    final BlockBreaking.BlockBreakingCollection breakingCollection = BlockBreaking.createBreakingCollection();
     @Override public void onEndTick(@NonNull Minecraft client) {
+        if(client.isPaused()) return;
         InGameManager manager = InGameManager.get(client);
         if (manager == null) {
             disableTool("notInGame");
@@ -36,17 +42,14 @@ public class LiquidCleanerRunner implements ClientTickEvents.EndTick {
         }
         Iterable<BlockPos> iterateRegion = reachDistanceConfig.iterateFromClosest(manager.playerEyePos());
         ShapeList list = limitCleaningRange.buildShapeList();
-        var rootLimit = limitOperationSpeedConfig.getLimit();
-        for(BlockPos pos : iterateRegion) {
-            if(!rootLimit.hasReservedTimes()) break;
-            if (shouldAttackBlock(manager, list, pos)) {
-                manager.startDestroyBlock(pos.immutable(), Direction.DOWN);
-                rootLimit.costBreakBlock();
-			}
-		}
+        try (var scheduler = breakingCollection.startUpdateBreakings()) {
+            for(BlockPos pos : iterateRegion)
+                if (shouldBreakBlock(manager, list, pos))
+                    scheduler.scheduleBreak(pos);
+        }
         int offhandPriority = offhandFillingConfig.getAsBoolean() ? -1 : 0;
         InteractionHand hand = offhandFillingConfig.getAsBoolean() ? InteractionHand.OFF_HAND : InteractionHand.MAIN_HAND;
-        var restockedLimit = rootLimit.limitWithRestock(this::isStackOk, offhandPriority);
+        var restockedLimit = OperationSpeedLimit.root().limitWithRestock(this::isStackOk, offhandPriority);
         for(BlockPos pos : iterateRegion) {
             if(!restockedLimit.hasReservedTimes()) break;
             if (!list.testPos(pos)) {
@@ -74,7 +77,7 @@ public class LiquidCleanerRunner implements ClientTickEvents.EndTick {
 		return !liquidSourceOnly.getAsBoolean() || state.getFluidState().isSource();
 	}
 
-    private static boolean shouldAttackBlock(InGameManager manager, ShapeList shapeList, BlockPos pos){
+    private static boolean shouldBreakBlock(InGameManager manager, ShapeList shapeList, BlockPos pos){
         BlockState state = manager.getBlockState(pos);
         if(!shapeList.testPos(pos)){
             if(!expandRange.getAsBoolean()) return false;
@@ -89,7 +92,7 @@ public class LiquidCleanerRunner implements ClientTickEvents.EndTick {
             if(!isNear) return false;
             else if(!isContainingLiquid(state)) return false;
         }
-        if(!canBreakInstantly(manager.player, pos)) return false;
+        // if(!canBreakInstantly(manager.player, pos)) return false;
         if(!isReplaceable(state) && isContainingLiquid(state)) return true;
         if(!cleaningBlocks.contains(state.getBlock())) return false;
         for(Direction direction : Direction.values()){
@@ -103,4 +106,11 @@ public class LiquidCleanerRunner implements ClientTickEvents.EndTick {
         if (!(item instanceof BlockItem blockItem)) return false;
         return cleaningBlocks.contains(blockItem.getBlock());
     }
+
+    @Override public void close() {
+        registerAll(false);
+        breakingCollection.close();
+    }
+
+    @Override public void registerAll(boolean b) { Registries.END_CLIENT_TICK.register(this, b); }
 }

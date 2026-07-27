@@ -24,7 +24,6 @@ import static lpctools.util.DataUtils.clientMessage;
 public class TilingTool {
     public static final BooleanHotkeyThirdListConfig TTConfig = ToolUtils.configBuilder("TT").withToolRunner(TilingToolRunner::new).build();
     static {listStack.push(TTConfig);}
-    public static final LimitOperationSpeedConfig limitOperationSpeedConfig = addLimitOperationSpeedConfig(false);
     public static final ReachDistanceConfig reachDistance = addReachDistanceConfig();
     public static final RangeLimitConfig rangeLimit = addRangeLimitConfig();
     static {rangeLimit.setValueChangeCallback(()->shapeList = rangeLimit.buildShapeList());}

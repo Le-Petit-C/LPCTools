@@ -122,8 +122,8 @@ class TradeRerollRunner implements ToolUtils.ToolRunner, ClientTickEvents.EndTic
 				if(breakingTask != null) breakingTask.cancel();
 			}
 			else if(data.getBlockState(lecternPos).is(Blocks.LECTERN) && breakingTask == null) {
-				breakingTask = BlockBreaking.scheduleBreak(lecternPos).callback((breaking, state)->{
-					if(state.isResultState && breakingTask == breaking) breakingTask = null;
+				breakingTask = BlockBreaking.scheduleBreak(lecternPos).appendOnResultCallback((breaking, _)->{
+					if(breakingTask == breaking) breakingTask = null;
 				});
 			}
 		}

@@ -13,7 +13,6 @@ import static lpctools.tools.antiSpawner.AntiSpawnerData.*;
 public class AntiSpawner {
     public static final BooleanHotkeyThirdListConfig ASConfig = ToolUtils.configBuilder("AS").withToolRunner(AntiSpawnerRunner::new).build();
     static {listStack.push(ASConfig);}
-    public static final LimitOperationSpeedConfig limitOperationSpeedConfig = addLimitOperationSpeedConfig(false);
     public static final ReachDistanceConfig reachDistanceConfig = addReachDistanceConfig();
     public static final BlockItemListConfig placeableItems = addBlockItemListConfig("placeableItems", defaultPlaceableItems);
     public static final RangeLimitConfig rangeLimitConfig = addRangeLimitConfig();
