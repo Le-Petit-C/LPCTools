@@ -1,32 +1,21 @@
 package lpctools.tools.litematicaMaterial;
 
 import com.google.common.collect.ImmutableList;
-import lpctools.compact.CompactMain;
-import lpctools.compact.litematica.LitematicaMethods;
 import lpctools.lpcfymasaapi.Registries;
 import lpctools.lpcfymasaapi.configButtons.transferredConfigs.BooleanHotkeyConfig;
 import lpctools.lpcfymasaapi.configButtons.transferredConfigs.StringListConfig;
 import lpctools.lpcfymasaapi.configButtons.uniqueConfigs.BooleanHotkeyThirdListConfig;
 import lpctools.mixin.client.accessors.ConfigStringListAccessor;
-import lpctools.tools.ToolConfigs;
 import lpctools.tools.ToolUtils;
 import lpctools.util.CachedSupplier;
 import net.minecraft.network.chat.Component;
-import org.jspecify.annotations.Nullable;
 
 import java.util.HashSet;
 
 import static lpctools.lpcfymasaapi.LPCConfigStatics.*;
 
 public class LitematicaMaterial {
-    private static @Nullable final LitematicaMaterialRunner runner;
-    static {
-        LitematicaMethods methods = CompactMain.getLitematicaInstance();
-        if(methods != null) runner = new LitematicaMaterialRunner(methods);
-        else runner = null;
-    }
-    public static final BooleanHotkeyThirdListConfig LMConfig = new BooleanHotkeyThirdListConfig(ToolConfigs.toolConfigs, "LM", runner);
-    static { ToolUtils.setLPCToolsToggleText(LMConfig); }
+    public static final BooleanHotkeyThirdListConfig LMConfig = ToolUtils.configBuilder("LM").withToolRunner(LitematicaMaterialRunner::new).build();
     static { listStack.push(LMConfig); }
     public static final StringListConfig warehouseContainersConfig = addStringListConfig("warehouseContainers", ImmutableList.of(), LitematicaMaterial::invalidateProtectedContainers);
     public static final StringListConfig materialContainersConfig = addStringListConfig("materialContainers", ImmutableList.of(), LitematicaMaterial::invalidateMaterialContainers);

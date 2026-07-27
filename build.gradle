@@ -87,11 +87,11 @@ dependencies {
 
 	// Suggested mods
 	compileOnly "maven.modrinth:minihud:${project.minihud_version}"
-	runtimeOnly "maven.modrinth:minihud:${project.minihud_version}"
+	// runtimeOnly "maven.modrinth:minihud:${project.minihud_version}"
 	compileOnly "maven.modrinth:litematica:${project.litematica_version}"
-	runtimeOnly "maven.modrinth:litematica:${project.litematica_version}"
+	// runtimeOnly "maven.modrinth:litematica:${project.litematica_version}"
 	compileOnly "maven.modrinth:tweakeroo:${project.tweakeroo_version}"
-	runtimeOnly "maven.modrinth:tweakeroo:${project.tweakeroo_version}"
+	// runtimeOnly "maven.modrinth:tweakeroo:${project.tweakeroo_version}"
 
 	// Test mods
 	// compileOnly "maven.modrinth:fabric-permissions-api:${project.fabric_permissions_api_version}"

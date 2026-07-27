@@ -361,6 +361,7 @@
 	"lpctools.tools.LM.defaultMaterialBoxName": "Material Box",
 	"lpctools.tools.LM.warnNotEnoughSpace": "Some items failed to move! The backpack may be full. Try clearing inventory space or using a larger container",
 	"lpctools.tools.LM.movedInfoText": "Moved %d items",
+	"lpctools.configs.tools.LM.createFailedNoLitematica": "Litematica is not installed, Litematica Material Collector cannot start",
 	"lpctools.configs.tweaks.title": "Tweaks",
 	"lpctools.configs.tweaks.blockReplaceHotkey.name": "blockReplaceHotkey",
 	"lpctools.configs.tweaks.blockReplaceHotkey.comment": "Define an extra hotkey used to replace blocks, which reacts the same as pressing both mouse buttons.",

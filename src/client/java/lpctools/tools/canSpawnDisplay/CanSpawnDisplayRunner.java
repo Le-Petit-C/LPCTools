@@ -8,11 +8,13 @@ import lpctools.generic.GenericRegistry;
 import lpctools.generic.GenericUtils;
 import lpctools.lpcfymasaapi.Registries;
 import lpctools.lpcfymasaapi.render.translucentShapes.ShapeReference;
+import lpctools.tools.ToolUtils;
 import lpctools.util.AlgorithmUtils;
 import lpctools.util.DataUtils;
 import lpctools.util.LPCMathHelper;
 import lpctools.util.Packed;
 import lpctools.util.data.minecraft.CombinedBlockGetters;
+import lpctools.util.inGame.InGameManager;
 import lpctools.util.javaex.QuietAutoCloseable;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientChunkEvents;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientLevelEvents;
@@ -41,14 +43,12 @@ import java.util.function.Supplier;
 
 import static lpctools.tools.ToolUtils.clearMapDataOutOfRange;
 
-public class DataInstance implements AutoCloseable, Registries.ClientWorldChunkLightUpdated, ClientChunkEvents.Load, Registries.BetweenRenderFrames, Registries.ClientWorldChunkSetBlockState, GenericRegistry.SpawnConditionChanged, ClientLevelEvents.AfterClientLevelChange {
-    
+public class CanSpawnDisplayRunner implements AutoCloseable, Registries.ClientWorldChunkLightUpdated, ClientChunkEvents.Load, Registries.BetweenRenderFrames, Registries.ClientWorldChunkSetBlockState, GenericRegistry.SpawnConditionChanged, ClientLevelEvents.AfterClientLevelChange, ToolUtils.ToolRunner {
     private record DelayedTask(long packedChunkPos, Supplier<RunningTask> task){}
     private record RunningTask(long packedChunkPos, CompletableFuture<TaskResult> task){}
     private record TaskResult(long packedChunkPos, ArrayList<BlockPos> result){}
     
     public final Long2ObjectOpenHashMap<HashMap<BlockPos, ShapeReference>> canSpawnPoses = new Long2ObjectOpenHashMap<>();
-    public final @NotNull Minecraft client;
     
     private final ArrayList<RunningTask> runningTasks = new ArrayList<>();
     private final ArrayList<DelayedTask> delayedTasks = new ArrayList<>();
@@ -61,7 +61,7 @@ public class DataInstance implements AutoCloseable, Registries.ClientWorldChunkL
     private ShapeList range;
     private boolean renderXRays;
     
-    protected void registerAll(boolean b){
+    @Override public void registerAll(boolean b) {
         Registries.CLIENT_CHUNK_LIGHT_LOAD.register(this, b);
         Registries.CLIENT_CHUNK_LOAD.register(this, b);
         Registries.BETWEEN_RENDER_FRAMES.register(this, b);
@@ -69,6 +69,7 @@ public class DataInstance implements AutoCloseable, Registries.ClientWorldChunkL
         Registries.AFTER_CLIENT_LEVEL_CHANGE.register(this, b);
         GenericRegistry.SPAWN_CONDITION_CHANGED.register(this, b);
     }
+
     void reshapesAsync(){
         LongOpenHashSet packedChunkPoses = new LongOpenHashSet(canSpawnPoses.keySet());
         runningTasks.forEach(task -> packedChunkPoses.remove(task.packedChunkPos));
@@ -100,16 +101,14 @@ public class DataInstance implements AutoCloseable, Registries.ClientWorldChunkL
     }
     void updateRenderRange(){ setRenderRange(CanSpawnDisplay.rangeLimit.buildShapeList()); }
     
-    DataInstance(@NotNull Minecraft client){
-        this.client = client;
-        registerAll(true);
+    CanSpawnDisplayRunner() {
         updateRenderMethod();
         updateRenderColor();
         updateRenderRange();
         updateRenderXRays();
-        if(client.level == null || client.player == null) return;
-        Vec3 playerPos = client.player.position();
-        resetData(client.level, playerPos);
+        InGameManager manager = InGameManager.get();
+        if(manager == null) return;
+        resetData(manager.level, manager.playerPos());
     }
     
     public void clearData(){
@@ -171,7 +170,7 @@ public class DataInstance implements AutoCloseable, Registries.ClientWorldChunkL
             if(task.task.isDone()){
                 var res = task.task.join();
                 long packedChunkPos = res.packedChunkPos;
-                var shapes = canSpawnPoses.computeIfAbsent(packedChunkPos, k->new HashMap<>());
+                var shapes = canSpawnPoses.computeIfAbsent(packedChunkPos, _ ->new HashMap<>());
                 updateCounter -= shapes.size();
                 shapes.values().forEach(QuietAutoCloseable::closeIfNotNull);
                 shapes.clear();
@@ -204,8 +203,8 @@ public class DataInstance implements AutoCloseable, Registries.ClientWorldChunkL
     }
     
     @Override public void onSpawnConditionChanged() {
-        if(client.level != null && client.player != null)
-            resetData(client.level, client.player.position());
+        InGameManager manager = InGameManager.get();
+        if(manager != null) resetData(manager.level, manager.playerPos());
     }
     @Override public void afterLevelChange(@NonNull Minecraft minecraftClient, @NonNull ClientLevel clientWorld) {clearData();}
     

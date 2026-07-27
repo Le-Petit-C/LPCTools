@@ -7,7 +7,6 @@ import fi.dy.masa.malilib.gui.button.IButtonActionListener;
 import fi.dy.masa.malilib.hotkeys.IHotkeyCallback;
 import fi.dy.masa.malilib.hotkeys.KeybindSettings;
 import fi.dy.masa.malilib.util.data.Color4f;
-import lpctools.generic.OperationSpeedLimit;
 import lpctools.lpcfymasaapi.configButtons.derivedConfigs.*;
 import lpctools.lpcfymasaapi.configButtons.transferredConfigs.*;
 import lpctools.lpcfymasaapi.configButtons.uniqueConfigs.*;

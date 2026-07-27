@@ -2,7 +2,6 @@ package lpctools.generic;
 
 import fi.dy.masa.malilib.hotkeys.KeyAction;
 import fi.dy.masa.malilib.hotkeys.KeybindSettings;
-import it.unimi.dsi.fastutil.doubles.Double2DoubleFunction;
 import lpctools.lpcfymasaapi.LPCConfigList;
 import lpctools.lpcfymasaapi.configButtons.derivedConfigs.ConfigOpenGuiConfig;
 import lpctools.lpcfymasaapi.configButtons.transferredConfigs.HotkeyConfig;
@@ -64,7 +63,7 @@ public class GenericConfigs {
     static {listStack.pop();}
     
     private static double hitBoxClamp(double x) {
-        return Math.min(Math.max(x, 0), 16);
+        return Math.clamp(x, 0, 16);
     }
     private static void hitBoxCallback() {
         Vec3 pos = hitBoxRequirement.getPos();

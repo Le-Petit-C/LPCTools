@@ -9,6 +9,7 @@ import lpctools.tools.ToolUtils;
 import lpctools.util.AlgorithmUtils;
 import lpctools.util.DataUtils;
 import lpctools.util.Packed;
+import lpctools.util.javaex.QuietAutoCloseable;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientChunkEvents;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientLevelEvents;
 import net.minecraft.client.Minecraft;
@@ -35,18 +36,17 @@ import static lpctools.util.AlgorithmUtils.iterateInManhattanDistance;
 import static lpctools.util.BlockUtils.isFluid;
 import static lpctools.util.DataUtils.loadedChunks;
 
-class DataInstance implements AutoCloseable, ClientChunkEvents.Load, ClientLevelEvents.AfterClientLevelChange, Registries.ClientWorldChunkSetBlockState, Registries.BetweenRenderFrames {
+public class SlightXRayRunner implements QuietAutoCloseable, ClientChunkEvents.Load, ClientLevelEvents.AfterClientLevelChange, Registries.ClientWorldChunkSetBlockState, Registries.BetweenRenderFrames, ToolUtils.ToolRunner {
     private final BlockOuterEdgeHighlightInstance highlightInstance = new BlockOuterEdgeHighlightInstance();
     private final ChunkedTaskInstance taskInstance = new ChunkedTaskInstance();
     
-    DataInstance() {
+    SlightXRayRunner() {
         updateRangeLimit();
         updateUseCullFace();
-        registerAll(true);
         resetData();
     }
     
-    void registerAll(boolean b){
+    @Override public void registerAll(boolean b) {
         Registries.AFTER_CLIENT_LEVEL_CHANGE.register(this, b);
         Registries.CLIENT_CHUNK_LOAD.register(this, b);
         Registries.CLIENT_WORLD_CHUNK_SET_BLOCK_STATE.register(this, b);
@@ -214,9 +214,7 @@ class DataInstance implements AutoCloseable, ClientChunkEvents.Load, ClientLevel
     }
     
     private record ChunkTestData(int bottomY, boolean[][][] data) {
-        private ChunkTestData(int bottomY, int data) {
-            this(bottomY, new boolean[18][data + 2][18]);
-        }
+        private ChunkTestData(int bottomY, int data) { this(bottomY, new boolean[18][data + 2][18]); }
         boolean get(int x, int y, int z) {return data[x + 1][y - bottomY + 1][z + 1];}
         boolean get(BlockPos pos) {return get(pos.getX(), pos.getY(), pos.getZ());}
         void set(int x, int y, int z, boolean value) {data[x + 1][y - bottomY + 1][z + 1] = value;}

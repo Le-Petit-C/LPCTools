@@ -361,6 +361,7 @@
 	"lpctools.configs.tools.LM.materialContainers.comment": "存放建造材料的容器（如材料盒子）\n僅在「建造模式」啟用時才會從這些容器中取物\n「材料準備模式」下會跳過它們，讓您放心往裡面裝填材料",
 	"lpctools.configs.tools.LM.buildingMode.name": "建造模式",
 	"lpctools.configs.tools.LM.buildingMode.comment": "關閉時為「材料準備模式」，此時只會從「倉庫容器」取材料，方便您將材料裝入材料盒子帶走\n開啟後進入「建造模式」，此時額外允許從「材料容器」中取走物品，方便在施工現場逐層取料建造",
+	"lpctools.configs.tools.LM.createFailedNoLitematica": "未安裝 Litematica，無法啟動投影材料收集工具",
 	"lpctools.configs.tweaks.title": "微調",
 	"lpctools.configs.tweaks.blockReplaceHotkey.name": "方塊替換操作鍵",
 	"lpctools.configs.tweaks.blockReplaceHotkey.comment": "定義一個額外的熱鍵，按下後實現同時按下滑鼠左右鍵替換方塊的效果",

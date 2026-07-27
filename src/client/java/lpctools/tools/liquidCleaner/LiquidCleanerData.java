@@ -1,7 +1,6 @@
 package lpctools.tools.liquidCleaner;
 
 import com.google.common.collect.ImmutableList;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import net.minecraft.core.registries.BuiltInRegistries;

@@ -3,7 +3,6 @@ package lpctools.tools.spawnProofer;
 import lpctools.lpcfymasaapi.configButtons.derivedConfigs.*;
 import lpctools.lpcfymasaapi.configButtons.uniqueConfigs.BlockItemListConfig;
 import lpctools.lpcfymasaapi.configButtons.uniqueConfigs.BooleanHotkeyThirdListConfig;
-import lpctools.tools.ToolConfigs;
 import lpctools.tools.ToolUtils;
 
 import static lpctools.lpcfymasaapi.LPCConfigStatics.*;

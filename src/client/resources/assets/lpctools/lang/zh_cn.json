@@ -361,6 +361,7 @@
 	"lpctools.tools.LM.defaultMaterialBoxName": "材料盒子",
 	"lpctools.tools.LM.warnNotEnoughSpace": "部分物品移动失败！可能是背包空间不足。请尝试清理背包或找更能装物品的方式",
 	"lpctools.tools.LM.movedInfoText": "本次移动了%d个物品",
+	"lpctools.configs.tools.LM.createFailedNoLitematica": "未安装 Litematica，无法启动投影材料收集工具",
 	"lpctools.configs.tweaks.title": "微调",
 	"lpctools.configs.tweaks.blockReplaceHotkey.name": "方块替换操作键",
 	"lpctools.configs.tweaks.blockReplaceHotkey.comment": "定义一个额外的热键，按下后实现同时按下鼠标左右键替换方块的效果",

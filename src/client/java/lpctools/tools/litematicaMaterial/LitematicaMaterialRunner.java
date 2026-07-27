@@ -3,16 +3,16 @@ package lpctools.tools.litematicaMaterial;
 import fi.dy.masa.litematica.materials.MaterialListBase;
 import fi.dy.masa.litematica.materials.MaterialListEntry;
 import fi.dy.masa.litematica.materials.MaterialListUtils;
+import lpctools.compact.CompactMain;
 import lpctools.compact.litematica.LitematicaMethods;
 import lpctools.lpcfymasaapi.Registries;
-import lpctools.lpcfymasaapi.interfaces.ILPCValueChangeCallback;
+import lpctools.tools.ToolUtils;
 import lpctools.util.DataUtils;
 import lpctools.util.ItemUtils;
+import lpctools.util.inGame.InGameManager;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.gui.screens.inventory.CreativeModeInventoryScreen;
-import net.minecraft.client.multiplayer.MultiPlayerGameMode;
-import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.AbstractContainerMenu;
@@ -27,11 +27,15 @@ import java.util.List;
 
 import static lpctools.tools.litematicaMaterial.LitematicaMaterial.*;
 
-class LitematicaMaterialRunner implements ILPCValueChangeCallback, Registries.ContainerContentInitializedCallback {
+class LitematicaMaterialRunner implements Registries.ContainerContentInitializedCallback, ToolUtils.ToolRunner {
 	private final LitematicaMethods litematicaMethods;
+	private static LitematicaMethods getLitematicaMethodsOrThrow() throws ToolUtils.RunnerCreateFailedException {
+		LitematicaMethods methods = CompactMain.getLitematicaInstance();
+		if(methods != null) return methods;
+		else throw new ToolUtils.RunnerCreateFailedException(Component.translatable("lpctools.configs.tools.LM.createFailedNoLitematica"));
+	}
+	LitematicaMaterialRunner() throws ToolUtils.RunnerCreateFailedException { this(getLitematicaMethodsOrThrow()); }
 	LitematicaMaterialRunner(LitematicaMethods litematicaMethods) { this.litematicaMethods = litematicaMethods; }
-
-	@Override public void onValueChanged() { Registries.CLIENT_CONTAINER_CONTENT_INITIALIZED.register(this, LMConfig.getBooleanValue()); }
 
 	@Override public void onContainerContentInitialized(AbstractContainerMenu menu) {
 		Minecraft mc = Minecraft.getInstance();
@@ -39,11 +43,10 @@ class LitematicaMaterialRunner implements ILPCValueChangeCallback, Registries.Co
 			&& !(menu instanceof InventoryMenu) && !(menu instanceof CreativeModeInventoryScreen.ItemPickerMenu)
 			&& (warehouseContainers.get().contains(containerScreen.getTitle().getString())
 			|| (buildingMode.getBooleanValue() && materialContainers.get().contains(containerScreen.getTitle().getString())))) {
-			LocalPlayer player = mc.player;
-			MultiPlayerGameMode gameMode = mc.gameMode;
+			InGameManager manager = InGameManager.get(mc);
 			MaterialListBase materialListBase = litematicaMethods.getMaterialList();
-			if(player != null && gameMode != null && materialListBase != null) {
-				MaterialListUtils.updateAvailableCounts(materialListBase.getMaterialsAll(), player);
+			if(manager != null && materialListBase != null) {
+				MaterialListUtils.updateAvailableCounts(materialListBase.getMaterialsAll(), manager.player);
 				HashMap<Item, ArrayList<ItemLackingData>> lackItems = new HashMap<>();
 				for(MaterialListEntry entry : materialListBase.getMaterialsAll()) {
 					int lackingCount = entry.getCountMissing() - entry.getCountAvailable();
@@ -68,7 +71,7 @@ class LitematicaMaterialRunner implements ILPCValueChangeCallback, Registries.Co
 								if(ItemStack.isSameItemSameComponents(stack, lackingItem.itemStack)) {
 									// 物品匹配，可以收集对应物品
 									int expectedMovedCount = Math.min(lackingItem.lackingCount, stack.getCount());
-									int movedItemCountInReality = ItemUtils.moveItems(containerMenu, i, lackingItem.lackingCount, player, gameMode);
+									int movedItemCountInReality = ItemUtils.moveItems(containerMenu, i, lackingItem.lackingCount, manager.player, manager.gameMode);
 									if(expectedMovedCount != movedItemCountInReality) warnNotEnoughSpace = true;
 									lackingItem.lackingCount -= movedItemCountInReality;
 									movedItemCount += movedItemCountInReality;
@@ -94,11 +97,13 @@ class LitematicaMaterialRunner implements ILPCValueChangeCallback, Registries.Co
 					String.format("[%s] " + Component.translatable("lpctools.tools.LM.movedInfoText").getString(), LMConfig.getNameTranslation(),
 						movedItemCount),
 					true);
-				MaterialListUtils.updateAvailableCounts(materialListBase.getMaterialsAll(), player);
-				player.closeContainer();
+				MaterialListUtils.updateAvailableCounts(materialListBase.getMaterialsAll(), manager.player);
+				manager.closeContainer();
 			}
 		}
 	}
+
+	@Override public void registerAll(boolean b) { Registries.CLIENT_CONTAINER_CONTENT_INITIALIZED.register(this, b); }
 
 	private static class ItemLackingData {
 		ItemStack itemStack;

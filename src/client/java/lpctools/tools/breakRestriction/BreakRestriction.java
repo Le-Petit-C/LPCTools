@@ -5,7 +5,6 @@ import lpctools.lpcfymasaapi.configButtons.derivedConfigs.RangeLimitConfig;
 import lpctools.lpcfymasaapi.configButtons.uniqueConfigs.BlockListConfig;
 import lpctools.lpcfymasaapi.configButtons.uniqueConfigs.BooleanHotkeyThirdListConfig;
 import lpctools.lpcfymasaapi.interfaces.ILPCConfigList;
-import lpctools.tools.ToolConfigs;
 import lpctools.tools.ToolUtils;
 import lpctools.util.javaex.ToBooleanFunction;
 import net.minecraft.world.level.block.Block;
@@ -15,8 +14,7 @@ import static lpctools.lpcfymasaapi.LPCConfigStatics.*;
 import static lpctools.tools.breakRestriction.BreakRestrictionData.*;
 
 public class BreakRestriction {
-    public static final BooleanHotkeyThirdListConfig BRConfig = new BooleanHotkeyThirdListConfig(ToolConfigs.toolConfigs, "BR");
-    static {ToolUtils.setLPCToolsToggleText(BRConfig);}
+    public static final BooleanHotkeyThirdListConfig BRConfig = ToolUtils.configBuilder("BR").build();
     static {listStack.push(BRConfig);}
     public static final RangeLimitConfig rangeLimit = addConfig(new RangeLimitConfig(BRConfig, "BR"){
         @Override public @NotNull String getFullNameTranslationKey() {
@@ -36,10 +34,6 @@ public class BreakRestriction {
     public static final BlockListConfig blockTestBlackList = addBlockListConfig(blockTestMethod_blacklist, "blacklist", defaultBlockBlacklist);
     static {listStack.pop();}
     
-    private static boolean blockTestByWhitelist(Block block){
-        return blockTestWhiteList.contains(block);
-    }
-    private static boolean blockTestByBlacklist(Block block){
-        return !blockTestBlackList.contains(block);
-    }
+    private static boolean blockTestByWhitelist(Block block){ return blockTestWhiteList.contains(block); }
+    private static boolean blockTestByBlacklist(Block block){ return !blockTestBlackList.contains(block); }
 }
