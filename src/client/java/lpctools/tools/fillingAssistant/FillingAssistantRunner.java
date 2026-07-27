@@ -13,7 +13,6 @@ import net.minecraft.client.input.MouseButtonInfo;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Vec3i;
-import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.GameType;
@@ -56,7 +55,7 @@ public class FillingAssistantRunner implements ClientTickEvents.EndTick, Registr
             return;
         }
         HandRestock.IRestockTest restockTest = new HandRestock.SearchInSet(getPlaceableItems());
-        if(HandRestock.search(restockTest, offhandFillingConfig.getAsBoolean() ? -1 : 0) == -1){//这个或许应该放在函数末尾，但是放在这里似乎也没什么坏处
+        if(HandRestock.search(restockTest, interactionHand.offhandPriority()) == -1){//这个或许应该放在函数末尾，但是放在这里似乎也没什么坏处
             disableTool("placeableItemRanOut");
             return;
         }
@@ -68,7 +67,7 @@ public class FillingAssistantRunner implements ClientTickEvents.EndTick, Registr
         DimensionType dimensionType = manager.dimensionType();
         int bottom = dimensionType.minY();
         int ceiling = bottom + dimensionType.height();
-        var limit = OperationSpeedLimit.root().limitWithRestock(restockTest, offhandFillingConfig.getAsBoolean() ? -1 : 0);
+        var limit = OperationSpeedLimit.root().limitWithRestock(restockTest, interactionHand.offhandPriority());
         for(BlockPos pos : reachDistanceConfig.iterateFromFurthest(eyePos)) {
             if(!limit.hasReservedTimes()) break;
             if(pos.getY() < bottom) continue;
@@ -91,7 +90,7 @@ public class FillingAssistantRunner implements ClientTickEvents.EndTick, Registr
     private boolean put(InGameManager manager, BlockPos blockPos, OperationSpeedLimit restockLimit) {
         restockLimit.costInteractBlock(); // 不管有没有成功，useItemOn一次都算是use了一次。另外这里同时也能立刻触发restock而避免放下“上一次拿着的方块”
         BlockHitResult hit = new BlockHitResult(Vec3.atCenterOf(blockPos), Direction.UP, blockPos.mutable(), false);
-        return manager.useItemOn(offhandFillingConfig.getAsBoolean() ? InteractionHand.OFF_HAND : InteractionHand.MAIN_HAND, hit) == InteractionResult.SUCCESS;
+        return manager.useItemOn(interactionHand.getHand(), hit) == InteractionResult.SUCCESS;
     }
     private BlockPos currentPosition;//当前map区域的xyz值最小角坐标
     private int testDistance = -1;

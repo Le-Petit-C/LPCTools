@@ -144,6 +144,9 @@ public interface LPCConfigStatics {
     static ReachDistanceConfig addReachDistanceConfig(ILPCConfigList list, @Nullable ILPCValueChangeCallback callback){
         return list.addConfig(new ReachDistanceConfig(list, callback));
     }
+    static InteractionHandConfig addInteractionHandConfig(ILPCConfigList list, boolean defaultBoolean){
+        return list.addConfig(new InteractionHandConfig(list, defaultBoolean));
+    }
     static <T> ConfigListOptionListConfigEx<T> addConfigListOptionListConfigEx(ILPCConfigList list, @NotNull String nameKey){
         return list.addConfig(new ConfigListOptionListConfigEx<>(list, nameKey));
     }
@@ -348,6 +351,9 @@ public interface LPCConfigStatics {
     }
     static ReachDistanceConfig addReachDistanceConfig(@Nullable ILPCValueChangeCallback callback){
         return addReachDistanceConfig(peekConfigList(), callback);
+    }
+    static InteractionHandConfig addInteractionHandConfig(boolean defaultBoolean){
+        return addInteractionHandConfig(peekConfigList(), defaultBoolean);
     }
     static <T> ConfigListOptionListConfigEx<T> addConfigListOptionListConfigEx(@NotNull String nameKey){
         return addConfigListOptionListConfigEx(peekConfigList(), nameKey);

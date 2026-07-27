@@ -16,7 +16,7 @@ public class LiquidCleaner {
     static {listStack.push(LCConfig);}
     public static final ReachDistanceConfig reachDistanceConfig = addReachDistanceConfig();
     public static final BooleanConfig disableOnGUIOpened = addBooleanConfig("disableOnGUIOpened", false);
-    public static final BooleanConfig offhandFillingConfig = addBooleanConfig("offhandFilling", false);
+    public static final InteractionHandConfig interactionHand = addInteractionHandConfig(false);
     public static final BlockItemListConfig cleaningBlocks = addBlockItemListConfig("cleaningBlocks", defaultCleaningBlocks);
     public static final BooleanConfig ignoreDownwardTest = addBooleanConfig("ignoreDownwardTest", false);
     public static final RangeLimitConfig limitCleaningRange = addRangeLimitConfig();

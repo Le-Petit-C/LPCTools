@@ -12,7 +12,6 @@ import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Vec3i;
-import net.minecraft.world.InteractionHand;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.level.block.Block;
 import org.jspecify.annotations.NonNull;
@@ -57,8 +56,7 @@ public class TilingToolRunner implements ToolUtils.ToolRunner, ClientTickEvents.
             if(!(stack.getItem() instanceof BlockItem blockItem)) return false;
             return blockFitsBlockAtPos.getBoolean(blockItem.getBlock());
         };
-        int offhandPriority = offhandOperate.getAsBoolean() ? -1 : 0;
-        var limit = OperationSpeedLimit.root().limitWithRestock(restockTest, offhandPriority);
+        var limit = OperationSpeedLimit.root().limitWithRestock(restockTest, interactionHand.offhandPriority());
         for(BlockPos pos : reachDistance.iterateFromClosest(manager.playerEyePos())) {
             if(!limit.hasReservedTimesRegardlessRestock()) break;
             if(!shapeList.testPos(pos)) continue;
@@ -71,12 +69,12 @@ public class TilingToolRunner implements ToolUtils.ToolRunner, ClientTickEvents.
             MathUtils.clamp(shiftPos, cuboidSize);
             blockAtPos[0] = storedBlocks[shiftPos.getZ()][shiftPos.getY()][shiftPos.getX()];
             if(blockInHand == null) {
-                if(HandRestock.search(restockTest, offhandPriority) == -1) continue;
+                if(HandRestock.search(restockTest, interactionHand.offhandPriority()) == -1) continue;
                 blockInHand = blockAtPos[0];
             }
             if(!blockFitsBlockAtPos.getBoolean(blockInHand)) continue;
             limit.costInteractBlock();
-            manager.useItemOn(offhandOperate.getAsBoolean() ? InteractionHand.OFF_HAND : InteractionHand.MAIN_HAND, pos);
+            manager.useItemOn(interactionHand.getHand(), pos);
         }
     }
 }

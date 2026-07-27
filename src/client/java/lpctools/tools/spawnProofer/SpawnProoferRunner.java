@@ -10,7 +10,6 @@ import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.level.block.state.BlockState;
@@ -29,7 +28,7 @@ public class SpawnProoferRunner implements ClientTickEvents.EndTick, ToolUtils.T
         }
         if (mc.gui.screen() != null) return;
         HandRestock.IRestockTest restockTest = item -> item.getItem() instanceof BlockItem blockItem && placeableItems.contains(blockItem);
-        var limit = OperationSpeedLimit.root().limitWithRestock(restockTest, 0);
+        var limit = OperationSpeedLimit.root().limitWithRestock(restockTest, interactionHand.offhandPriority());
         if (HandRestock.search(restockTest, 0) == -1) return;
         ShapeList shapeList = rangeLimitConfig.buildShapeList();
         //默认遍历的距离判断是与方块中心的距离，但是这里选择interact底下方块的上表面中心，所以添加了一个y+0.5的偏移修正
@@ -50,7 +49,7 @@ public class SpawnProoferRunner implements ClientTickEvents.EndTick, ToolUtils.T
                 InteractionResult result = belowState.useWithoutItem(manager.level, manager.player, hitResult);
                 if (result == InteractionResult.SUCCESS) continue;
             }
-            manager.useItemOn(InteractionHand.MAIN_HAND, hitResult);
+            manager.useItemOn(interactionHand.getHand(), hitResult);
             limit.costInteractBlock();
         }
     }

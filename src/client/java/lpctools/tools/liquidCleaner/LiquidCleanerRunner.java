@@ -12,7 +12,6 @@ import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.world.InteractionHand;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -47,9 +46,7 @@ class LiquidCleanerRunner implements ClientTickEvents.EndTick, ToolUtils.ToolRun
                 if (shouldBreakBlock(manager, list, pos))
                     scheduler.scheduleBreak(pos);
         }
-        int offhandPriority = offhandFillingConfig.getAsBoolean() ? -1 : 0;
-        InteractionHand hand = offhandFillingConfig.getAsBoolean() ? InteractionHand.OFF_HAND : InteractionHand.MAIN_HAND;
-        var restockedLimit = OperationSpeedLimit.root().limitWithRestock(this::isStackOk, offhandPriority);
+        var restockedLimit = OperationSpeedLimit.root().limitWithRestock(this::isStackOk, interactionHand.offhandPriority());
         for(BlockPos pos : iterateRegion) {
             if(!restockedLimit.hasReservedTimes()) break;
             if (!list.testPos(pos)) {
@@ -67,7 +64,7 @@ class LiquidCleanerRunner implements ClientTickEvents.EndTick, ToolUtils.ToolRun
             BlockState state = manager.getBlockState(pos);
             if (isAllowedReplaceableLiquid(state)) {
                 restockedLimit.costInteractBlock();
-                manager.useItemOn(hand, pos);
+                manager.useItemOn(interactionHand.getHand(), pos);
             }
         }
     }

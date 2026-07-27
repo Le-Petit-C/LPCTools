@@ -34,7 +34,7 @@ public class FillingAssistant {
     public static final BooleanConfig transparentAsPassableConfig = addBooleanConfig("transparentAsPassable", true);
     public static final BooleanConfig notOpaqueAsPassableConfig = addBooleanConfig("notOpaqueAsPassable", true);
     public static final BlockListConfig requiredBlocksConfig = addBlockListConfig("requiredBlocks", defaultRequiredBlockWhiteList);
-    public static final BooleanConfig offhandFillingConfig = addBooleanConfig("offhandFilling", false);
+    public static final InteractionHandConfig interactionHand = addInteractionHandConfig(false);
     public static final RangeLimitConfig limitFillingRange = addRangeLimitConfig();
     public static final ArrayOptionListConfig<OuterRangeBlockMethod> outerRangeBlockMethod = addArrayOptionListConfig(limitFillingRange, "outerRangeBlockMethod", outerRangeBlockMethods);
     static {listStack.pop();}

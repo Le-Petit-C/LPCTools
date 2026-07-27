@@ -5,7 +5,6 @@ import com.google.common.collect.ImmutableMap;
 import lpctools.compact.CompactMain;
 import lpctools.compact.litematica.LitematicaMethods;
 import lpctools.lpcfymasaapi.configButtons.derivedConfigs.*;
-import lpctools.lpcfymasaapi.configButtons.transferredConfigs.BooleanConfig;
 import lpctools.lpcfymasaapi.configButtons.uniqueConfigs.*;
 import lpctools.tools.ToolUtils;
 import lpctools.util.data.Box3i;
@@ -27,7 +26,7 @@ public class TilingTool {
     public static final ReachDistanceConfig reachDistance = addReachDistanceConfig();
     public static final RangeLimitConfig rangeLimit = addRangeLimitConfig();
     static {rangeLimit.setValueChangeCallback(()->shapeList = rangeLimit.buildShapeList());}
-    public static final BooleanConfig offhandOperate = addBooleanConfig("offhandOperate", false);
+    public static final InteractionHandConfig interactionHand = addInteractionHandConfig(false);
     public static final BlockPosConfig cornerPos1 = addBlockPosConfig("cornerPos1", BlockPos.ZERO, null);
     public static final BlockPosConfig cornerPos2 = addBlockPosConfig("cornerPos2", BlockPos.ZERO, null);
     @SuppressWarnings("unused")

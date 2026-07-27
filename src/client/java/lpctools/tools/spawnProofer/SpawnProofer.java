@@ -13,5 +13,7 @@ public class SpawnProofer {
     static {listStack.push(ASConfig);}
     public static final ReachDistanceConfig reachDistanceConfig = addReachDistanceConfig();
     public static final BlockItemListConfig placeableItems = addBlockItemListConfig("placeableItems", defaultPlaceableItems);
+    public static final InteractionHandConfig interactionHand = addInteractionHandConfig(false);
     public static final RangeLimitConfig rangeLimitConfig = addRangeLimitConfig();
+    static {listStack.pop();}
 }
