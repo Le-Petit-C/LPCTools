@@ -26,7 +26,7 @@ public class ToolUtils {
     // 通过设置配置的热键回调函数设置一个Boolean配置的切换文本显示为LPCTools默认风格
     public static <T extends IConfigBoolean & IHotkey & ILPCConfig> T setLPCToolsToggleText(T config){
         config.getKeybind().setCallback((action, key)->{
-            displayToggleMessage(config.getBooleanValue(), config);
+            displayToggleMessage(!config.getBooleanValue(), config);
             config.toggleBooleanValue();
             return true;
         });
