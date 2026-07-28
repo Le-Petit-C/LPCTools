@@ -121,8 +121,8 @@ jobs:
             litematica(optional)
             tweakeroo(optional)
 
-          # 上传 remapped jar（排除 -dev、-sources、-javadoc）
-          files: build/libs/!(*-@(dev|sources|javadoc)).jar
+          # 上传 remapped jar + sources jar（排除 -dev、-javadoc）
+          files: build/libs/!(*-@(dev|javadoc)).jar
 
           # 遇到发布失败时的行为：fail=立即失败 / warn=警告但继续 / skip=跳过并最后报错
           fail-mode: fail
