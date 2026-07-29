@@ -164,7 +164,7 @@ class TradeRerollRunner implements ToolUtils.ToolRunner, ClientTickEvents.EndTic
 			MerchantOffers offers = merchant.getOffers();
 			for(int i = 0; i < offers.size(); ++i) {
 				MerchantOffer offer = offers.get(i);
-				ItemStack costA = offer.getCostA();
+				ItemStack costA = offer.getBaseCostA();
 				ItemStack costB = offer.getCostB();
 				ItemStack result = offer.getResult();
 				if(((costA.getItem() == Items.EMERALD && costA.getCount() <= 9)
@@ -182,12 +182,15 @@ class TradeRerollRunner implements ToolUtils.ToolRunner, ClientTickEvents.EndTic
 							DataUtils.clientMessage(Component.translatable("lpctools.configs.tools.TR.unknownEnchantment", firstEntry.getKey().value().description().getString()), false);
 						else if(bookResult == null) {
 							var trade = new EnchantmentTradeOption(enchantmentId, firstEntry.getIntValue(), costA.count());
-							boolean valid = foundValidTrade(trade);
+							// foundValidTrade 中有“尝试根据已有附魔提高接下来的要求”的操作，前置保证执行
+							boolean valid = foundValidTrade(trade) || merchant.getVillagerXp() > 0;
 							if(valid) bookResult = trade;
 							if(displayRolls.getBooleanValue() && (valid || ! onlyDisplaySucceededRolls.getBooleanValue())) {
 								String msg = String.format("%s%s $%d", firstEntry.getKey().value().description().getString(), MathUtils.romanNumerals(firstEntry.getIntValue()), costA.count());
 								DataUtils.clientMessage(Component.literal(msg).withColor(valid ? TextColor.GREEN : TextColor.YELLOW), false);
 							}
+							// 仅检测第一个附魔交易
+							if(!valid) break;
 						}
 					}
 				}
@@ -214,8 +217,8 @@ class TradeRerollRunner implements ToolUtils.ToolRunner, ClientTickEvents.EndTic
 				if(merchant.getVillagerXp() == 0) {
 					operator.schedule(manager->manager.selectMerchant(menu, finalLockTrade));
 					operator.schedule(manager->manager.handleContainerInput(menu.containerId, 2, 0, ContainerInput.PICKUP));
-					operator.schedule(InGameManager::closeContainer);
 				}
+				operator.schedule(InGameManager::closeContainer);
 				operator.schedule(manager->runCaught(()->tryPlaceBlockByOffhand(anvilPos, block -> block instanceof AnvilBlock, Items.ANVIL, manager)));
 				EnchantmentTradeOption finalBookResult = bookResult;
 				operator.schedule(manager->{
