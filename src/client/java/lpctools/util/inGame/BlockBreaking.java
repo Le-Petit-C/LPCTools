@@ -190,7 +190,7 @@ public class BlockBreaking {
 				for(var entry : map.fromClosestBounds(playerEyePos)) {
 					if(MathUtils.cycledSquaredClosestDistance(playerEyePos, entry.getKey(cache), expand) >= reachSqr) break;
 					if(!manager.getBlockState(cache).isAir()) {
-						manager.startDestroyBlock(cache, manager.playerDirection().getOpposite());
+						manager.startDestroyBlock(cache, manager.playerNearstViewDirection().getOpposite());
 						limit.costBreakBlock();
 						if(manager.isDestroying()) {
 							breakState(cache, BreakingState.BREAKING);
@@ -203,7 +203,7 @@ public class BlockBreaking {
 			}
 			if(manager.isDestroying()) {
 				BlockPos pos = manager.getDestroyBlockPos();
-				Direction direction = manager.playerDirection().getOpposite();
+				Direction direction = manager.playerNearstViewDirection().getOpposite();
 				if (manager.continueDestroyBlock(pos, direction)) {
 					manager.addBreakingBlockEffect(pos, direction);
 					manager.swing(InteractionHand.MAIN_HAND);

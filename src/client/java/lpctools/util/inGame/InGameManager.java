@@ -55,6 +55,7 @@ public class InGameManager {
 	public boolean isShiftKeyDown() { return player.isShiftKeyDown(); }
 	public GameType gameType() { return player.gameMode(); }
 	public Direction playerDirection() { return player.getDirection(); }
+	public Direction playerNearstViewDirection() { return player.getNearestViewDirection(); }
 	public double blockInteractionRange() { return player.blockInteractionRange(); }
 	public double entityInteractionRange() { return player.entityInteractionRange(); }
 	public void swing(InteractionHand hand) { player.swing(hand); }
