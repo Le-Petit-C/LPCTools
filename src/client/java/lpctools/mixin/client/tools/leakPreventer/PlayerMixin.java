@@ -1,4 +1,4 @@
-package lpctools.mixin.client.tools.antiLeak;
+package lpctools.mixin.client.tools.leakPreventer;
 
 import lpctools.tools.leakPreventer.LeakPreventer;
 import net.minecraft.core.BlockPos;

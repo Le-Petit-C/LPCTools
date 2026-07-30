@@ -57,7 +57,7 @@
     "scriptMixins.propertiesMixin.EnumPropertyMixin",
     "scriptMixins.propertiesMixin.IntegerPropertyRegisterMixin",
     "scriptMixins.propertiesMixin.PropertyRegisterMixin",
-    "tools.antiLeak.PlayerMixin",
+    "tools.leakPreventer.PlayerMixin",
     "tools.bedrockKiller.MinecraftMixin",
     "tools.entityHighlight.EntityMixin",
     "TweakerooMixin.ConfigsListsMixin",
