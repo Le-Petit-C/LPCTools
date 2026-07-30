@@ -1,6 +1,8 @@
 package lpctools.debugs;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 import fi.dy.masa.malilib.gui.button.ButtonBase;
 import fi.dy.masa.malilib.hotkeys.IKeybind;
 import fi.dy.masa.malilib.hotkeys.KeyAction;
@@ -10,9 +12,11 @@ import lpctools.lpcfymasaapi.LPCConfigList;
 import lpctools.lpcfymasaapi.Registries;
 import lpctools.lpcfymasaapi.configButtons.transferredConfigs.BooleanConfig;
 import lpctools.lpcfymasaapi.configButtons.transferredConfigs.HotkeyConfig;
+import lpctools.lpcfymasaapi.configButtons.transferredConfigs.StringListConfig;
 import lpctools.lpcfymasaapi.configButtons.uniqueConfigs.*;
 import lpctools.lpcfymasaapi.interfaces.ILPCUniqueConfigBase;
 import lpctools.tools.ToolUtils;
+import lpctools.util.CachedSupplier;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.player.LocalPlayer;
@@ -54,6 +58,9 @@ public class DebugConfigs {
     static {addConfig(GpuCacheMissTest.gpuCacheMissTest);}
     static {addConfig(TranslucentQuadsTest.translucentQuadsTest);}
     static {addConfig(ThreeBodyDisplay.threeBody);}
+    public static final BooleanThirdListConfig displayPacketNames = addBooleanHotkeyThirdListConfig("displayPacketNames");
+    public static final StringListConfig ignoredPacketNames = addStringListConfig(displayPacketNames, "ignoredPacketNames", ImmutableList.of(), DebugConfigs::ignoredPacketNamesCallback);
+    public static final CachedSupplier<ImmutableSet<String>> cachedIgnoredPacketNames = new CachedSupplier<>(()->ImmutableSet.copyOf(ignoredPacketNames.get()));
     static {listStack.pop();}
     
     private static void booleanHotkeyThirdListTestCallback(){
@@ -94,4 +101,6 @@ public class DebugConfigs {
         else player.sendSystemMessage(Component.nullToEmpty(finalState.toString()));
         return true;
     }
+
+    private static void ignoredPacketNamesCallback() { cachedIgnoredPacketNames.invalidate(); }
 }

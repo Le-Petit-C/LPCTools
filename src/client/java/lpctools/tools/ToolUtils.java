@@ -68,7 +68,7 @@ public class ToolUtils {
             this.toolRunner = toolRunner;
         }
         @Override public ToolWithRunnerConfig<T> build() {
-            return setLPCToolsToggleText(new ToolWithRunnerConfig<>(ToolConfigs.toolConfigs, key, toolRunner, callback));
+            return setLPCToolsToggleText(new ToolWithRunnerConfig<>(parent, key, toolRunner, callback));
         }
 
         @Override public ToolWithRunnerConfigBuilder<T> withExtraCallback(ILPCValueChangeCallback callback) { super.withExtraCallback(callback); return this; }

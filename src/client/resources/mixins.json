@@ -38,6 +38,7 @@
     "accessors.MerchantMenuAccessor",
     "accessors.MinecraftAccessor",
     "accessors.MultiPlayerGameModeAccessor",
+    "debug.ConnectionMixin",
     "events.AbstractContainerMenuMixin",
     "events.ClientPacketListenerMixin",
     "events.WorldChunkMixin",
