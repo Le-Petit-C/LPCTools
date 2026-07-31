@@ -58,11 +58,11 @@ public class OctreeMapTest {
 			Vector3i key = entry.getKey(new Vector3i());
 			if(!Objects.equals(entry.getValue(), hashMap.get(key)))
 				throw new RuntimeException("4");
-			double newDistance = MathUtils.cycledSquaredClosestDistance(center.x, center.y, center.z, key.x, key.y, key.z);
+			double newDistance = MathUtils.cycledClosestDistanceSquared(center.x, center.y, center.z, key.x, key.y, key.z);
 			if(newDistance < distance) {
 				System.out.println("PREV: dist=" + distance + " key=(" + prevKey.x + "," + prevKey.y + "," + prevKey.z + ")");
-				double prevDistFromPQ = MathUtils.cycledSquaredClosestDistance(center.x, center.y, center.z, prevKey.x, prevKey.y, prevKey.z, 1, 1, 1);
-				double curDistFromPQ = MathUtils.cycledSquaredClosestDistance(center.x, center.y, center.z, key.x, key.y, key.z, 1, 1, 1);
+				double prevDistFromPQ = MathUtils.cycledClosestDistanceSquared(center.x, center.y, center.z, prevKey.x, prevKey.y, prevKey.z, 1, 1, 1);
+				double curDistFromPQ = MathUtils.cycledClosestDistanceSquared(center.x, center.y, center.z, key.x, key.y, key.z, 1, 1, 1);
 				System.out.println("  prev 8arg=" + prevDistFromPQ + " cur 8arg=" + curDistFromPQ);
 				throw new RuntimeException("5");
 			}
@@ -77,7 +77,7 @@ public class OctreeMapTest {
 		distance = 0;
 		for(var entry : octreeMap.fromClosestBounds(cx, cy, cz)) {
 			Vector3i key = entry.getKey(new Vector3i());
-			double d = MathUtils.cycledSquaredClosestDistance(center.x, center.y, center.z, key.x, key.y, key.z, 1, 1, 1);
+			double d = MathUtils.cycledClosestDistanceSquared(center.x, center.y, center.z, key.x, key.y, key.z, 1, 1, 1);
 			if(d < distance) throw new RuntimeException("clamped not monotonic: prev=" + distance + " cur=" + d);
 			distance = d;
 			++n;
@@ -89,7 +89,7 @@ public class OctreeMapTest {
 		distance = 0;
 		for(var entry : octreeMap.fromClosestCentered(cx, cy, cz)) {
 			Vector3i key = entry.getKey(new Vector3i());
-			double d = MathUtils.cycledSquaredClosestDistance(cx - 0.5, cy - 0.5, cz - 0.5, key.x, key.y, key.z);
+			double d = MathUtils.cycledClosestDistanceSquared(cx - 0.5, cy - 0.5, cz - 0.5, key.x, key.y, key.z);
 			if(d < distance) throw new RuntimeException("centered not monotonic: prev=" + distance + " cur=" + d);
 			distance = d;
 			++n;

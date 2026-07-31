@@ -35,6 +35,7 @@
     "accessors.ConfigStringListAccessor",
     "accessors.LayerRangeAccessor",
     "accessors.LevelAccessor",
+    "accessors.LocalPlayerAccessor",
     "accessors.MerchantMenuAccessor",
     "accessors.MinecraftAccessor",
     "accessors.MultiPlayerGameModeAccessor",
@@ -57,9 +58,9 @@
     "scriptMixins.propertiesMixin.EnumPropertyMixin",
     "scriptMixins.propertiesMixin.IntegerPropertyRegisterMixin",
     "scriptMixins.propertiesMixin.PropertyRegisterMixin",
-    "tools.leakPreventer.PlayerMixin",
     "tools.bedrockKiller.MinecraftMixin",
     "tools.entityHighlight.EntityMixin",
+    "tools.leakPreventer.PlayerMixin",
     "TweakerooMixin.ConfigsListsMixin",
     "TweakerooMixin.ConfigsMixin",
     "tweaks.blockMiningCooldownTweaks.MultiPlayerGameModeMixin",
@@ -70,6 +71,7 @@
     "tweaks.playerRayTraceIgnorance.LocalPlayerMixin",
     "tweaks.playerRayTraceIgnorance.ProjectileUtilMixin",
     "utils.PacketRecorder",
-    "utils.blockBreaking.MinecraftMixin"
+    "utils.blockBreaking.MinecraftMixin",
+    "utils.playerRotManaging.LocalPlayerMixin"
   ]
 }

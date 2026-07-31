@@ -11,11 +11,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientChunkCache;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.multiplayer.chat.ChatListener;
-import net.minecraft.core.BlockPos;
-import net.minecraft.core.Holder;
-import net.minecraft.core.Registry;
-import net.minecraft.core.SectionPos;
-import net.minecraft.core.Vec3i;
+import net.minecraft.core.*;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
@@ -27,6 +23,7 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.chunk.LevelChunk;
+import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.Logger;
@@ -426,5 +423,17 @@ public class DataUtils {
             radius = expandRadius;
         }
         consumer.acceptPos(chunkedX, chunkedZ, radius);
+    }
+
+    public static BlockHitResult closestHitResult(double x, double y, double z, BlockPos pos) {
+        Vec3 location = new Vec3(Math.clamp(x, pos.getX(), pos.getX() + 1), Math.clamp(y, pos.getY(), pos.getY() + 1), Math.clamp(z, pos.getZ(), pos.getZ() + 1));
+        return new BlockHitResult(
+            location, Direction.getApproximateNearest(x - location.x, y - location.y, z - location.z),
+            pos.immutable(), false
+        );
+    }
+
+    public static BlockHitResult closestHitResult(Vec3 eye, BlockPos pos) {
+        return closestHitResult(eye.x, eye.y, eye.z, pos);
     }
 }

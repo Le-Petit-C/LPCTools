@@ -60,6 +60,7 @@ public class GenericConfigs {
     public static final UniqueIntegerConfig maxCommandLength = addConfigEx(l->new UniqueIntegerConfig(l, "maxCommandLength", 32767, 0, Integer.MAX_VALUE, null));
     static {threadCountConfig.onValueChanged();}
     static {addConfig(OperationSpeedLimit.limitOperationSpeed);}
+    static {addConfig(Bypassing.bypassing);}
     static {listStack.pop();}
     
     private static double hitBoxClamp(double x) {

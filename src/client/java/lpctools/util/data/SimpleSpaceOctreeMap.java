@@ -178,10 +178,10 @@ public class SimpleSpaceOctreeMap<T> extends AbstractMap<Vector3i, T> {
 		@Override T runRemove(int x, int y, int z, AbstractOctreeNode<T> node, int index) { return node.removeOnEntry(this, index); }
 		@Override OctreeEntry<T> getOrSub(OrderedContainer<Node<T>> queue) { return this; }
 		@Override double distanceForFromClosest(double x, double y, double z) {
-			return MathUtils.cycledSquaredClosestDistance(x, y, z, getX(), getY(), getZ());
+			return MathUtils.cycledClosestDistanceSquared(x, y, z, getX(), getY(), getZ());
 		}
 		@Override double distanceForFromClosestCentered(double x, double y, double z) {
-			return MathUtils.cycledSquaredClosestDistance(x - 0.5, y - 0.5, z - 0.5, getX(), getY(), getZ());
+			return MathUtils.cycledClosestDistanceSquared(x - 0.5, y - 0.5, z - 0.5, getX(), getY(), getZ());
 		}
 		@Override void forEach(SpaceEntryConsumer<T> action) { action.acceptSpaceEntry(x, y, z, value); }
 		public T replace(T newValue) {
@@ -379,7 +379,7 @@ public class SimpleSpaceOctreeMap<T> extends AbstractMap<Vector3i, T> {
 	}
 
 	private static double cycledSquaredClosestDistance(double startX, double startY, double startZ, SimpleSpaceOctreeMap.Node<?> node) {
-		return MathUtils.cycledSquaredClosestDistance(startX, startY, startZ, node.getX(), node.getY(), node.getZ(), node.side(), node.side(), node.side());
+		return MathUtils.cycledClosestDistanceSquared(startX, startY, startZ, node.getX(), node.getY(), node.getZ(), node.side(), node.side(), node.side());
 	}
 
 	public void validate() {

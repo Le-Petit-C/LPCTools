@@ -36,7 +36,7 @@ public class AlgorithmUtils {
     public static final ToDoubleBiFunction<Vec3, BlockPos> toCenterEuclideanClosestComparator =
         (center, pos) -> pos.distToCenterSqr(center);
     public static final ToDoubleBiFunction<Vec3, BlockPos> toEuclideanClosestBoundsComparator =
-        (center, pos) -> MathUtils.cycledSquaredClosestDistance(center.x, center.y, center.z, pos.getX(), pos.getY(), pos.getZ(), 1, 1, 1);
+        (center, pos) -> MathUtils.cycledClosestDistanceSquared(center.x, center.y, center.z, pos.getX(), pos.getY(), pos.getZ(), 1, 1, 1);
     //遍历长方体形状内的方块坐标
     public static Iterable<BlockPos> iterateInBox(int minX, int minY, int minZ, int maxX, int maxY, int maxZ){
         return new InBoxIterable(minX, minY, minZ, maxX, maxY, maxZ);

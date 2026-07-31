@@ -6,7 +6,9 @@ import lpctools.lpcfymasaapi.Registries;
 import lpctools.util.GameTime;
 import lpctools.util.MathUtils;
 import lpctools.util.data.SimpleSpaceOctreeMap;
+import lpctools.util.data.minecraft.Vector3fEx;
 import lpctools.util.javaex.QuietAutoCloseable;
+import lpctools.util.mixin.PlayerRotManaging;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientLevelEvents;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.minecraft.client.Minecraft;
@@ -15,6 +17,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Vec3i;
 import net.minecraft.world.InteractionHand;
+import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
@@ -22,6 +25,8 @@ import org.jspecify.annotations.NonNull;
 
 import java.util.*;
 import java.util.function.BiConsumer;
+
+import static lpctools.util.MathUtils.square;
 
 public class BlockBreaking {
 	public enum BreakingState {
@@ -143,6 +148,8 @@ public class BlockBreaking {
 			if(client.isPaused()) return;
 			InGameManager manager = InGameManager.get(client);
 			var limit = OperationSpeedLimit.root();
+
+			// 更新缓存的breakings
 			if(manager == null) {
 				clear();
 				assert map.isEmpty();
@@ -174,44 +181,79 @@ public class BlockBreaking {
 				registerAll(false);
 				return;
 			}
+
 			if(manager.gameModeExtraData().continueBreakUpdatedThisTick()) return;
-			Vec3 playerEyePos = manager.playerEyePos();
-			double reachSqr = MathUtils.square(manager.blockInteractionRange());
-			if(manager.isDestroying()) {
-				BlockPos currentPos = manager.getDestroyBlockPos();
-				if(MathUtils.minSquaredDistanceToBlock(playerEyePos, currentPos) >= reachSqr) {
-					manager.stopDestroyBlock();
-					breakState(currentPos, BreakingState.WAITING);
-				}
-			}
-			if(!manager.isDestroying() && limit.hasReservedTimes()) {
+
+			// 处理需要处理的breaking
+
+			float oldYRotRaw = manager.getYRotRaw(), oldXRotRaw = manager.getXRotRaw();
+
+			try {
+				manager.setRotRaw(manager.yRotLastRaw(), manager.xRotLastRaw());
+				Vec3 playerEyePos = manager.playerEyePos();
+				double reachSqr = square(manager.blockInteractionRange());
+				BlockBreakingBypassMethod.StatusCalculator bypassCalculator = BlockBreakingBypassMethod.current().createCalculator(manager);
 				BlockPos.MutableBlockPos cache = new BlockPos.MutableBlockPos();
 				Vec3i expand = new Vec3i(1, 1, 1);
-				for(var entry : map.fromClosestBounds(playerEyePos)) {
-					if(MathUtils.cycledSquaredClosestDistance(playerEyePos, entry.getKey(cache), expand) >= reachSqr) break;
-					if(!manager.getBlockState(cache).isAir()) {
-						manager.startDestroyBlock(cache, manager.playerNearstViewDirection().getOpposite());
-						limit.costBreakBlock();
-						if(manager.isDestroying()) {
-							breakState(cache, BreakingState.BREAKING);
-							break;
+				Vector3fEx targetDirection = new Vector3fEx();
+
+				if(!manager.isDestroying() && limit.hasReservedTimes()) {
+					for(var entry : map.fromClosestBounds(playerEyePos)) {
+						entry.getKey(cache);
+						if(MathUtils.cycledClosestDistanceSquared(playerEyePos, cache, expand) >= reachSqr) break;
+						if(bypassCalculator.isInBreakingRange(cache) != null) {
+							if(!manager.getBlockState(cache).isAir()) {
+								manager.startDestroyBlock(cache, manager.playerNearstViewDirection().getOpposite());
+								limit.costBreakBlock();
+								if(manager.isDestroying()) {
+									breakState(cache, BreakingState.BREAKING);
+									break;
+								}
+							}
+							breakSuccess(cache);
+							if(!limit.hasReservedTimes()) break;
 						}
 					}
-					breakSuccess(cache);
-					if(!limit.hasReservedTimes()) break;
+				}
+
+				if(manager.isDestroying() && bypassCalculator.getTargetDirection(manager.getDestroyBlockPos(), targetDirection))
+					PlayerRotManaging.setTargetRotIfCloser(manager, targetDirection);
+				else {
+					for(var entry : map.fromClosestBounds(playerEyePos)) {
+						entry.getKey(cache);
+						if(MathUtils.cycledClosestDistanceSquared(playerEyePos, cache, expand) >= reachSqr) break;
+						if(manager.getBlockState(cache).isAir()) continue;
+						if(bypassCalculator.getTargetDirection(cache, targetDirection)) {
+							manager.setRotRaw(oldYRotRaw, oldXRotRaw);
+							PlayerRotManaging.setTargetRotIfCloser(manager, targetDirection);
+							manager.setRotRaw(manager.yRotLastRaw(), manager.xRotLastRaw());
+						}
+					}
+				}
+
+				if(manager.isDestroying()) {
+					BlockPos pos = manager.getDestroyBlockPos();
+					BlockHitResult hit = bypassCalculator.isInBreakingRange(pos);
+					if(hit == null) {
+						manager.stopDestroyBlock();
+						breakState(pos, BreakingState.WAITING);
+					}
+					else {
+						Direction direction = hit.getDirection();
+						if (manager.continueDestroyBlock(pos, direction)) {
+							manager.addBreakingBlockEffect(pos, direction);
+							manager.swing(InteractionHand.MAIN_HAND);
+						}
+					}
+					if(!manager.isDestroying()) breakSuccess(pos);
+					else lastProgressTick = GameTime.getClientTickCount();
 				}
 			}
-			if(manager.isDestroying()) {
-				BlockPos pos = manager.getDestroyBlockPos();
-				Direction direction = manager.playerNearstViewDirection().getOpposite();
-				if (manager.continueDestroyBlock(pos, direction)) {
-					manager.addBreakingBlockEffect(pos, direction);
-					manager.swing(InteractionHand.MAIN_HAND);
-				}
-				if(!manager.isDestroying()) breakSuccess(pos);
-				else lastProgressTick = GameTime.getClientTickCount();
+			finally {
+				manager.setRotRaw(oldYRotRaw, oldXRotRaw);
 			}
 		}
+
 		@Override public void afterLevelChange(@NonNull Minecraft client, @NonNull ClientLevel level) { clear(); }
 		private void breakState(BlockPos pos, BreakingState state) {
 			Collection<BlockBreaking> breakings = map.get(pos);

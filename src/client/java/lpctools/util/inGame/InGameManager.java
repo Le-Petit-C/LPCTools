@@ -2,9 +2,11 @@ package lpctools.util.inGame;
 
 import lpctools.generic.GenericUtils;
 import lpctools.mixin.client.accessors.LevelAccessor;
+import lpctools.mixin.client.accessors.LocalPlayerAccessor;
 import lpctools.mixin.client.accessors.MultiPlayerGameModeAccessor;
 import lpctools.mixinData.MixinData;
 import lpctools.mixinData.MultiPlayerGameModeExtraData;
+import lpctools.util.MathUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.multiplayer.MultiPlayerGameMode;
@@ -13,6 +15,7 @@ import net.minecraft.core.*;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ServerboundRenameItemPacket;
 import net.minecraft.network.protocol.game.ServerboundSelectTradePacket;
+import net.minecraft.util.Mth;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.Entity;
@@ -23,11 +26,9 @@ import net.minecraft.world.inventory.MerchantMenu;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.dimension.DimensionType;
-import net.minecraft.world.phys.AABB;
-import net.minecraft.world.phys.BlockHitResult;
-import net.minecraft.world.phys.EntityHitResult;
-import net.minecraft.world.phys.Vec3;
+import net.minecraft.world.phys.*;
 import org.jetbrains.annotations.NotNull;
+import org.joml.Vector3fc;
 import org.jspecify.annotations.Nullable;
 
 import java.util.List;
@@ -52,6 +53,7 @@ public class InGameManager {
 	public @NotNull Inventory getInventory() { return player.getInventory(); }
 	public @NotNull Vec3 playerPos() { return player.position(); }
 	public @NotNull Vec3 playerEyePos() { return player.getEyePosition(); }
+	public @NotNull Vec3 playerViewVector() { return player.getViewVector(1); }
 	public boolean isShiftKeyDown() { return player.isShiftKeyDown(); }
 	public GameType gameType() { return player.gameMode(); }
 	public Direction playerDirection() { return player.getDirection(); }
@@ -59,6 +61,21 @@ public class InGameManager {
 	public double blockInteractionRange() { return player.blockInteractionRange(); }
 	public double entityInteractionRange() { return player.entityInteractionRange(); }
 	public void swing(InteractionHand hand) { player.swing(hand); }
+	public HitResult raycastHitResult() { return player.raycastHitResult(1, player); }
+	public float getYRotRaw() { return player.getYRot(); }
+	public float getXRotRaw() { return player.getXRot(); }
+	public float getYRot() { return getYRotRaw() * (Mth.PI / 180); }
+	public float getXRot() { return getXRotRaw() * (Mth.PI / 180); }
+	public void setRotRaw(float YRot, float XRot) { player.setYRot(YRot); player.setXRot(XRot); }
+	public void setRot(float YRot, float XRot) { player.setYRot(YRot * (180 / Mth.PI)); player.setXRot(XRot * (180 / Mth.PI)); }
+	public void setRot(Vector3fc targetView, float defYRot, float defXRot) { setRot(
+		MathUtils.YRotOrDefault(targetView.x(), targetView.y(), targetView.z(), defYRot),
+		MathUtils.XRotOrDefault(targetView.x(), targetView.y(), targetView.z(), defXRot));
+	}
+	public float yRotLastRaw() { return ((LocalPlayerAccessor)player).getYRotLast(); }
+	public float xRotLastRaw() { return ((LocalPlayerAccessor)player).getXRotLast(); }
+	public float yRotLast() { return yRotLastRaw() * (Mth.PI / 180); }
+	public float xRotLast() { return xRotLastRaw() * (Mth.PI / 180); }
 
 	public MultiPlayerGameModeExtraData gameModeExtraData() { return MixinData.getData(gameMode); }
 	public @NotNull InteractionResult useItemOn(InteractionHand hand, BlockHitResult hitResult) { return gameMode.useItemOn(player, hand, hitResult); }
