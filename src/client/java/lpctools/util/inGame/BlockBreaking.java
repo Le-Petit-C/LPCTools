@@ -17,7 +17,6 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Vec3i;
 import net.minecraft.world.InteractionHand;
-import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
@@ -188,7 +187,7 @@ public class BlockBreaking {
 
 			float oldYRotRaw = manager.getYRotRaw(), oldXRotRaw = manager.getXRotRaw();
 
-			try {
+			try (var rotSet = PlayerRotManaging.closerRotSet(manager)) {
 				manager.setRotRaw(manager.yRotLastRaw(), manager.xRotLastRaw());
 				Vec3 playerEyePos = manager.playerEyePos();
 				double reachSqr = square(manager.blockInteractionRange());
@@ -201,7 +200,7 @@ public class BlockBreaking {
 					for(var entry : map.fromClosestBounds(playerEyePos)) {
 						entry.getKey(cache);
 						if(MathUtils.cycledClosestDistanceSquared(playerEyePos, cache, expand) >= reachSqr) break;
-						if(bypassCalculator.isInBreakingRange(cache) != null) {
+						if(bypassCalculator.getHitDirection(cache) != null) {
 							if(!manager.getBlockState(cache).isAir()) {
 								manager.startDestroyBlock(cache, manager.playerNearstViewDirection().getOpposite());
 								limit.costBreakBlock();
@@ -217,29 +216,25 @@ public class BlockBreaking {
 				}
 
 				if(manager.isDestroying() && bypassCalculator.getTargetDirection(manager.getDestroyBlockPos(), targetDirection))
-					PlayerRotManaging.setTargetRotIfCloser(manager, targetDirection);
+					rotSet.setIfCloser(targetDirection);
 				else {
 					for(var entry : map.fromClosestBounds(playerEyePos)) {
 						entry.getKey(cache);
 						if(MathUtils.cycledClosestDistanceSquared(playerEyePos, cache, expand) >= reachSqr) break;
 						if(manager.getBlockState(cache).isAir()) continue;
-						if(bypassCalculator.getTargetDirection(cache, targetDirection)) {
-							manager.setRotRaw(oldYRotRaw, oldXRotRaw);
-							PlayerRotManaging.setTargetRotIfCloser(manager, targetDirection);
-							manager.setRotRaw(manager.yRotLastRaw(), manager.xRotLastRaw());
-						}
+						if(bypassCalculator.getTargetDirection(cache, targetDirection))
+							rotSet.setIfCloser(targetDirection);
 					}
 				}
 
 				if(manager.isDestroying()) {
 					BlockPos pos = manager.getDestroyBlockPos();
-					BlockHitResult hit = bypassCalculator.isInBreakingRange(pos);
-					if(hit == null) {
+					Direction direction = bypassCalculator.getHitDirection(pos);
+					if(direction == null) {
 						manager.stopDestroyBlock();
 						breakState(pos, BreakingState.WAITING);
 					}
 					else {
-						Direction direction = hit.getDirection();
 						if (manager.continueDestroyBlock(pos, direction)) {
 							manager.addBreakingBlockEffect(pos, direction);
 							manager.swing(InteractionHand.MAIN_HAND);

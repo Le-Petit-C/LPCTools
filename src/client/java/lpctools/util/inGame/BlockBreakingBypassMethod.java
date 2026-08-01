@@ -1,11 +1,12 @@
 package lpctools.util.inGame;
 
-import lpctools.util.DataUtils;
 import lpctools.util.MathUtils;
 import lpctools.util.data.minecraft.MutableAABB;
 import lpctools.util.data.minecraft.Vector3dEx;
 import lpctools.util.data.minecraft.Vector3fEx;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.Nullable;
@@ -25,8 +26,8 @@ public enum BlockBreakingBypassMethod {
 				final double reachSqr = MathUtils.square(manager.blockInteractionRange());
 				final Vec3 playerEye = manager.playerEyePos();
 				final Vec3 playerView = manager.playerViewVector();
-				@Override public @Nullable BlockHitResult isInBreakingRange(BlockPos pos) {
-					return MathUtils.minSquaredDistanceToBlock(playerEye, pos) < reachSqr ? DataUtils.closestHitResult(playerEye, pos) : null;
+				@Override public @Nullable Direction getHitDirection(BlockPos pos) {
+					return MathUtils.minSquaredDistanceToBlock(playerEye, pos) < reachSqr ? MathUtils.possibleHitDirection(pos, playerEye, playerView) : null;
 				}
 				@Override public boolean getTargetDirection(BlockPos pos, Vector3fEx res) {
 					res.set(playerView);
@@ -43,13 +44,11 @@ public enum BlockBreakingBypassMethod {
 				final Vec3 playerEye = manager.playerEyePos();
 				final Vec3 playerView = manager.playerViewVector();
 				final Vector3dEx posCache = new Vector3dEx();
-				@Override public @Nullable BlockHitResult isInBreakingRange(BlockPos pos) {
+				@Override public @Nullable Direction getHitDirection(BlockPos pos) {
 					aabbCache.setFullCube(pos);
 					OptionalDouble rayCastResult = aabbCache.rayCastDistance(playerEye, playerView);
-					if(rayCastResult.isPresent() && 0 <= rayCastResult.getAsDouble() && rayCastResult.getAsDouble() < reach) {
-						return new BlockHitResult(aabbCache.clamp(posCache.set(playerEye).fma(rayCastResult.getAsDouble(), playerView)).toMinecraftVec3(),
-							MathUtils.possibleHitDirection(pos, playerEye, playerView), pos.immutable(), false);
-					}
+					if(rayCastResult.isPresent() && 0 <= rayCastResult.getAsDouble() && rayCastResult.getAsDouble() < reach)
+						return MathUtils.possibleHitDirection(pos, playerEye, playerView);
 					else return null;
 				}
 				@Override public boolean getTargetDirection(BlockPos pos, Vector3fEx res) {
@@ -71,23 +70,34 @@ public enum BlockBreakingBypassMethod {
 				record PositionDistance(double x, double y, double z, double dstSqr) {
 					<T extends Vector3d> T get(T v) { v.set(x, y, z); return v; }
 				}
-				@Override public @Nullable BlockHitResult isInBreakingRange(BlockPos pos) {
+				@Override public @Nullable Direction getHitDirection(BlockPos pos) {
 					return manager.raycastHitResult() instanceof BlockHitResult blockHitResult
-						&& blockHitResult.getBlockPos().equals(pos) ? blockHitResult : null;
+						&& blockHitResult.getBlockPos().equals(pos) ? blockHitResult.getDirection() : null;
 				}
-				void addPos(double x, double y, double z) { posesCache.add(new PositionDistance(x, y, z, MathUtils.distanceSquared(playerEye, x, y, z))); }
+				void tryAddPos(double x, double y, double z, AABB bx, AABB by, AABB bz) {
+					if(bx.contains(x, y, z)) return;
+					if(by.contains(x, y, z)) return;
+					if(bz.contains(x, y, z)) return;
+					posesCache.add(new PositionDistance(x, y, z, MathUtils.distanceSquared(playerEye, x, y, z)));
+				}
 				@Override public boolean getTargetDirection(BlockPos pos, Vector3fEx res) {
-					manager.getBlockState(pos).getCollisionShape(manager.level, pos).forAllBoxes((x1, y1, z1, x2, y2, z2)->{
+					manager.getBlockState(pos).getShape(manager.level, pos).forAllBoxes((x1, y1, z1, x2, y2, z2)->{
 						aabbCache.set(x1, y1, z1, x2, y2, z2).clamp(posCache1.set(playerEye));
 						posCache2.setAsCenter(pos);
-						addPos(posCache1.x, posCache1.y, posCache1.z);
-						addPos(posCache2.x, posCache1.y, posCache1.z);
-						addPos(posCache1.x, posCache2.y, posCache1.z);
-						addPos(posCache2.x, posCache2.y, posCache1.z);
-						addPos(posCache1.x, posCache1.y, posCache2.z);
-						addPos(posCache2.x, posCache1.y, posCache2.z);
-						addPos(posCache1.x, posCache2.y, posCache2.z);
-						addPos(posCache2.x, posCache2.y, posCache2.z);
+						BlockPos px = pos.relative(Direction.fromAxisAndDirection(Direction.Axis.X, posCache1.x > posCache2.x ? Direction.AxisDirection.POSITIVE : Direction.AxisDirection.NEGATIVE));
+						BlockPos py = pos.relative(Direction.fromAxisAndDirection(Direction.Axis.Y, posCache1.y > posCache2.y ? Direction.AxisDirection.POSITIVE : Direction.AxisDirection.NEGATIVE));
+						BlockPos pz = pos.relative(Direction.fromAxisAndDirection(Direction.Axis.Z, posCache1.z > posCache2.z ? Direction.AxisDirection.POSITIVE : Direction.AxisDirection.NEGATIVE));
+						AABB bx = manager.getBlockState(px).getShape(manager.level, px).bounds().inflate(0.000001);
+						AABB by = manager.getBlockState(py).getShape(manager.level, py).bounds().inflate(0.000001);
+						AABB bz = manager.getBlockState(pz).getShape(manager.level, pz).bounds().inflate(0.000001);
+						tryAddPos(posCache1.x, posCache1.y, posCache1.z, bx, by, bz);
+						tryAddPos(posCache2.x, posCache1.y, posCache1.z, bx, by, bz);
+						tryAddPos(posCache1.x, posCache2.y, posCache1.z, bx, by, bz);
+						tryAddPos(posCache2.x, posCache2.y, posCache1.z, bx, by, bz);
+						tryAddPos(posCache1.x, posCache1.y, posCache2.z, bx, by, bz);
+						tryAddPos(posCache2.x, posCache1.y, posCache2.z, bx, by, bz);
+						tryAddPos(posCache1.x, posCache2.y, posCache2.z, bx, by, bz);
+						tryAddPos(posCache2.x, posCache2.y, posCache2.z, bx, by, bz);
 					});
 					posesCache.sort(Comparator.comparingDouble(v->v.dstSqr));
 					float oldYRotRaw = manager.getYRotRaw(), oldXRotRaw = manager.getXRotRaw();
@@ -113,7 +123,7 @@ public enum BlockBreakingBypassMethod {
 	}
 	public abstract StatusCalculator createCalculator(InGameManager manager);
 	public interface StatusCalculator {
-		@Nullable BlockHitResult isInBreakingRange(BlockPos pos);
+		@Nullable Direction getHitDirection(BlockPos pos);
 		boolean getTargetDirection(BlockPos pos, Vector3fEx res);
 	}
 }
