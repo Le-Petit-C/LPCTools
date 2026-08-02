@@ -6,6 +6,7 @@ import lpctools.lpcfymasaapi.LPCConfigPage;
 import lpctools.lpcfymasaapi.Reference;
 import lpctools.script.ScriptConfigs;
 import lpctools.tools.ToolConfigs;
+import lpctools.tools.fakePlayer.FakePlayerGroup;
 import lpctools.tweaks.TweakConfigs;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -22,6 +23,7 @@ public class LPCTools {
 		page.addList(ToolConfigs.toolConfigs);
 		page.addList(TweakConfigs.tweaks);
 		page.addList(ScriptConfigs.script);
+		page.addList(FakePlayerGroup.FPConfig);
 		page.addList(DebugConfigs.debugs);
 	}
 	static {LOGGER.info("Initialized");}
