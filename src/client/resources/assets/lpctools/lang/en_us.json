@@ -100,6 +100,8 @@
 	"lpctools.configs.generic.bypassing.blockBreakingBypass.none.title": "None (distance only)",
 	"lpctools.configs.generic.bypassing.blockBreakingBypass.direction.title": "Ray Cast Direction",
 	"lpctools.configs.generic.bypassing.blockBreakingBypass.only_ray_cast.title": "Only Ray Cast",
+	"lpctools.configs.generic.functionalBlocks.name": "Functional Blocks",
+	"lpctools.configs.generic.functionalBlocks.comment": "Blocks that have an interaction function (e.g. can be right-clicked). Used by tools to decide which blocks to treat as functional\nFor example, it can be used to determine whether sneaking is needed when placing other blocks against the side of a block",
 	"lpctools.configs.tools.title": "Tools",
 	"lpctools.tools.enableNotification": "Tool %s §aON§f",
 	"lpctools.tools.disableNotification": "Tool %s §cOFF§f",

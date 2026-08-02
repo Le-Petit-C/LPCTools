@@ -1,6 +1,7 @@
 package lpctools.tools.spawnProofer;
 
 import lpctools.compact.derived.ShapeList;
+import lpctools.generic.GenericConfigs;
 import lpctools.generic.OperationSpeedLimit;
 import lpctools.lpcfymasaapi.Registries;
 import lpctools.tools.ToolUtils;
@@ -10,9 +11,7 @@ import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.world.InteractionResult;
 import net.minecraft.world.item.BlockItem;
-import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
 import org.jspecify.annotations.NonNull;
@@ -43,12 +42,9 @@ public class SpawnProoferRunner implements ClientTickEvents.EndTick, ToolUtils.T
             else hitPos = belowPos;
             BlockHitResult hitResult = new BlockHitResult(
                 Vec3.atBottomCenterOf(pos), Direction.UP, hitPos, false);
-            // 非潜行时试探下方方块是否会拦截右键交互（如拉杆、按钮、工作台、熔炉等），若是则跳过此位置
-            if (!manager.isShiftKeyDown()) {
-                BlockState belowState = manager.getBlockState(belowPos);
-                InteractionResult result = belowState.useWithoutItem(manager.level, manager.player, hitResult);
-                if (result == InteractionResult.SUCCESS) continue;
-            }
+            // 非潜行时测试下方方块是否会拦截右键交互（如拉杆、按钮、工作台、熔炉等），若是则跳过此位置
+            if (!manager.isShiftKeyDown() && GenericConfigs.functionalBlocks.contains(manager.getBlock(belowPos)))
+                continue;
             manager.useItemOn(interactionHand.getHand(), hitResult);
             limit.costInteractBlock();
         }

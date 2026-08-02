@@ -100,6 +100,8 @@
 	"lpctools.configs.generic.bypassing.blockBreakingBypass.none.title": "無（僅距離）",
 	"lpctools.configs.generic.bypassing.blockBreakingBypass.direction.title": "射線方向判定",
 	"lpctools.configs.generic.bypassing.blockBreakingBypass.only_ray_cast.title": "僅射線偵測",
+	"lpctools.configs.generic.functionalBlocks.name": "有功能方塊",
+	"lpctools.configs.generic.functionalBlocks.comment": "具有互動功能（如可右鍵使用）的方塊清單，用於工具判斷哪些方塊應視為有功能\n例如可用於判斷在一個方塊側面放置其他方塊時是否需要潛行",
 	"lpctools.configs.tools.title": "工具",
 	"lpctools.tools.enableNotification": "工具 %s §a開啟§f",
 	"lpctools.tools.disableNotification": "工具 %s §c關閉§f",

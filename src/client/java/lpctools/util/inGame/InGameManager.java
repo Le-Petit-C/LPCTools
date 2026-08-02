@@ -24,6 +24,7 @@ import net.minecraft.world.inventory.AnvilMenu;
 import net.minecraft.world.inventory.ContainerInput;
 import net.minecraft.world.inventory.MerchantMenu;
 import net.minecraft.world.level.GameType;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.dimension.DimensionType;
 import net.minecraft.world.phys.*;
@@ -92,6 +93,7 @@ public class InGameManager {
 
 	public DimensionType dimensionType() { return level.dimensionType(); }
 	public @NotNull BlockState getBlockState(BlockPos pos) { return level.getBlockState(pos); }
+	public @NotNull Block getBlock(BlockPos pos) { return level.getBlockState(pos).getBlock(); }
 	public @NotNull List<Entity> getEntities(@Nullable Entity except, AABB bb) { return level.getEntities(except, bb); }
 	public @NotNull List<Entity> getEntities(AABB bb) { return getEntities(null, bb); }
 	public @NotNull Iterable<Entity> getAllEntities() { return ((LevelAccessor)level).invokeGetEntities().getAll(); }

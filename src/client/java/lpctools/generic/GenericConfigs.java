@@ -61,6 +61,7 @@ public class GenericConfigs {
     static {threadCountConfig.onValueChanged();}
     static {addConfig(OperationSpeedLimit.limitOperationSpeed);}
     static {addConfig(Bypassing.bypassing);}
+    public static final FunctionalBlocks functionalBlocks = addConfigEx(l->new FunctionalBlocks(l, "functionalBlocks"));
     static {listStack.pop();}
     
     private static double hitBoxClamp(double x) {
