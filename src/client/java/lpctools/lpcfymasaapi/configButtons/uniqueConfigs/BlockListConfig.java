@@ -3,13 +3,14 @@ package lpctools.lpcfymasaapi.configButtons.uniqueConfigs;
 import com.google.common.collect.ImmutableSet;
 import lpctools.lpcfymasaapi.interfaces.ILPCConfigReadable;
 import lpctools.lpcfymasaapi.interfaces.ILPCValueChangeCallback;
+import lpctools.util.CachedSupplier;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class BlockListConfig extends ConfigListConfig<BlockConfig> {
-	private ImmutableSet<Block> blocks = ImmutableSet.of();
+	private final CachedSupplier<ImmutableSet<Block>> blocks = new CachedSupplier<>(this::buildBlocks);
 	private boolean suppressValueChanged = false;
 	
 	public BlockListConfig(@NotNull ILPCConfigReadable parent, String nameKey, @Nullable Iterable<? extends Block> defaultValue, @Nullable ILPCValueChangeCallback callback) {
@@ -24,8 +25,8 @@ public class BlockListConfig extends ConfigListConfig<BlockConfig> {
 		this(parent, nameKey, defaultValue, null);
 	}
 	
-	public boolean contains(Block block){return blocks.contains(block);}
-	public ImmutableSet<Block> getBlocks(){return blocks;}
+	public boolean contains(Block block) { return blocks.get().contains(block); }
+	public ImmutableSet<Block> getBlocks() { return blocks.get(); }
 	
 	public void setBlocks(Iterable<? extends Block> blocks) {
 		suppressValueChanged = true;
@@ -37,9 +38,13 @@ public class BlockListConfig extends ConfigListConfig<BlockConfig> {
 	
 	@Override public void onValueChanged() {
 		if(suppressValueChanged) return;
+		blocks.invalidate();
+		super.onValueChanged();
+	}
+
+	private ImmutableSet<Block> buildBlocks() {
 		ImmutableSet.Builder<Block> builder = ImmutableSet.builder();
 		for(var config : iterateConfigs()) builder.add(config.getBlock());
-		blocks = builder.build();
-		super.onValueChanged();
+		return builder.build();
 	}
 }
