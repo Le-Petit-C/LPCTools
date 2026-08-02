@@ -63,7 +63,7 @@ public class AlgorithmUtils {
         );
     }
     public static Iterable<BlockPos> iterateInBoxTouched(MutableAABB box) {
-        return iterateInBoxTouched(box.x1, box.y1, box.z1, box.x2, box.y2, box.z2);
+        return iterateInBoxTouched(box.minX(), box.minY(), box.minZ(), box.maxX(), box.maxY(), box.maxZ());
     }
     public static Iterable<BlockPos> iterateInBoxTouched(AABB box){
         return iterateInBoxTouched(box.minX, box.minY, box.minZ, box.maxX, box.maxY, box.maxZ);

@@ -6,9 +6,9 @@ import lpctools.util.data.minecraft.Vector3dEx;
 import lpctools.util.data.minecraft.Vector3fEx;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
+import net.minecraft.world.phys.shapes.VoxelShape;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Vector3d;
 
@@ -16,10 +16,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.OptionalDouble;
 
-import static lpctools.generic.Bypassing.blockBreakingBypass;
-import static lpctools.generic.Bypassing.bypassing;
-
-public enum BlockBreakingBypassMethod {
+public enum BlockBreakBypassMethod implements BlockOperationRunner.CalculatorGenerator<BlockBreakBypassMethod.StatusCalculator> {
 	NONE {
 		@Override public StatusCalculator createCalculator(InGameManager manager) {
 			return new StatusCalculator() {
@@ -74,10 +71,16 @@ public enum BlockBreakingBypassMethod {
 					return manager.raycastHitResult() instanceof BlockHitResult blockHitResult
 						&& blockHitResult.getBlockPos().equals(pos) ? blockHitResult.getDirection() : null;
 				}
-				void tryAddPos(double x, double y, double z, AABB bx, AABB by, AABB bz) {
-					if(bx.contains(x, y, z)) return;
-					if(by.contains(x, y, z)) return;
-					if(bz.contains(x, y, z)) return;
+				boolean testVoxelShape(double x, double y, double z, VoxelShape shape) {
+					boolean[] res = { false };
+					shape.forAllBoxes((x1, y1, z1, x2, y2, z2)->{
+						if(aabbCache.set(x1, y1, z1, x2, y2, z2).inflateAndSet(0.000001).contains(x, y, z))
+							res[0] = true;
+					});
+					return res[0];
+				}
+				void tryAddPos(double x, double y, double z, VoxelShape bx, VoxelShape by, VoxelShape bz) {
+					if(testVoxelShape(x, y, z, bx) || testVoxelShape(x, y, z, by) || testVoxelShape(x, y, z, bz)) return;
 					posesCache.add(new PositionDistance(x, y, z, MathUtils.distanceSquared(playerEye, x, y, z)));
 				}
 				@Override public boolean getTargetDirection(BlockPos pos, Vector3fEx res) {
@@ -87,9 +90,9 @@ public enum BlockBreakingBypassMethod {
 						BlockPos px = pos.relative(Direction.fromAxisAndDirection(Direction.Axis.X, posCache1.x > posCache2.x ? Direction.AxisDirection.POSITIVE : Direction.AxisDirection.NEGATIVE));
 						BlockPos py = pos.relative(Direction.fromAxisAndDirection(Direction.Axis.Y, posCache1.y > posCache2.y ? Direction.AxisDirection.POSITIVE : Direction.AxisDirection.NEGATIVE));
 						BlockPos pz = pos.relative(Direction.fromAxisAndDirection(Direction.Axis.Z, posCache1.z > posCache2.z ? Direction.AxisDirection.POSITIVE : Direction.AxisDirection.NEGATIVE));
-						AABB bx = manager.getBlockState(px).getShape(manager.level, px).bounds().inflate(0.000001);
-						AABB by = manager.getBlockState(py).getShape(manager.level, py).bounds().inflate(0.000001);
-						AABB bz = manager.getBlockState(pz).getShape(manager.level, pz).bounds().inflate(0.000001);
+						VoxelShape bx = manager.getBlockState(px).getShape(manager.level, px);
+						VoxelShape by = manager.getBlockState(py).getShape(manager.level, py);
+						VoxelShape bz = manager.getBlockState(pz).getShape(manager.level, pz);
 						tryAddPos(posCache1.x, posCache1.y, posCache1.z, bx, by, bz);
 						tryAddPos(posCache2.x, posCache1.y, posCache1.z, bx, by, bz);
 						tryAddPos(posCache1.x, posCache2.y, posCache1.z, bx, by, bz);
@@ -118,10 +121,6 @@ public enum BlockBreakingBypassMethod {
 			};
 		}
 	};
-	public static BlockBreakingBypassMethod current() {
-		return bypassing.getBooleanValue() ? blockBreakingBypass.get() : BlockBreakingBypassMethod.NONE;
-	}
-	public abstract StatusCalculator createCalculator(InGameManager manager);
 	public interface StatusCalculator {
 		@Nullable Direction getHitDirection(BlockPos pos);
 		boolean getTargetDirection(BlockPos pos, Vector3fEx res);

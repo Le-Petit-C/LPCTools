@@ -131,6 +131,10 @@ public class MathUtils {
 		return cycledClosestDistanceSquared(start.x, start.y, start.z, pos.getX(), pos.getY(), pos.getZ(), expand.getX(), expand.getY(), expand.getZ());
 	}
 
+	public static double cycledClosestDistanceToFullCubeSquared(Vec3 start, Vec3i pos) {
+		return cycledClosestDistanceSquared(start.x, start.y, start.z, pos.getX(), pos.getY(), pos.getZ(), 1, 1, 1);
+	}
+
 	@Contract(pure = true)
 	public static Vector3i getSubChunkPos(BlockPos pos){
 		return new Vector3i(pos.getX() >> 4, pos.getY() >> 4, pos.getZ() >> 4);
