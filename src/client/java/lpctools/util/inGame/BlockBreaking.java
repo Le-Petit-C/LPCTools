@@ -5,51 +5,43 @@ import lpctools.util.javaex.QuietAutoCloseable;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.InteractionHand;
-import org.jetbrains.annotations.Nullable;
+import org.jspecify.annotations.NonNull;
 
 import java.util.*;
-import java.util.function.Consumer;
 
-import static lpctools.generic.Bypassing.blockBreakingBypass;
+import static lpctools.generic.Bypassing.blockBreakBypass;
 import static lpctools.util.inGame.BlockBreakBypassMethod.*;
 import static lpctools.util.inGame.BlockOperationRunner.*;
 
-public class BlockBreaking implements OperationExC<BlockBreaking, BlockBreaking.BreakingState> {
-	public enum BreakingState implements ResultMarkedState{
-		SUCCEEDED(true),
-		BREAKING(false),
-		WAITING(false),
-		CANCELED(true);
-		public final boolean isResultState;
-		BreakingState(boolean isResultState) { this.isResultState = isResultState; }
+public class BlockBreaking extends BasicBlockOperation<BlockBreaking, BlockBreaking.BreakState, BlockBreaking.BlockBreakRunner> {
+	public enum BreakState implements ResultMarkedState{
+		SUCCEEDED(true, true),
+		BREAKING(false, false),
+		WAITING(false, false),
+		CANCELED(true, false);
+		public final boolean isResultState, succeeded;
+		BreakState(boolean isResultState, boolean succeeded) {
+			this.isResultState = isResultState;
+			this.succeeded = succeeded;
+		}
 		@Override public boolean isResultState() { return isResultState; }
+		@Override public boolean succeeded() { return succeeded; }
 	}
 
-	private @Nullable Consumer<BlockBreaking> callback;
-	private final BlockPos pos;
-	private BreakingState state = BreakingState.WAITING;
-
-	@Override public BlockPos getPos() { return pos; }
-	@Override public @Nullable Consumer<BlockBreaking> getCallback() { return callback; }
-	@Override public void setCallback(@Nullable Consumer<BlockBreaking> callback) { this.callback = callback; }
 	@Override public BlockBreaking getThis() { return this; }
-	@Override public BreakingState getState() { return state; }
-	@Override public void setState(BreakingState state) {
-		if(this.state == state) return;
-		if(this.state.isResultState != state.isResultState) scheduleUpdate();
-		this.state = state;
-		if(callback != null) callback.accept(this);
-	}
-	@Override public BreakingState getCancelState() { return BreakingState.CANCELED; }
+	@Override public BreakState getCancelState() { return BreakState.CANCELED; }
 
-	public static BlockBreaking scheduleBreak(BlockPos pos) {
-		BlockBreaking instance = new BlockBreaking(pos);
-		instance.scheduleUpdate();
-		return instance;
-	}
+	@Override
+	@NonNull BlockBreakRunner getRunner() { return runner; }
+
+	public static BlockBreaking scheduleBreak(BlockPos pos) { return new BlockBreaking(pos); }
 
 	public static BlockBreaking scheduleRemoveOnResultBreakIfAbsent(Map<BlockPos, BlockBreaking> map, BlockPos pos) {
-		return map.computeIfAbsent(pos.immutable(), p->BlockBreaking.scheduleBreak(p).appendRemoveOnResultCallback(map));
+		return map.computeIfAbsent(pos.immutable(), p->{
+			var res = BlockBreaking.scheduleBreak(p);
+			res.appendRemoveOnResultCallback(map);
+			return res;
+		});
 	}
 
 	public static BlockBreakingCollection createBreakingCollection() { return new BlockBreakingCollection(); }
@@ -78,20 +70,19 @@ public class BlockBreaking implements OperationExC<BlockBreaking, BlockBreaking.
 		}
 	}
 
-	private BlockBreaking(BlockPos pos) { this.pos = pos.immutable(); }
-
-	private void scheduleUpdate() { runner.addInstanceToUpdate(this); }
-
-	public static boolean progressedLastTick() {
-		return runner.lastProgressTick + 1 >= GameTime.getClientTickCount();
+	private BlockBreaking(BlockPos pos) {
+		super(pos, BreakState.WAITING);
+		scheduleUpdate();
 	}
 
-	static final BlockBreakingRunner runner = new BlockBreakingRunner();
+	public static boolean progressedLastTick() { return runner.lastProgressTick + 1 >= GameTime.getClientTickCount(); }
 
-	static class BlockBreakingRunner extends BlockOperationRunner<BlockBreaking, StatusCalculator, BlockBreakBypassMethod> {
+	private static final BlockBreakRunner runner = new BlockBreakRunner();
+
+	static class BlockBreakRunner extends BlockOperationRunner<BlockBreaking, StatusCalculator, BlockBreakBypassMethod> {
 		long lastProgressTick;
 
-		BlockBreakingRunner() { super(blockBreakingBypass); }
+		BlockBreakRunner() { super(blockBreakBypass); }
 
 		@Override protected boolean prepare(TickOperationBasicData<StatusCalculator> data) {
 			return !data.manager().gameModeExtraData().continueBreakUpdatedThisTick();
@@ -104,13 +95,13 @@ public class BlockBreaking implements OperationExC<BlockBreaking, BlockBreaking.
 		@Override protected boolean forEachAction(TickOperationBasicData<StatusCalculator> data, BlockPos pos, Collection<BlockBreaking> operationInstances) {
 			// assert !data.manager().isDestroying();
 			if(data.bypassCalculator().getHitDirection(pos) instanceof Direction direction) {
-				BreakingState resultState;
+				BreakState resultState;
 				if(!data.manager().getBlockState(pos).isAir()) {
 					data.manager().startDestroyBlock(pos, direction);
 					data.limit().costBreakBlock();
-					resultState = data.manager().isDestroying() ? BreakingState.BREAKING : BreakingState.SUCCEEDED;
+					resultState = data.manager().isDestroying() ? BreakState.BREAKING : BreakState.SUCCEEDED;
 				}
-				else resultState = BreakingState.SUCCEEDED;
+				else resultState = BreakState.SUCCEEDED;
 				breakState(operationInstances, resultState);
 			}
 			if(!data.manager().isDestroying()) {
@@ -130,7 +121,7 @@ public class BlockBreaking implements OperationExC<BlockBreaking, BlockBreaking.
 				Direction direction = data.bypassCalculator().getHitDirection(pos);
 				if(direction == null) {
 					data.manager().stopDestroyBlock();
-					breakState(pos, BreakingState.WAITING);
+					breakState(pos, BreakState.WAITING);
 				}
 				else {
 					if (data.manager().continueDestroyBlock(pos, direction)) {
@@ -138,14 +129,14 @@ public class BlockBreaking implements OperationExC<BlockBreaking, BlockBreaking.
 						data.manager().swing(InteractionHand.MAIN_HAND);
 					}
 				}
-				if(!data.manager().isDestroying()) breakState(pos, BreakingState.SUCCEEDED);
+				if(!data.manager().isDestroying()) breakState(pos, BreakState.SUCCEEDED);
 				else lastProgressTick = GameTime.getClientTickCount();
 			}
 		}
-		private void breakState(BlockPos pos, BreakingState state) { breakState(getOperations(pos), state); }
-		private void breakState(Collection<BlockBreaking> breakings, BreakingState state) {
+		private void breakState(BlockPos pos, BreakState state) { breakState(getOperations(pos), state); }
+		private void breakState(Collection<BlockBreaking> breakings, BreakState state) {
 			if(breakings == null) return;
 			for(BlockBreaking breaking : breakings) breaking.setState(state);
 		}
-	};
+	}
 }

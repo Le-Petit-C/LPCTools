@@ -12,9 +12,12 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.item.BlockItem;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
 import org.jspecify.annotations.NonNull;
+
+import java.util.function.Predicate;
 
 import static lpctools.tools.spawnProofer.SpawnProofer.*;
 
@@ -26,7 +29,7 @@ public class SpawnProoferRunner implements ClientTickEvents.EndTick, ToolUtils.T
             return;
         }
         if (mc.gui.screen() != null) return;
-        HandRestock.IRestockTest restockTest = item -> item.getItem() instanceof BlockItem blockItem && placeableItems.contains(blockItem);
+        Predicate<ItemStack> restockTest = item -> item.getItem() instanceof BlockItem blockItem && placeableItems.contains(blockItem);
         var limit = OperationSpeedLimit.root().limitWithRestock(restockTest, interactionHand.offhandPriority());
         if (HandRestock.search(restockTest, 0) == -1) return;
         ShapeList shapeList = rangeLimitConfig.buildShapeList();

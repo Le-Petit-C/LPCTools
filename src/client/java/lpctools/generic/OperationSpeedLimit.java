@@ -7,6 +7,10 @@ import lpctools.util.GameTime;
 import lpctools.util.HandRestock;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.item.ItemStack;
+
+import java.util.function.Predicate;
 
 import static lpctools.lpcfymasaapi.LPCConfigStatics.addDoubleConfig;
 import static lpctools.lpcfymasaapi.LPCConfigStatics.listStack;
@@ -37,8 +41,11 @@ public abstract class OperationSpeedLimit {
 	public OperationSpeedLimit createSub(int reserved) { return new IntSubOperationSpeedLimit(this, reserved); }
 	public ReplenishingLimit createSubReplenishing() { return new ReplenishingSubLimit(this); }
 	//自带Restocked测试，每重置一次剩余操作次数最多只能Restock一次，多次调用返回“不可restock”
-	public LazyRestockOperationSpeedLimit limitWithRestock(HandRestock.IRestockTest restockTest, int offhandPriority) {
+	public LazyRestockOperationSpeedLimit limitWithRestock(Predicate<ItemStack> restockTest, int offhandPriority) {
 		return new LazyRestockOperationSpeedLimit(this, restockTest, offhandPriority);
+	}
+	public LazyRestockOperationSpeedLimit limitWithRestock(Predicate<ItemStack> restockTest, InteractionHand hand) {
+		return limitWithRestock(restockTest, hand == InteractionHand.MAIN_HAND ? 0 : -1);
 	}
 
 	protected abstract void decrease(double value);
@@ -78,9 +85,23 @@ public abstract class OperationSpeedLimit {
 
 	public static final class OperationSpeedLimitRoot extends ReplenishingLimit {
 		static final OperationSpeedLimitRoot INSTANCE = new OperationSpeedLimitRoot();
-		long lastRestockTick = 0;
-		public boolean notRestockedThisTick() { return lastRestockTick != GameTime.getClientTickCount(); }
-		public void setRestockedThisTick() { lastRestockTick = GameTime.getClientTickCount(); }
+		long lastMainHandRestockTick = 0;
+		long lastOffHandRestockTick = 0;
+		public long lastRestockTick(InteractionHand hand) {
+			return switch (hand) {
+				case MAIN_HAND -> lastMainHandRestockTick;
+				case OFF_HAND -> lastOffHandRestockTick;
+			};
+		}
+		public boolean notRestockedThisTick(InteractionHand hand) {
+			return lastRestockTick(hand) != GameTime.getClientTickCount();
+		}
+		public void setRestockedThisTick(InteractionHand hand) {
+			switch (hand) {
+				case OFF_HAND -> lastOffHandRestockTick = GameTime.getClientTickCount();
+				case MAIN_HAND -> lastMainHandRestockTick = GameTime.getClientTickCount();
+			}
+		}
 	}
 
 	private static class SubOperationSpeedLimit extends OperationSpeedLimit {
@@ -100,35 +121,36 @@ public abstract class OperationSpeedLimit {
 	}
 
 	public static class LazyRestockOperationSpeedLimit extends OperationSpeedLimit {
-		final HandRestock.IRestockTest restockTest;
+		final Predicate<ItemStack> restockTest;
 		final int offhandPriority;
-		int reserved = 0;
+		final InteractionHand hand;
 		final OperationSpeedLimit parent;
 
-		private LazyRestockOperationSpeedLimit(OperationSpeedLimit parent, HandRestock.IRestockTest restockTest, int offhandPriority) {
+		private LazyRestockOperationSpeedLimit(OperationSpeedLimit parent, Predicate<ItemStack> restockTest, int offhandPriority) {
 			this.restockTest = restockTest;
 			this.offhandPriority = offhandPriority;
 			this.parent = parent;
+			this.hand = offhandPriority < 0 ? InteractionHand.OFF_HAND : InteractionHand.MAIN_HAND;
 		}
 
 		@Override public boolean hasReservedTimes() {
-			return parent.hasReservedTimes() && (reserved > 0 || (root().notRestockedThisTick() && HandRestock.search(restockTest, offhandPriority) != -1));
+			LocalPlayer player = Minecraft.getInstance().player;
+			if(player == null) return false;
+			return parent.hasReservedTimes() && ((root().notRestockedThisTick(hand) ? HandRestock.search(restockTest, offhandPriority) != -1 : restockTest.test(player.getItemInHand(hand))));
 		}
 		public boolean hasReservedTimesRegardlessRestock() {
-			return parent.hasReservedTimes() && (reserved > 0 || root().notRestockedThisTick());
+			LocalPlayer player = Minecraft.getInstance().player;
+			if(player == null) return false;
+			return parent.hasReservedTimes() && (root().notRestockedThisTick(hand) || restockTest.test(player.getItemInHand(hand)));
 		}
 		@Override protected void decrease(double value) {
 			applyRestock();
-			--reserved; parent.decrease(value);
+			parent.decrease(value);
 		}
 		public void applyRestock() {
-			if(root().notRestockedThisTick()) {
-				reserved = HandRestock.restock(restockTest, offhandPriority);
-				if(reserved > 0) {
-					root().setRestockedThisTick();
-					if(Minecraft.getInstance().player instanceof LocalPlayer player && player.isCreative())
-						reserved = Integer.MAX_VALUE;
-				}
+			if(root().notRestockedThisTick(hand)) {
+				int res = HandRestock.restock(restockTest, offhandPriority);
+				if(res > 0) root().setRestockedThisTick(hand);
 			}
 		}
 	}

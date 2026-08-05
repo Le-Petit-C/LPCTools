@@ -1,7 +1,6 @@
 package lpctools.util.mixin;
 
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
-import lpctools.generic.Bypassing;
 import lpctools.util.MathUtils;
 import lpctools.util.inGame.InGameManager;
 import lpctools.util.javaex.QuietAutoCloseable;
@@ -10,6 +9,7 @@ import net.minecraft.util.Mth;
 import org.jetbrains.annotations.ApiStatus;
 import org.joml.Vector3fc;
 
+import static lpctools.generic.Bypassing.*;
 import static lpctools.util.MathUtils.*;
 
 public class PlayerRotManaging {
@@ -25,7 +25,8 @@ public class PlayerRotManaging {
 
 	public static class CloserRotSet implements QuietAutoCloseable {
 		private final float playerYRot, playerXRot;
-		private float minDistSqr = Float.POSITIVE_INFINITY;
+		private final float targetDistSqr = (float)square(maxRotateSpeed.getAsDouble());
+		private float currentDistSqr = Float.POSITIVE_INFINITY;
 		private float targetYRot, targetXRot;
 		private CloserRotSet(float playerYRot, float playerXRot) {
 			this.playerYRot = playerYRot;
@@ -33,8 +34,17 @@ public class PlayerRotManaging {
 		}
 		public void setIfCloser(float YRot, float XRot) {
 			float distSqr = rotDistanceSquared(playerYRot, playerXRot, YRot, XRot);
-			if(distSqr < minDistSqr) {
-				minDistSqr = distSqr;
+			boolean shouldExchange;
+			if(distSqr < targetDistSqr) {
+				if(currentDistSqr < targetDistSqr) shouldExchange = distSqr > currentDistSqr;
+				else shouldExchange = true;
+			}
+			else {
+				if(currentDistSqr < targetDistSqr) shouldExchange = false;
+				else shouldExchange = distSqr < currentDistSqr;
+			}
+			if(shouldExchange) {
+				currentDistSqr = distSqr;
 				targetYRot = YRot;
 				targetXRot = XRot;
 			}
@@ -47,7 +57,7 @@ public class PlayerRotManaging {
 		}
 
 		@Override public void close() {
-			if(Float.isFinite(minDistSqr)) setTargetRotIfCloser(playerYRot, playerXRot, targetYRot, targetXRot);
+			if(Float.isFinite(currentDistSqr)) setTargetRotIfCloser(playerYRot, playerXRot, targetYRot, targetXRot);
 		}
 	}
 
@@ -90,7 +100,7 @@ public class PlayerRotManaging {
 			}
 			float dYRot = modToCenter(targetYRotDegrees - yRotLast, 360), dXRot = targetXRotDegrees - xRotLast;
 			float rotDistance = Mth.sqrt(dYRot * dYRot + dXRot * dXRot) * (Mth.PI / 180);
-			float maxRotSpeed = (float) Bypassing.maxRotateSpeed.getDoubleValue();
+			float maxRotSpeed = (float) maxRotateSpeed.getDoubleValue();
 			if(rotDistance > maxRotSpeed) {
 				float k = maxRotSpeed / rotDistance;
 				targetYRotDegrees = Math.fma(k, dYRot, yRotLast);

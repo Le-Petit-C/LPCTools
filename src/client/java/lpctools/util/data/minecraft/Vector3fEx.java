@@ -1,6 +1,7 @@
 package lpctools.util.data.minecraft;
 
 import lpctools.util.MathUtils;
+import net.minecraft.core.Direction;
 import net.minecraft.core.Vec3i;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.Contract;
@@ -10,6 +11,7 @@ import java.lang.Math;
 import java.nio.ByteBuffer;
 import java.nio.FloatBuffer;
 
+@SuppressWarnings("unused")
 public class Vector3fEx extends Vector3f {
 	public Vector3fEx() { super(); }
 	public Vector3fEx(float d) { super(d); }
@@ -45,6 +47,8 @@ public class Vector3fEx extends Vector3f {
 	@Contract("_->this") public Vector3fEx set(Vec3 v) { return set(v.x, v.y, v.z); }
 	@Contract("_->this") public Vector3fEx set(Vec3i v) { return set(v.getX(), v.getY(), v.getZ()); }
 	@Contract("_->this") public Vector3fEx setAsCenter(Vec3i v) { return set(v.getX() + 0.5, v.getY() + 0.5, v.getZ() + 0.5); }
+
+	@Contract(pure = true) float choose(Direction.Axis axis) { return switch (axis) { case X -> x; case Y -> y; case Z -> z; }; }
 
 	// add —— 自修改，返回 this
 	@Contract("_->this") @Override public Vector3fEx add(Vector3fc v) { super.add(v); return this; }

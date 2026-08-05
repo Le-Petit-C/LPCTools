@@ -17,6 +17,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.packs.resources.Resource;
 import net.minecraft.server.packs.resources.ResourceManager;
+import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
@@ -36,8 +37,10 @@ import org.joml.Vector4f;
 import org.jspecify.annotations.NonNull;
 import org.lwjgl.opengl.GL30;
 
+import java.awt.*;
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.reflect.Array;
 import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -275,7 +278,7 @@ public class DataUtils {
     
     @SuppressWarnings("unchecked")
     public static <T> T[] newArrayLike(T[] template, int length) {
-        return (T[]) java.lang.reflect.Array.newInstance(
+        return (T[]) Array.newInstance(
             template.getClass().getComponentType(),
             length
         );
@@ -307,7 +310,7 @@ public class DataUtils {
         };
     }
     /**
-     * modified form {@link java.awt.Color#RGBtoHSB(int, int, int, float[])}
+     * modified form {@link Color#RGBtoHSB(int, int, int, float[])}
      */
     public static float[] fRGBtoHSB(float r, float g, float b, float[] hsbvals) {
         float hue, saturation, brightness;
@@ -435,5 +438,12 @@ public class DataUtils {
 
     public static BlockHitResult closestHitResult(Vec3 eye, BlockPos pos) {
         return closestHitResult(eye.x, eye.y, eye.z, pos);
+    }
+
+    public static InteractionHand oppositeHand(InteractionHand hand) {
+        return switch (hand) {
+            case MAIN_HAND -> InteractionHand.OFF_HAND;
+            case OFF_HAND -> InteractionHand.MAIN_HAND;
+        };
     }
 }

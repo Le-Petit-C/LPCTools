@@ -6,6 +6,8 @@ import net.minecraft.world.inventory.ContainerInput;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Set;
+import java.util.function.Predicate;
+
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.MultiPlayerGameMode;
 import net.minecraft.client.player.LocalPlayer;
@@ -16,11 +18,8 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 
 public class HandRestock {
-    public interface IRestockTest{
-        boolean isStackOk(ItemStack stack);
-    }
-    public record SearchInSet(@NotNull Set<? extends Item> set) implements IRestockTest{
-        @Override public boolean isStackOk(ItemStack stack){
+    public record SearchInSet(@NotNull Set<? extends Item> set) implements Predicate<ItemStack> {
+        @Override public boolean test(ItemStack stack){
             return set.contains(stack.getItem());
         }
     }
@@ -29,26 +28,26 @@ public class HandRestock {
     }
     //从当前GUI界面所有槽里寻找第一个满足条件的物品槽索引，主手槽位先于一般槽检测。没找到则返回-1，找到则返回槽位索引，找到副手返回-2
     //offhandPriority:副手槽位的检测优先级，-1表示在主手之前，0表示在主手之后但是在其他槽位之前，1表示在所有槽位之后，其他表示不检测
-    public static int search(IRestockTest restockTest, int offhandPriority){
+    public static int search(Predicate<ItemStack> restockTest, int offhandPriority){
         LocalPlayer player = Minecraft.getInstance().player;
         if (player == null) return -1;
         Inventory inventory = player.getInventory();
         var slots = player.containerMenu.slots;
-        if(offhandPriority == -1 && restockTest.isStackOk(inventory.getItem(Inventory.SLOT_OFFHAND))) return -2;
-        if(restockTest.isStackOk(inventory.getSelectedItem())) return getHotbarStartSlotIndex(player) + inventory.getSelectedSlot();
-        if(offhandPriority == 0 && restockTest.isStackOk(inventory.getItem(Inventory.SLOT_OFFHAND))) return -2;
+        if(offhandPriority == -1 && restockTest.test(inventory.getItem(Inventory.SLOT_OFFHAND))) return -2;
+        if(restockTest.test(inventory.getSelectedItem())) return getHotbarStartSlotIndex(player) + inventory.getSelectedSlot();
+        if(offhandPriority == 0 && restockTest.test(inventory.getItem(Inventory.SLOT_OFFHAND))) return -2;
         for (int i = 0; i < slots.size(); i++) {
             Slot slot = slots.get(i);
-            if(restockTest.isStackOk(slot.getItem())) return i;
+            if(restockTest.test(slot.getItem())) return i;
         }
-        if(offhandPriority == 1 && restockTest.isStackOk(inventory.getItem(Inventory.SLOT_OFFHAND))) return -2;
+        if(offhandPriority == 1 && restockTest.test(inventory.getItem(Inventory.SLOT_OFFHAND))) return -2;
         return -1;
     }
     /**
      * 从背包里寻找集合中的物品并将其换到手上，成功使目标手拿上给定物品返回拿到的物品数量，失败返回0
      * offhandPriority与search中的offhandPriority同义，进一步地，如果offhandPriority=-1即副手优先级比主手高，则变成填充副手而不是主手
      */
-    public static int restock(IRestockTest restockTest, int offhandPriority){
+    public static int restock(Predicate<ItemStack> restockTest, int offhandPriority){
         int i = search(restockTest, offhandPriority);
         if(i == -1) return 0;
         LocalPlayer player = Minecraft.getInstance().player;

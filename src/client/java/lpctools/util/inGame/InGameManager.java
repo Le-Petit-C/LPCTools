@@ -23,11 +23,13 @@ import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.AnvilMenu;
 import net.minecraft.world.inventory.ContainerInput;
 import net.minecraft.world.inventory.MerchantMenu;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.dimension.DimensionType;
 import net.minecraft.world.phys.*;
+import net.minecraft.world.phys.shapes.VoxelShape;
 import org.jetbrains.annotations.NotNull;
 import org.joml.Vector3fc;
 import org.jspecify.annotations.Nullable;
@@ -77,6 +79,9 @@ public class InGameManager {
 	public float xRotLastRaw() { return ((LocalPlayerAccessor)player).getXRotLast(); }
 	public float yRotLast() { return yRotLastRaw() * (Mth.PI / 180); }
 	public float xRotLast() { return xRotLastRaw() * (Mth.PI / 180); }
+	public ItemStack getMainHandItem() { return player.getMainHandItem(); }
+	public ItemStack getOffHandItem() { return player.getOffhandItem(); }
+	public ItemStack getItemInHand(InteractionHand hand) { return player.getItemInHand(hand); }
 
 	public MultiPlayerGameModeExtraData gameModeExtraData() { return MixinData.getData(gameMode); }
 	public @NotNull InteractionResult useItemOn(InteractionHand hand, BlockHitResult hitResult) { return gameMode.useItemOn(player, hand, hitResult); }
@@ -100,6 +105,12 @@ public class InGameManager {
 	public boolean mayMobSpawnAt(BlockPos pos) { if(spawnTest == null) spawnTest = GenericUtils.createSpawnTest(); return spawnTest.mayMobSpawnAt(level, level.getLightEngine(), pos); }
 	public float getDestroyProgress(BlockPos pos) { return getBlockState(pos).getDestroyProgress(player, level, pos); }
 	public void addBreakingBlockEffect(BlockPos pos, Direction direction) { level.addBreakingBlockEffect(pos, direction); }
+	public VoxelShape getBlockShape(BlockPos pos) { return level.getBlockState(pos).getShape(level, pos); }
+	public VoxelShape getMovedBlockShape(BlockPos pos) { return getBlockShape(pos).move(pos); }
+	public VoxelShape getBlockInteractionShape(BlockPos pos) { return level.getBlockState(pos).getInteractionShape(level, pos); }
+	public VoxelShape getMovedBlockInteractionShape(BlockPos pos) { return getBlockInteractionShape(pos).move(pos); }
+	public VoxelShape getBlockCollisionShape(BlockPos pos) { return level.getBlockState(pos).getCollisionShape(level, pos); }
+	public VoxelShape getMovedBlockCollisionShape(BlockPos pos) { return getBlockCollisionShape(pos).move(pos); }
 
 	public void send(final Packet<?> packet) { player.connection.send(packet); }
 

@@ -14,6 +14,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Vec3i;
 import net.minecraft.world.InteractionResult;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.dimension.DimensionType;
@@ -26,6 +27,7 @@ import org.jspecify.annotations.NonNull;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.Queue;
+import java.util.function.Predicate;
 
 import static lpctools.tools.fillingAssistant.FillingAssistant.*;
 import static lpctools.util.BlockUtils.*;
@@ -54,7 +56,7 @@ public class FillingAssistantRunner implements ClientTickEvents.EndTick, Registr
             disableTool("GUIOpened");
             return;
         }
-        HandRestock.IRestockTest restockTest = new HandRestock.SearchInSet(getPlaceableItems());
+        Predicate<ItemStack> restockTest = new HandRestock.SearchInSet(getPlaceableItems());
         if(HandRestock.search(restockTest, interactionHand.offhandPriority()) == -1){//这个或许应该放在函数末尾，但是放在这里似乎也没什么坏处
             disableTool("placeableItemRanOut");
             return;

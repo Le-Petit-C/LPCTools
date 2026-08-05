@@ -13,10 +13,12 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Vec3i;
 import net.minecraft.world.item.BlockItem;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Block;
 import org.jspecify.annotations.NonNull;
 
 import java.util.ArrayList;
+import java.util.function.Predicate;
 
 import static lpctools.tools.tilingTool.TilingTool.*;
 import static lpctools.tools.tilingTool.TilingToolData.*;
@@ -52,7 +54,7 @@ public class TilingToolRunner implements ToolUtils.ToolRunner, ClientTickEvents.
             for(var set : list) if(set.contains(b)) return true;
             return false;
         };
-        HandRestock.IRestockTest restockTest = stack->{
+        Predicate<ItemStack> restockTest = stack->{
             if(!(stack.getItem() instanceof BlockItem blockItem)) return false;
             return blockFitsBlockAtPos.getBoolean(blockItem.getBlock());
         };

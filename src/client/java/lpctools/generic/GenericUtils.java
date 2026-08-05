@@ -3,7 +3,6 @@ package lpctools.generic;
 import lpctools.util.AlgorithmUtils;
 import lpctools.util.data.minecraft.MutableAABB;
 import net.minecraft.world.phys.Vec3;
-import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -31,12 +30,6 @@ public class GenericUtils {
     public static class MobSpawnTest {
         private final MutableAABB entityAABB = new MutableAABB();
         private final MutableAABB blockAABBPartCache = new MutableAABB();
-        private final BlockPos.MutableBlockPos blockPosCache = new BlockPos.MutableBlockPos();
-        private final Shapes.DoubleLineConsumer forAllBoxesTask =
-            (x1, y1, z1, x2, y2, z2)->{
-            blockAABBPartCache.set(x1, y1, z1, x2, y2, z2).moveAndSet(blockPosCache);
-            if(entityAABB.intersects(blockAABBPartCache)) booleanCache = true;
-        };
         private boolean booleanCache;
         private MobSpawnTest() {}
         public boolean mayMobSpawnAt(@NotNull BlockGetter world, @Nullable LevelLightEngine light, BlockPos pos){
@@ -52,10 +45,10 @@ public class GenericUtils {
             for(BlockPos pos1 : AlgorithmUtils.iterateInBoxTouched(entityAABB)) {
                 VoxelShape collisionShape = world.getBlockState(pos1).getCollisionShape(world, pos1);
                 if(collisionShape.isEmpty()) continue;
-                else {
-                    blockPosCache.set(pos1);
-                    collisionShape.forAllBoxes(forAllBoxesTask);
-                }
+                else collisionShape.move(pos1).forAllBoxes((x1, y1, z1, x2, y2, z2)->{
+                    blockAABBPartCache.set(x1, y1, z1, x2, y2, z2);
+                    if(entityAABB.intersects(blockAABBPartCache)) booleanCache = true;
+                });
                 if(booleanCache) return false;
             }
             int fluidLevel = block.getFluidState().getAmount();

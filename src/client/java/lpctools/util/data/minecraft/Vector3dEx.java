@@ -1,6 +1,7 @@
 package lpctools.util.data.minecraft;
 
 import lpctools.util.MathUtils;
+import net.minecraft.core.Direction;
 import net.minecraft.core.Position;
 import net.minecraft.core.Vec3i;
 import net.minecraft.world.phys.Vec3;
@@ -11,6 +12,7 @@ import java.lang.Math;
 import java.nio.ByteBuffer;
 import java.nio.DoubleBuffer;
 
+@SuppressWarnings("unused")
 public class Vector3dEx extends Vector3d implements Position {
 	public Vector3dEx() { super(); }
 	public Vector3dEx(double d) { super(d); }
@@ -50,6 +52,8 @@ public class Vector3dEx extends Vector3d implements Position {
 	@Contract("_->this") public Vector3dEx set(Position v) { return set(v.x(), v.y(), v.z()); }
 	@Contract("_->this") public Vector3dEx set(Vec3i v) { return set(v.getX(), v.getY(), v.getZ()); }
 	@Contract("_->this") public Vector3dEx setAsCenter(Vec3i v) { return set(v.getX() + 0.5, v.getY() + 0.5, v.getZ() + 0.5); }
+
+	@Contract(pure = true) public double choose(Direction.Axis axis) { return axis.choose(x, y, z); }
 
 	// add —— 自修改，返回 this
 	@Contract("_->this") @Override public Vector3dEx add(Vector3dc v) { super.add(v); return this; }
