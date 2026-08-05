@@ -23,7 +23,7 @@ import java.util.function.Consumer;
 import static lpctools.generic.Bypassing.bypassing;
 import static lpctools.util.MathUtils.square;
 
-abstract class InGameOperationRunner<T extends Operation,
+abstract class InGameOperationRunner<T extends InGameOperation,
 	U, V extends Enum<V> & InGameOperationRunner.CalculatorGenerator<U>>
 	implements ClientTickEvents.EndTick, ClientLevelEvents.AfterClientLevelChange {
 	private final LinkedHashSet<T> instancesToUpdate = new LinkedHashSet<>();
@@ -48,23 +48,8 @@ abstract class InGameOperationRunner<T extends Operation,
 		registerAll(true);
 	}
 
-	interface OperationExA<T extends OperationExA<T>> extends Operation {
-		@Nullable Consumer<T> getCallback();
-		void setCallback(@Nullable Consumer<T> callback);
-		@Contract("->this") T getThis();
-		@Contract("_->this") default T appendCallback(@NotNull Consumer<T> callback) {
-			Consumer<T> lastCallback = getCallback();
-			if(lastCallback == null) setCallback(callback);
-			else setCallback(instance->{
-				lastCallback.accept(instance);
-				callback.accept(instance);
-			});
-			return getThis();
-		}
-	}
-
-	abstract static class BasicOperation<T extends BasicOperation<T, W, R>, W extends Enum<W> & OperationExB.ResultMarkedState, R extends InGameOperationRunner<T, ?, ?>>
-		implements OperationExA<T>, OperationExB<W>, BlockOperationRunner.BlockOperation {
+	abstract static class BasicOperation<T extends BasicOperation<T, W, R>, W extends Enum<W> & InGameOperation.WithState.ResultMarkedState, R extends InGameOperationRunner<T, ?, ?>>
+		implements InGameOperation.WithCallback<T>, InGameOperation.WithState<W>, BlockOperationRunner.BlockOperation {
 		private @Nullable Consumer<T> callback;
 		private W state;
 
@@ -92,15 +77,6 @@ abstract class InGameOperationRunner<T extends Operation,
 		public T appendRemoveOnResultCallback(Map<BlockPos, T> map) {
 			return appendOnResultCallback((instance, _) -> map.remove(instance.getPos()));
 		}
-	}
-
-	interface OperationExB<W extends Enum<W> & OperationExB.ResultMarkedState> extends Operation {
-		interface ResultMarkedState { boolean isResultState(); boolean succeeded(); }
-		W getState();
-		void setState(W state);
-		W getCancelState();
-		@Override default void cancel() { if(!getState().isResultState()) setState(getCancelState()); }
-		@Override default boolean isRemoved() { return getState().isResultState(); }
 	}
 
 	interface CalculatorGenerator<T> { T createCalculator(InGameManager manager); }

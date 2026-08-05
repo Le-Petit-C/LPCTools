@@ -19,10 +19,10 @@ abstract class BlockOperationRunner<T extends BlockOperationRunner.BlockOperatio
 	BlockOperationRunner(EnumArrayOptionListConfig<V> bypassMethodConfig)
 	{ super(bypassMethodConfig); }
 
-	interface BlockOperation extends Operation { BlockPos getPos(); }
+	interface BlockOperation extends InGameOperation { BlockPos getPos(); }
 
 	abstract static class BasicBlockOperation
-		<T extends BasicBlockOperation<T, W, R>, W extends Enum<W> & OperationExB.ResultMarkedState, R extends InGameOperationRunner<T, ?, ?>>
+		<T extends BasicBlockOperation<T, W, R>, W extends Enum<W> & InGameOperation.WithState.ResultMarkedState, R extends InGameOperationRunner<T, ?, ?>>
 		extends BasicOperation<T, W, R> {
 		private final BlockPos pos;
 

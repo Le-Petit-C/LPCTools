@@ -54,7 +54,7 @@ class TradeRerollRunner implements ToolUtils.ToolRunner, ClientTickEvents.EndTic
 	private final BlockPos lecternPos, nextButton, anvilPos;
 	private final Vec3 playerPos;
 	private final HashMap<EnchantmentTradeOption.EnchantmentWithLevel, IntHeapPriorityQueue> neededEnchantments;
-	private final ObjectOpenHashSet<Operation> notClosedOperations = new ObjectOpenHashSet<>();
+	private final ObjectOpenHashSet<InGameOperation> notClosedOperations = new ObjectOpenHashSet<>();
 	private final Registry<Enchantment> enchantmentRegistry;
 	private final ClientTickExecutor operator = new ClientTickExecutor();
 	private int timeOutCounter;
@@ -62,7 +62,7 @@ class TradeRerollRunner implements ToolUtils.ToolRunner, ClientTickEvents.EndTic
 
 	private void tryCloseActions() {
 		if(notClosedOperations.isEmpty()) return;
-		Operation[] operations = notClosedOperations.toArray(new Operation[0]);
+		InGameOperation[] operations = notClosedOperations.toArray(new InGameOperation[0]);
 		notClosedOperations.clear();
 		for(var operation : operations) operation.cancel();
 	}

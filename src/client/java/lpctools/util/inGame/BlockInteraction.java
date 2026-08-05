@@ -24,7 +24,7 @@ public class BlockInteraction extends BlockOperationRunner.BasicBlockOperation<B
 	@Override
 	@NonNull BlockInteractRunner getRunner() { return runner; }
 
-	public enum InteractState implements InGameOperationRunner.OperationExB.ResultMarkedState {
+	public enum InteractState implements ResultMarkedState {
 		SUCCEEDED(true, true),
 		WAITING(false, false),
 		CANCELLED(true, false),
