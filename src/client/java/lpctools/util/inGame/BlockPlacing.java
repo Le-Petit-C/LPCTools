@@ -4,6 +4,7 @@ import lpctools.generic.Bypassing;
 import lpctools.generic.OperationSpeedLimit;
 import lpctools.lpcfymasaapi.Registries;
 import lpctools.util.DataUtils;
+import lpctools.util.DirectionVectorPredicator;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.InteractionHand;
@@ -26,31 +27,40 @@ public class BlockPlacing extends InGameOperationRunner.BasicOperation<BlockPlac
 	private final InteractionHand preferredHand;
 	private final boolean forcePreferredHand;
 	private final @Nullable BlockInteraction[] interactions = new BlockInteraction[7];
+	private final @Nullable Direction requiredInteractDirection;
+	private final @Nullable DirectionVectorPredicator requiredPlayerDirection;
 
-	private BlockPlacing(BlockPos pos, Predicate<ItemStack> restockTest, Predicate<BlockState> blockTest, InteractionHand preferredHand, boolean forcePreferredHand) {
+	private BlockPlacing(BlockPos pos, Predicate<ItemStack> restockTest, Predicate<BlockState> blockTest,
+	                     InteractionHand preferredHand, boolean forcePreferredHand,
+	                     @Nullable Direction requiredInteractDirection, @Nullable DirectionVectorPredicator requiredPlayerDirection) {
 		super(PlacingState.WAITING);
 		this.pos = pos.immutable();
 		this.restockTest = restockTest;
 		this.blockTest = blockTest;
 		this.preferredHand = preferredHand;
 		this.forcePreferredHand = forcePreferredHand;
+		this.requiredInteractDirection = requiredInteractDirection;
+		this.requiredPlayerDirection = requiredPlayerDirection;
 		scheduleUpdate();
 	}
 
-	public static BlockPlacing schedulePlace(BlockPos pos, Predicate<ItemStack> restockTest, Predicate<BlockState> blockTest, InteractionHand preferredHand, boolean forcePreferredHand) {
-		return new BlockPlacing(pos, restockTest, blockTest, preferredHand, forcePreferredHand);
+	public static BlockPlacing schedulePlace(BlockPos pos, Predicate<ItemStack> restockTest, Predicate<BlockState> blockTest,
+											 InteractionHand preferredHand, boolean forcePreferredHand,
+											 @Nullable Direction requiredInteractDirection, @Nullable DirectionVectorPredicator requiredPlayerDirection) {
+		return new BlockPlacing(pos, restockTest, blockTest, preferredHand, forcePreferredHand, requiredInteractDirection, requiredPlayerDirection);
 	}
 
-	public static BlockPlacing schedulePlace(BlockPos pos, Block targetBlock, InteractionHand preferredHand, boolean forcePreferredHand) {
-		return schedulePlace(pos, stack -> stack.getItem() == targetBlock.asItem(), state -> state.is(targetBlock), preferredHand, forcePreferredHand);
+	public static BlockPlacing schedulePlace(BlockPos pos, Block targetBlock, InteractionHand preferredHand, boolean forcePreferredHand,
+											 @Nullable Direction requiredInteractDirection, @Nullable DirectionVectorPredicator requiredPlayerDirection) {
+		return schedulePlace(pos, stack -> stack.getItem() == targetBlock.asItem(), state -> state.is(targetBlock), preferredHand, forcePreferredHand, requiredInteractDirection, requiredPlayerDirection);
 	}
 
 	public static BlockPlacing schedulePlace(BlockPos pos, Predicate<ItemStack> restockTest, Predicate<BlockState> blockTest, InteractionHand hand) {
-		return schedulePlace(pos, restockTest, blockTest, hand, true);
+		return schedulePlace(pos, restockTest, blockTest, hand, true, null, null);
 	}
 
 	public static BlockPlacing schedulePlace(BlockPos pos, Block targetBlock, InteractionHand preferredHand) {
-		return schedulePlace(pos, targetBlock, preferredHand, true);
+		return schedulePlace(pos, targetBlock, preferredHand, true, null, null);
 	}
 
 	@Override @NonNull BlockPlacingRunner getRunner() { return runner; }
@@ -60,6 +70,7 @@ public class BlockPlacing extends InGameOperationRunner.BasicOperation<BlockPlac
 		// TODO: 潜行检测/潜行计划
 		InGameManager manager = InGameManager.get();
 		if(manager == null) return null;
+		if(requiredPlayerDirection != null && !requiredPlayerDirection.test(manager.playerViewVector())) return null;
 		InteractionHand res;
 		if(restockTest.test(manager.getItemInHand(preferredHand)))
 			res = preferredHand;
@@ -136,12 +147,13 @@ public class BlockPlacing extends InGameOperationRunner.BasicOperation<BlockPlac
 		BlockPlaceBypassMethod method = Bypassing.bypassing.getBooleanValue() ? Bypassing.blockPlaceBypass.get() : BlockPlaceBypassMethod.NONE;
 		if(!method.isValidPos(manager, pos)) return;
 		for(var direction : Direction.values()) {
-			var relativePos = pos.relative(direction);
+			if(requiredInteractDirection != null && direction != requiredInteractDirection) continue;
+			var relativePos = pos.relative(direction.getOpposite());
 			if(!manager.getBlockState(relativePos).canBeReplaced())
-				interactions[direction.ordinal()] = BlockInteraction.scheduleInteract(relativePos, direction.getOpposite(), this);
+				interactions[direction.ordinal()] = BlockInteraction.scheduleInteract(relativePos, direction, this);
 		}
 		if(method != BlockPlaceBypassMethod.ATTACH || !manager.getBlockState(pos).isAir())
-			interactions[6] = BlockInteraction.scheduleInteract(pos, null, this);
+			interactions[6] = BlockInteraction.scheduleInteract(pos, requiredInteractDirection, this);
 		for(var interaction : interactions)
 			if(interaction != null) interaction.setCallback(this);
 	}

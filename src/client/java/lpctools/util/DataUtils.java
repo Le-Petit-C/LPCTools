@@ -32,6 +32,7 @@ import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Vector3d;
+import org.joml.Vector3f;
 import org.joml.Vector3i;
 import org.joml.Vector4f;
 import org.jspecify.annotations.NonNull;
@@ -445,5 +446,57 @@ public class DataUtils {
             case MAIN_HAND -> InteractionHand.OFF_HAND;
             case OFF_HAND -> InteractionHand.MAIN_HAND;
         };
+    }
+
+    public static Direction approximateNearstDirection(float dx, float dy, float dz) {
+        return Direction.getApproximateNearest(dx, dy, dz);
+    }
+
+    public static Direction approximateNearstDirection(double dx, double dy, double dz) {
+        return Direction.getApproximateNearest(dx, dy, dz);
+    }
+
+    public static Direction approximateNearstDirection(Vec3 vec) {
+        return Direction.getApproximateNearest(vec);
+    }
+
+    public static Direction approximateNearstDirection(Vector3f vec) {
+        return Direction.getApproximateNearest(vec.x, vec.y, vec.z);
+    }
+
+    public static Direction approximateNearstDirection(Vector3d vec) {
+        return Direction.getApproximateNearest(vec.x, vec.y, vec.z);
+    }
+
+    public static Direction approximateNearestDirectionHorizontal(float dx, float dz) {
+        Direction result = Direction.NORTH;
+        float highestDot = Float.MIN_VALUE;
+
+        for(var direction : Direction.Plane.HORIZONTAL) {
+            var normal = direction.getUnitVec3f();
+            float dot = dx * normal.x() + dz * normal.z();
+            if (dot > highestDot) {
+                highestDot = dot;
+                result = direction;
+            }
+        }
+
+        return result;
+    }
+
+    public static Direction approximateNearestDirectionHorizontal(double dx, double dz) {
+        return approximateNearestDirectionHorizontal((float) dx, (float) dz);
+    }
+
+    public static Direction approximateNearestDirectionHorizontal(Vec3 vec) {
+        return approximateNearestDirectionHorizontal(vec.x, vec.z);
+    }
+
+    public static Direction approximateNearestDirectionHorizontal(Vector3f vec) {
+        return approximateNearestDirectionHorizontal(vec.x, vec.z);
+    }
+
+    public static Direction approximateNearestDirectionHorizontal(Vector3d vec) {
+        return approximateNearestDirectionHorizontal(vec.x, vec.z);
     }
 }
