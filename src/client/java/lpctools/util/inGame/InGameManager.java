@@ -32,6 +32,7 @@ import net.minecraft.world.phys.*;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import org.jetbrains.annotations.NotNull;
 import org.joml.Vector3fc;
+import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
 import java.util.List;
@@ -48,9 +49,14 @@ public class InGameManager {
 		this.gameMode = gameMode;
 		this.level = level;
 	}
-
 	public static @Nullable InGameManager get(Minecraft mc) { return InGameUtils.getInGameGenericData(mc); }
 	public static @Nullable InGameManager get() { return get(Minecraft.getInstance()); }
+	public static @NonNull InGameManager getOrThrow(Minecraft mc) {
+		if(get(mc) instanceof InGameManager manager) return manager;
+		// TODO notInGame translatable component
+		else throw new RuntimeException();
+	}
+	public static @NonNull InGameManager getOrThrow() { return getOrThrow(Minecraft.getInstance()); }
 
 	public void closeContainer() { player.closeContainer(); }
 	public @NotNull Inventory getInventory() { return player.getInventory(); }

@@ -1,7 +1,6 @@
 package lpctools.tools.tradeReroller;
 
 import it.unimi.dsi.fastutil.ints.IntHeapPriorityQueue;
-import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import lpctools.lpcfymasaapi.Registries;
 import lpctools.mixin.client.accessors.MerchantMenuAccessor;
 import lpctools.tools.ToolUtils;
@@ -46,6 +45,7 @@ import org.jspecify.annotations.Nullable;
 
 import java.util.HashMap;
 import java.util.Objects;
+import java.util.function.UnaryOperator;
 
 import static lpctools.tools.tradeReroller.TradeReroller.*;
 import static net.minecraft.world.entity.npc.villager.VillagerProfession.*;
@@ -54,17 +54,22 @@ class TradeRerollRunner implements ToolUtils.ToolRunner, ClientTickEvents.EndTic
 	private final BlockPos lecternPos, nextButton, anvilPos;
 	private final Vec3 playerPos;
 	private final HashMap<EnchantmentTradeOption.EnchantmentWithLevel, IntHeapPriorityQueue> neededEnchantments;
-	private final ObjectOpenHashSet<InGameOperation> notClosedOperations = new ObjectOpenHashSet<>();
 	private final Registry<Enchantment> enchantmentRegistry;
-	private final ClientTickExecutor operator = new ClientTickExecutor();
+	private final MultiCompletableInGameFutures futureCollection = new MultiCompletableInGameFutures();
+	private @Nullable InGameFuture<?> globalFutureCache;
 	private int timeOutCounter;
 	private ProcessStage stage = new WaitingLibrarian();
 
-	private void tryCloseActions() {
-		if(notClosedOperations.isEmpty()) return;
-		InGameOperation[] operations = notClosedOperations.toArray(new InGameOperation[0]);
-		notClosedOperations.clear();
-		for(var operation : operations) operation.cancel();
+	private void then(UnaryOperator<InGameFuture<?>> op) {
+		if(globalFutureCache == null) globalFutureCache = futureCollection.createCompleted();
+		globalFutureCache = op.apply(globalFutureCache);
+	}
+
+	private boolean isTaskDone() { return globalFutureCache == null || globalFutureCache.isDone(); }
+
+	private void clearTasks() {
+		futureCollection.cancelAll();
+		globalFutureCache = null;
 	}
 
 	private boolean foundValidTrade(EnchantmentTradeOption option) {
@@ -105,7 +110,7 @@ class TradeRerollRunner implements ToolUtils.ToolRunner, ClientTickEvents.EndTic
 	private abstract static class AbstractProcessStage implements ProcessStage {
 		@Override public void onContainerContentInitialized(AbstractContainerMenu menu, InGameManager data) throws DisableSignal {}
 		@Override public void onMerchantOffersUpdated(MerchantMenu menu, InGameManager data) throws DisableSignal {}
-		@Override public void onEndTick(Minecraft client, InGameManager data) throws DisableSignal {}
+		@Override public void onEndTick(Minecraft client, InGameManager data) {}
 	}
 
 	// 等待村民转换回无业
@@ -114,27 +119,24 @@ class TradeRerollRunner implements ToolUtils.ToolRunner, ClientTickEvents.EndTic
 		@Override public void onEndTick(Minecraft client, InGameManager data) {
 			Villager villager = getVillagerAroundLectern(data);
 			if(villager != null && villager.getVillagerData().profession().is(NONE)) {
+				clearTasks();
 				stage = new WaitingLibrarian();
-				tryCloseActions();
 			}
-			else if(data.getBlockState(lecternPos).is(Blocks.LECTERN) && notClosedOperations.isEmpty()) {
-				notClosedOperations.add(BlockBreaking.scheduleBreak(lecternPos)
-					.appendOnResultCallback((breaking, _)->notClosedOperations.remove(breaking)));
-			}
+			else if(data.getBlockState(lecternPos).is(Blocks.LECTERN) && isTaskDone())
+				then(c->c.thenBreakBlockOrThrow(lecternPos));
 		}
 	}
 
 	// 等待无业转化为图书管理员
 	private class WaitingLibrarian extends AbstractProcessStage {
 		@Override public void onEndTick(Minecraft client, InGameManager data) {
-			if(!data.getBlockState(lecternPos).is(Blocks.LECTERN) && notClosedOperations.isEmpty()) {
-				notClosedOperations.add(BlockPlacing.schedulePlace(lecternPos, Blocks.LECTERN, InteractionHand.OFF_HAND)
-					.appendOnResultCallback((placing, _)->notClosedOperations.remove(placing)));
-			}
+			if(!data.getBlockState(lecternPos).is(Blocks.LECTERN) && isTaskDone())
+				then(c->c.thenPlaceBlockOrThrow(lecternPos, Blocks.LECTERN, InteractionHand.OFF_HAND));
 			Villager villager = getVillagerAroundLectern(data);
 			if(villager != null && villager.getVillagerData().profession().is(LIBRARIAN)) {
+				clearTasks();
 				// TODO lpctools.util.inGame.EntityInteraction
-				operator.schedule(manager->manager.interact(villager, InteractionHand.MAIN_HAND));
+				then(c->c.thenAcceptInGameManagerNextTick(manager->manager.interact(villager, InteractionHand.MAIN_HAND)));
 				stage = new WaitingMerchantScreen(villager);
 			}
 		}
@@ -214,39 +216,29 @@ class TradeRerollRunner implements ToolUtils.ToolRunner, ClientTickEvents.EndTic
 					throw new DisableSignal(Component.translatable("lpctools.configs.tools.TR.missingLockItems"));
 				int finalLockTrade = lockTrade;
 				if(merchant.getVillagerXp() == 0) {
-					operator.schedule(manager->manager.selectMerchant(menu, finalLockTrade));
-					operator.schedule(manager->manager.handleContainerInput(menu.containerId, 2, 0, ContainerInput.PICKUP));
+					then(c->c
+						.thenAcceptInGameManagerNextTick(manager -> manager.selectMerchant(menu, finalLockTrade))
+						.thenAcceptInGameManagerNextTick(manager -> manager.handleContainerInput(menu.containerId, 2, 0, ContainerInput.PICKUP))
+					);
 				}
-				operator.schedule(InGameManager::closeContainer);
 				EnchantmentTradeOption finalBookResult = bookResult;
-				operator.schedule(_ -> notClosedOperations.add(
-					BlockPlacing.schedulePlace(anvilPos, stack->stack.getItem() instanceof BlockItem item && item.getBlock() instanceof AnvilBlock,
-							state->state.getBlock() instanceof AnvilBlock, InteractionHand.OFF_HAND)
-						.appendOnResultCallback((placing, placingSucceeded)->{
-							notClosedOperations.remove(placing);
-							if(placingSucceeded) notClosedOperations.add(
-								BlockInteraction.scheduleInteract(anvilPos, null, InteractionHand.MAIN_HAND)
-									.appendOnResultCallback((interaction, interactionSucceeded) -> {
-										notClosedOperations.remove(interaction);
-										if (interactionSucceeded) stage = new WaitingAnvil(finalBookResult, villager);
-										// TODO component
-										else disableToolExceptional(Component.empty());
-									})
-							);
-							// TODO component
-							else disableToolExceptional(Component.empty());
-						})
-				));
 				stage = null;
+				then(c->c
+					.thenAcceptInGameManagerNextTick(InGameManager::closeContainer)
+					.thenPlaceBlockOrThrow(anvilPos, stack->stack.getItem() instanceof BlockItem item && item.getBlock() instanceof AnvilBlock,
+						state->state.getBlock() instanceof AnvilBlock, InteractionHand.OFF_HAND)
+					.thenInteractBlockOrThrow(anvilPos, null, InteractionHand.MAIN_HAND)
+					.thenRunMCThread(()->stage = new WaitingAnvil(finalBookResult, villager))
+				);
 			}
 			else if(bookResult != null)
 				disableToolExceptional(Component.translatable("lpctools.configs.tools.TR.notVanillaTrade"));
 			else {
-				operator.schedule(manager -> {
-					manager.closeContainer();
-					stage = new WaitingNone();
-				});
 				stage = null;
+				then(c->c
+					.thenAcceptInGameManagerNextTick(InGameManager::closeContainer)
+					.thenRunMCThread(()->stage = new WaitingNone())
+				);
 			}
 		}
 	}
@@ -267,32 +259,31 @@ class TradeRerollRunner implements ToolUtils.ToolRunner, ClientTickEvents.EndTic
 				if(stack.is(Items.NAME_TAG)) {
 					boolean shouldPutBack = stack.getCount() > 2;
 					int finalI = i;
-					operator.schedule(manager->manager.handleContainerInput(menu.containerId, finalI, 1, ContainerInput.PICKUP));
-					operator.schedule(manager->manager.handleContainerInput(menu.containerId, 0, 1, ContainerInput.PICKUP));
-					if(shouldPutBack) operator.schedule(manager->manager.handleContainerInput(menu.containerId, finalI, 0, ContainerInput.PICKUP));
+					then(c->c
+						.thenAcceptInGameManagerNextTick(manager-> manager.handleContainerInput(menu.containerId, finalI, 1, ContainerInput.PICKUP))
+						.thenAcceptInGameManagerNextTick(manager-> manager.handleContainerInput(menu.containerId, 0, 1, ContainerInput.PICKUP))
+					);
+					if(shouldPutBack) then(c->c
+						.thenAcceptInGameManagerNextTick(manager->manager.handleContainerInput(menu.containerId, finalI, 0, ContainerInput.PICKUP))
+					);
 					String newName = tradeOption.toJsonString();
-					operator.schedule(manager->manager.setAnvilNameContent(menu, newName));
-					operator.schedule(manager->manager.handleContainerInput(menu.containerId, 2, 0, ContainerInput.QUICK_MOVE));
-					operator.schedule(_->runCaught(()->{
-						if(HandRestock.restock(s->s.is(Items.NAME_TAG)
-							&& s.getOrDefault(DataComponents.CUSTOM_NAME, Component.empty()).getString().equals(newName), -1) <= 0)
-							throw new DisableSignal(Component.translatable("lpctools.configs.tools.TR.noNameTag")); // 大概率是背包没有空间了
-						}));
-					operator.schedule(InGameManager::closeContainer);
-					operator.schedule(InGameManager::swapHandsAutoStyle);
-					// TODO lpctools.util.inGame.EntityInteraction
-					operator.schedule(manager->manager.interact(villager, InteractionHand.MAIN_HAND));
-					operator.schedule(InGameManager::swapHandsAutoStyle);
-					operator.schedule(_ -> notClosedOperations.add(
-						BlockInteraction.scheduleInteract(nextButton, null, InteractionHand.MAIN_HAND)
-							.appendOnResultCallback((interaction, succeeded)->{
-								notClosedOperations.remove(interaction);
-								if(succeeded) stage = new WaitingNone();
-								// TODO component
-								else disableToolExceptional(Component.empty());
-							})
-					));
 					stage = null;
+					then(c->c
+						.thenAcceptInGameManagerNextTick(manager -> manager.setAnvilNameContent(menu, newName))
+						.thenAcceptInGameManagerNextTick(manager -> manager.handleContainerInput(menu.containerId, 2, 0, ContainerInput.QUICK_MOVE))
+						.thenRunMCThread(()->runCaught(() -> {
+							if (HandRestock.restock(s -> s.is(Items.NAME_TAG)
+								&& s.getOrDefault(DataComponents.CUSTOM_NAME, Component.empty()).getString().equals(newName), -1) <= 0)
+								throw new DisableSignal(Component.translatable("lpctools.configs.tools.TR.noNameTag")); // 大概率是背包没有空间了
+						}))
+						.thenAcceptInGameManagerNextTick(InGameManager::closeContainer)
+						.thenAcceptInGameManagerNextTick(InGameManager::swapHandsAutoStyle)
+						// TODO lpctools.util.inGame.EntityInteraction
+						.thenAcceptInGameManagerNextTick(manager-> manager.interact(villager, InteractionHand.MAIN_HAND))
+						.thenAcceptInGameManagerNextTick(InGameManager::swapHandsAutoStyle)
+						.thenInteractBlockOrThrow(nextButton, null, InteractionHand.MAIN_HAND)
+						.thenRunMCThread(()->stage = new WaitingNone())
+					);
 					return;
 				}
 			}
@@ -384,6 +375,13 @@ class TradeRerollRunner implements ToolUtils.ToolRunner, ClientTickEvents.EndTic
 			return;
 		}
 		if(client.isPaused()) return;
+		if(globalFutureCache != null && globalFutureCache.isCompletedExceptionally() && !globalFutureCache.isCancelled()) {
+			Throwable e = globalFutureCache.exceptionNow();
+			String message;
+			if(e.getMessage() instanceof String msg) message = msg;
+			else message = "Unexpected exception: " + e;
+			disableToolExceptional(Component.literal(message));
+		}
 		++timeOutCounter;
 		ProcessStage lastStage = stage;
 		processStageEvent((stage, data)->{
@@ -405,8 +403,7 @@ class TradeRerollRunner implements ToolUtils.ToolRunner, ClientTickEvents.EndTic
 	}
 
 	@Override public void close() {
-		tryCloseActions();
+		clearTasks();
 		registerAll(false);
-		operator.close();
 	}
 }
