@@ -11,6 +11,7 @@ import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.core.BlockPos;
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
@@ -49,9 +50,10 @@ abstract class InGameOperationRunner<T extends InGameOperation,
 	}
 
 	public abstract static class BasicOperation<T extends BasicOperation<T, W, R>, W extends Enum<W> & InGameOperation.WithState.ResultMarkedState, R extends InGameOperationRunner<T, ?, ?>>
-		implements InGameOperation.WithCallback<T>, InGameOperation.WithState<W>, BlockOperationRunner.BlockOperation {
+		implements InGameOperation.WithCallback<T>, InGameOperation.WithState<W>, InGameOperation.WithFailComponent, BlockOperationRunner.BlockOperation {
 		private @Nullable Consumer<T> callback;
 		private W state;
+		private @Nullable Component failComponent;
 
 		BasicOperation(W initState) { this.state = initState; }
 
@@ -65,6 +67,13 @@ abstract class InGameOperationRunner<T extends InGameOperation,
 			this.state = state;
 			scheduleUpdate();
 			if(getCallback() instanceof Consumer<T> cb) cb.accept(getThis());
+		}
+
+		/** 此操作进入失败/取消结果态时的原因（可能为 null）。 */
+		@Override public @Nullable Component getFailComponent() { return failComponent; }
+		/** 设置失败原因组件（通常在操作进入失败/取消结果态前调用）。 */
+		@Override public void setFailComponent(@NotNull Component failComponent) {
+			this.failComponent = failComponent;
 		}
 
 		void scheduleUpdate() { getRunner().addInstanceToUpdate(getThis()); }

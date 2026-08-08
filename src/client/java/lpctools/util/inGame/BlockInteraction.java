@@ -5,6 +5,7 @@ import lpctools.generic.OperationSpeedLimit;
 import lpctools.util.inGame.BlockInteractBypassMethod.StatusCalculator;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.phys.BlockHitResult;
 import org.jetbrains.annotations.NotNull;
@@ -68,7 +69,10 @@ public class BlockInteraction extends BlockOperationRunner.BasicBlockOperation<B
 					&& instance.preparation.prepare(instance, data.limit()) instanceof InteractionHand hand) {
 					if(data.manager().useItemOn(hand, hitResult).consumesAction())
 						instance.setState(InteractState.SUCCEEDED);
-					else instance.setState(InteractState.FAILED);
+					else {
+						instance.setFailComponent(Component.translatable("lpctools.utils.inGame.operation.blockInteraction.fail", pos));
+						instance.setState(InteractState.FAILED);
+					}
 					data.limit().costInteractBlock();
 					if(!data.limit().hasReservedTimes()) break;
 				}

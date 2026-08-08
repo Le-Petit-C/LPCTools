@@ -3,6 +3,7 @@ package lpctools.util.inGame;
 import it.unimi.dsi.fastutil.objects.ObjectBooleanImmutablePair;
 import lpctools.lpcfymasaapi.Registries;
 import lpctools.lpcfymasaapi.interfaces.IUnregistrableRegistryBase;
+import lpctools.util.ComponentException;
 import lpctools.util.DirectionVectorPredicator;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
@@ -128,8 +129,7 @@ public class InGameFuture<T> extends CompletableFuture<T> implements Comparable<
 		InGameFuture<U> res = newIncompleteFuture();
 		thenAcceptMCThread(v -> fn.apply(v).appendOnResultCallback((instance, succeeded)->{
 			if(succeeded) res.complete(instance);
-			// TODO instance.failComponent
-			else res.completeExceptionally(new RuntimeException());
+			else res.completeExceptionally(new ComponentException(instance.getFailComponent()));
 		})).exceptionally(ex -> { res.completeExceptionally(ex); return null; });
 		return res;
 	}

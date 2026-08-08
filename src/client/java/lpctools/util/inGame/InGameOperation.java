@@ -1,5 +1,6 @@
 package lpctools.util.inGame;
 
+import net.minecraft.network.chat.Component;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -22,6 +23,18 @@ public interface InGameOperation {
 				callback.accept(instance);
 			});
 			return getThis();
+		}
+	}
+
+	interface WithFailComponent extends InGameOperation {
+		@Nullable Component getFailComponent();
+		void setFailComponent(@NotNull Component failComponent);
+		/** 带原因的取消；reason 为 null 时使用默认取消消息。 */
+		default void cancel(@Nullable Component reason) {
+			if(isRemoved()) return;
+			if(reason != null) setFailComponent(reason);
+			else if(getFailComponent() == null) setFailComponent(Component.translatable("lpctools.utils.inGame.operation.cancelled"));
+			cancel();
 		}
 	}
 

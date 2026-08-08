@@ -5,6 +5,7 @@ import lpctools.lpcfymasaapi.Registries;
 import lpctools.mixin.client.accessors.MerchantMenuAccessor;
 import lpctools.tools.ToolUtils;
 import lpctools.util.AlgorithmUtils;
+import lpctools.util.ComponentException;
 import lpctools.util.DataUtils;
 import lpctools.util.HandRestock;
 import lpctools.util.MathUtils;
@@ -342,9 +343,7 @@ class TradeRerollRunner implements ToolUtils.ToolRunner, ClientTickEvents.EndTic
 		Registries.CLIENT_MERCHANT_OFFERS_UPDATED.register(this, b);
 	}
 
-	private void disableToolExceptional(MutableComponent reason) {
-		disableTool(reason.withColor(TextColor.RED));
-	}
+	private void disableToolExceptional(MutableComponent reason) { disableTool(reason.withColor(TextColor.RED)); }
 
 	private void disableTool(Component reason) {
 		TradeReroller.TRConfig.setBooleanValue(false);
@@ -377,10 +376,14 @@ class TradeRerollRunner implements ToolUtils.ToolRunner, ClientTickEvents.EndTic
 		if(client.isPaused()) return;
 		if(globalFutureCache != null && globalFutureCache.isCompletedExceptionally() && !globalFutureCache.isCancelled()) {
 			Throwable e = globalFutureCache.exceptionNow();
-			String message;
-			if(e.getMessage() instanceof String msg) message = msg;
-			else message = "Unexpected exception: " + e;
-			disableToolExceptional(Component.literal(message));
+			if(e instanceof ComponentException ce && ce.getComponent() instanceof Component component)
+				disableToolExceptional(component.copy());
+			else {
+				String message;
+				if(e.getMessage() instanceof String msg) message = msg;
+				else message = "Unexpected exception: " + e;
+				disableToolExceptional(Component.literal(message));
+			}
 		}
 		++timeOutCounter;
 		ProcessStage lastStage = stage;

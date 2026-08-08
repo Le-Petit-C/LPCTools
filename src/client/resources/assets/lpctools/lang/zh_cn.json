@@ -1,4 +1,6 @@
 {
+	"lpctools.utils.inGame.operation.cancelled": "操作已取消",
+	"lpctools.utils.inGame.operation.blockInteraction.fail": "无法与 %s 交互",
 	"lpcfymalilib.hotkeyValueDisplay": "值 %s 设置为",
 	"lpcfymasaapi.configs.mutableConfig.title": "添加配置",
 	"lpcfymasaapi.screen.chooseScreen.cancel": "取消",

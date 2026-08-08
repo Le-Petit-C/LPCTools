@@ -1,4 +1,6 @@
 {
+	"lpctools.utils.inGame.operation.cancelled": "Operation cancelled",
+	"lpctools.utils.inGame.operation.blockInteraction.fail": "Failed to interact with %s",
 	"lpcfymalilib.hotkeyValueDisplay": "Value %s now changed into",
 	"lpcfymasaapi.configs.mutableConfig.title": "Add an option",
 	"lpcfymasaapi.screen.chooseScreen.cancel": "cancel",
