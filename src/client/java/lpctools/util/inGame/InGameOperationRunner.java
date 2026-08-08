@@ -1,6 +1,5 @@
 package lpctools.util.inGame;
 
-import it.unimi.dsi.fastutil.objects.ObjectBooleanBiConsumer;
 import lpctools.generic.OperationSpeedLimit;
 import lpctools.lpcfymasaapi.Registries;
 import lpctools.lpcfymasaapi.configButtons.derivedConfigs.EnumArrayOptionListConfig;
@@ -10,10 +9,8 @@ import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientLevelEvents;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
-import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.phys.Vec3;
-import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jspecify.annotations.NonNull;
@@ -24,7 +21,7 @@ import java.util.function.Consumer;
 import static lpctools.generic.Bypassing.bypassing;
 import static lpctools.util.MathUtils.square;
 
-abstract class InGameOperationRunner<T extends InGameOperation,
+abstract class InGameOperationRunner<T extends InGameOperation<T, ?>,
 	U, V extends Enum<V> & InGameOperationRunner.CalculatorGenerator<U>>
 	implements ClientTickEvents.EndTick, ClientLevelEvents.AfterClientLevelChange {
 	private final LinkedHashSet<T> instancesToUpdate = new LinkedHashSet<>();
@@ -49,8 +46,8 @@ abstract class InGameOperationRunner<T extends InGameOperation,
 		registerAll(true);
 	}
 
-	public abstract static class BasicOperation<T extends BasicOperation<T, W, R>, W extends Enum<W> & InGameOperation.WithState.ResultMarkedState, R extends InGameOperationRunner<T, ?, ?>>
-		implements InGameOperation.WithCallback<T>, InGameOperation.WithState<W>, InGameOperation.WithFailComponent, BlockOperationRunner.BlockOperation {
+	public abstract static class BasicOperation<T extends BasicOperation<T, W, R>, W extends Enum<W> & InGameOperation.ResultMarkedState, R extends InGameOperationRunner<T, ?, ?>>
+		implements InGameOperation<T, W>, BlockOperationRunner.BlockOperation<T, W> {
 		private @Nullable Consumer<T> callback;
 		private W state;
 		private @Nullable Component failComponent;
@@ -72,20 +69,9 @@ abstract class InGameOperationRunner<T extends InGameOperation,
 		/** 此操作进入失败/取消结果态时的原因（可能为 null）。 */
 		@Override public @Nullable Component getFailComponent() { return failComponent; }
 		/** 设置失败原因组件（通常在操作进入失败/取消结果态前调用）。 */
-		@Override public void setFailComponent(@NotNull Component failComponent) {
-			this.failComponent = failComponent;
-		}
+		@Override public void setFailComponent(@NotNull Component failComponent) { this.failComponent = failComponent; }
 
 		void scheduleUpdate() { getRunner().addInstanceToUpdate(getThis()); }
-
-		@Contract("_->this")
-		public T appendOnResultCallback(@NotNull ObjectBooleanBiConsumer<T> callback) {
-			return appendCallback(instance -> { if(instance.isRemoved()) callback.accept(getThis(), getState().succeeded()); });
-		}
-		@Contract("_->this")
-		public T appendRemoveOnResultCallback(Map<BlockPos, T> map) {
-			return appendOnResultCallback((instance, _) -> map.remove(instance.getPos()));
-		}
 	}
 
 	interface CalculatorGenerator<T> { T createCalculator(InGameManager manager); }

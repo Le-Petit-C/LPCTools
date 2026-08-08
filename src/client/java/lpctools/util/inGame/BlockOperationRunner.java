@@ -6,10 +6,11 @@ import lpctools.lpcfymasaapi.configButtons.derivedConfigs.EnumArrayOptionListCon
 import lpctools.util.MathUtils;
 import lpctools.util.data.SimpleSpaceOctreeMap;
 import net.minecraft.core.BlockPos;
+import org.jetbrains.annotations.Contract;
 
 import java.util.*;
 
-abstract class BlockOperationRunner<T extends BlockOperationRunner.BlockOperation,
+abstract class BlockOperationRunner<T extends BlockOperationRunner.BlockOperation<T, ?>,
 	U, V extends Enum<V> & InGameOperationRunner.CalculatorGenerator<U>>
 	extends InGameOperationRunner<T, U, V> {
 	private final SimpleSpaceOctreeMap<Collection<T>> map = new SimpleSpaceOctreeMap<>();
@@ -19,10 +20,16 @@ abstract class BlockOperationRunner<T extends BlockOperationRunner.BlockOperatio
 	BlockOperationRunner(EnumArrayOptionListConfig<V> bypassMethodConfig)
 	{ super(bypassMethodConfig); }
 
-	interface BlockOperation extends InGameOperation { BlockPos getPos(); }
+	interface BlockOperation<T extends BlockOperation<T, W>, W extends Enum<W> & InGameOperation.ResultMarkedState> extends InGameOperation<T, W> {
+		BlockPos getPos();
+		@Contract("_->this")
+		default T appendRemoveOnResultCallback(Map<BlockPos, T> map) {
+			return appendOnResultCallback((instance, _) -> map.remove(instance.getPos()));
+		}
+	}
 
 	abstract static class BasicBlockOperation
-		<T extends BasicBlockOperation<T, W, R>, W extends Enum<W> & InGameOperation.WithState.ResultMarkedState, R extends InGameOperationRunner<T, ?, ?>>
+		<T extends BasicBlockOperation<T, W, R>, W extends Enum<W> & InGameOperation.ResultMarkedState, R extends InGameOperationRunner<T, ?, ?>>
 		extends BasicOperation<T, W, R> {
 		private final BlockPos pos;
 
