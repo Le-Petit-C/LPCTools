@@ -1,6 +1,7 @@
 {
 	"lpctools.utils.inGame.operation.cancelled": "操作已取消",
 	"lpctools.utils.inGame.operation.blockInteraction.fail": "無法與 %s 互動",
+	"lpctools.utils.inGame.operation.timeout": "操作逾時（%s 刻）",
 	"lpcfymalilib.hotkeyValueDisplay": "值 %s 設定為",
 	"lpcfymasaapi.configs.mutableConfig.title": "新增配置",
 	"lpcfymasaapi.screen.chooseScreen.cancel": "取消",

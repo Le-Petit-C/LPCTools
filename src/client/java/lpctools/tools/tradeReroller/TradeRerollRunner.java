@@ -5,7 +5,7 @@ import lpctools.lpcfymasaapi.Registries;
 import lpctools.mixin.client.accessors.MerchantMenuAccessor;
 import lpctools.tools.ToolUtils;
 import lpctools.util.AlgorithmUtils;
-import lpctools.util.ComponentException;
+import lpctools.util.RuntimeComponentException;
 import lpctools.util.DataUtils;
 import lpctools.util.HandRestock;
 import lpctools.util.MathUtils;
@@ -376,14 +376,7 @@ class TradeRerollRunner implements ToolUtils.ToolRunner, ClientTickEvents.EndTic
 		if(client.isPaused()) return;
 		if(globalFutureCache != null && globalFutureCache.isCompletedExceptionally() && !globalFutureCache.isCancelled()) {
 			Throwable e = globalFutureCache.exceptionNow();
-			if(e instanceof ComponentException ce && ce.getComponent() instanceof Component component)
-				disableToolExceptional(component.copy());
-			else {
-				String message;
-				if(e.getMessage() instanceof String msg) message = msg;
-				else message = "Unexpected exception: " + e;
-				disableToolExceptional(Component.literal(message));
-			}
+			disableToolExceptional(RuntimeComponentException.mutableExceptionComponent(e));
 		}
 		++timeOutCounter;
 		ProcessStage lastStage = stage;

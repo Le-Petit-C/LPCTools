@@ -1,13 +1,16 @@
 package lpctools.util.inGame;
 
+import it.unimi.dsi.fastutil.ints.Int2ObjectFunction;
 import it.unimi.dsi.fastutil.objects.ObjectBooleanImmutablePair;
 import lpctools.lpcfymasaapi.Registries;
 import lpctools.lpcfymasaapi.interfaces.IUnregistrableRegistryBase;
-import lpctools.util.ComponentException;
+import lpctools.util.RuntimeComponentException;
 import lpctools.util.DirectionVectorPredicator;
+import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Block;
@@ -18,11 +21,7 @@ import org.jetbrains.annotations.Nullable;
 import org.jspecify.annotations.NonNull;
 
 import java.util.ArrayDeque;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CompletionStage;
-import java.util.concurrent.Executor;
-import java.util.concurrent.ForkJoinPool;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.*;
 
@@ -116,21 +115,42 @@ public class InGameFuture<T> extends CompletableFuture<T> implements Comparable<
 	@Override public @NonNull InGameFuture<T> orTimeout(long timeout, @NonNull TimeUnit unit) { return (InGameFuture<T>) super.orTimeout(timeout, unit); }
 	@Override public @NonNull InGameFuture<T> toCompletableFuture() { return this; }
 
-	public @NonNull <U extends InGameOperationRunner.BasicOperation<U, ?, ?>>
+	public @NonNull <U extends InGameOperation<U, ?>>
 	InGameFuture<ObjectBooleanImmutablePair<U>> thenBasicInGameOperation(Function<? super T, ? extends U> fn) {
 		InGameFuture<ObjectBooleanImmutablePair<U>> res = newIncompleteFuture();
-		thenAcceptMCThread(v -> fn.apply(v).appendOnResultCallback((instance, succeeded)->res.complete(new ObjectBooleanImmutablePair<>(instance, succeeded))))
-			.exceptionally(ex -> { res.completeExceptionally(ex); return null; });
+		MutableObject<U> operation = new MutableObject<>();
+		thenAcceptMCThread(v -> operation.setValue(fn.apply(v).appendOnResultCallback((instance, succeeded)->
+			res.complete(new ObjectBooleanImmutablePair<>(instance, succeeded))
+		))).exceptionally(ex -> {
+			res.completeExceptionally(ex);
+			return null;
+		});
+		res.exceptionally(ex -> {
+			if (operation.get() instanceof U u && !u.isRemoved()) mcExecutor().execute(
+				() -> u.cancel(RuntimeComponentException.exceptionComponent(ex))
+			);
+			return null;
+		});
 		return res;
 	}
 
-	public @NonNull <U extends InGameOperationRunner.BasicOperation<U, ?, ?>>
+	public @NonNull <U extends InGameOperation<U, ?>>
 	InGameFuture<U> thenBasicInGameOperationOrThrow(Function<? super T, ? extends U> fn) {
 		InGameFuture<U> res = newIncompleteFuture();
-		thenAcceptMCThread(v -> fn.apply(v).appendOnResultCallback((instance, succeeded)->{
+		MutableObject<U> operation = new MutableObject<>();
+		thenAcceptMCThread(v -> operation.setValue(fn.apply(v).appendOnResultCallback((instance, succeeded)->{
 			if(succeeded) res.complete(instance);
-			else res.completeExceptionally(new ComponentException(instance.getFailComponent()));
-		})).exceptionally(ex -> { res.completeExceptionally(ex); return null; });
+			else res.completeExceptionally(new RuntimeComponentException(instance.getFailComponent()));
+		}))).exceptionally(ex -> {
+			res.completeExceptionally(ex);
+			return null;
+		});
+		res.exceptionally(ex -> {
+			if (operation.get() instanceof U u && !u.isRemoved()) mcExecutor().execute(
+				() -> u.cancel(RuntimeComponentException.exceptionComponent(ex))
+			);
+			return null;
+		});
 		return res;
 	}
 
@@ -265,6 +285,29 @@ public class InGameFuture<T> extends CompletableFuture<T> implements Comparable<
 			action.accept(InGameManager.getOrThrow(mc));
 			return null;
 		});
+	}
+
+	public @NonNull InGameFuture<T> orTimeOutTicks(int ticks, @NonNull Int2ObjectFunction<String> timeOutMessage) {
+		class Subscriber implements ClientTickEvents.EndTick {
+			final int initialTicks;
+			int ticks;
+			Subscriber(int ticks) { this.initialTicks = ticks; this.ticks = ticks; }
+			@Override public void onEndTick(@NonNull Minecraft client) {
+				if(ticks == 0) {
+					completeExceptionally(new TimeoutException(timeOutMessage.apply(initialTicks)));
+					Registries.END_CLIENT_TICK.unregister(this);
+				}
+				else if(!client.isPaused()) --ticks;
+			}
+		}
+		if(ticks < 0) throw new IllegalArgumentException();
+		var sub = new Subscriber(ticks);
+		Registries.END_CLIENT_TICK.register(sub);
+		return whenCompleteMCThread((_, _)->Registries.END_CLIENT_TICK.unregister(sub));
+	}
+
+	public @NonNull InGameFuture<T> orTimeOutTicks(int ticks) {
+		return orTimeOutTicks(ticks, t -> Component.translatable("lpctools.utils.inGame.operation.timeout", t).getString());
 	}
 
 	// ── 静态工厂：镜像 CompletableFuture，返回 InGameFuture 保持链式类型 ──
