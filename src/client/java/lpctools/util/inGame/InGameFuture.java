@@ -12,6 +12,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.InteractionHand;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
@@ -231,6 +232,38 @@ public class InGameFuture<T> extends CompletableFuture<T> implements Comparable<
 	public @NonNull InGameFuture<BlockPlacing>
 	thenPlaceBlockOrThrow(BlockPos pos, Block targetBlock, InteractionHand hand) {
 		return thenBasicInGameOperationOrThrow(_ -> BlockPlacing.schedulePlace(pos, targetBlock, hand));
+	}
+
+	public @NonNull InGameFuture<ObjectBooleanImmutablePair<EntityAttack>> thenAttackEntity(Entity entity) {
+		return thenBasicInGameOperation(_ -> EntityAttack.scheduleAttack(entity));
+	}
+
+	public @NonNull InGameFuture<ObjectBooleanImmutablePair<EntityAttack>> thenAttackEntity(Function<T, Entity> fn) {
+		return thenBasicInGameOperation(v -> EntityAttack.scheduleAttack(fn.apply(v)));
+	}
+
+	public @NonNull InGameFuture<EntityAttack> thenAttackEntityOrThrow(Entity entity) {
+		return thenBasicInGameOperationOrThrow(_ -> EntityAttack.scheduleAttack(entity));
+	}
+
+	public @NonNull InGameFuture<EntityAttack> thenAttackEntityOrThrow(Function<T, Entity> fn) {
+		return thenBasicInGameOperationOrThrow(v -> EntityAttack.scheduleAttack(fn.apply(v)));
+	}
+
+	public @NonNull InGameFuture<ObjectBooleanImmutablePair<EntityInteract>> thenInteractEntity(Entity entity, EntityInteract.Prepare prepare) {
+		return thenBasicInGameOperation(_ -> EntityInteract.scheduleInteract(entity, prepare));
+	}
+
+	public @NonNull InGameFuture<ObjectBooleanImmutablePair<EntityInteract>> thenInteractEntity(Entity entity, InteractionHand hand) {
+		return thenBasicInGameOperation(_ -> EntityInteract.scheduleInteract(entity, hand));
+	}
+
+	public @NonNull InGameFuture<EntityInteract> thenInteractEntityOrThrow(Entity entity, EntityInteract.Prepare prepare) {
+		return thenBasicInGameOperationOrThrow(_ -> EntityInteract.scheduleInteract(entity, prepare));
+	}
+
+	public @NonNull InGameFuture<EntityInteract> thenInteractEntityOrThrow(Entity entity, InteractionHand hand) {
+		return thenBasicInGameOperationOrThrow(_ -> EntityInteract.scheduleInteract(entity, hand));
 	}
 
 	public @NonNull InGameFuture<Void> thenAcceptInGameManager(Consumer<InGameManager> task) {

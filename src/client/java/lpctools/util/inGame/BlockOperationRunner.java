@@ -30,7 +30,7 @@ abstract class BlockOperationRunner<T extends BlockOperationRunner.BlockOperatio
 
 	abstract static class BasicBlockOperation
 		<T extends BasicBlockOperation<T, W, R>, W extends Enum<W> & InGameOperation.ResultMarkedState, R extends InGameOperationRunner<T, ?, ?>>
-		extends BasicOperation<T, W, R> {
+		extends BasicOperation<T, W, R> implements BlockOperation<T, W> {
 		private final BlockPos pos;
 
 		BasicBlockOperation(BlockPos pos, W initState) {

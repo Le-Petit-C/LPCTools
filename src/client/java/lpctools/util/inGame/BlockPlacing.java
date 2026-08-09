@@ -20,7 +20,7 @@ import java.util.Collection;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 
-public class BlockPlacing extends InGameOperationRunner.BasicOperation<BlockPlacing, BlockPlacing.PlacingState, BlockPlacing.BlockPlacingRunner> implements BlockInteraction.Prepare, Consumer<BlockInteraction> {
+public class BlockPlacing extends InGameOperationRunner.BasicOperation<BlockPlacing, BlockPlacing.PlacingState, BlockPlacing.BlockPlacingRunner> implements BlockInteraction.Prepare, Consumer<BlockInteraction>, BlockOperationRunner.BlockOperation<BlockPlacing, BlockPlacing.PlacingState> {
 	private final BlockPos pos;
 	private final Predicate<ItemStack> restockTest;
 	private final Predicate<BlockState> blockTest;

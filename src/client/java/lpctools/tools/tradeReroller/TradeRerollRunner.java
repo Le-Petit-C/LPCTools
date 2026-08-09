@@ -137,7 +137,10 @@ class TradeRerollRunner implements ToolUtils.ToolRunner, ClientTickEvents.EndTic
 			if(villager != null && villager.getVillagerData().profession().is(LIBRARIAN)) {
 				clearTasks();
 				// TODO lpctools.util.inGame.EntityInteraction
-				then(c->c.thenAcceptInGameManagerNextTick(manager->manager.interact(villager, InteractionHand.MAIN_HAND)));
+				then(c->c
+					.thenInteractEntityOrThrow(villager, InteractionHand.MAIN_HAND)
+					//.thenAcceptInGameManagerNextTick(manager->manager.interact(villager, InteractionHand.MAIN_HAND))
+				);
 				stage = new WaitingMerchantScreen(villager);
 			}
 		}
@@ -280,7 +283,8 @@ class TradeRerollRunner implements ToolUtils.ToolRunner, ClientTickEvents.EndTic
 						.thenAcceptInGameManagerNextTick(InGameManager::closeContainer)
 						.thenAcceptInGameManagerNextTick(InGameManager::swapHandsAutoStyle)
 						// TODO lpctools.util.inGame.EntityInteraction
-						.thenAcceptInGameManagerNextTick(manager-> manager.interact(villager, InteractionHand.MAIN_HAND))
+						.thenInteractEntityOrThrow(villager, InteractionHand.MAIN_HAND)
+						// .thenAcceptInGameManagerNextTick(manager-> manager.interact(villager, InteractionHand.MAIN_HAND))
 						.thenAcceptInGameManagerNextTick(InGameManager::swapHandsAutoStyle)
 						.thenInteractBlockOrThrow(nextButton, null, InteractionHand.MAIN_HAND)
 						.thenRunMCThread(()->stage = new WaitingNone())

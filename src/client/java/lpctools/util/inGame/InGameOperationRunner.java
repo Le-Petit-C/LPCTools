@@ -47,7 +47,7 @@ abstract class InGameOperationRunner<T extends InGameOperation<T, ?>,
 	}
 
 	public abstract static class BasicOperation<T extends BasicOperation<T, W, R>, W extends Enum<W> & InGameOperation.ResultMarkedState, R extends InGameOperationRunner<T, ?, ?>>
-		implements InGameOperation<T, W>, BlockOperationRunner.BlockOperation<T, W> {
+		implements InGameOperation<T, W> {
 		private @Nullable Consumer<T> callback;
 		private W state;
 		private @Nullable Component failComponent;

@@ -94,6 +94,7 @@ public class InGameManager {
 	public @NotNull InteractionResult useItemOn(InteractionHand hand, BlockPos pos) { return useItemOn(hand, new BlockHitResult(Vec3.atCenterOf(pos), Direction.DOWN, pos.immutable(), false)); }
 	public @NotNull InteractionResult interact(Entity entity, EntityHitResult hitResult, InteractionHand hand) { return gameMode.interact(player, entity, hitResult, hand); }
 	public @NotNull InteractionResult interact(Entity entity, InteractionHand hand) { return interact(entity, new EntityHitResult(entity), hand); }
+	public void attack(Entity entity) { gameMode.attack(player, entity); }
 	public void handleContainerInput(int containerId, int slotNum, int buttonNum, ContainerInput containerInput) { gameMode.handleContainerInput(containerId, slotNum, buttonNum, containerInput, player); }
 	public boolean startDestroyBlock(BlockPos pos, Direction direction) { return gameMode.startDestroyBlock(pos, direction); }
 	public boolean continueDestroyBlock(BlockPos pos, Direction direction) { return gameMode.continueDestroyBlock(pos, direction); }
