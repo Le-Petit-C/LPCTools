@@ -62,26 +62,15 @@ jobs:
           java-version: ${{ steps.versions.outputs.java_version }}
           distribution: 'temurin'
 
-      # 5. 缓存 Gradle
-      - name: Cache Gradle
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.gradle/caches
-            ~/.gradle/wrapper
-          key: gradle-${{ runner.os }}-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
-          restore-keys: |
-            gradle-${{ runner.os }}-
+      # 5. 配置 Gradle（自动缓存 + wrapper 验证，替代手动 cache/chmod）
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v6
 
-      # 6. 赋予执行权限
-      - name: Make Gradle wrapper executable
-        run: chmod +x ./gradlew
-
-      # 7. 构建
+      # 6. 构建
       - name: Build
         run: ./gradlew build --no-daemon
 
-      # 8. 发布到 Modrinth + CurseForge + GitHub Releases
+      # 7. 发布到 Modrinth + CurseForge + GitHub Releases
       - name: Publish
         uses: Kir-Antipov/mc-publish@v3.3.1
         with:
@@ -121,8 +110,10 @@ jobs:
             litematica(optional)
             tweakeroo(optional)
 
-          # 上传 remapped jar + sources jar（排除 -dev、-javadoc）
-          files: build/libs/!(*-@(dev|javadoc)).jar
+          # 上传文件：主 jar 在前（作为 Primary），sources jar 在后
+          files: |
+            build/libs/!(*-@(dev|sources|javadoc)).jar
+            build/libs/*-sources.jar
 
           # 遇到发布失败时的行为：fail=立即失败 / warn=警告但继续 / skip=跳过并最后报错
           fail-mode: fail
