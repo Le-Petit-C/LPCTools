@@ -62,15 +62,19 @@ jobs:
           java-version: ${{ steps.versions.outputs.java_version }}
           distribution: 'temurin'
 
-      # 5. 配置 Gradle（自动缓存 + wrapper 验证，替代手动 cache/chmod）
+      # 5. 配置 Gradle（自动缓存，替代手动 actions/cache）
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v6
 
-      # 6. 构建
+      # 6. 赋予执行权限
+      - name: Make Gradle wrapper executable
+        run: chmod +x ./gradlew
+
+      # 7. 构建
       - name: Build
         run: ./gradlew build --no-daemon
 
-      # 7. 发布到 Modrinth + CurseForge + GitHub Releases
+      # 8. 发布到 Modrinth + CurseForge + GitHub Releases
       - name: Publish
         uses: Kir-Antipov/mc-publish@v3.3.1
         with:
