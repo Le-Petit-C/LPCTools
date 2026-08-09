@@ -119,5 +119,10 @@ jobs:
             build/libs/!(*-@(dev|sources|javadoc)).jar
             build/libs/*-sources.jar
 
+          # Modrinth 专属：强制标记 sources jar 类型
+          modrinth-files: |
+            build/libs/!(*-@(dev|sources|javadoc)).jar
+            build/libs/*-sources.jar#sources
+
           # 遇到发布失败时的行为：fail=立即失败 / warn=警告但继续 / skip=跳过并最后报错
           fail-mode: fail

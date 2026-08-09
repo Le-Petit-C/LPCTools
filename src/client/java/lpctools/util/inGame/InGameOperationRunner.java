@@ -93,8 +93,8 @@ abstract class InGameOperationRunner<T extends InGameOperation<T, ?>,
 
 		float oldYRotRaw = manager.getYRotRaw(), oldXRotRaw = manager.getXRotRaw();
 		V bypassMethodRaw = bypassMethodConfig.get();
-		@SuppressWarnings("unchecked")
-		V bypassMethod = bypassing.getBooleanValue() ? bypassMethodRaw : ((Class<? extends V>)bypassMethodRaw.getClass()).getEnumConstants()[0];
+		// 枚举常量可能带类体（getClass() 会是匿名子类，其 getEnumConstants() 返回 null），须用 getDeclaringClass()
+		V bypassMethod = bypassing.getBooleanValue() ? bypassMethodRaw : bypassMethodRaw.getDeclaringClass().getEnumConstants()[0];
 		U bypassCalculator = bypassMethod.createCalculator(manager);
 
 		try (var rotSet = PlayerRotManaging.closerRotSet(manager)) {
