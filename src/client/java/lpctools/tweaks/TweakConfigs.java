@@ -23,7 +23,8 @@ public class TweakConfigs {
             BlockBreakCooldownTweaks.spareTimeDecreasesBlockBreakCooldown,
             BlockBreakCooldownTweaks.startBreakBlockResetsBlockBreakCooldown,
             PlayerCrosshairFilter.passThroughEntities,
-            PlayerCrosshairFilter.passThroughBlocks
+            PlayerCrosshairFilter.passThroughBlocks,
+            NoteBlockDelay.noteBlockDelay
         );
     }
 }

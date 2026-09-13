@@ -428,6 +428,8 @@
 	"lpctools.configs.tweaks.enchantmentLevelFix.comment": "修正原版在附魔等級大於 10 時顯示錯誤的問題",
 	"lpctools.configs.tweaks.enchantmentLevelFix.romanNumeralMaxLevel.name": "最大羅馬數字等級",
 	"lpctools.configs.tweaks.enchantmentLevelFix.romanNumeralMaxLevel.comment": "設定使用羅馬數字的最大等級\n超過該等級將使用阿拉伯數字",
+	"lpctools.configs.tweaks.noteBlockDelay.name": "音階盒延遲",
+	"lpctools.configs.tweaks.noteBlockDelay.comment": "側面貼著牆上告示牌的音階盒，其聲音會額外延後一小段時間再播放\n告示牌正面第一行決定延遲量：\n「1/2」= 半個遊戲刻（分子/分母，需 > 0 且 < 2）\n「1.5」= 1.5 個遊戲刻（直接寫遊戲刻數）\n精度為一個渲染影格，影格率越高越精細",
 	"lpctools.configs.tweaks.modMenuPlayClickSound.name": "模組選單播放點擊音",
 	"lpctools.configs.tweaks.modMenuPlayClickSound.comment": "讓「模組選單」模組在開啟任何模組的配置選單時都播放點擊音",
 	"lpctools.configs.tweaks.lpcfyTweakerooList.name": "LPC 化 Tweakeroo 清單配置",
