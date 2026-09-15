@@ -45,7 +45,7 @@ public class CombinedBlockGetters implements BlockGetter {
 	private int bottomY = 0, topY = 0;
 	
 	private @Nullable BlockGetter getChunk(BlockPos pos) {
-		BlockGetter chunk = storedChunks.getOrDefault(Packed.ChunkPos.packCoords(pos.getX(), pos.getZ()), null);
+		BlockGetter chunk = storedChunks.getOrDefault(Packed.packChunkPosFromCoords(pos.getX(), pos.getZ()), null);
 		if(chunk == null) return null;
 		if(chunk.getMinY() <= pos.getY() && pos.getY() <= chunk.getMaxY()) return chunk;
 		else return null;

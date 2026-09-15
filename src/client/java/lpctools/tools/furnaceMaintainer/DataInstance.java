@@ -107,14 +107,14 @@ public class DataInstance implements QuietAutoCloseable, Registries.ClientWorldC
 		Int2ObjectOpenHashMap<MutableInt> result = new Int2ObjectOpenHashMap<>();
 		for(BlockPos pos : AlgorithmUtils.iterateInBox(0, chunk.getMinY(), 0, 15, chunk.getMinY() + chunk.getHeight() - 1, 15)){
 			if(chunk.getBlockState(pos).getBlock() instanceof AbstractFurnaceBlock) {
-				result.put(Packed.ChunkLocal.pack(pos), color);
+				result.put(Packed.packChunkLocal(pos), color);
 				if(includesHopperAbove) {
 					var up = pos.above();
 					var upperBlockState = chunk.getBlockState(up);
 					if(upperBlockState.getBlock() instanceof HopperBlock) {
 						var facing = upperBlockState.getValue(HopperBlock.FACING);
 						if(facing == Direction.DOWN)
-							result.put(Packed.ChunkLocal.pack(up), color);
+							result.put(Packed.packChunkLocal(up), color);
 					}
 				}
 			}

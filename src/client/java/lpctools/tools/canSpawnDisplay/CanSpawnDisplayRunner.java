@@ -146,16 +146,16 @@ public class CanSpawnDisplayRunner implements AutoCloseable, Registries.ClientWo
         // 先清理超出范围的delayedTask
         AlgorithmUtils.fastRemove(delayedTasks, task->{
             double squaredDistance = LPCMathHelper.squaredLength(
-                Packed.ChunkPos.unpackX(task.packedChunkPos) - chunkedX
-                , Packed.ChunkPos.unpackZ(task.packedChunkPos) - chunkedZ);
+                Packed.unpackChunkPosX(task.packedChunkPos) - chunkedX
+                , Packed.unpackChunkPosZ(task.packedChunkPos) - chunkedZ);
             return squaredDistance > radiusSquared;
         });
         
         clearMapDataOutOfRange(chunkedX, chunkedZ, radiusSquared, canSpawnPoses, HashMap::isEmpty, data->data.values().forEach(QuietAutoCloseable::closeIfNotNull));
         
         runningTasks.sort(Comparator.comparingDouble(task->(
-            Mth.square(Packed.ChunkPos.unpackX(task.packedChunkPos) - chunkedX)
-                + Mth.square(Packed.ChunkPos.unpackZ(task.packedChunkPos) - chunkedZ)
+            Mth.square(Packed.unpackChunkPosX(task.packedChunkPos) - chunkedX)
+                + Mth.square(Packed.unpackChunkPosZ(task.packedChunkPos) - chunkedZ)
         )));
     }
     
@@ -194,8 +194,8 @@ public class CanSpawnDisplayRunner implements AutoCloseable, Registries.ClientWo
     void scheduleDelayedTasksToRunningTasks(double chunkedX, double chunkedZ) {
         if(runningTasks.size() < runningTasksLimit){
             delayedTasks.sort(Comparator.comparingDouble(task->-(
-                Mth.square(Packed.ChunkPos.unpackX(task.packedChunkPos) - chunkedX)
-                    + Mth.square(Packed.ChunkPos.unpackZ(task.packedChunkPos) - chunkedZ)
+                Mth.square(Packed.unpackChunkPosX(task.packedChunkPos) - chunkedX)
+                    + Mth.square(Packed.unpackChunkPosZ(task.packedChunkPos) - chunkedZ)
             )));
             while (runningTasks.size() < runningTasksLimit && !delayedTasks.isEmpty())
                 runningTasks.add(delayedTasks.removeLast().task.get());
@@ -211,7 +211,7 @@ public class CanSpawnDisplayRunner implements AutoCloseable, Registries.ClientWo
     private void tryPutDelayed(Level world, int x, int z){
         Combined3x3Chunk chunk = Combined3x3Chunk.createCentered(world, x, z);
         if(chunk == null) return;
-        long packedChunkPos = Packed.ChunkPos.pack(x, z);
+        long packedChunkPos = Packed.packChunkPos(x, z);
         AlgorithmUtils.fastRemove(runningTasks, task->{
             boolean res = task.packedChunkPos == packedChunkPos;
             if(res) task.task.cancel(false);
@@ -236,8 +236,8 @@ public class CanSpawnDisplayRunner implements AutoCloseable, Registries.ClientWo
     
     private TaskResult AsyncChunkTest(@NotNull Combined3x3Chunk chunk, @NotNull LevelLightEngine light, long packedChunkPos){
         TaskResult result = new TaskResult(packedChunkPos, new ArrayList<>());
-        int x = Packed.getBlockCoord(Packed.ChunkPos.unpackX(packedChunkPos));
-        int z = Packed.getBlockCoord(Packed.ChunkPos.unpackZ(packedChunkPos));
+        int x = Packed.getBlockCoord(Packed.unpackChunkPosX(packedChunkPos));
+        int z = Packed.getBlockCoord(Packed.unpackChunkPosZ(packedChunkPos));
         GenericUtils.MobSpawnTest spawnTest = GenericUtils.createSpawnTest();
         Iterable<BlockPos> blockPoses = AlgorithmUtils.iterateInBox(
             x, chunk.getMinY(), z, x + 15, chunk.getMinY() + chunk.getHeight() - 1, z + 15);

@@ -429,7 +429,7 @@
 	"lpctools.configs.tweaks.enchantmentLevelFix.romanNumeralMaxLevel.name": "最大罗马数字等级",
 	"lpctools.configs.tweaks.enchantmentLevelFix.romanNumeralMaxLevel.comment": "设置使用罗马数字的最大等级\n超过该等级将使用阿拉伯数字",
 	"lpctools.configs.tweaks.noteBlockDelay.name": "音符盒延迟",
-	"lpctools.configs.tweaks.noteBlockDelay.comment": "侧面贴着墙上告示牌的音符盒，其声音会额外延后一小段时间再播放\n告示牌正面第一行决定延迟量：\n「1/2」= 半个游戏刻（分子/分母，需 > 0 且 < 2）\n「1.5」= 1.5 个游戏刻（直接写游戏刻数）\n精度为一个渲染帧，帧率越高越精细",
+	"lpctools.configs.tweaks.noteBlockDelay.comment": "开启后，墙上的告示牌会从所贴的那一格开始，令附着方向上连续的一排音符盒的声音额外延后一小段时间再播放\n告示牌正面第一行决定延迟量：\n「1/2」= 半个游戏刻（分子/分母，需 > 0 且 < 2）\n「1.5」= 1.5 个游戏刻（直接写游戏刻数）\n精度为一个渲染帧，帧率越高越精细",
 	"lpctools.configs.tweaks.modMenuPlayClickSound.name": "模组菜单播放点击音",
 	"lpctools.configs.tweaks.modMenuPlayClickSound.comment": "让“模组菜单”模组在打开任何模组的配置菜单时都播放点击音",
 	"lpctools.configs.tweaks.lpcfyTweakerooList.name": "LPC化Tweakeroo列表配置",

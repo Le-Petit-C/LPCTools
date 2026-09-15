@@ -427,7 +427,7 @@
 	"lpctools.configs.tweaks.enchantmentLevelFix.romanNumeralMaxLevel.name": "Roman Numeral Max Level",
 	"lpctools.configs.tweaks.enchantmentLevelFix.romanNumeralMaxLevel.comment": "Set the maximum level to use Roman Numerals\nLevels above this will use Arabic Numerals",
 	"lpctools.configs.tweaks.noteBlockDelay.name": "Note Block Delay",
-	"lpctools.configs.tweaks.noteBlockDelay.comment": "A note block with a wall sign attached to its side delays its sound\nThe sign's front first line defines the extra delay:\n\"1/2\" = half a game tick (numerator/denominator, must be > 0 and < 2)\n\"1.5\" = 1.5 game ticks (a bare number is ticks directly)\nResolution is one rendered frame, so a higher framerate gives finer timing",
+	"lpctools.configs.tweaks.noteBlockDelay.comment": "When enabled, a wall sign delays the sound of the contiguous row of note blocks on its back side, starting at the block it is attached to\nThe sign's front first line defines the extra delay:\n\"1/2\" = half a game tick (numerator/denominator, must be > 0 and < 2)\n\"1.5\" = 1.5 game ticks (a bare number is ticks directly)\nResolution is one rendered frame, so a higher framerate gives finer timing",
 	"lpctools.configs.tweaks.modMenuPlayClickSound.name": "ModMenu Play ClickSound",
 	"lpctools.configs.tweaks.modMenuPlayClickSound.comment": "Let ModMenu play ClickSound when any of the config screen is opened from there",
 	"lpctools.configs.tweaks.lpcfyTweakerooList.name": "LPCfy Tweakeroo List",

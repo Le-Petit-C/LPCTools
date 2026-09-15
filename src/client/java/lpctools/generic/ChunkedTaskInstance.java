@@ -103,8 +103,8 @@ public class ChunkedTaskInstance implements AutoCloseable {
 		MutableDouble distanceCache();
 		default void updatePriority(double chunkedCamX, double chunkedCamZ) {
 			long packedChunkPos = packedChunkPos();
-			int chunkX = Packed.ChunkPos.unpackX(packedChunkPos);
-			int chunkZ = Packed.ChunkPos.unpackZ(packedChunkPos);
+			int chunkX = Packed.unpackChunkPosX(packedChunkPos);
+			int chunkZ = Packed.unpackChunkPosZ(packedChunkPos);
 			distanceCache().setValue(Math.sqrt(Mth.square(chunkX - chunkedCamX) + Mth.square(chunkZ - chunkedCamZ)) + instance().negPriority);
 		}
 	}

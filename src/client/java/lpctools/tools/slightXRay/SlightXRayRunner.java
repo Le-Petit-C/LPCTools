@@ -115,7 +115,7 @@ public class SlightXRayRunner implements QuietAutoCloseable, ClientChunkEvents.L
     }
     
     private void testChunkAsync(int chunkX, int chunkZ, ClientLevel world){
-        long packedChunkPos = Packed.ChunkPos.pack(chunkX, chunkZ);
+        long packedChunkPos = Packed.packChunkPos(chunkX, chunkZ);
         ChunkData task = ChunkData.buildData(chunkX, chunkZ, world);
         if(task != null) taskInstance.scheduleTask(packedChunkPos, callback->buildAsyncTask(packedChunkPos, task, callback));
     }
@@ -203,7 +203,7 @@ public class SlightXRayRunner implements QuietAutoCloseable, ClientChunkEvents.L
                 }
                 hasDisplayNear = b;
             }
-            int packedChunkLocal = Packed.ChunkLocal.pack(pos1);
+            int packedChunkLocal = Packed.packChunkLocal(pos1);
             
 			MutableInt color;
 			if(hasDisplayNear) color = colorMap.get(state.getBlock());
