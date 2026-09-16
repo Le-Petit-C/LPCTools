@@ -40,53 +40,73 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 
 import static lpctools.util.ChunkedUtils.*;
 
-public class NoteBlockDelay {
-	public static final BooleanHotkeyConfig noteBlockDelay = new BooleanHotkeyConfig(TweakConfigs.tweaks, "noteBlockDelay", false, null);
-	public static final BooleanHotkeyConfig noteBlockPitch = new BooleanHotkeyConfig(TweakConfigs.tweaks, "noteBlockPitch", false, null);
+/**
+ * 用贴在音符盒排上的墙告示牌来微调这一排音符盒的播放：
+ * <ul>
+ *     <li>正面第一行 = 额外延迟的刻数（{@link #noteBlockDelay}）</li>
+ *     <li>正面第二行 = 音量倍率（{@link #noteBlockVolume}，乘在 SoundEngine 算出的最终增益上）</li>
+ *     <li>正面第三行 = 音高指数 v，播放音高乘 2^v（{@link #noteBlockPitch}）</li>
+ * </ul>
+ * 三个开关共用同一份告示牌标记缓存（没有任何一个开启时钩子会被摘掉），可以只开其中一个。
+ */
+public class NoteBlockSignTweaks {
+	public static final BooleanHotkeyConfig noteBlockDelay = new BooleanHotkeyConfig(TweakConfigs.tweaks, "noteBlockDelay", false, null, NoteBlockSignTweaks::refreshRegistration);
+	public static final BooleanHotkeyConfig noteBlockVolume = new BooleanHotkeyConfig(TweakConfigs.tweaks, "noteBlockVolume", false, null, NoteBlockSignTweaks::refreshRegistration);
+	public static final BooleanHotkeyConfig noteBlockPitch = new BooleanHotkeyConfig(TweakConfigs.tweaks, "noteBlockPitch", false, null, NoteBlockSignTweaks::refreshRegistration);
 	public static final BooleanConfig disablePitchClamp = new BooleanConfig(TweakConfigs.tweaks, "disablePitchClamp", false);
 	private static final double MAX_TICKS = 2.0;
 
-	static {
-		noteBlockDelay.setValueChangeCallback(NoteBlockDelay::refreshRegistration);
-		noteBlockPitch.setValueChangeCallback(NoteBlockDelay::refreshRegistration);
-	}
-
 	private static void refreshRegistration() {
-		if(noteBlockDelay.getAsBoolean() || noteBlockPitch.getAsBoolean()) {
-			if(DelayHandler.INSTANCE == null) {
-				DelayHandler.INSTANCE = new DelayHandler();
-				DelayHandler.INSTANCE.registerAll(true);
+		if(noteBlockDelay.getAsBoolean() || noteBlockVolume.getBooleanValue() || noteBlockPitch.getAsBoolean()) {
+			if(SignMarkHandler.INSTANCE == null) {
+				SignMarkHandler.INSTANCE = new SignMarkHandler();
+				SignMarkHandler.INSTANCE.registerAll(true);
 			}
 		}
 		else {
-			if(DelayHandler.INSTANCE != null) {
-				DelayHandler.INSTANCE.registerAll(false);
-				DelayHandler.INSTANCE = null;
+			if(SignMarkHandler.INSTANCE != null) {
+				SignMarkHandler.INSTANCE.registerAll(false);
+				SignMarkHandler.INSTANCE = null;
 			}
 		}
 	}
 
 	public static boolean tryScheduleDelay(ClientLevel level, SoundInstance instance, double extraTicks) {
-		if (DelayHandler.INSTANCE == null || !NoteBlockDelay.noteBlockDelay.getAsBoolean()) return false;
-		return DelayHandler.INSTANCE.tryScheduleDelay(level, instance, extraTicks);
+		if (SignMarkHandler.INSTANCE == null || !NoteBlockSignTweaks.noteBlockDelay.getAsBoolean()) return false;
+		return SignMarkHandler.INSTANCE.tryScheduleDelay(level, instance, extraTicks);
 	}
 
+	/** 把标记里的音高改动写到实例本身上（必须在决定是否接手这次播放【之前】调用） */
 	public static void tryApplyPitch(ClientLevel level, SoundInstance instance) {
-		if (DelayHandler.INSTANCE == null || !NoteBlockDelay.noteBlockPitch.getAsBoolean()) return;
-		DelayHandler.INSTANCE.tryApplyPitch(level, instance);
+		if (SignMarkHandler.INSTANCE != null && NoteBlockSignTweaks.noteBlockPitch.getAsBoolean())
+			SignMarkHandler.INSTANCE.tryApplyPitch(level, instance);
 	}
 
-	private static double parseNumber(String text) {
+	/**
+	 * 供 SoundEngine 在算出最终增益的地方调用：实例所在音符盒的音量倍率，null = 不改变。
+	 * 音量特意不改实例字段，而是等 SoundEngine 算完 calculateVolume 再乘（见 SoundEngineMixin）：
+	 * 实例的 volume 字段本身要被原版钳到 [0, 1]、还要兼作可听距离，在它上面动手既得不到真正的最终音量，
+	 * 也得在「sound 还没 resolve」的时候去采样它。
+	 */
+	public static @Nullable Double getVolumeMultiplier(SoundInstance instance) {
+		if (SignMarkHandler.INSTANCE == null || !NoteBlockSignTweaks.noteBlockVolume.getAsBoolean()) return null;
+		ClientLevel level = Minecraft.getInstance().level;
+		if (level == null) return null;
+		else return SignMarkHandler.INSTANCE.getMark(level, SignMarkHandler.soundPos(instance)).volume();
+	}
+
+	/** 解析告示牌上的一行数字；这一行没写（空）或解析不出数字时返回 null = 「未指定」 */
+	private static @Nullable Double parseNumber(String text) {
 		String trimmed = text.trim();
+		if (trimmed.isEmpty()) return null;
 		try {
 			return Fraction.getFraction(trimmed).doubleValue();
 		} catch (NumberFormatException | ArithmeticException _) {
-			Double value = Doubles.tryParse(trimmed);
-			return value == null ? 0.0 : value;
+			return Doubles.tryParse(trimmed);
 		}
 	}
 
-	private static class DelayHandler implements
+	private static class SignMarkHandler implements
 		Registries.BetweenRenderFrames,
 		ClientLevelEvents.AfterClientLevelChange,
 		Registries.ClientWorldChunkSetBlockState,
@@ -94,7 +114,7 @@ public class NoteBlockDelay {
 		ClientChunkEvents.Load,
 		QuietAutoCloseable {
 		public static final double NANOS_PER_TICK = 50.0 * 1000 * 1000;
-		private static @Nullable DelayHandler INSTANCE;
+		private static @Nullable SignMarkHandler INSTANCE;
 
 		/** 新样本在指数权重里占的比重，旧的按 (1 - 此值) 衰减 */
 		private static final double FRAME_SAMPLE_WEIGHT = 0.1;
@@ -119,9 +139,20 @@ public class NoteBlockDelay {
 			}
 		}
 
-		private record NoteMark(double delayTicks, double pitchExponent) {
-			static final NoteMark NONE = new NoteMark(0.0, 0.0);
-			NoteMark max(NoteMark other) { return new NoteMark(Math.max(delayTicks, other.delayTicks), Math.max(pitchExponent, other.pitchExponent)); }
+		private record NoteMark(@Nullable Double delayTicks, @Nullable Double volume, @Nullable Double pitchExponent) {
+			static final NoteMark NONE = new NoteMark(null, null, null);
+			static @Nullable Double nullableMax(@Nullable Double a, @Nullable Double b) {
+				if (a == null) return b;
+				else if (b == null) return a;
+				else return Math.max(a, b);
+			}
+			NoteMark max(NoteMark other) {
+				return new NoteMark(
+					nullableMax(delayTicks, other.delayTicks),
+					nullableMax(volume, other.volume),
+					nullableMax(pitchExponent, other.pitchExponent)
+				);
+			}
 		}
 
 		private record SignMark(Direction direction, NoteMark mark) {}
@@ -131,18 +162,16 @@ public class NoteBlockDelay {
 		private final ConcurrentLinkedQueue<ChunkAsyncLoadResult> completedChunkLoadTasks = new ConcurrentLinkedQueue<>();
 
 		boolean tryScheduleDelay(ClientLevel level, SoundInstance instance, double extraTicks) {
-			double ticks = getMark(level, soundPos(instance)).delayTicks();
-			if (ticks <= 0.0) return false;
+			Double ticks = getMark(level, soundPos(instance)).delayTicks();
+			if (ticks == null) return false;
 			scheduleByTicks(instance, ticks + extraTicks);
 			return true;
 		}
 
 		void tryApplyPitch(ClientLevel level, SoundInstance instance) {
-			// 先判类型再取标记：非 AbstractSoundInstance 的实现（别的 mod）连访问器都转不过去，
-			// 而取标记可能触发一次扫描
 			if (!(instance instanceof AbstractSoundInstanceAccessor accessor)) return;
-			double exponent = getMark(level, soundPos(instance)).pitchExponent();
-			if (exponent == 0.0) return;
+			Double exponent = getMark(level, soundPos(instance)).pitchExponent();
+			if (exponent == null) return;
 			accessor.lpctools$setPitch(accessor.lpctools$getPitch() * (float)Math.pow(2.0, exponent));
 		}
 
@@ -175,12 +204,17 @@ public class NoteBlockDelay {
 							Optional<Direction> direction = nearbyState.getOptionalValue(WallSignBlock.FACING);
 							if(direction.isEmpty() || direction.get() != facing) continue;
 							if (!(level.getBlockEntity(nearbyPos) instanceof SignBlockEntity sign)) continue;
-							// 第一行 = 延迟刻数，第二行 = 音高指数，两行各写各的，数字语法完全一样
-							double ticks = parseNumber(sign.getFrontText().getMessage(0, false).getString());
-							double exponent = parseNumber(sign.getFrontText().getMessage(1, false).getString());
-							if (!(ticks > 0 && ticks < MAX_TICKS)) ticks = 0;
-							if (!Double.isFinite(exponent)) exponent = 0;
-							if (ticks != 0 || exponent != 0) signMarks.put(nearbyPos.immutable(), new SignMark(facing, new NoteMark(ticks, exponent)));
+							// 第一行 = 延迟刻数，第二行 = 音量倍率，第三行 = 音高指数；没写 / 写坏的行一律按「未指定」（null）处理
+							Double ticks = parseNumber(sign.getFrontText().getMessage(0, false).getString());
+							Double volume = parseNumber(sign.getFrontText().getMessage(1, false).getString());
+							Double exponent = parseNumber(sign.getFrontText().getMessage(2, false).getString());
+							if (ticks != null && !(ticks > 0 && ticks < MAX_TICKS)) ticks = null;
+							// 音量必须是有限的非负数：它会被直接乘进最终增益，而那个增益已经没有任何钳位兜底了
+							// （负增益交给 OpenAL 是未定义行为，NaN 同理）
+							if (volume != null && !(Double.isFinite(volume) && volume >= 0)) volume = null;
+							if (exponent != null && !Double.isFinite(exponent)) exponent = null;
+							if (ticks != null || exponent != null || volume != null)
+								signMarks.put(nearbyPos.immutable(), new SignMark(facing, new NoteMark(ticks, volume, exponent)));
 						}
 						case NoteBlock ignored -> {
 							if (!queuedPoses.contains(nearbyPos)) {

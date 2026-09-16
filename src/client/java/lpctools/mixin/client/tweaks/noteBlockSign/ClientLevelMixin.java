@@ -1,8 +1,8 @@
-package lpctools.mixin.client.tweaks.noteBlockDelay;
+package lpctools.mixin.client.tweaks.noteBlockSign;
 
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
-import lpctools.tweaks.NoteBlockDelay;
+import lpctools.tweaks.NoteBlockSignTweaks;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.resources.sounds.SoundInstance;
 import net.minecraft.client.sounds.SoundEngine;
@@ -19,9 +19,10 @@ public class ClientLevelMixin {
 	) {
 		ClientLevel level = (ClientLevel)(Object)this;
 		// 音高必须在调度延迟【之前】就改好：被接手的那次播放复用的就是这个实例本体，
-		// 而且之后不会再经过这里（flushSound 是直接调 SoundManager.play 的）
-		NoteBlockDelay.tryApplyPitch(level, instance);
-		if (NoteBlockDelay.tryScheduleDelay(level, instance, 0.0))
+		// 而且之后不会再经过这里（flushSound 是直接调 SoundManager.play 的）。
+		// 音量不在这里改：它等 SoundEngine 算完最终增益再乘（SoundEngineMixin.scaleFinalVolume）
+		NoteBlockSignTweaks.tryApplyPitch(level, instance);
+		if (NoteBlockSignTweaks.tryScheduleDelay(level, instance, 0.0))
 			// 这里报 STARTED 而不是 NOT_STARTED：我们确实把这次播放「接手」了，
 			// 声音稍后会由 SoundManager.play 正常走完整流程（字幕、channel、增益都在那时才做）。
 			// 报 NOT_STARTED 的话，万一将来有人（或别的 mod 照这条路抄）把它当「失败了，试试别的」的依据，
@@ -43,8 +44,8 @@ public class ClientLevelMixin {
 	) {
 		ClientLevel level = (ClientLevel)(Object)this;
 		// 与上面同理：先把音高改到实例上，再决定是接手延迟还是原样放行
-		NoteBlockDelay.tryApplyPitch(level, instance);
-		if (NoteBlockDelay.tryScheduleDelay(level, instance, delay)) return;
+		NoteBlockSignTweaks.tryApplyPitch(level, instance);
+		if (NoteBlockSignTweaks.tryScheduleDelay(level, instance, delay)) return;
 		original.call(soundManager, instance, delay);
 	}
 }

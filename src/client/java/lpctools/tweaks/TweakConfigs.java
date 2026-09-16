@@ -24,9 +24,10 @@ public class TweakConfigs {
             BlockBreakCooldownTweaks.startBreakBlockResetsBlockBreakCooldown,
             PlayerCrosshairFilter.passThroughEntities,
             PlayerCrosshairFilter.passThroughBlocks,
-            NoteBlockDelay.noteBlockDelay,
-            NoteBlockDelay.noteBlockPitch,
-            NoteBlockDelay.disablePitchClamp
+            NoteBlockSignTweaks.noteBlockDelay,
+            NoteBlockSignTweaks.noteBlockVolume,
+            NoteBlockSignTweaks.noteBlockPitch,
+            NoteBlockSignTweaks.disablePitchClamp
         );
     }
 }

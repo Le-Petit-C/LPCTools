@@ -30,8 +30,8 @@
     "tweaks.barTweak.InGameHudMixin",
     "tweaks.enchantmentLevelFix.MixinTranslationStorage",
     "tweaks.happyGhastRidingTweak.ClientPlayerEntityMixin",
-    "tweaks.noteBlockDelay.ClientLevelMixin",
-    "tweaks.noteBlockDelay.SoundEngineMixin"
+    "tweaks.noteBlockSign.ClientLevelMixin",
+    "tweaks.noteBlockSign.SoundEngineMixin"
   ],
   "mixins": [
     "accessors.AbstractBlockAccessor",
