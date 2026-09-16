@@ -9,6 +9,7 @@
     "DisplayClickSlotArguments",
     "SplashTextResourceSupplierMixin",
     "accessors.AbstractSignEditScreenAccessor",
+    "accessors.AbstractSoundInstanceAccessor",
     "accessors.ClientChunkAccessor",
     "accessors.ClientChunkMapAccessor",
     "accessors.GuiBaseAccessor",
@@ -29,7 +30,8 @@
     "tweaks.barTweak.InGameHudMixin",
     "tweaks.enchantmentLevelFix.MixinTranslationStorage",
     "tweaks.happyGhastRidingTweak.ClientPlayerEntityMixin",
-    "tweaks.noteBlockDelay.ClientLevelMixin"
+    "tweaks.noteBlockDelay.ClientLevelMixin",
+    "tweaks.noteBlockDelay.SoundEngineMixin"
   ],
   "mixins": [
     "accessors.AbstractBlockAccessor",

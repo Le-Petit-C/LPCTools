@@ -14,10 +14,14 @@ import org.spongepowered.asm.mixin.injection.At;
 public class ClientLevelMixin {
 	@WrapOperation(method = "playSound",
 		at = @At(value = "INVOKE", target = "Lnet/minecraft/client/sounds/SoundManager;play(Lnet/minecraft/client/resources/sounds/SoundInstance;)Lnet/minecraft/client/sounds/SoundEngine$PlayResult;"))
-	SoundEngine.PlayResult delayMarkedNoteBlockSound(
+	SoundEngine.PlayResult modifyMarkedNoteBlockSound(
 		SoundManager soundManager, SoundInstance instance, Operation<SoundEngine.PlayResult> original
 	) {
-		if (NoteBlockDelay.tryScheduleDelay((ClientLevel)(Object)this, instance, 0.0))
+		ClientLevel level = (ClientLevel)(Object)this;
+		// 音高必须在调度延迟【之前】就改好：被接手的那次播放复用的就是这个实例本体，
+		// 而且之后不会再经过这里（flushSound 是直接调 SoundManager.play 的）
+		NoteBlockDelay.tryApplyPitch(level, instance);
+		if (NoteBlockDelay.tryScheduleDelay(level, instance, 0.0))
 			// 这里报 STARTED 而不是 NOT_STARTED：我们确实把这次播放「接手」了，
 			// 声音稍后会由 SoundManager.play 正常走完整流程（字幕、channel、增益都在那时才做）。
 			// 报 NOT_STARTED 的话，万一将来有人（或别的 mod 照这条路抄）把它当「失败了，试试别的」的依据，
@@ -34,10 +38,13 @@ public class ClientLevelMixin {
 	 */
 	@WrapOperation(method = "playSound",
 		at = @At(value = "INVOKE", target = "Lnet/minecraft/client/sounds/SoundManager;playDelayed(Lnet/minecraft/client/resources/sounds/SoundInstance;I)V"))
-	void delayMarkedNoteBlockDelayedSound(
+	void modifyMarkedNoteBlockDelayedSound(
 		SoundManager soundManager, SoundInstance instance, int delay, Operation<Void> original
 	) {
-		if (NoteBlockDelay.tryScheduleDelay((ClientLevel)(Object)this, instance, delay)) return;
+		ClientLevel level = (ClientLevel)(Object)this;
+		// 与上面同理：先把音高改到实例上，再决定是接手延迟还是原样放行
+		NoteBlockDelay.tryApplyPitch(level, instance);
+		if (NoteBlockDelay.tryScheduleDelay(level, instance, delay)) return;
 		original.call(soundManager, instance, delay);
 	}
 }

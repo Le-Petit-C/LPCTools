@@ -5,6 +5,8 @@ import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import lpctools.util.javaex.functions.ToDoubleObjectDoubleBiFunction;
 import net.minecraft.core.BlockPos;
 
+import java.util.function.BiFunction;
+
 public class ChunkedUtils {
 	public static <T> T chunkedGet(Long2ObjectMap<? extends Int2ObjectMap<T>> map, int x, int y, int z) {
 		var chunk = map.get(Packed.packChunkPosFromCoords(x, z));
@@ -18,6 +20,15 @@ public class ChunkedUtils {
 
 	public static double chunkedGetOrDefault(Long2ObjectMap<? extends Int2DoubleMap> map, BlockPos pos, double def) {
 		Int2DoubleMap chunk = map.get(Packed.packChunkPos(pos));
+		if(chunk == null) return def;
+		else return chunk.getOrDefault(Packed.packChunkLocal(pos), def);
+	}
+
+	/**
+	 * 值也是对象的版本。既然值可以是 {@code null}，就别拿它当「有没有」的判据。
+	 */
+	public static <T> T chunkedGetOrDefault(Long2ObjectMap<? extends Int2ObjectMap<T>> map, BlockPos pos, T def) {
+		Int2ObjectMap<T> chunk = map.get(Packed.packChunkPos(pos));
 		if(chunk == null) return def;
 		else return chunk.getOrDefault(Packed.packChunkLocal(pos), def);
 	}
@@ -43,6 +54,11 @@ public class ChunkedUtils {
 
 	public static double chunkedPutIfAbsent(Long2ObjectMap<Int2DoubleOpenHashMap> map, BlockPos pos, double value) {
 		Int2DoubleMap chunk = map.computeIfAbsent(Packed.packChunkPos(pos), _ -> new Int2DoubleOpenHashMap());
+		return chunk.putIfAbsent(Packed.packChunkLocal(pos), value);
+	}
+
+	public static <T> T chunkedPutIfAbsent(Long2ObjectMap<Int2ObjectOpenHashMap<T>> map, BlockPos pos, T value) {
+		Int2ObjectMap<T> chunk = map.computeIfAbsent(Packed.packChunkPos(pos), _ -> new Int2ObjectOpenHashMap<>());
 		return chunk.putIfAbsent(Packed.packChunkLocal(pos), value);
 	}
 
@@ -75,6 +91,11 @@ public class ChunkedUtils {
 	public static double chunkedComputeWithDefault(Long2ObjectMap<Int2DoubleOpenHashMap> map, BlockPos pos, ToDoubleObjectDoubleBiFunction<BlockPos> fn, double def) {
 		Int2DoubleMap chunk = map.computeIfAbsent(Packed.packChunkPos(pos), _ -> new Int2DoubleOpenHashMap());
 		return chunk.compute(Packed.packChunkLocal(pos), (_, old) -> fn.applyAsDouble(pos, old == null ? def : old));
+	}
+
+	public static <T> T chunkedComputeWithDefault(Long2ObjectMap<Int2ObjectOpenHashMap<T>> map, BlockPos pos, BiFunction<BlockPos, T, T> fn, T def) {
+		Int2ObjectMap<T> chunk = map.computeIfAbsent(Packed.packChunkPos(pos), _ -> new Int2ObjectOpenHashMap<>());
+		return chunk.compute(Packed.packChunkLocal(pos), (_, old) -> fn.apply(pos, old == null ? def : old));
 	}
 
 	public static boolean chunkedContains(Long2ObjectMap<? extends IntSet> set, int x, int y, int z) {
