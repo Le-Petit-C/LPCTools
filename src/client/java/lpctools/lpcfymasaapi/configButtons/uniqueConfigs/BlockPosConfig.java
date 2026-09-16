@@ -31,9 +31,9 @@ public class BlockPosConfig extends ThirdListConfig implements IConfigResettable
             }, ()->Component.translatable("lpctools.configs.utils.blockPosConfig.setToTarget").getString(), buttonGenericAllocator));
         }
         else {
-            res.add(ILPCUniqueConfigBase.textFieldConfigValuePreset(1, x));
-            res.add(ILPCUniqueConfigBase.textFieldConfigValuePreset(1, y));
-            res.add(ILPCUniqueConfigBase.textFieldConfigValuePreset(1, z));
+            res.add(ILPCUniqueConfigBase.textFieldPreset(1, x));
+            res.add(ILPCUniqueConfigBase.textFieldPreset(1, y));
+            res.add(ILPCUniqueConfigBase.textFieldPreset(1, z));
         }
     }
     

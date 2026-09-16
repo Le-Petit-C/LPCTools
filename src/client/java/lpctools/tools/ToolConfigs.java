@@ -7,6 +7,7 @@ import lpctools.lpcfymasaapi.configButtons.uniqueConfigs.ButtonConfig;
 import lpctools.tools.bedrockKiller.BedrockKiller;
 import lpctools.tools.leakPreventer.LeakPreventer;
 import lpctools.tools.autoGrindstone.AutoGrindstone;
+import lpctools.tools.signFractionHelper.SignFractionHelper;
 import lpctools.tools.spawnProofer.SpawnProofer;
 import lpctools.tools.autoReconnect.AutoReconnect;
 import lpctools.tools.breakRestriction.BreakRestriction;
@@ -46,7 +47,8 @@ public class ToolConfigs {
 			LeakPreventer.LPConfig,
 			BedrockKiller.BKConfig,
 			LitematicaMaterial.LMConfig,
-			TradeReroller.TRConfig
+			TradeReroller.TRConfig,
+			SignFractionHelper.SFConfig
         );
     }
 }

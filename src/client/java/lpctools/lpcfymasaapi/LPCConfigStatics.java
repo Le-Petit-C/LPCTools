@@ -198,7 +198,13 @@ public interface LPCConfigStatics {
     static BooleanHotkeyThirdListConfig addBooleanHotkeyThirdListConfig(ILPCConfigList list, @NotNull String nameKey){
         return list.addConfig(new BooleanHotkeyThirdListConfig(list, nameKey));
     }
-    static ButtonHotkeyConfig addButtonHotkeyConfig(ILPCConfigList list, @NotNull String nameKey, @Nullable String defaultKeyBindStorageString, @Nullable Runnable callback){
+    static ButtonHotkeyConfig addButtonHotkeyConfig(ILPCConfigList list, @NotNull String nameKey, @Nullable String defaultKeyBindStorageString){
+        return list.addConfig(new ButtonHotkeyConfig(list, nameKey, defaultKeyBindStorageString));
+    }
+    static ButtonHotkeyConfig addButtonHotkeyConfig(ILPCConfigList list, @NotNull String nameKey, @Nullable String defaultKeyBindStorageString, @NotNull Runnable callback){
+        return list.addConfig(new ButtonHotkeyConfig(list, nameKey, defaultKeyBindStorageString, callback));
+    }
+    static ButtonHotkeyConfig addButtonHotkeyConfig(ILPCConfigList list, @NotNull String nameKey, @Nullable String defaultKeyBindStorageString, @Nullable BooleanSupplier callback){
         return list.addConfig(new ButtonHotkeyConfig(list, nameKey, defaultKeyBindStorageString, callback));
     }
     static BlockPosConfig addBlockPosConfig(ILPCConfigList list, @NotNull String nameKey, BlockPos defaultPos, @Nullable ILPCValueChangeCallback callback){
@@ -406,7 +412,13 @@ public interface LPCConfigStatics {
     static BooleanHotkeyThirdListConfig addBooleanHotkeyThirdListConfig(String nameKey){
         return addBooleanHotkeyThirdListConfig(peekConfigList(), nameKey);
     }
-    static ButtonHotkeyConfig addButtonHotkeyConfig(String nameKey, @Nullable String defaultKeyBindStorageString, @Nullable Runnable callback){
+    static ButtonHotkeyConfig addButtonHotkeyConfig(String nameKey, @Nullable String defaultKeyBindStorageString){
+        return addButtonHotkeyConfig(peekConfigList(), nameKey, defaultKeyBindStorageString);
+    }
+    static ButtonHotkeyConfig addButtonHotkeyConfig(String nameKey, @Nullable String defaultKeyBindStorageString, @NotNull Runnable callback){
+        return addButtonHotkeyConfig(peekConfigList(), nameKey, defaultKeyBindStorageString, callback);
+    }
+    static ButtonHotkeyConfig addButtonHotkeyConfig(String nameKey, @Nullable String defaultKeyBindStorageString, @Nullable BooleanSupplier callback){
         return addButtonHotkeyConfig(peekConfigList(), nameKey, defaultKeyBindStorageString, callback);
     }
     static BlockPosConfig addBlockPosConfig(@NotNull String nameKey, BlockPos defaultPos, ILPCValueChangeCallback callback){

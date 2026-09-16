@@ -23,7 +23,7 @@ public interface ILPCUniqueConfigBase extends ILPCUniqueConfig, SimpleDirtyImpl{
         ButtonGeneric resetButton;
         if(this instanceof IConfigResettable resettable){
             resetButton = consumer.createResetButton(x + configWidth + 2, y, resettable);
-            consumer.addButton(resetButton, (button, mouseButton)->{
+            consumer.addButton(resetButton, (_, _)->{
                 resettable.resetToDefault();
                 getPage().markNeedUpdate();
             });
@@ -107,7 +107,7 @@ public interface ILPCUniqueConfigBase extends ILPCUniqueConfig, SimpleDirtyImpl{
             add(new ButtonOption(widthWeight, actionListener, buttonId, allocator));
         }
         public void add(float widthWeight, @Nullable Runnable actionListener, @Nullable Supplier<@Nullable String> buttonId, @Nullable IButtonAllocator allocator){
-            add(widthWeight, actionListener == null ? null : (button, mouseButton)->actionListener.run(), buttonId, allocator);
+            add(widthWeight, actionListener == null ? null : (_, _)->actionListener.run(), buttonId, allocator);
         }
         public void add(float widthWeight, @Nullable IButtonAllocator allocator){
             add(widthWeight, (IButtonActionListener) null, null, allocator);
@@ -120,26 +120,26 @@ public interface ILPCUniqueConfigBase extends ILPCUniqueConfig, SimpleDirtyImpl{
         void create(int x, int y, int w, int h, String str, IButtonActionListener listener, ButtonConsumer consumer, @Nullable ButtonGeneric resetButton);
     }
     //presets
-    IButtonAllocator buttonGenericAllocator = (x, y, w, h, key, listener, consumer, reset)->consumer.addButton(new ButtonGeneric(x, y, w, h, key), listener);
+    IButtonAllocator buttonGenericAllocator = (x, y, w, h, key, listener, consumer, _)->consumer.addButton(new ButtonGeneric(x, y, w, h, key), listener);
     static IButtonAllocator iconButtonAllocator(MaLiLibIcons icon, int height, LeftRight iconAlignment){
-        return (x, y, w, h, key, listener, consumer, reset)-> consumer.addButton(new ButtonGeneric(x, y + (h - height) / 2, w, height, key, icon).setIconAlignment(iconAlignment), listener);
+        return (x, y, w, h, key, listener, consumer, _)-> consumer.addButton(new ButtonGeneric(x, y + (h - height) / 2, w, height, key, icon).setIconAlignment(iconAlignment), listener);
     }
     static IButtonAllocator iconButtonAllocator(MaLiLibIcons icon, LeftRight iconAlignment){
-        return (x, y, w, h, key, listener, consumer, reset)-> consumer.addButton(new ButtonGeneric(x, y, w, h, key, icon).setIconAlignment(iconAlignment), listener);
+        return (x, y, w, h, key, listener, consumer, _)-> consumer.addButton(new ButtonGeneric(x, y, w, h, key, icon).setIconAlignment(iconAlignment), listener);
     }
     static ButtonOption iconButtonPreset(MaLiLibIcons icon, @Nullable IButtonActionListener actionListener, @Nullable Supplier<@Nullable String> buttonId){
         return new ButtonOption(ButtonWeightType.WIDTH, 16, actionListener, buttonId, iconButtonAllocator(icon, 16, LeftRight.CENTER));
     }
     static IButtonAllocator colorEditorAllocator(IConfigColor config){
-        return (x, y, w, h, key, listener, consumer, reset)->consumer.addWidget(new WidgetColorIndicator(x, y + 1, 19, 19, config));
+        return (x, y, _, _, _, _, consumer, _)->consumer.addWidget(new WidgetColorIndicator(x, y + 1, 19, 19, config));
     }
     static ButtonOption buttonBooleanPreset(float widthWeight, IConfigBoolean configBoolean){
         return new ButtonOption(widthWeight, null, null,
-            (x, y, w, h, key, listener, consumer, reset)->consumer.addButton(new ConfigButtonBoolean(x, y, w, h, configBoolean), listener)
+            (x, y, w, h, _, listener, consumer, _)->consumer.addButton(new ConfigButtonBoolean(x, y, w, h, configBoolean), listener)
         );
     }
-    static ButtonOption textFieldConfigValuePreset(float widthWeight, IConfigValue config){
-        return new ButtonOption(widthWeight, null, null, (x, y, w, h, key, listener, consumer, reset)->{
+    static ButtonOption textFieldPreset(float widthWeight, IStringRepresentable config){
+        return new ButtonOption(widthWeight, null, null, (x, y, w, h, _, _, consumer, reset)->{
             GuiTextFieldGeneric field = new GuiTextFieldGeneric(x + 2, y + 1, w - 4, h - 3, consumer.getTextRenderer()){
                 @Override public void setFocused(boolean focused) {
                     super.setFocused(focused);
@@ -170,7 +170,7 @@ public interface ILPCUniqueConfigBase extends ILPCUniqueConfig, SimpleDirtyImpl{
     static ButtonOption buttonKeybindPreset(float weight, IHotkey hotkey){
         return new ButtonOption(
             weight, null, null,
-            (x, y, w, h, key, listener, consumer, reset) -> {
+            (x, y, w, h, _, listener, consumer, _) -> {
                 consumer.addButton(new ConfigButtonKeybind(x, y, w - h - 2, h, hotkey.getKeybind(), consumer.getKeybindHost()), listener);
                 consumer.addWidget(new WidgetKeybindSettings(x + w - h, y, h, h, hotkey.getKeybind(), hotkey.getName(), consumer.getWidgetListConfigOptionsBase(), consumer.getKeybindHost().getDialogHandler()));
             }

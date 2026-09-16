@@ -1,7 +1,6 @@
 package lpctools.tweaks;
 
 import com.google.common.primitives.Doubles;
-import com.google.common.primitives.Ints;
 import it.unimi.dsi.fastutil.ints.Int2DoubleOpenHashMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
@@ -26,6 +25,7 @@ import net.minecraft.world.level.block.WallSignBlock;
 import net.minecraft.world.level.block.entity.SignBlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.chunk.LevelChunk;
+import org.apache.commons.lang3.math.Fraction;
 import org.jetbrains.annotations.Nullable;
 import org.jspecify.annotations.NonNull;
 
@@ -64,24 +64,21 @@ public class NoteBlockDelay {
 	}
 
 	/**
-	 * 解析标记文本。两种模式分工解析器：
-	 * 分数模式用 {@link Ints#tryParse}（手写循环、不走正则、不抛异常，且自带溢出保护），
-	 * 只有小数模式才用 {@link Doubles#tryParse}（正则实现，开销更大）。
-	 * 注意 {@code tryParse} 系列<b>不像 {@code parseDouble} 那样自动 trim</b>，所以每段都要自己 trim。
+	 * 解析标记文本：优先交给 commons-lang3 的 {@link Fraction#getFraction(String)}，
+	 * 分数、小数、整数都能吃，且自带约分与分母 0 / 整数溢出的检查。
+	 * 它不认的写法（科学计数法等）再退回 {@link Doubles#tryParse}（正则实现，开销更大）。
+	 * 两者都<b>不会自己 trim</b>，所以先在这里 trim 一次。
 	 *
 	 * @return 延迟游戏刻数；解析失败或格式非法时返回 0
 	 */
 	private static double parseTicks(String text) {
-		int slash = text.indexOf('/');
-		if (slash < 0) {                                            // 小数模式：裸数字，如 "1.5"
-			Double ticks = Doubles.tryParse(text.trim());
+		String trimmed = text.trim();
+		try {
+			return Fraction.getFraction(trimmed).doubleValue();
+		} catch (NumberFormatException | ArithmeticException _) {
+			Double ticks = Doubles.tryParse(trimmed);
 			return ticks == null ? 0.0 : ticks;
 		}
-		if (slash == 0 || slash == text.length() - 1) return 0.0;   // "1/"、"/2" 这类残废分数直接作废
-		Integer numerator = Ints.tryParse(text.substring(0, slash).trim());
-		Integer denominator = Ints.tryParse(text.substring(slash + 1).trim());
-		if (numerator == null || denominator == null || denominator == 0) return 0.0;
-		return (double)numerator / denominator;
 	}
 
 	private static class DelayHandler implements Registries.BetweenRenderFrames, ClientLevelEvents.AfterClientLevelChange, Registries.ClientWorldChunkSetBlockState, ClientChunkEvents.Unload, ClientChunkEvents.Load {

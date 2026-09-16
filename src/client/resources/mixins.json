@@ -8,6 +8,7 @@
   "client": [
     "DisplayClickSlotArguments",
     "SplashTextResourceSupplierMixin",
+    "accessors.AbstractSignEditScreenAccessor",
     "accessors.ClientChunkAccessor",
     "accessors.ClientChunkMapAccessor",
     "accessors.GuiBaseAccessor",

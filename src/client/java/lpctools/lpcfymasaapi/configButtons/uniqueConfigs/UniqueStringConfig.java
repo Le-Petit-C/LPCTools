@@ -31,7 +31,7 @@ public class UniqueStringConfig extends LPCUniqueConfigBase implements IConfigVa
 	}
 	@Override public boolean isModified(String s) {return !s.equals(defaultStringValue);}
 	@Override public String getStringValue() {return stringValue;}
-	@Override public void getButtonOptions(ButtonOptionArrayList res) {res.add(ILPCUniqueConfigBase.textFieldConfigValuePreset(1, this));}
+	@Override public void getButtonOptions(ButtonOptionArrayList res) {res.add(ILPCUniqueConfigBase.textFieldPreset(1, this));}
 	@Override public @Nullable JsonElement getAsJsonElement() {return new JsonPrimitive(stringValue);}
 	@Override public UpdateTodo setValueFromJsonElementEx(@NotNull JsonElement element) {
 		if(element instanceof JsonPrimitive primitive){
