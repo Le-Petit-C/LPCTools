@@ -32,6 +32,7 @@ import net.minecraft.world.inventory.AnvilMenu;
 import net.minecraft.world.inventory.ContainerInput;
 import net.minecraft.world.inventory.MerchantMenu;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -135,6 +136,10 @@ public class InGameManager {
 	public void playLocalSound(final BlockPos pos, final SoundEvent sound, final SoundSource source, final float volume, final float pitch, final boolean distanceDelay) { level.playLocalSound(pos, sound, source, volume, pitch, distanceDelay); }
 	public void addDestroyBlockEffect(final BlockPos pos, final BlockState blockState) { level.addDestroyBlockEffect(pos, blockState); }
 	public boolean noBlockCollision(AABB aabb) { return level.noBlockCollision(null, aabb); }
+	public boolean isLoaded(BlockPos pos) { return level.isLoaded(pos); }
+	public boolean isLoaded(int x, int z) { return level.getChunkSource().hasChunk(x, z); }
+	public boolean isLoaded(ChunkPos chunkPos) { return isLoaded(chunkPos.x(), chunkPos.z()); }
+	public boolean isLoadedIgnoreHeight(BlockPos pos) { return isLoaded(ChunkPos.containing(pos)); }
 
 	public ClientPacketListener getConnection() { return player.connection; }
 	public void send(final Packet<?> packet) { getConnection().send(packet); }

@@ -29,7 +29,8 @@ public class TweakConfigs {
             NoteBlockSignTweaks.noteBlockPitch,
             NoteBlockSignTweaks.disablePitchClamp,
             RayCastTeleport.rayCastTeleport,
-            RayCastTeleport.maxTeleportDistance
+            RayCastTeleport.maxTeleportDistance,
+            RayCastTeleport.cancelTeleportWhenMiss
         );
     }
 }
