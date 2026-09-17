@@ -30,7 +30,8 @@ public class TweakConfigs {
             NoteBlockSignTweaks.disablePitchClamp,
             RayCastTeleport.rayCastTeleport,
             RayCastTeleport.maxTeleportDistance,
-            RayCastTeleport.cancelTeleportWhenMiss
+            RayCastTeleport.cancelTeleportWhenMiss,
+            RayCastTeleport.preferQtp
         );
     }
 }

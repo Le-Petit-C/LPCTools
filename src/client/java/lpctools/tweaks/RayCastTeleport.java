@@ -13,16 +13,27 @@ import net.minecraft.core.Direction;
 import net.minecraft.world.entity.EntityDimensions;
 import net.minecraft.world.entity.Pose;
 import net.minecraft.world.phys.*;
+import org.jetbrains.annotations.Nullable;
 
 public class RayCastTeleport {
 	public static HotkeyConfig rayCastTeleport = new HotkeyConfig(TweakConfigs.tweaks, "rayCastTeleport", null, RayCastTeleport::teleport);
 	public static DoubleConfig maxTeleportDistance = new DoubleConfig(TweakConfigs.tweaks, "maxTeleportDistance", 64, 0, 65536);
 	public static BooleanConfig cancelTeleportWhenMiss = new BooleanConfig(TweakConfigs.tweaks, "cancelTeleportWhenMiss", false);
+	public static BooleanConfig preferQtp = new BooleanConfig(TweakConfigs.tweaks, "preferQtp", false);
+
+	/** 仿照 VanillaBlockInteractionModifier#setBlockPrefix：qtp 可用且开启偏好时用 qtp，否则回退 tp；都不可用则返回 null */
+	private static @Nullable String teleportPrefix(InGameManager manager) {
+		if(preferQtp.getBooleanValue() && GenericUtils.hasCommand(manager, "qtp", true)) return "qtp";
+		else if(GenericUtils.hasCommand(manager, "tp", true)) return "tp";
+		else return null;
+	}
+
 	private static boolean teleport(KeyAction action, IKeybind keybind) {
 		Minecraft mc = Minecraft.getInstance();
 		InGameManager manager = InGameManager.get(mc);
 		if(manager == null) return false;
-		if(!GenericUtils.hasCommand(manager, "tp", true)) return false;
+		String prefix = teleportPrefix(manager);
+		if(prefix == null) return false;
 		HitResult hitResult = manager.player.pick(Math.min(maxTeleportDistance.getAsDouble(), loadedEdgeDistance(manager)), 1.0f, false);
 		if(cancelTeleportWhenMiss.getBooleanValue() && hitResult.getType() == HitResult.Type.MISS) return true;
 		Vec3 hitLocation = hitResult.getLocation();
@@ -50,7 +61,7 @@ public class RayCastTeleport {
 			}
 			default -> { return true; }
 		}
-		manager.sendCommand(String.format("tp %f %f %f", location.x, location.y, location.z));
+		manager.sendCommand(String.format("%s %f %f %f", prefix, location.x, location.y, location.z));
 		return true;
 	}
 
