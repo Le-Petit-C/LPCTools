@@ -2,6 +2,7 @@ package lpctools.lpcfymasaapi.configButtons.uniqueConfigs;
 
 import com.google.gson.JsonElement;
 import fi.dy.masa.malilib.hotkeys.*;
+import lpctools.lpcfymasaapi.configButtons.UpdateTodo;
 import lpctools.lpcfymasaapi.interfaces.ILPCConfigReadable;
 import lpctools.lpcfymasaapi.interfaces.ILPCUniqueConfigBase;
 import org.jetbrains.annotations.NotNull;
@@ -32,7 +33,12 @@ public class ButtonHotkeyConfig extends ButtonConfig implements IHotkey, AutoClo
         res.add(ILPCUniqueConfigBase.buttonKeybindPreset(1, this));
     }
     @Override public @Nullable JsonElement getAsJsonElement() { return keybind.getAsJsonElement(); }
-    @Override public void setValueFromJsonElement(@NotNull JsonElement data) { keybind.setValueFromJsonElement(data); }
+    @Override public UpdateTodo setValueFromJsonElementEx(@NotNull JsonElement data) {
+        UpdateTodo todo = super.setValueFromJsonElementEx(data);
+        keybind.setValueFromJsonElement(data);
+        return todo.valueChanged();
+    }
     private boolean callCallback(Object... ignored){if(callback != null) return callback.getAsBoolean(); else return false;}
     @Override public void close() { getPage().getInputHandler().removeHotkey(this); }
+    @Override public boolean isDirty() { return keybind.isDirty() || super.isDirty(); }
 }

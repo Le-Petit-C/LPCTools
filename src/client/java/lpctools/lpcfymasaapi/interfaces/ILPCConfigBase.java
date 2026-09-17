@@ -38,10 +38,13 @@ public interface ILPCConfigBase extends ILPCConfigKeyProvider{
         setValueFromJsonElementEx(data);
     }
     default UpdateTodo setValueFromParentJsonObjectEx(@NotNull JsonObject object){
-        return setValueFromJsonElementEx(object.get(getNameKey()));
+        JsonElement element = object.get(getNameKey());
+        if(element != null) return setValueFromJsonElementEx(element);
+        else return new UpdateTodo();
     }
     default void setValueFromParentJsonObject(@NotNull JsonObject object){
-        setValueFromJsonElement(object.get(getNameKey()));
+        JsonElement element = object.get(getNameKey());
+        if(element != null) setValueFromJsonElement(element);
     }
     default int getAlignLevel(){return getParent().getAlignLevel() + 1;}
 }
