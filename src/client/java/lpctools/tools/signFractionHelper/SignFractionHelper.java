@@ -2,6 +2,7 @@ package lpctools.tools.signFractionHelper;
 
 import com.google.common.collect.ImmutableMap;
 import lpctools.lpcfymasaapi.configButtons.derivedConfigs.ArrayOptionListConfig;
+import lpctools.lpcfymasaapi.configButtons.transferredConfigs.BooleanConfig;
 import lpctools.lpcfymasaapi.configButtons.uniqueConfigs.ButtonHotkeyConfig;
 import lpctools.lpcfymasaapi.configButtons.uniqueConfigs.BooleanHotkeyThirdListConfig;
 import lpctools.lpcfymasaapi.configButtons.uniqueConfigs.FractionConfig;
@@ -16,8 +17,8 @@ import static lpctools.lpcfymasaapi.LPCConfigStatics.*;
 
 public class SignFractionHelper {
 	public static final BooleanHotkeyThirdListConfig SFConfig = ToolUtils.configBuilder("SF").withToolRunner(SignFractionHelperRunner::new).build();
-	static {listStack.push(SFConfig);}
 
+	static {listStack.push(SFConfig);}
 	public static final FractionConfig selected = addConfigEx(l -> new FractionConfig(l, "selected", Fraction.ZERO));
 	public static final FractionConfig iteration = addConfigEx(l -> new FractionConfig(l, "iteration", Fraction.ONE));
 	public static final ArrayOptionListConfig<Integer> modRange = addArrayOptionListConfig("modRange", modRangeOptions());
@@ -25,6 +26,7 @@ public class SignFractionHelper {
 	public static final ButtonHotkeyConfig decrease = addButtonHotkeyConfig("decrease", null, () -> iterate(false));
 	public static final ButtonHotkeyConfig doubleIteration = addButtonHotkeyConfig("doubleIteration", null, () -> scaleIteration(true));
 	public static final ButtonHotkeyConfig halveIteration = addButtonHotkeyConfig("halveIteration", null, () -> scaleIteration(false));
+	public static final BooleanConfig alwaysCloseScreen = addBooleanConfig("alwaysCloseScreen", false);
 	static {listStack.pop();}
 
 	private static Map<String, Integer> modRangeOptions() {

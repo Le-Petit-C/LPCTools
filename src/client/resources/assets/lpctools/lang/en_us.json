@@ -418,6 +418,8 @@
 	"lpctools.configs.tools.SF.halveIteration.name": "Iteration /2",
 	"lpctools.configs.tools.SF.halveIteration.comment": "Halve the iteration value\nRefused at the precision limit (denominator beyond int) instead of approximating",
 	"lpctools.configs.tools.SF.halveIteration.title": "/2",
+	"lpctools.configs.tools.SF.alwaysCloseScreen.name": "Always close the sign screen",
+	"lpctools.configs.tools.SF.alwaysCloseScreen.comment": "With this on, the sign edit screen is closed right away even when the front first line already equals the selected value and there is nothing to write\nThe back side is never written, but opening the back is closed right away too while this is on",
 	"lpctools.tools.SF.overlay.stamped": "Wrote %s",
 	"lpctools.tools.SF.overlay.iterate": "Iterated to %s §7(%s %s %s = §f%s§7 + %s)",
 	"lpctools.tools.SF.overlay.doubleIteration": "Iteration value x2 -> %s",

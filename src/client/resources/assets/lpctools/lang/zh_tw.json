@@ -420,6 +420,8 @@
 	"lpctools.configs.tools.SF.halveIteration.name": "迭代值÷2",
 	"lpctools.configs.tools.SF.halveIteration.comment": "把迭代值除以 2\n到達精度下限（分母超過 int）時拒絕，不做近似",
 	"lpctools.configs.tools.SF.halveIteration.title": "÷2",
+	"lpctools.configs.tools.SF.alwaysCloseScreen.name": "總是關閉告示牌介面",
+	"lpctools.configs.tools.SF.alwaysCloseScreen.comment": "開啟後，正面第一行已經等於選定值、沒有東西可寫時，也直接關閉告示牌介面\n背面本來就不會寫入，但是開啟後打開告示牌背面編輯時也會直接關閉",
 	"lpctools.tools.SF.overlay.stamped": "已寫入 %s",
 	"lpctools.tools.SF.overlay.iterate": "當前值已迭代為%s §7(%s %s %s = §f%s§7 + %s)",
 	"lpctools.tools.SF.overlay.doubleIteration": "迭代值 ×2 → %s",
