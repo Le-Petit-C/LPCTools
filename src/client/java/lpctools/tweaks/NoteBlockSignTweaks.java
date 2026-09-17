@@ -20,6 +20,7 @@ import net.minecraft.client.resources.sounds.SoundInstance;
 import net.minecraft.client.sounds.SoundManager;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.tags.BlockTags;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.block.Blocks;
@@ -245,8 +246,26 @@ public class NoteBlockSignTweaks {
 			markCache.clear();
 		}
 
-		@Override public void onClientWorldChunkSetBlockState(LevelChunk chunk, BlockPos pos, @Nullable BlockState lastState, @Nullable BlockState newState)
-		{ removeConnectedPos(pos); }
+		@Override public void onClientWorldChunkSetBlockState(LevelChunk chunk, BlockPos pos, @Nullable BlockState lastState, @Nullable BlockState newState) {
+			enum StateType {
+				OTHERS,
+				NOTE_BLOCK,
+				WALL_SIGN;
+				static StateType getType(BlockState state) {
+					if(state == null) return OTHERS;
+					if(state.is(Blocks.NOTE_BLOCK)) return NOTE_BLOCK;
+					if(state.is(BlockTags.WALL_SIGNS)) return WALL_SIGN;
+					return OTHERS;
+				}
+			}
+			StateType lastType = StateType.getType(lastState), newType = StateType.getType(newState);
+			if(lastType != newType || lastType == StateType.WALL_SIGN) {
+				BlockPos.MutableBlockPos cache = new BlockPos.MutableBlockPos();
+				removeConnectedPos(pos);
+				for(Direction direction : Direction.Plane.HORIZONTAL)
+					removeConnectedPos(cache.set(pos).move(direction));
+			}
+		}
 
 		@Override public void onChunkUnload(@NonNull ClientLevel level, @NonNull LevelChunk chunk) {
 			// 先把整张 map 从 delayCache 里摘出来再迭代：下面的 removeConnectedPos 会删 delayCache 的元素，
