@@ -1,6 +1,8 @@
 package lpctools.util.inGame;
 
+import com.mojang.brigadier.CommandDispatcher;
 import lpctools.generic.GenericUtils;
+import lpctools.mixin.client.accessors.EntityAccessor;
 import lpctools.mixin.client.accessors.LevelAccessor;
 import lpctools.mixin.client.accessors.LocalPlayerAccessor;
 import lpctools.mixin.client.accessors.MultiPlayerGameModeAccessor;
@@ -9,16 +11,22 @@ import lpctools.mixinData.MultiPlayerGameModeExtraData;
 import lpctools.util.MathUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
+import net.minecraft.client.multiplayer.ClientPacketListener;
+import net.minecraft.client.multiplayer.ClientSuggestionProvider;
 import net.minecraft.client.multiplayer.MultiPlayerGameMode;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.core.*;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ServerboundRenameItemPacket;
 import net.minecraft.network.protocol.game.ServerboundSelectTradePacket;
+import net.minecraft.sounds.SoundEvent;
+import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.Mth;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EntityDimensions;
+import net.minecraft.world.entity.Pose;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.AnvilMenu;
 import net.minecraft.world.inventory.ContainerInput;
@@ -26,6 +34,7 @@ import net.minecraft.world.inventory.MerchantMenu;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.dimension.DimensionType;
 import net.minecraft.world.phys.*;
@@ -75,6 +84,8 @@ public class InGameManager {
 	public float getXRotRaw() { return player.getXRot(); }
 	public float getYRot() { return getYRotRaw() * (Mth.PI / 180); }
 	public float getXRot() { return getXRotRaw() * (Mth.PI / 180); }
+	public double playerHeight() { return player.getBbHeight(); }
+	public double playerWidth() { return player.getBbWidth(); }
 	public void setRotRaw(float YRot, float XRot) { player.setYRot(YRot); player.setXRot(XRot); }
 	public void setRot(float YRot, float XRot) { player.setYRot(YRot * (180 / Mth.PI)); player.setXRot(XRot * (180 / Mth.PI)); }
 	public void setRot(Vector3fc targetView, float defYRot, float defXRot) { setRot(
@@ -88,6 +99,8 @@ public class InGameManager {
 	public ItemStack getMainHandItem() { return player.getMainHandItem(); }
 	public ItemStack getOffHandItem() { return player.getOffhandItem(); }
 	public ItemStack getItemInHand(InteractionHand hand) { return player.getItemInHand(hand); }
+	public EntityDimensions playerDimensions(Pose pose) { return player.getDimensions(pose); }
+	public EntityDimensions playerDimensions() { return ((EntityAccessor)player).getDimensions(); }
 
 	public MultiPlayerGameModeExtraData gameModeExtraData() { return MixinData.getData(gameMode); }
 	public @NotNull InteractionResult useItemOn(InteractionHand hand, BlockHitResult hitResult) { return gameMode.useItemOn(player, hand, hitResult); }
@@ -105,6 +118,7 @@ public class InGameManager {
 
 	public DimensionType dimensionType() { return level.dimensionType(); }
 	public @NotNull BlockState getBlockState(BlockPos pos) { return level.getBlockState(pos); }
+	public @Nullable BlockEntity getBlockEntity(BlockPos pos) { return level.getBlockEntity(pos); }
 	public @NotNull Block getBlock(BlockPos pos) { return level.getBlockState(pos).getBlock(); }
 	public @NotNull List<Entity> getEntities(@Nullable Entity except, AABB bb) { return level.getEntities(except, bb); }
 	public @NotNull List<Entity> getEntities(AABB bb) { return getEntities(null, bb); }
@@ -118,8 +132,14 @@ public class InGameManager {
 	public VoxelShape getMovedBlockInteractionShape(BlockPos pos) { return getBlockInteractionShape(pos).move(pos); }
 	public VoxelShape getBlockCollisionShape(BlockPos pos) { return level.getBlockState(pos).getCollisionShape(level, pos); }
 	public VoxelShape getMovedBlockCollisionShape(BlockPos pos) { return getBlockCollisionShape(pos).move(pos); }
+	public void playLocalSound(final BlockPos pos, final SoundEvent sound, final SoundSource source, final float volume, final float pitch, final boolean distanceDelay) { level.playLocalSound(pos, sound, source, volume, pitch, distanceDelay); }
+	public void addDestroyBlockEffect(final BlockPos pos, final BlockState blockState) { level.addDestroyBlockEffect(pos, blockState); }
+	public boolean noBlockCollision(AABB aabb) { return level.noBlockCollision(null, aabb); }
 
-	public void send(final Packet<?> packet) { player.connection.send(packet); }
+	public ClientPacketListener getConnection() { return player.connection; }
+	public void send(final Packet<?> packet) { getConnection().send(packet); }
+	public CommandDispatcher<ClientSuggestionProvider> getCommands() { return getConnection().getCommands(); }
+	public void sendCommand(String command) { getConnection().sendCommand(command); }
 
 	public void swapHandsAutoStyle() { InGameUtils.swapHandsAutoStyle(player, gameMode); }
 

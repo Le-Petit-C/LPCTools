@@ -13,7 +13,7 @@ public class TweakConfigs {
             VanillaBlockInteractionModifier.blockReplaceHotkey,
             VanillaBlockInteractionModifier.setBlockReplaceHotkey,
             VanillaBlockInteractionModifier.quietBlockBreakHotkey,
-            VanillaBlockInteractionModifier.useQSetBlock,
+            VanillaBlockInteractionModifier.preferQSetBlock,
             HappyGhastRidingTweak.happyGhastRidingTweak,
             BarTweaks.barTweaks,
             EnchantmentLevelFix.enchantmentLevelFix,
@@ -27,7 +27,9 @@ public class TweakConfigs {
             NoteBlockSignTweaks.noteBlockDelay,
             NoteBlockSignTweaks.noteBlockVolume,
             NoteBlockSignTweaks.noteBlockPitch,
-            NoteBlockSignTweaks.disablePitchClamp
+            NoteBlockSignTweaks.disablePitchClamp,
+            RayCastTeleport.rayCastTeleport,
+            RayCastTeleport.maxTeleportDistance
         );
     }
 }

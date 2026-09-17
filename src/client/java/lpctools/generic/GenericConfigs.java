@@ -3,6 +3,7 @@ package lpctools.generic;
 import fi.dy.masa.malilib.hotkeys.KeyAction;
 import fi.dy.masa.malilib.hotkeys.KeybindSettings;
 import lpctools.lpcfymasaapi.LPCConfigList;
+import lpctools.lpcfymasaapi.configButtons.derivedConfigs.ArrayOptionListConfig;
 import lpctools.lpcfymasaapi.configButtons.derivedConfigs.ConfigOpenGuiConfig;
 import lpctools.lpcfymasaapi.configButtons.transferredConfigs.HotkeyConfig;
 import lpctools.lpcfymasaapi.configButtons.uniqueConfigs.*;
@@ -10,6 +11,7 @@ import lpctools.lpcfymasaapi.configButtons.transferredConfigs.BooleanConfig;
 import lpctools.lpcfymasaapi.configButtons.transferredConfigs.IntegerConfig;
 import lpctools.lpcfymasaapi.interfaces.ILPCValueChangeCallback;
 import lpctools.util.CachedSupplier;
+import lpctools.util.inGame.HasCommandMethod;
 import lpctools.util.javaex.PriorityThreadPoolExecutor;
 import net.minecraft.world.entity.monster.zombie.Zombie;
 import net.minecraft.world.phys.Vec3;
@@ -58,6 +60,12 @@ public class GenericConfigs {
     public static final IntegerConfig updateLimitPerFrame = addIntegerConfig("updateLimitPerFrame", 8192);
     public static final UniqueDoubleConfig zFightBias = addConfigEx(l->new UniqueDoubleConfig(l, "zFightBias", 1.0 / (1 << 18), 1.0 / (1 << 30), 1, GenericConfigs::zFightBiasCallback)).logMode();
     public static final UniqueIntegerConfig maxCommandLength = addConfigEx(l->new UniqueIntegerConfig(l, "maxCommandLength", 32767, 0, Integer.MAX_VALUE, null));
+    public static final ArrayOptionListConfig<HasCommandMethod> hasCommandMethod = addArrayOptionListConfig("hasCommandMethod");
+    static {
+        for(HasCommandMethod method : HasCommandMethod.values())
+            hasCommandMethod.addOption(hasCommandMethod.getFullTranslationKey() + '.' + method.name().toLowerCase(),
+                method.name().toLowerCase(), method);
+    }
     static {threadCountConfig.onValueChanged();}
     static {addConfig(OperationSpeedLimit.limitOperationSpeed);}
     static {addConfig(Bypassing.bypassing);}

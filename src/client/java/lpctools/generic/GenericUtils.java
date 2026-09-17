@@ -2,6 +2,8 @@ package lpctools.generic;
 
 import lpctools.util.AlgorithmUtils;
 import lpctools.util.data.minecraft.MutableAABB;
+import lpctools.util.inGame.InGameManager;
+import net.minecraft.server.permissions.Permissions;
 import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import org.jetbrains.annotations.NotNull;
@@ -125,6 +127,14 @@ public class GenericUtils {
         else ret = CompletableFuture.supplyAsync(supplier);//不用自定义线程池时不支持优先级
         asyncTest(ret);
         return ret;
+    }
+
+    public static boolean hasCommand(InGameManager manager, String commandWord, boolean needCreative) {
+        if(needCreative && !manager.player.isCreative()) return false;
+        return switch (hasCommandMethod.get()) {
+            case COMMAND_TREE -> manager.getCommands().getRoot().getChild(commandWord) != null;
+            case PERMISSION -> manager.player.permissions().hasPermission(Permissions.COMMANDS_GAMEMASTER);
+        };
     }
     
     private static final Object synchronizeRunnableCountObject = new Object();
