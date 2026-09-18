@@ -5,6 +5,7 @@ import fi.dy.masa.malilib.hotkeys.KeyAction;
 import lpctools.generic.GenericUtils;
 import lpctools.lpcfymasaapi.configButtons.transferredConfigs.BooleanConfig;
 import lpctools.lpcfymasaapi.configButtons.transferredConfigs.HotkeyConfig;
+import lpctools.lpcfymasaapi.configButtons.uniqueConfigs.BooleanThirdListConfig;
 import lpctools.mixin.client.accessors.AbstractBlockAccessor;
 import lpctools.mixin.client.accessors.MinecraftAccessor;
 import lpctools.util.DataUtils;
@@ -31,14 +32,20 @@ import org.jetbrains.annotations.Nullable;
 import java.util.*;
 
 import static lpctools.generic.GenericConfigs.maxCommandLength;
+import static lpctools.lpcfymasaapi.LPCConfigStatics.*;
 
-public class VanillaBlockInteractionModifier {
-    public static final HotkeyConfig blockReplaceHotkey = new HotkeyConfig(TweakConfigs.tweaks, "blockReplaceHotkey", null, VanillaBlockInteractionModifier::blockReplaceHotkeyCallback);
-    public static final HotkeyConfig setBlockReplaceHotkey = new HotkeyConfig(TweakConfigs.tweaks, "setBlockReplaceHotkey", null, VanillaBlockInteractionModifier::setBlockReplaceHotkeyCallback);
-    public static final HotkeyConfig quietBlockBreakHotkey = new HotkeyConfig(TweakConfigs.tweaks, "quietBlockBreakHotkey", null, VanillaBlockInteractionModifier::quietBlockBreakHotkeyCallback);
-    public static final BooleanConfig preferQSetBlock = new BooleanConfig(TweakConfigs.tweaks, "preferQSetBlock", false);
+public class BlockInteractionEnhancements {
+    public static final BooleanThirdListConfig blockInteractionEnhancements = new BooleanThirdListConfig(TweakConfigs.tweaks, "blockInteractionEnhancements", false, null);
+    static { listStack.push(blockInteractionEnhancements); }
+    public static final HotkeyConfig blockReplaceHotkey = addHotkeyConfig("blockReplaceHotkey", null, BlockInteractionEnhancements::blockReplaceHotkeyCallback);
+    public static final HotkeyConfig setBlockReplaceHotkey = addHotkeyConfig("setBlockReplaceHotkey", null, BlockInteractionEnhancements::setBlockReplaceHotkeyCallback);
+    public static final HotkeyConfig quietBlockBreakHotkey = addHotkeyConfig("quietBlockBreakHotkey", null, BlockInteractionEnhancements::quietBlockBreakHotkeyCallback);
+    public static final BooleanConfig preferQSetBlock = addBooleanConfig("preferQSetBlock", false);
+    static { listStack.pop(); }
     private static boolean shouldModifyClientTest = false;
     public static boolean shouldModifyClientTest() { return shouldModifyClientTest; }
+    /** 总开关：关闭时本组的三个热键一律什么都不做 */
+    private static boolean enabled() { return blockInteractionEnhancements.getBooleanValue(); }
 
     private static boolean replaceKeysEquals() { return Objects.equals(blockReplaceHotkey.getKeybind().getKeys(), setBlockReplaceHotkey.getKeybind().getKeys()); }
     private static void warnOperationFailed() { DataUtils.clientMessage(Component.translatable("lpctools.configs.tweaks.operationFailed"), true); }
@@ -56,10 +63,12 @@ public class VanillaBlockInteractionModifier {
     }
 
     private static boolean blockReplaceHotkeyCallback(KeyAction keyAction, IKeybind iKeybind) {
+        if(!enabled()) return false;
         if(replaceKeysEquals()) return false;
         else return normalReplacePair();
     }
     private static boolean setBlockReplaceHotkeyCallback(KeyAction keyAction, IKeybind iKeybind){
+        if(!enabled()) return false;
         InGameManager manager = InGameManager.get();
         var client = Minecraft.getInstance();
 		if (manager != null && client.hitResult instanceof BlockHitResult hitResult) {
@@ -79,7 +88,7 @@ public class VanillaBlockInteractionModifier {
                     String command = String.format(Locale.ROOT, commandPrefix + " %d %d %d %s", pos.getX(), pos.getY(), pos.getZ(), blockData);
 					recorder.clear();
                     if (command.length() > maxCommandLength.getIntegerValue())
-						DataUtils.clientMessage(Component.translatable("lpctools.configs.tweaks.setBlockReplaceHotkey.commandTooLong", command.length(), maxCommandLength.getIntegerValue()), false);
+						DataUtils.clientMessage(Component.translatable("lpctools.configs.tweaks.blockInteractionEnhancements.setBlockReplaceHotkey.commandTooLong", command.length(), maxCommandLength.getIntegerValue()), false);
 					else manager.sendCommand(command);
                 }
                 return true;
@@ -93,6 +102,7 @@ public class VanillaBlockInteractionModifier {
 	}
     
     private static boolean quietBlockBreakHotkeyCallback(KeyAction keyAction, IKeybind iKeybind) {
+        if(!enabled()) return false;
         var client = Minecraft.getInstance();
         InGameManager manager = InGameManager.get();
 		if (manager != null && client.hitResult instanceof BlockHitResult hitResult) {

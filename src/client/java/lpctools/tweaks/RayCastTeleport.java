@@ -6,6 +6,7 @@ import lpctools.generic.GenericUtils;
 import lpctools.lpcfymasaapi.configButtons.transferredConfigs.BooleanConfig;
 import lpctools.lpcfymasaapi.configButtons.transferredConfigs.DoubleConfig;
 import lpctools.lpcfymasaapi.configButtons.transferredConfigs.HotkeyConfig;
+import lpctools.lpcfymasaapi.configButtons.uniqueConfigs.HotkeyThirdListConfig;
 import lpctools.util.inGame.InGameManager;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
@@ -15,13 +16,17 @@ import net.minecraft.world.entity.Pose;
 import net.minecraft.world.phys.*;
 import org.jetbrains.annotations.Nullable;
 
-public class RayCastTeleport {
-	public static HotkeyConfig rayCastTeleport = new HotkeyConfig(TweakConfigs.tweaks, "rayCastTeleport", null, RayCastTeleport::teleport);
-	public static DoubleConfig maxTeleportDistance = new DoubleConfig(TweakConfigs.tweaks, "maxTeleportDistance", 64, 0, 65536);
-	public static BooleanConfig cancelTeleportWhenMiss = new BooleanConfig(TweakConfigs.tweaks, "cancelTeleportWhenMiss", false);
-	public static BooleanConfig preferQtp = new BooleanConfig(TweakConfigs.tweaks, "preferQtp", false);
+import static lpctools.lpcfymasaapi.LPCConfigStatics.*;
 
-	/** 仿照 VanillaBlockInteractionModifier#setBlockPrefix：qtp 可用且开启偏好时用 qtp，否则回退 tp；都不可用则返回 null */
+public class RayCastTeleport {
+	public static HotkeyThirdListConfig rayCastTeleport = new HotkeyThirdListConfig(TweakConfigs.tweaks, "rayCastTeleport", null, RayCastTeleport::teleport);
+	static { listStack.push(rayCastTeleport); }
+	public static DoubleConfig maxTeleportDistance = addDoubleConfig("maxTeleportDistance", 64, 0, 65536);
+	public static BooleanConfig cancelTeleportWhenMiss = addBooleanConfig("cancelTeleportWhenMiss", false);
+	public static BooleanConfig preferQtp = addBooleanConfig("preferQtp", false);
+	static { listStack.pop(); }
+
+	/** 仿照 BlockInteractionEnhancements#setBlockPrefix：qtp 可用且开启偏好时用 qtp，否则回退 tp；都不可用则返回 null */
 	private static @Nullable String teleportPrefix(InGameManager manager) {
 		if(preferQtp.getBooleanValue() && GenericUtils.hasCommand(manager, "qtp", true)) return "qtp";
 		else if(GenericUtils.hasCommand(manager, "tp", true)) return "tp";

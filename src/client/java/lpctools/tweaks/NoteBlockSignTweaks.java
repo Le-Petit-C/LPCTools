@@ -1,14 +1,21 @@
 package lpctools.tweaks;
 
 import com.google.common.primitives.Doubles;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import lpctools.generic.GenericUtils;
 import lpctools.lpcfymasaapi.Registries;
+import lpctools.lpcfymasaapi.configButtons.UpdateTodo;
 import lpctools.lpcfymasaapi.configButtons.transferredConfigs.BooleanConfig;
 import lpctools.lpcfymasaapi.configButtons.transferredConfigs.BooleanHotkeyConfig;
+import lpctools.lpcfymasaapi.configButtons.uniqueConfigs.ThirdListConfig;
+import lpctools.lpcfymasaapi.interfaces.ILPCConfigReadable;
+import lpctools.lpcfymasaapi.interfaces.ILPCUniqueConfigBase;
+import lpctools.lpcfymasaapi.interfaces.ILPCValueChangeCallback;
 import lpctools.mixin.client.accessors.AbstractSoundInstanceAccessor;
 import lpctools.util.Packed;
 import lpctools.util.javaex.QuietAutoCloseable;
@@ -30,6 +37,7 @@ import net.minecraft.world.level.block.entity.SignBlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.chunk.LevelChunk;
 import org.apache.commons.lang3.math.Fraction;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jspecify.annotations.NonNull;
 
@@ -39,6 +47,8 @@ import java.util.PriorityQueue;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
+import static lpctools.lpcfymasaapi.LPCConfigStatics.addBooleanHotkeyConfig;
+import static lpctools.lpcfymasaapi.LPCConfigStatics.listStack;
 import static lpctools.util.ChunkedUtils.*;
 
 /**
@@ -51,9 +61,20 @@ import static lpctools.util.ChunkedUtils.*;
  * 三个开关共用同一份告示牌标记缓存（没有任何一个开启时钩子会被摘掉），可以只开其中一个。
  */
 public class NoteBlockSignTweaks {
-	public static final BooleanHotkeyConfig noteBlockDelay = new BooleanHotkeyConfig(TweakConfigs.tweaks, "noteBlockDelay", false, null, NoteBlockSignTweaks::refreshRegistration);
-	public static final BooleanHotkeyConfig noteBlockVolume = new BooleanHotkeyConfig(TweakConfigs.tweaks, "noteBlockVolume", false, null, NoteBlockSignTweaks::refreshRegistration);
-	public static final BooleanHotkeyConfig noteBlockPitch = new BooleanHotkeyConfig(TweakConfigs.tweaks, "noteBlockPitch", false, null, NoteBlockSignTweaks::refreshRegistration);
+	public static final ThirdListConfig noteBlockTweaks = new ThirdListConfig(TweakConfigs.tweaks, "noteBlockTweaks", null) {
+		@Override public void getButtonOptions(ButtonOptionArrayList res) {
+			super.getButtonOptions(res);
+			if(isExpanded()) return;
+			res.add(ILPCUniqueConfigBase.buttonBooleanPreset(1, noteBlockDelay));
+			res.add(ILPCUniqueConfigBase.buttonBooleanPreset(1, noteBlockVolume));
+			res.add(ILPCUniqueConfigBase.buttonBooleanPreset(1, noteBlockPitch));
+		}
+	};
+	static {listStack.push(noteBlockTweaks);}
+	public static final BooleanHotkeyConfig noteBlockDelay = addBooleanHotkeyConfig("noteBlockDelay", false, null, NoteBlockSignTweaks::refreshRegistration);
+	public static final BooleanHotkeyConfig noteBlockVolume = addBooleanHotkeyConfig("noteBlockVolume", false, null, NoteBlockSignTweaks::refreshRegistration);
+	public static final BooleanHotkeyConfig noteBlockPitch = addBooleanHotkeyConfig("noteBlockPitch", false, null, NoteBlockSignTweaks::refreshRegistration);
+	static {listStack.pop();}
 	public static final BooleanConfig disablePitchClamp = new BooleanConfig(TweakConfigs.tweaks, "disablePitchClamp", false);
 	private static final double MAX_TICKS = 2.0;
 
