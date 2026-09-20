@@ -12,6 +12,7 @@ import lpctools.tools.spawnProofer.SpawnProofer;
 import lpctools.tools.autoReconnect.AutoReconnect;
 import lpctools.tools.breakRestriction.BreakRestriction;
 import lpctools.tools.canSpawnDisplay.CanSpawnDisplay;
+import lpctools.tools.elytraBounce.ElytraBounce;
 import lpctools.tools.entityHighlight.EntityHighlight;
 import lpctools.tools.furnaceMaintainer.FurnaceMaintainer;
 import lpctools.tools.litematicaMaterial.LitematicaMaterial;
@@ -48,7 +49,8 @@ public class ToolConfigs {
 			BedrockKiller.BKConfig,
 			LitematicaMaterial.LMConfig,
 			TradeReroller.TRConfig,
-			SignFractionHelper.SFConfig
+			SignFractionHelper.SFConfig,
+			ElytraBounce.EBConfig
         );
     }
 }

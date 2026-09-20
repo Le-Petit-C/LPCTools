@@ -66,6 +66,8 @@
     "scriptMixins.propertiesMixin.IntegerPropertyRegisterMixin",
     "scriptMixins.propertiesMixin.PropertyRegisterMixin",
     "tools.bedrockKiller.MinecraftMixin",
+    "tools.elytraBounce.ClientPacketListenerMixin",
+    "tools.elytraBounce.KeyboardInputMixin",
     "tools.entityHighlight.EntityMixin",
     "tools.leakPreventer.PlayerMixin",
     "TweakerooMixin.ConfigsListsMixin",
