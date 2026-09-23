@@ -1,6 +1,7 @@
 package lpctools.util;
 
 import lpctools.LPCTools;
+import lpctools.mixin.client.accessors.MinecraftAccessor;
 import net.minecraft.client.Minecraft;
 
 public class GameTime {
@@ -26,5 +27,8 @@ public class GameTime {
 	}
 	public static GameTime ofCurrent(){
 		return new GameTime().setCurrent();
+	}
+	public static long getClientTickCount() {
+		return ((MinecraftAccessor)Minecraft.getInstance()).getClientTickCount();
 	}
 }

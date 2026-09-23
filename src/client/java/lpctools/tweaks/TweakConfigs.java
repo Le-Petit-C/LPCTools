@@ -10,10 +10,7 @@ public class TweakConfigs {
     
     static {
         tweaks.addConfigs(
-            VanillaBlockInteractionModifier.blockReplaceHotkey,
-            VanillaBlockInteractionModifier.setBlockReplaceHotkey,
-            VanillaBlockInteractionModifier.quietBlockBreakHotkey,
-            VanillaBlockInteractionModifier.useQSetBlock,
+            BlockInteractionEnhancements.blockInteractionEnhancements,
             HappyGhastRidingTweak.happyGhastRidingTweak,
             BarTweaks.barTweaks,
             EnchantmentLevelFix.enchantmentLevelFix,
@@ -23,7 +20,10 @@ public class TweakConfigs {
             BlockBreakCooldownTweaks.spareTimeDecreasesBlockBreakCooldown,
             BlockBreakCooldownTweaks.startBreakBlockResetsBlockBreakCooldown,
             PlayerCrosshairFilter.passThroughEntities,
-            PlayerCrosshairFilter.passThroughBlocks
+            PlayerCrosshairFilter.passThroughBlocks,
+            NoteBlockSignTweaks.noteBlockTweaks,
+            NoteBlockSignTweaks.disablePitchClamp,
+            RayCastTeleport.rayCastTeleport
         );
     }
 }

@@ -11,22 +11,20 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientChunkCache;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.multiplayer.chat.ChatListener;
-import net.minecraft.core.BlockPos;
-import net.minecraft.core.Holder;
-import net.minecraft.core.Registry;
-import net.minecraft.core.SectionPos;
-import net.minecraft.core.Vec3i;
+import net.minecraft.core.*;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.packs.resources.Resource;
 import net.minecraft.server.packs.resources.ResourceManager;
+import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.chunk.LevelChunk;
+import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.Logger;
@@ -34,13 +32,16 @@ import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Vector3d;
+import org.joml.Vector3f;
 import org.joml.Vector3i;
 import org.joml.Vector4f;
 import org.jspecify.annotations.NonNull;
 import org.lwjgl.opengl.GL30;
 
+import java.awt.*;
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.reflect.Array;
 import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -278,7 +279,7 @@ public class DataUtils {
     
     @SuppressWarnings("unchecked")
     public static <T> T[] newArrayLike(T[] template, int length) {
-        return (T[]) java.lang.reflect.Array.newInstance(
+        return (T[]) Array.newInstance(
             template.getClass().getComponentType(),
             length
         );
@@ -310,7 +311,7 @@ public class DataUtils {
         };
     }
     /**
-     * modified form {@link java.awt.Color#RGBtoHSB(int, int, int, float[])}
+     * modified form {@link Color#RGBtoHSB(int, int, int, float[])}
      */
     public static float[] fRGBtoHSB(float r, float g, float b, float[] hsbvals) {
         float hue, saturation, brightness;
@@ -426,5 +427,76 @@ public class DataUtils {
             radius = expandRadius;
         }
         consumer.acceptPos(chunkedX, chunkedZ, radius);
+    }
+
+    public static BlockHitResult closestHitResult(double x, double y, double z, BlockPos pos) {
+        Vec3 location = new Vec3(Math.clamp(x, pos.getX(), pos.getX() + 1), Math.clamp(y, pos.getY(), pos.getY() + 1), Math.clamp(z, pos.getZ(), pos.getZ() + 1));
+        return new BlockHitResult(
+            location, Direction.getApproximateNearest(x - location.x, y - location.y, z - location.z),
+            pos.immutable(), false
+        );
+    }
+
+    public static BlockHitResult closestHitResult(Vec3 eye, BlockPos pos) {
+        return closestHitResult(eye.x, eye.y, eye.z, pos);
+    }
+
+    public static InteractionHand oppositeHand(InteractionHand hand) {
+        return switch (hand) {
+            case MAIN_HAND -> InteractionHand.OFF_HAND;
+            case OFF_HAND -> InteractionHand.MAIN_HAND;
+        };
+    }
+
+    public static Direction approximateNearstDirection(float dx, float dy, float dz) {
+        return Direction.getApproximateNearest(dx, dy, dz);
+    }
+
+    public static Direction approximateNearstDirection(double dx, double dy, double dz) {
+        return Direction.getApproximateNearest(dx, dy, dz);
+    }
+
+    public static Direction approximateNearstDirection(Vec3 vec) {
+        return Direction.getApproximateNearest(vec);
+    }
+
+    public static Direction approximateNearstDirection(Vector3f vec) {
+        return Direction.getApproximateNearest(vec.x, vec.y, vec.z);
+    }
+
+    public static Direction approximateNearstDirection(Vector3d vec) {
+        return Direction.getApproximateNearest(vec.x, vec.y, vec.z);
+    }
+
+    public static Direction approximateNearestDirectionHorizontal(float dx, float dz) {
+        Direction result = Direction.NORTH;
+        float highestDot = Float.MIN_VALUE;
+
+        for(var direction : Direction.Plane.HORIZONTAL) {
+            var normal = direction.getUnitVec3f();
+            float dot = dx * normal.x() + dz * normal.z();
+            if (dot > highestDot) {
+                highestDot = dot;
+                result = direction;
+            }
+        }
+
+        return result;
+    }
+
+    public static Direction approximateNearestDirectionHorizontal(double dx, double dz) {
+        return approximateNearestDirectionHorizontal((float) dx, (float) dz);
+    }
+
+    public static Direction approximateNearestDirectionHorizontal(Vec3 vec) {
+        return approximateNearestDirectionHorizontal(vec.x, vec.z);
+    }
+
+    public static Direction approximateNearestDirectionHorizontal(Vector3f vec) {
+        return approximateNearestDirectionHorizontal(vec.x, vec.z);
+    }
+
+    public static Direction approximateNearestDirectionHorizontal(Vector3d vec) {
+        return approximateNearestDirectionHorizontal(vec.x, vec.z);
     }
 }

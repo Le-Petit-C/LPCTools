@@ -57,7 +57,7 @@ public class UniqueColorConfig extends LPCUniqueConfigBase implements IConfigCol
     }
     @Override public String getStringValue() {return color.toString();}
     @Override public void getButtonOptions(ButtonOptionArrayList res) {
-        res.add(ILPCUniqueConfigBase.textFieldConfigValuePreset(1, this));
+        res.add(ILPCUniqueConfigBase.textFieldPreset(1, this));
         res.add(new ButtonOption(-1, null, null, ILPCUniqueConfigBase.colorEditorAllocator(this)));
     }
     public static JsonPrimitive getUniqueColorConfigAsJsonElement(UniqueColorConfig config) {return new JsonPrimitive(config.getStringValue());}

@@ -5,10 +5,10 @@ import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import lpctools.lpcfymasaapi.configButtons.derivedConfigs.ConfigListOptionListConfigEx;
 import lpctools.lpcfymasaapi.configButtons.derivedConfigs.RangeLimitConfig;
 import lpctools.lpcfymasaapi.configButtons.transferredConfigs.*;
-import lpctools.lpcfymasaapi.configButtons.uniqueConfigs.BooleanHotkeyThirdListConfig;
 import lpctools.lpcfymasaapi.interfaces.ILPCConfigList;
 import lpctools.mixin.client.accessors.SpriteContentsAccessor;
-import lpctools.tools.ToolConfigs;
+import lpctools.tools.ToolUtils;
+import lpctools.tools.ToolWithRunnerConfig;
 import lpctools.util.DataUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.block.dispatch.BlockStateModel;
@@ -20,7 +20,6 @@ import java.awt.*;
 import java.util.function.ToIntFunction;
 
 import static lpctools.lpcfymasaapi.LPCConfigStatics.*;
-import static lpctools.tools.ToolUtils.*;
 import static lpctools.tools.slightXRay.SlightXRayData.*;
 import static lpctools.util.DataUtils.*;
 
@@ -30,10 +29,9 @@ import com.mojang.blaze3d.platform.NativeImage;
 //  bug:开着SlightXRay同时渲染范围限制有效，此时进入世界时会有一些期望的范围外的方块被标注
 //  暂时不知道如何修复
 public class SlightXRay{
-    public static final BooleanHotkeyThirdListConfig SXConfig = new BooleanHotkeyThirdListConfig(ToolConfigs.toolConfigs, "SX", SlightXRay::switchChanged);
-    public static final ColoredBlockListConfig XRayBlocksConfig = new ColoredBlockListConfig(SXConfig, "XRayBlocks");
-    static {setLPCToolsToggleText(SXConfig);}
+    public static final ToolWithRunnerConfig<SlightXRayRunner> SXConfig = ToolUtils.configBuilder("SX").withToolRunner(SlightXRayRunner::new).build();
     static {listStack.push(SXConfig);}
+    public static final ColoredBlockListConfig XRayBlocksConfig = addConfigEx(l->new ColoredBlockListConfig(l, "XRayBlocks"));
     public static final ConfigListOptionListConfigEx<ToIntFunction<Block>> defaultColorMethod = addConfigListOptionListConfigEx("defaultColorMethod", XRayBlocksConfig::updateDefaultColor);
     public static final ILPCConfigList byTextureColor = defaultColorMethod.addList("byTextureColor", SlightXRay::getColorByTextureColor);
     public static final IntegerConfig defaultAlpha = addIntegerConfig(byTextureColor, "defaultAlpha", 127, 0, 255, XRayBlocksConfig::updateDefaultColor);
@@ -42,9 +40,9 @@ public class SlightXRay{
     public static final ILPCConfigList byDefaultColor = defaultColorMethod.addList("byDefaultColor", SlightXRay::getColorByDefaultColor);
     public static final ColorConfig defaultColor = addColorConfig(byDefaultColor, "defaultColor", new Color4f(0.5f, 0.5f, 1.0f, 0.5f), XRayBlocksConfig::updateDefaultColor);
     static {addConfig(XRayBlocksConfig);}
-    public static final BooleanConfig useCullFace = addBooleanConfig("useCullFace", true, dataApplyCallback(DataInstance::updateUseCullFace));
+    public static final BooleanConfig useCullFace = addBooleanConfig("useCullFace", true, SXConfig.runnerApplyCallback(SlightXRayRunner::updateUseCullFace));
     public static final RangeLimitConfig displayRange = addRangeLimitConfig();
-    static {displayRange.setValueChangeCallback(dataApplyCallback(DataInstance::updateRangeLimit));}
+    static {displayRange.setValueChangeCallback(SXConfig.runnerApplyCallback(SlightXRayRunner::updateRangeLimit));}
     static {listStack.pop();}
     static {
         defaultXRayBlocks.forEach(block->XRayBlocksConfig.allocateAndAddConfig().setBlock(block));
@@ -101,26 +99,14 @@ public class SlightXRay{
         if(XRayBlocks.keySet().equals(newBlocks.keySet())) {
             for(var block : newBlocks.object2IntEntrySet())
                 XRayBlocks.get(block.getKey()).setValue(block.getIntValue());
-            if(dataInstance != null) dataInstance.refreshColor();
+            SXConfig.applyToRunnerIfPresent(SlightXRayRunner::refreshColor);
         }
         else {
             XRayBlocks.clear();
             for(var entry : newBlocks.object2IntEntrySet())
                 XRayBlocks.put(entry.getKey(), new MutableInt(entry.getIntValue()));
             recordedXRayBlocks = null;
-            if (dataInstance != null) dataInstance.resetData();
-        }
-    }
-    private static void switchChanged() {
-        if(SXConfig.getBooleanValue()){
-            if(dataInstance == null)
-                dataInstance = new DataInstance();
-        }
-        else {
-            if(dataInstance != null) {
-                dataInstance.close();
-                dataInstance = null;
-            }
+            SXConfig.applyToRunnerIfPresent(SlightXRayRunner::resetData);
         }
     }
 }

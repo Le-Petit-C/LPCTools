@@ -29,6 +29,7 @@ import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.server.packs.resources.ResourceManagerReloadListener;
 import net.minecraft.util.profiling.ProfilerFiller;
 import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.inventory.MerchantMenu;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.state.BlockState;
@@ -64,6 +65,7 @@ public class Registries {
             }
         });
     public static final UnregistrableRegistry<ContainerContentInitializedCallback> CLIENT_CONTAINER_CONTENT_INITIALIZED = UnregistrableRegistry.fanOut(ContainerContentInitializedCallback.class);
+    public static final UnregistrableRegistry<MerchantOffersUpdated> CLIENT_MERCHANT_OFFERS_UPDATED = UnregistrableRegistry.fanOut(MerchantOffersUpdated.class);
     public static final UnregistrableRegistry<ClientTickEvents.StartTick> START_CLIENT_TICK = UnregistrableRegistry.fanOut(ClientTickEvents.StartTick.class, ClientTickEvents.START_CLIENT_TICK);
     public static final UnregistrableRegistry<ClientTickEvents.EndTick> END_CLIENT_TICK = UnregistrableRegistry.fanOut(ClientTickEvents.EndTick.class, ClientTickEvents.END_CLIENT_TICK);
     public static final UnregistrableRegistry<ClientChunkEvents.Load> CLIENT_CHUNK_LOAD = UnregistrableRegistry.fanOut(ClientChunkEvents.Load.class, ClientChunkEvents.CHUNK_LOAD);
@@ -106,7 +108,7 @@ public class Registries {
     public static final UnregistrableRegistry<BetweenRenderFrames> BETWEEN_RENDER_FRAMES = UnregistrableRegistry.fanOut(BetweenRenderFrames.class);
     public static final UnregistrableRegistry<ClientEntityEvents.Load> CLIENT_ENTITY_LOAD = UnregistrableRegistry.fanOut(ClientEntityEvents.Load.class, ClientEntityEvents.ENTITY_LOAD);
     public static final UnregistrableRegistry<ClientEntityEvents.Unload> CLIENT_ENTITY_UNLOAD = UnregistrableRegistry.fanOut(ClientEntityEvents.Unload.class, ClientEntityEvents.ENTITY_UNLOAD);
-    
+
     static{
         var toolTipComponentInsertFirstRenderer = MASA_RENDER_TOOLTIP_COMPONENT_INSERTION_FIRST.runner();
         var toolTipComponentInsertMiddleRenderer = MASA_RENDER_TOOLTIP_COMPONENT_INSERTION_MIDDLE.runner();
@@ -201,5 +203,8 @@ public class Registries {
     }
     public interface ContainerContentInitializedCallback {
         void onContainerContentInitialized(AbstractContainerMenu menu);
+    }
+    public interface MerchantOffersUpdated {
+        void onMerchantOffersUpdated(MerchantMenu menu);
     }
 }

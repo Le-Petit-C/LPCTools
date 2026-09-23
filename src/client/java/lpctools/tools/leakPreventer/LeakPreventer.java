@@ -4,7 +4,6 @@ import fi.dy.masa.malilib.util.data.Color4f;
 import lpctools.lpcfymasaapi.configButtons.transferredConfigs.ColorConfig;
 import lpctools.lpcfymasaapi.configButtons.uniqueConfigs.BooleanHotkeyThirdListConfig;
 import lpctools.lpcfymasaapi.render.BlockOuterEdgeHighlightInstance;
-import lpctools.tools.ToolConfigs;
 import lpctools.tools.ToolUtils;
 import lpctools.util.DataUtils;
 import net.minecraft.core.BlockPos;
@@ -20,8 +19,7 @@ import static lpctools.lpcfymasaapi.LPCConfigStatics.addColorConfig;
 import static lpctools.lpcfymasaapi.LPCConfigStatics.listStack;
 
 public class LeakPreventer {
-	public static final BooleanHotkeyThirdListConfig LPConfig = new BooleanHotkeyThirdListConfig(ToolConfigs.toolConfigs, "LP", LeakPreventer::callback);
-	static { ToolUtils.setLPCToolsToggleText(LPConfig); }
+	public static final BooleanHotkeyThirdListConfig LPConfig = ToolUtils.configBuilder("LP").withExtraCallback(LeakPreventer::callback).build();
 	static { listStack.push(LPConfig); }
 	public static final ColorConfig markingColor = addColorConfig("markingColor", Color4f.fromColor(0x1fffffff), LeakPreventer::onColorChanged);
 	static { listStack.pop(); }

@@ -5,24 +5,21 @@ import lpctools.lpcfymasaapi.configButtons.derivedConfigs.ArrayOptionListConfig;
 import lpctools.lpcfymasaapi.configButtons.derivedConfigs.RangeLimitConfig;
 import lpctools.lpcfymasaapi.configButtons.transferredConfigs.BooleanConfig;
 import lpctools.lpcfymasaapi.configButtons.transferredConfigs.ColorConfig;
-import lpctools.lpcfymasaapi.configButtons.uniqueConfigs.BooleanHotkeyThirdListConfig;
-import lpctools.tools.ToolConfigs;
-import net.minecraft.client.Minecraft;
+import lpctools.tools.ToolUtils;
+import lpctools.tools.ToolWithRunnerConfig;
 
 import static lpctools.lpcfymasaapi.LPCConfigStatics.*;
-import static lpctools.tools.ToolUtils.*;
 import static lpctools.tools.canSpawnDisplay.CanSpawnDisplayData.*;
 
-public class CanSpawnDisplay{
-    public static final BooleanHotkeyThirdListConfig CSConfig = new BooleanHotkeyThirdListConfig(ToolConfigs.toolConfigs, "CS", CanSpawnDisplay::switchCallback);
-    static {setLPCToolsToggleText(CSConfig);}
+public class CanSpawnDisplay {
+    public static final ToolWithRunnerConfig<CanSpawnDisplayRunner> CSConfig = ToolUtils.configBuilder("CS").withToolRunner(CanSpawnDisplayRunner::new).build();
     static {listStack.push(CSConfig);}
-    public static final ColorConfig displayColor = addColorConfig("displayColor", Color4f.fromColor(0x7fffffff), dataApplyCallback(DataInstance::updateRenderColor));
+    public static final ColorConfig displayColor = addColorConfig("displayColor", Color4f.fromColor(0x7fffffff), CSConfig.runnerApplyCallback(CanSpawnDisplayRunner::updateRenderColor));
     public static final RangeLimitConfig rangeLimit = addRangeLimitConfig();
-    static {rangeLimit.setValueChangeCallback(dataApplyCallback(DataInstance::updateRenderRange));}
+    static {rangeLimit.setValueChangeCallback(CSConfig.runnerApplyCallback(CanSpawnDisplayRunner::updateRenderRange));}
     // public static final DoubleConfig renderDistance = addDoubleConfig("renderDistance", 32, 16, 512);
     public static final RenderMethodConfig renderMethod = addConfig(new RenderMethodConfig());
-    public static final BooleanConfig renderXRays = addBooleanConfig("renderXRays", true, dataApplyCallback(DataInstance::updateRenderXRays));
+    public static final BooleanConfig renderXRays = addBooleanConfig("renderXRays", true, CSConfig.runnerApplyCallback(CanSpawnDisplayRunner::updateRenderXRays));
     static {listStack.pop();}
     
     public static class RenderMethodConfig extends ArrayOptionListConfig<IRenderMethod>{
@@ -33,19 +30,7 @@ public class CanSpawnDisplay{
         }
         @Override public void onValueChanged() {
             super.onValueChanged();
-            applyToDataInstance(DataInstance::updateRenderMethod);
-        }
-    }
-    public static void switchCallback() {
-        if(CSConfig.getBooleanValue()) {
-            if(dataInstance == null)
-                dataInstance = new DataInstance(Minecraft.getInstance());
-        }
-        else {
-            if(dataInstance != null){
-                dataInstance.close();
-                dataInstance = null;
-            }
+            CSConfig.applyToRunnerIfPresent(CanSpawnDisplayRunner::updateRenderMethod);
         }
     }
 }

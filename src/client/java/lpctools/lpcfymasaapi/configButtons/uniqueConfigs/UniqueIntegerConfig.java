@@ -58,7 +58,7 @@ public class UniqueIntegerConfig extends LPCUniqueConfigBase implements IConfigI
     @Override public String getStringValue() {return String.valueOf(intValue);}
     @Override public void getButtonOptions(ButtonOptionArrayList res) {
         if(allowSlider && useSlider){
-            res.add(new ButtonOption(1, null, null, (x, y, w, h, str, listener, consumer, resetButton)->{
+            res.add(new ButtonOption(1, null, null, (x, y, w, h, _, _, consumer, _)->{
                 ISliderCallback callback = new ISliderCallback() {
                     @Override public int getMaxSteps() {return maxInteger - minInteger > 0 ? Integer.MAX_VALUE : maxInteger - minInteger;}
                     @Override public double getValueRelative() {
@@ -73,9 +73,9 @@ public class UniqueIntegerConfig extends LPCUniqueConfigBase implements IConfigI
                 consumer.addWidget(slider);
             }));
         }
-        else res.add(ILPCUniqueConfigBase.textFieldConfigValuePreset(1, this));
+        else res.add(ILPCUniqueConfigBase.textFieldPreset(1, this));
         if(allowSlider) res.add(ILPCUniqueConfigBase.iconButtonPreset(useSlider ? MaLiLibIcons.BTN_TXTFIELD : MaLiLibIcons.BTN_SLIDER,
-            (button, mouseButton)->{useSlider = !useSlider;getPage().markNeedUpdate();}, null));
+            (_, _)->{useSlider = !useSlider;getPage().markNeedUpdate();}, null));
     }
     @Override public @Nullable JsonPrimitive getAsJsonElement() {return new JsonPrimitive(intValue);}
     @Override public UpdateTodo setValueFromJsonElementEx(@NotNull JsonElement element) {

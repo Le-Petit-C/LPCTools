@@ -23,6 +23,7 @@ import org.apache.commons.lang3.mutable.MutableInt;
 import org.jetbrains.annotations.Nullable;
 import org.jspecify.annotations.NonNull;
 
+import static lpctools.tools.furnaceMaintainer.FurnaceMaintainer.FMConfig;
 import static lpctools.tools.furnaceMaintainer.FurnaceMaintainerData.*;
 
 public class DataInstance implements QuietAutoCloseable, Registries.ClientWorldChunkSetBlockState, ClientTickEvents.EndTick {
@@ -82,14 +83,11 @@ public class DataInstance implements QuietAutoCloseable, Registries.ClientWorldC
 	
 	@Override public void onEndTick(@NonNull Minecraft client) {
 		if(dataInstance != this || isEmpty()) {
-			DataUtils.clientMessage(Component.translatable("lpctools.configs.tools.FM.markedBlocksCleared"), true);
 			if(dataInstance == this) {
-				if(runner != null) {
-					runner.close();
-					runner = null;
-				}
+				FMConfig.setBooleanValue(false);
 				dataInstance = null;
 			}
+			DataUtils.clientMessage(Component.translatable("lpctools.configs.tools.FM.markedBlocksCleared"), true);
 			close();
 		}
 	}
@@ -109,14 +107,14 @@ public class DataInstance implements QuietAutoCloseable, Registries.ClientWorldC
 		Int2ObjectOpenHashMap<MutableInt> result = new Int2ObjectOpenHashMap<>();
 		for(BlockPos pos : AlgorithmUtils.iterateInBox(0, chunk.getMinY(), 0, 15, chunk.getMinY() + chunk.getHeight() - 1, 15)){
 			if(chunk.getBlockState(pos).getBlock() instanceof AbstractFurnaceBlock) {
-				result.put(Packed.ChunkLocal.pack(pos), color);
+				result.put(Packed.packChunkLocal(pos), color);
 				if(includesHopperAbove) {
 					var up = pos.above();
 					var upperBlockState = chunk.getBlockState(up);
 					if(upperBlockState.getBlock() instanceof HopperBlock) {
 						var facing = upperBlockState.getValue(HopperBlock.FACING);
 						if(facing == Direction.DOWN)
-							result.put(Packed.ChunkLocal.pack(up), color);
+							result.put(Packed.packChunkLocal(up), color);
 					}
 				}
 			}

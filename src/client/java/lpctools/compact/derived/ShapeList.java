@@ -24,7 +24,7 @@ public class ShapeList extends ArrayList<ITestableShape> {
         return testPos(pos.getX(), pos.getY(), pos.getZ());
     }
     public boolean testPos(long packedBlockPos) {
-        return testPos(Packed.BlockPos.unpackX(packedBlockPos), Packed.BlockPos.unpackY(packedBlockPos), Packed.BlockPos.unpackZ(packedBlockPos));
+        return testPos(Packed.unpackBlockPosX(packedBlockPos), Packed.unpackBlockPosY(packedBlockPos), Packed.unpackBlockPosZ(packedBlockPos));
     }
     public static ShapeList emptyList(){
         return new ShapeList();

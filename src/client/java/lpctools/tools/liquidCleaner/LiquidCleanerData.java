@@ -1,7 +1,6 @@
 package lpctools.tools.liquidCleaner;
 
 import com.google.common.collect.ImmutableList;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -16,7 +15,6 @@ import static lpctools.util.BlockUtils.canAnyBucketPlaceAt;
 
 public class LiquidCleanerData {
     public static final ImmutableList<BlockItem> defaultCleaningBlocks;
-    @Nullable static LiquidCleanerRunner runner;
     static {
         ArrayList<BlockItem> _defaultCleaningBlocks = new ArrayList<>();
         BuiltInRegistries.BLOCK.forEach(block->{

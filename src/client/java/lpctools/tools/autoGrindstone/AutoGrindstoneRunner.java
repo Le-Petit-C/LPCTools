@@ -3,15 +3,14 @@ package lpctools.tools.autoGrindstone;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import lpctools.lpcfymasaapi.Registries;
+import lpctools.tools.ToolUtils;
 import lpctools.util.DataUtils;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.screens.Screen;
-import net.minecraft.client.gui.screens.inventory.GrindstoneScreen;
-import net.minecraft.client.multiplayer.MultiPlayerGameMode;
-import net.minecraft.client.player.LocalPlayer;
+import lpctools.util.inGame.InGameManager;
 import net.minecraft.core.Holder;
 import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.ContainerInput;
+import net.minecraft.world.inventory.GrindstoneMenu;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
@@ -21,17 +20,15 @@ import java.util.List;
 
 import static lpctools.tools.autoGrindstone.AutoGrindstone.*;
 
-public class AutoGrindstoneRunner implements Registries.ScreenChangedCallback {
-	@Override public void onScreenChanged(Screen newScreen) {
-		if(!(newScreen instanceof GrindstoneScreen)) return;
-		Minecraft client = Minecraft.getInstance();
-		LocalPlayer player = client.player;
-		MultiPlayerGameMode itm = client.gameMode;
-		if(player == null || itm == null) {
+public class AutoGrindstoneRunner implements Registries.ContainerContentInitializedCallback, ToolUtils.ToolRunner {
+	@Override public void onContainerContentInitialized(AbstractContainerMenu menu) {
+		if(!(menu instanceof GrindstoneMenu)) return;
+		InGameManager manager = InGameManager.get();
+		if(manager == null) {
 			AGConfig.setBooleanValue(false);
 			return;
 		}
-		Inventory inventory = player.getInventory();
+		Inventory inventory = manager.getInventory();
 		Object2IntOpenHashMap<String> enchantmentIds = new Object2IntOpenHashMap<>();
 		for(String key : limitEnchantmentsConfig){
 			String[] splits = key.split(";");
@@ -77,13 +74,17 @@ public class AutoGrindstoneRunner implements Registries.ScreenChangedCallback {
 			}
 			if(canErase){
 				int slot = n < 9 ? n + 30 : n - 6;
-				itm.handleContainerInput(player.containerMenu.containerId, slot, 0, ContainerInput.QUICK_MOVE, player);
-				itm.handleContainerInput(player.containerMenu.containerId, 2, 0, ContainerInput.THROW, player);
+				manager.handleContainerInput(menu.containerId, slot, 0, ContainerInput.QUICK_MOVE);
+				manager.handleContainerInput(menu.containerId, 2, 0, ContainerInput.THROW);
 			}
 		}
-		client.gui.setScreen(null);
+		manager.closeContainer();
 	}
 	private static void warnInvalidEnchantment(String key) {
 		DataUtils.clientMessage(String.format("§eInvalid enchantment string: %s", key), false);
+	}
+
+	@Override public void registerAll(boolean b) {
+		Registries.CLIENT_CONTAINER_CONTENT_INITIALIZED.register(this, b);
 	}
 }

@@ -17,7 +17,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 
 public class TilingToolData {
-    static @Nullable TilingToolExecutor executor;
+    static @Nullable TilingToolRunner executor;
     static @Nullable StoredData storedData;
     static @NotNull ShapeList shapeList = ShapeList.emptyList();
     public static final HashMap<Block, ArrayList<ImmutableSet<Block>>> vagueBlocks = new HashMap<>();

@@ -63,7 +63,7 @@ public class UniqueDoubleConfig extends LPCUniqueConfigBase implements IConfigDo
     @Override public String getStringValue() {return String.valueOf(doubleValue);}
     @Override public void getButtonOptions(ButtonOptionArrayList res) {
         if(useSlider){
-            res.add(new ButtonOption(1, null, null, (x, y, w, h, str, listener, consumer, resetButton)->{
+            res.add(new ButtonOption(1, null, null, (x, y, w, h, _, _, consumer, resetButton)->{
                 Runnable resetButtonUpdater = ()->{
                     if(resetButton != null)
                         resetButton.setEnabled(isModified());
@@ -97,9 +97,9 @@ public class UniqueDoubleConfig extends LPCUniqueConfigBase implements IConfigDo
                 consumer.addWidget(slider);
             }));
         }
-        else res.add(ILPCUniqueConfigBase.textFieldConfigValuePreset(1, this));
+        else res.add(ILPCUniqueConfigBase.textFieldPreset(1, this));
         res.add(ILPCUniqueConfigBase.iconButtonPreset(useSlider ? MaLiLibIcons.BTN_TXTFIELD : MaLiLibIcons.BTN_SLIDER,
-            (button, mouseButton)->{useSlider = !useSlider;getPage().markNeedUpdate();}, null));
+            (_, _)->{useSlider = !useSlider;getPage().markNeedUpdate();}, null));
     }
     @Override public @Nullable JsonPrimitive getAsJsonElement() {return new JsonPrimitive(doubleValue);}
     @Override public UpdateTodo setValueFromJsonElementEx(@NotNull JsonElement element) {

@@ -6,7 +6,6 @@ import lpctools.lpcfymasaapi.configButtons.transferredConfigs.IntegerConfig;
 import lpctools.lpcfymasaapi.configButtons.uniqueConfigs.BooleanHotkeyThirdListConfig;
 import lpctools.lpcfymasaapi.interfaces.ILPCValueChangeCallback;
 import lpctools.mixin.client.accessors.MinecraftAccessor;
-import lpctools.tools.ToolConfigs;
 import lpctools.tools.ToolUtils;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.minecraft.client.Minecraft;
@@ -25,8 +24,7 @@ import org.jspecify.annotations.NonNull;
 import static lpctools.lpcfymasaapi.LPCConfigStatics.*;
 
 public class BedrockKiller {
-	public static final BooleanHotkeyThirdListConfig BKConfig = new BooleanHotkeyThirdListConfig(ToolConfigs.toolConfigs, "BK", BedrockKillerEvents.INSTANCE);
-	static { ToolUtils.setLPCToolsToggleText(BKConfig); }
+	public static final BooleanHotkeyThirdListConfig BKConfig = ToolUtils.configBuilder("BK").withExtraCallback(BedrockKillerEvents.INSTANCE).build();
 	static { listStack.push(BKConfig); }
 	public static final BooleanConfig torchAutoOperate = addBooleanConfig("torchAutoOperate", false, BedrockKillerEvents.INSTANCE);
 	public static final IntegerConfig multiSamplingFactor = addIntegerConfig("multiSamplingFactor", 1, 1, 64);

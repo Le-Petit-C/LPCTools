@@ -7,10 +7,12 @@ import lpctools.lpcfymasaapi.configButtons.uniqueConfigs.ButtonConfig;
 import lpctools.tools.bedrockKiller.BedrockKiller;
 import lpctools.tools.leakPreventer.LeakPreventer;
 import lpctools.tools.autoGrindstone.AutoGrindstone;
-import lpctools.tools.antiSpawner.AntiSpawner;
+import lpctools.tools.signFractionHelper.SignFractionHelper;
+import lpctools.tools.spawnProofer.SpawnProofer;
 import lpctools.tools.autoReconnect.AutoReconnect;
 import lpctools.tools.breakRestriction.BreakRestriction;
 import lpctools.tools.canSpawnDisplay.CanSpawnDisplay;
+import lpctools.tools.elytraBounce.ElytraBounce;
 import lpctools.tools.entityHighlight.EntityHighlight;
 import lpctools.tools.furnaceMaintainer.FurnaceMaintainer;
 import lpctools.tools.litematicaMaterial.LitematicaMaterial;
@@ -19,6 +21,7 @@ import lpctools.tools.slightXRay.SlightXRay;
 import lpctools.tools.fillingAssistant.FillingAssistant;
 import lpctools.tools.liquidCleaner.LiquidCleaner;
 import lpctools.tools.tilingTool.TilingTool;
+import lpctools.tools.tradeReroller.TradeReroller;
 
 public class ToolConfigs {
     public static final LPCConfigList toolConfigs = new LPCConfigList(LPCTools.page, "tools");
@@ -34,7 +37,7 @@ public class ToolConfigs {
             LiquidCleaner.LCConfig,
             SlightXRay.SXConfig,
             AutoGrindstone.AGConfig,
-            AntiSpawner.ASConfig,
+            SpawnProofer.ASConfig,
             CanSpawnDisplay.CSConfig,
             BreakRestriction.BRConfig,
             TilingTool.TTConfig,
@@ -44,7 +47,10 @@ public class ToolConfigs {
             EntityHighlight.EHConfig,
 			LeakPreventer.LPConfig,
 			BedrockKiller.BKConfig,
-			LitematicaMaterial.LMConfig
+			LitematicaMaterial.LMConfig,
+			TradeReroller.TRConfig,
+			SignFractionHelper.SFConfig,
+			ElytraBounce.EBConfig
         );
     }
 }

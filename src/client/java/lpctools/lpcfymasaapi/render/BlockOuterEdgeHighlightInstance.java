@@ -9,6 +9,7 @@ import lpctools.lpcfymasaapi.Registries;
 import lpctools.lpcfymasaapi.render.translucentShapes.Quad;
 import lpctools.lpcfymasaapi.render.translucentShapes.ShapeReference;
 import lpctools.lpcfymasaapi.render.translucentShapes.ShapeRegister;
+import lpctools.util.ChunkedUtils;
 import lpctools.util.DataUtils;
 import lpctools.util.Packed;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientLevelEvents;
@@ -58,8 +59,8 @@ public class BlockOuterEdgeHighlightInstance implements AutoCloseable, ClientLev
     }
     
     public boolean isEmpty() { return markedPoses.isEmpty() && taskInstance.isEmpty(); }
-    public boolean containsKey(long packedBlockPos) { return chunkedContainsKey(markedPoses, packedBlockPos); }
-    public boolean containsKey(BlockPos pos) { return chunkedContainsKey(markedPoses, pos.getX(), pos.getY(), pos.getZ()); }
+    public boolean containsKey(long packedBlockPos) { return ChunkedUtils.chunkedContainsKey(markedPoses, packedBlockPos); }
+    public boolean containsKey(BlockPos pos) { return ChunkedUtils.chunkedContainsKey(markedPoses, pos.getX(), pos.getY(), pos.getZ()); }
     
     // 清理超出距离的区块
     public void clearChunksOutOfRange(double chunkedCamX, double chunkedCamZ, double chunkedDistanceSquared) {
@@ -85,22 +86,22 @@ public class BlockOuterEdgeHighlightInstance implements AutoCloseable, ClientLev
     public void mark(int x, int y, int z, @Nullable MutableInt color) {
         boolean oldChanged;
         if(color == null) {
-            oldChanged = chunkedRemove(renderingPoses, x, y, z);
-            chunkedRemoveKey(markedPoses, x, y, z);
+            oldChanged = ChunkedUtils.chunkedRemove(renderingPoses, x, y, z);
+            ChunkedUtils.chunkedRemoveKey(markedPoses, x, y, z);
         }
         else {
-            oldChanged = (shapeList == null || shapeList.testPos(x, y, z)) && chunkedAdd(renderingPoses, x, y, z);
-            chunkedPut(markedPoses, x, y, z, color);
+            oldChanged = (shapeList == null || shapeList.testPos(x, y, z)) && ChunkedUtils.chunkedAdd(renderingPoses, x, y, z);
+            ChunkedUtils.chunkedPut(markedPoses, x, y, z, color);
         }
         if(oldChanged || color != null) {
-            chunkedAdd(posesNeedToUpdateRender, x, y, z);
+            ChunkedUtils.chunkedAdd(posesNeedToUpdateRender, x, y, z);
             for(var d : Direction.values())
-                chunkedAdd(posesNeedToUpdateRender, x + d.getStepX(), y + d.getStepY(), z + d.getStepZ());
+                ChunkedUtils.chunkedAdd(posesNeedToUpdateRender, x + d.getStepX(), y + d.getStepY(), z + d.getStepZ());
         }
     }
     
     public void mark(long packedBlockPos, @Nullable MutableInt color) {
-        mark(Packed.BlockPos.unpackX(packedBlockPos), Packed.BlockPos.unpackY(packedBlockPos), Packed.BlockPos.unpackZ(packedBlockPos), color);
+        mark(Packed.unpackBlockPosX(packedBlockPos), Packed.unpackBlockPosY(packedBlockPos), Packed.unpackBlockPosZ(packedBlockPos), color);
     }
     
     public void mark(BlockPos pos, @Nullable MutableInt color) { mark(pos.getX(), pos.getY(), pos.getZ(), color); }
@@ -157,15 +158,15 @@ public class BlockOuterEdgeHighlightInstance implements AutoCloseable, ClientLev
         int x = BlockPos.getX(packedBlockPos);
         int y = BlockPos.getY(packedBlockPos);
         int z = BlockPos.getZ(packedBlockPos);
-        ShapeReference[] old = chunkedRemoveKey(posQuads, x, y, z);
-        if(!chunkedContains(renderingPoses, x, y, z)) {
+        ShapeReference[] old = ChunkedUtils.chunkedRemoveKey(posQuads, x, y, z);
+        if(!ChunkedUtils.chunkedContains(renderingPoses, x, y, z)) {
             if(old != null) {
                 for(var ref : old)
                     if(ref != null) ref.close();
             }
             return;
         }
-        var colorSource = chunkedGet(markedPoses, packedBlockPos);
+        var colorSource = ChunkedUtils.chunkedGet(markedPoses, packedBlockPos);
         
         int color = colorSource.intValue();
         var quads = old == null ? new ShapeReference[Direction.values().length] : old;
@@ -187,7 +188,7 @@ public class BlockOuterEdgeHighlightInstance implements AutoCloseable, ClientLev
             }
         }
         for(var o : Temp.quadOffsets){
-            if(!chunkedContains(renderingPoses, x + o[1], y + o[2], z + o[3]))
+            if(!ChunkedUtils.chunkedContains(renderingPoses, x + o[1], y + o[2], z + o[3]))
 				//noinspection resource
 				quads[o[0]] = shapeRegister.register(new Quad(x + o[4], y + o[5], z + o[6], o[7], o[8], o[9], o[10], o[11], o[12], color, useCullFace));
             else {
@@ -195,7 +196,7 @@ public class BlockOuterEdgeHighlightInstance implements AutoCloseable, ClientLev
                 Direction oppositeDirection = attachedDirection.getOpposite();
                 int oppositeIndex = oppositeDirection.get3DDataValue();
                 long attachedBlockPos = BlockPos.offset(packedBlockPos, attachedDirection);
-                var attached = chunkedGet(posQuads, attachedBlockPos);
+                var attached = ChunkedUtils.chunkedGet(posQuads, attachedBlockPos);
                 if(attached != null && attached[oppositeIndex] != null) {
                     attached[oppositeIndex].close();
                     attached[oppositeIndex] = null;
@@ -206,13 +207,13 @@ public class BlockOuterEdgeHighlightInstance implements AutoCloseable, ClientLev
                             break;
                         }
                     }
-                    if(isEmpty) chunkedRemoveKey(posQuads, attachedBlockPos);
+                    if(isEmpty) ChunkedUtils.chunkedRemoveKey(posQuads, attachedBlockPos);
                 }
             }
         }
 		for (ShapeReference quad : quads) {
 			if (quad != null) {
-				chunkedPut(posQuads, x, y, z, quads);
+				ChunkedUtils.chunkedPut(posQuads, x, y, z, quads);
 				break;
 			}
 		}
@@ -234,8 +235,8 @@ public class BlockOuterEdgeHighlightInstance implements AutoCloseable, ClientLev
         if(!posesNeedToUpdateRender.isEmpty()) {
             LongHeapPriorityQueue chunksNeedToUpdate = new LongHeapPriorityQueue(posesNeedToUpdateRender.keySet(),
                 LongComparator.comparingDouble(packedChunkPos->{
-                int x = Packed.ChunkPos.unpackX(packedChunkPos);
-                int z = Packed.ChunkPos.unpackZ(packedChunkPos);
+                int x = Packed.unpackChunkPosX(packedChunkPos);
+                int z = Packed.unpackChunkPosZ(packedChunkPos);
                 return Mth.square(x - chunkedCamX) + Mth.square(z - chunkedCamZ);
             }));
             while(!chunksNeedToUpdate.isEmpty()){
@@ -243,7 +244,7 @@ public class BlockOuterEdgeHighlightInstance implements AutoCloseable, ClientLev
                 var chunkUpdates = posesNeedToUpdateRender.get(packedChunkPos);
                 var it = chunkUpdates.iterator();
                 while(it.hasNext()){
-                    updatePosRender(Packed.BlockPos.packedFromChunkLocal(packedChunkPos, it.nextInt()));
+                    updatePosRender(Packed.packBlockPosFromChunkLocal(packedChunkPos, it.nextInt()));
                     it.remove();
                     if(!UpdateCounter.updated()) return;
                 }
@@ -272,14 +273,14 @@ public class BlockOuterEdgeHighlightInstance implements AutoCloseable, ClientLev
     }
     
     private static void buildShownPoses(IntOpenHashSet shownPoses, @Nullable ShapeList rangeLimit, IntSet chunkLocalMarkedPoses, long packedChunkPos) {
-        int chunkBlockX = Packed.getBlockCoord(Packed.ChunkPos.unpackX(packedChunkPos));
-        int chunkBlockZ = Packed.getBlockCoord(Packed.ChunkPos.unpackZ(packedChunkPos));
+        int chunkBlockX = Packed.getBlockCoord(Packed.unpackChunkPosX(packedChunkPos));
+        int chunkBlockZ = Packed.getBlockCoord(Packed.unpackChunkPosZ(packedChunkPos));
         var it = chunkLocalMarkedPoses.iterator();
         while (it.hasNext()) {
             int localPos = it.nextInt();
-            int x = chunkBlockX + Packed.ChunkLocal.unpackX(localPos);
-            int y = Packed.ChunkLocal.unpackY(localPos);
-            int z = chunkBlockZ + Packed.ChunkLocal.unpackZ(localPos);
+            int x = chunkBlockX + Packed.unpackChunkLocalX(localPos);
+            int y = Packed.unpackChunkLocalY(localPos);
+            int z = chunkBlockZ + Packed.unpackChunkLocalZ(localPos);
             if(rangeLimit == null || rangeLimit.testPos(x, y, z))
                 shownPoses.add(localPos);
         }
@@ -289,11 +290,11 @@ public class BlockOuterEdgeHighlightInstance implements AutoCloseable, ClientLev
         var it = posesToTest.iterator();
         while(it.hasNext()){
             var pos = it.nextInt();
-            int x = Packed.ChunkLocal.unpackX(pos);
-            int y = Packed.ChunkLocal.unpackY(pos);
-            int z = Packed.ChunkLocal.unpackZ(pos);
+            int x = Packed.unpackChunkLocalX(pos);
+            int y = Packed.unpackChunkLocalY(pos);
+            int z = Packed.unpackChunkLocalZ(pos);
             for(var direction : Direction.values()){
-                if(!poses.contains(Packed.ChunkLocal.pack(x + direction.getStepX(), y + direction.getStepY(), z + direction.getStepZ()))){
+                if(!poses.contains(Packed.packChunkLocal(x + direction.getStepX(), y + direction.getStepY(), z + direction.getStepZ()))){
                     markedPoses.add(pos);
                     break;
                 }

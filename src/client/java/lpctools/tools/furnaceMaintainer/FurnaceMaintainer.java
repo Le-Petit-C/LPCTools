@@ -2,7 +2,6 @@ package lpctools.tools.furnaceMaintainer;
 
 import lpctools.lpcfymasaapi.configButtons.derivedConfigs.ReachDistanceConfig;
 import lpctools.lpcfymasaapi.configButtons.uniqueConfigs.*;
-import lpctools.tools.ToolConfigs;
 import lpctools.tools.ToolUtils;
 import lpctools.util.DataUtils;
 import net.minecraft.network.chat.Component;
@@ -11,8 +10,7 @@ import static lpctools.lpcfymasaapi.LPCConfigStatics.*;
 import static lpctools.tools.furnaceMaintainer.FurnaceMaintainerData.*;
 
 public class FurnaceMaintainer {
-    public static final BooleanHotkeyThirdListConfig FMConfig = new BooleanHotkeyThirdListConfig(ToolConfigs.toolConfigs, "FM", FurnaceMaintainer::switchCallback);
-    static {ToolUtils.setLPCToolsToggleText(FMConfig);}
+    public static final BooleanHotkeyThirdListConfig FMConfig = ToolUtils.configBuilder("FM").withToolRunner(FurnaceMaintainerRunner::new).build();
     static {listStack.push(FMConfig);}
     public static final ReachDistanceConfig reachDistance = addReachDistanceConfig();
     public static final UniqueDoubleConfig operationSpeedLimit = addConfigEx(l->new UniqueDoubleConfig(l, "operationSpeedLimit", 1, 0, 1, null));
@@ -25,21 +23,8 @@ public class FurnaceMaintainer {
     public static final UniqueBooleanConfig includesHopperAbove = addConfigEx(l->new UniqueBooleanConfig(l, "includesHopperAbove", true, null));
     public static final UniqueBooleanConfig renderXRays = addConfigEx(l->new UniqueBooleanConfig(l, "renderXRays", false, applyToDataInstanceCallback(DataInstance::refreshRenderXRays)));
     public static final UniqueBooleanConfig useCullFace = addConfigEx(l->new UniqueBooleanConfig(l, "useCullFace", true, applyToDataInstanceCallback(DataInstance::refreshUseCullFace)));
-    
-    static {listStack.pop();}
-    private static void switchCallback() {
-        if(FMConfig.getBooleanValue()) {
-            if(runner == null)
-                runner = new FurnaceMaintainerRunner();
-            runner.registerAll(true);
-        }
-        else {
-            if(runner != null) {
-                runner.close();
-                runner = null;
-            }
-        }
-    }
+    static { listStack.pop(); }
+
     private static void detectFurnacesCallback() {
         if(dataInstance == null) dataInstance = new DataInstance();
         dataInstance.retestFurnaces();
