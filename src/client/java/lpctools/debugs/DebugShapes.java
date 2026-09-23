@@ -1,13 +1,13 @@
 package lpctools.debugs;
 
-import com.mojang.blaze3d.IndexType;
-import com.mojang.blaze3d.buffers.GpuBuffer;
-import com.mojang.blaze3d.buffers.GpuBufferSlice;
-import com.mojang.blaze3d.systems.GpuDevice;
-import com.mojang.blaze3d.systems.RenderPass;
 import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.blaze3d.textures.GpuTextureView;
 import com.mojang.blaze3d.vertex.DefaultVertexFormat;
+import com.mojang.renderpearl.api.buffers.GpuBuffer;
+import com.mojang.renderpearl.api.buffers.GpuBufferSlice;
+import com.mojang.renderpearl.api.commands.RenderPass;
+import com.mojang.renderpearl.api.device.GpuDevice;
+import com.mojang.renderpearl.api.pipeline.IndexType;
+import com.mojang.renderpearl.api.textures.GpuTextureView;
 import lpctools.lpcfymasaapi.Registries;
 import lpctools.lpcfymasaapi.render.LPCRenderPipelines;
 import lpctools.lpcfymasaapi.render.translucentShapes.Sphere;
@@ -113,7 +113,7 @@ public class DebugShapes implements ToolUtils.ToolRunner, LevelRenderEvents.Befo
 		try (RenderPass rp = enc.createRenderPass(
 				() -> "DebugTrianglePass", colorView,
 				Optional.empty(), depthView, OptionalDouble.empty())) {
-			rp.setPipeline(LPCRenderPipelines.positionColorPipeline(false, false));
+			rp.setPipeline(RenderSystem.getCompiledPipeline(LPCRenderPipelines.positionColorPipeline(false, false)));
 			RenderSystem.bindDefaultUniforms(rp);
 			rp.setUniform("DynamicTransforms", dyn);
 			rp.setVertexBuffer(0, triangleVertexBuffer.slice());
@@ -124,7 +124,7 @@ public class DebugShapes implements ToolUtils.ToolRunner, LevelRenderEvents.Befo
 		try (RenderPass rp = enc.createRenderPass(
 			() -> "DebugSpherePass", colorView,
 			Optional.empty(), depthView, OptionalDouble.empty())) {
-			rp.setPipeline(LPCRenderPipelines.spherePipeline);
+			rp.setPipeline(RenderSystem.getCompiledPipeline(LPCRenderPipelines.spherePipeline));
 			RenderSystem.bindDefaultUniforms(rp);
 			rp.setUniform("DynamicTransforms", dyn);
 			rp.setVertexBuffer(0, sphereVertexBuffer.slice());

@@ -4,6 +4,7 @@ import lpctools.script.CompileEnvironment;
 import lpctools.script.IScriptWithSubScript;
 import lpctools.script.runtimeInterfaces.ScriptNotNullSupplier;
 import lpctools.script.suppliers.AbstractSupplierWithTypeDeterminedSubSuppliers;
+import lpctools.util.DataUtils;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.network.chat.Component;
@@ -21,6 +22,6 @@ public class DirectionVector extends AbstractSupplierWithTypeDeterminedSubSuppli
 	@Override public @NotNull ScriptNotNullSupplier<BlockPos>
 	compileNotNull(CompileEnvironment environment) {
 		var compiledEntitySupplier = direction.get().compileCheckedNotNull(environment);
-		return map->new BlockPos(compiledEntitySupplier.scriptApply(map).getUnitVec3i());
+		return map->DataUtils.asBlockPos(compiledEntitySupplier.scriptApply(map).getUnitVec3i());
 	}
 }

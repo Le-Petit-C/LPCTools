@@ -1,13 +1,13 @@
 package lpctools.lpcfymasaapi.render.translucentShapes;
 
 import com.google.common.collect.ImmutableSet;
-import com.mojang.blaze3d.IndexType;
-import com.mojang.blaze3d.buffers.GpuBuffer;
-import com.mojang.blaze3d.buffers.GpuBufferSlice;
-import com.mojang.blaze3d.systems.CommandEncoder;
-import com.mojang.blaze3d.systems.RenderPass;
 import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.blaze3d.textures.GpuTextureView;
+import com.mojang.renderpearl.api.buffers.GpuBuffer;
+import com.mojang.renderpearl.api.buffers.GpuBufferSlice;
+import com.mojang.renderpearl.api.commands.CommandEncoder;
+import com.mojang.renderpearl.api.commands.RenderPass;
+import com.mojang.renderpearl.api.pipeline.IndexType;
+import com.mojang.renderpearl.api.textures.GpuTextureView;
 import it.unimi.dsi.fastutil.ints.*;
 import it.unimi.dsi.fastutil.longs.Long2IntOpenHashMap;
 import lpctools.lpcfymasaapi.Registries;
@@ -127,7 +127,7 @@ public class RenderInstance implements QuietAutoCloseable, Registries.WorldPreMa
 		}
 		var fb = context.fb();
 		GpuTextureView colorAttachmentView = lpctools.util.RenderUtils.colorAttachmentViewOrDef(fb);
-		GpuTextureView depthAttachmentView = fb.useDepth ? fb.getDepthTextureView() : null;
+		GpuTextureView depthAttachmentView = fb.hasDepth() ? fb.getDepthTextureView() : null;
 		Vec3 camPos = context.camera().pos;
 		Vector3f offset = new Vector3f((float) (basePoint.x - camPos.x), (float) (basePoint.y - camPos.y), (float) (basePoint.z - camPos.z));
 		Matrix4f modelViewMatrix = RenderSystem.getModelViewMatrixCopy();
@@ -139,7 +139,7 @@ public class RenderInstance implements QuietAutoCloseable, Registries.WorldPreMa
 			.writeTransform(modelViewMatrix, new Vector4f(1.0F, 1.0F, 1.0F, 1.0F), offset, new Matrix4f());
 		try (RenderPass renderPass = commandEncoder
 			.createRenderPass(renderPassLabel, colorAttachmentView, Optional.empty(), depthAttachmentView, OptionalDouble.empty())) {
-			renderPass.setPipeline(renderOption.pipeline());
+			renderPass.setPipeline(RenderSystem.getCompiledPipeline(renderOption.pipeline()));
 			RenderSystem.bindDefaultUniforms(renderPass);
 			renderPass.setUniform("DynamicTransforms", dynamicTransforms);
 			for(var extraBindings : renderOption.extraBindings())

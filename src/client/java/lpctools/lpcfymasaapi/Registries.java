@@ -1,7 +1,7 @@
 package lpctools.lpcfymasaapi;
 
-import com.mojang.blaze3d.buffers.GpuBufferSlice;
 import com.mojang.blaze3d.pipeline.RenderTarget;
+import com.mojang.renderpearl.api.buffers.GpuBufferSlice;
 import fi.dy.masa.malilib.event.RenderEventHandler;
 import fi.dy.masa.malilib.interfaces.IRangeChangeListener;
 import fi.dy.masa.malilib.interfaces.IRenderer;
@@ -36,7 +36,6 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.chunk.LevelChunk;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.joml.Matrix4fc;
 import org.joml.Vector4f;
 
 import java.util.function.Consumer;
@@ -85,7 +84,6 @@ public class Registries {
     public static final UnregistrableRegistry<LevelRenderEvents.EndMain> END_MAIN = UnregistrableRegistry.fanOut(LevelRenderEvents.EndMain.class, LevelRenderEvents.END_MAIN);
     public static final UnregistrableRegistry<ClientWorldChunkSetBlockState> CLIENT_WORLD_CHUNK_SET_BLOCK_STATE = UnregistrableRegistry.fanOut(ClientWorldChunkSetBlockState.class);
     public static final UnregistrableRegistry<GameOverlayRender> MASA_RENDER_GAME_OVERLAY = UnregistrableRegistry.fanOut(GameOverlayRender.class);
-    public static final UnregistrableRegistry<WorldPreWeatherRender> MASA_RENDER_WORLD_PRE_WEATHER = UnregistrableRegistry.fanOut(WorldPreWeatherRender.class);
     public static final UnregistrableRegistry<WorldLastRender> MASA_WORLD_RENDER_LAST = UnregistrableRegistry.fanOut(WorldLastRender.class);
     public static final UnregistrableRegistry<TooltipComponentInsertFirstRender> MASA_RENDER_TOOLTIP_COMPONENT_INSERTION_FIRST = UnregistrableRegistry.fanOut(TooltipComponentInsertFirstRender.class);
     public static final UnregistrableRegistry<TooltipComponentInsertMiddleRender> MASA_RENDER_TOOLTIP_COMPONENT_INSERTION_MIDDLE = UnregistrableRegistry.fanOut(TooltipComponentInsertMiddleRender.class);
@@ -118,15 +116,9 @@ public class Registries {
             @Override public void onExtractGuiOverlayPost(GuiContext ctx, float partialTicks, ProfilerFiller profiler) {
                 MASA_RENDER_GAME_OVERLAY.runner().renderGameOverlay(ctx, partialTicks, profiler);
             }
-            
-            @Override public void onRenderWorldPreWeather(RenderTarget fb, Matrix4fc modelViewMatrix, CameraRenderState cameraState, Frustum culling, RenderBuffers buffers, GpuBufferSlice terrainFog, Vector4f fogColor, ProfilerFiller profiler) {
-                MASA_RENDER_WORLD_PRE_WEATHER.runner().onRenderWorldPreWeather(new MASAWorldRenderContext(fb, modelViewMatrix, culling, cameraState, buffers, profiler));
+            @Override public void onRenderWorldLast(RenderTarget fb, CameraRenderState cameraState, Frustum culling, RenderBuffers buffers, GpuBufferSlice terrainFog, Vector4f fogColor, ProfilerFiller profiler) {
+                MASA_WORLD_RENDER_LAST.runner().onLast(new MASAWorldRenderContext(fb, culling, cameraState, buffers, profiler));
             }
-
-            @Override public void onRenderWorldLast(RenderTarget fb, Matrix4fc modelViewMatrix, CameraRenderState cameraState, Frustum culling, RenderBuffers buffers, GpuBufferSlice terrainFog, Vector4f fogColor, ProfilerFiller profiler) {
-                MASA_WORLD_RENDER_LAST.runner().onLast(new MASAWorldRenderContext(fb, modelViewMatrix, culling, cameraState, buffers, profiler));
-            }
-            
             @Override public void onRenderTooltipComponentInsertFirst(Item.TooltipContext context, ItemStack stack, Consumer<Component> list) {
                 toolTipComponentInsertFirstRenderer.onRenderTooltipComponentInsertFirst(context, stack, list);
             }
@@ -144,9 +136,7 @@ public class Registries {
         var malilibRenderEventHandler = RenderEventHandler.getInstance();
         malilibRenderEventHandler.registerInGameGuiRenderer(malilibRenderer);
         malilibRenderEventHandler.registerTooltipLastRenderer(malilibRenderer);
-        malilibRenderEventHandler.registerWorldPreWeatherRenderer(malilibRenderer);
         malilibRenderEventHandler.registerWorldLastRenderer(malilibRenderer);
-        malilibRenderEventHandler.registerSpecialGuiRenderer(malilibRenderer);
     }
     static {
         Identifier lpcRegistryClientResourceReloadCallbackId = Identifier.fromNamespaceAndPath("lpctools", "lpcfymasaapi_reload");
@@ -157,12 +147,9 @@ public class Registries {
     public interface GameOverlayRender {
         void renderGameOverlay(GuiContext ctx, float partialTicks, ProfilerFiller profiler);
     }
-    public record MASAWorldRenderContext(RenderTarget fb, Matrix4fc positionMatrix, Frustum frustum, CameraRenderState camera, RenderBuffers buffers, ProfilerFiller profiler) {}
+    public record MASAWorldRenderContext(RenderTarget fb, Frustum frustum, CameraRenderState camera, RenderBuffers buffers, ProfilerFiller profiler) {}
     public interface WorldPreMainRender {
         void onRenderWorldPreMain(MASAWorldRenderContext context);
-    }
-    public interface WorldPreWeatherRender {
-        void onRenderWorldPreWeather(MASAWorldRenderContext context);
     }
     public interface WorldLastRender {
         void onLast(MASAWorldRenderContext context);

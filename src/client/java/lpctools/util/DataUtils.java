@@ -499,4 +499,6 @@ public class DataUtils {
     public static Direction approximateNearestDirectionHorizontal(Vector3d vec) {
         return approximateNearestDirectionHorizontal(vec.x, vec.z);
     }
+
+    public static BlockPos asBlockPos(Vec3i vec) { return new BlockPos(vec.getX(), vec.getY(), vec.getZ()); }
 }

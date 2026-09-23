@@ -1,14 +1,14 @@
 package lpctools.debugs.ThreeBodyDisplay;
 
-import com.mojang.blaze3d.IndexType;
-import com.mojang.blaze3d.buffers.GpuBuffer;
-import com.mojang.blaze3d.buffers.GpuBufferSlice;
-import com.mojang.blaze3d.pipeline.RenderPipeline;
 import com.mojang.blaze3d.pipeline.RenderTarget;
-import com.mojang.blaze3d.systems.RenderPass;
 import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.blaze3d.textures.GpuTextureView;
 import com.mojang.blaze3d.vertex.DefaultVertexFormat;
+import com.mojang.renderpearl.api.buffers.GpuBuffer;
+import com.mojang.renderpearl.api.buffers.GpuBufferSlice;
+import com.mojang.renderpearl.api.commands.RenderPass;
+import com.mojang.renderpearl.api.pipeline.IndexType;
+import com.mojang.renderpearl.api.pipeline.RenderPipeline;
+import com.mojang.renderpearl.api.textures.GpuTextureView;
 import fi.dy.masa.malilib.util.data.Color4f;
 import lpctools.LPCTools;
 import lpctools.lpcfymasaapi.Registries;
@@ -206,7 +206,7 @@ class Runner implements QuietAutoCloseable, Registries.WorldPreMainRender, Level
 		commandEncoder.writeToBuffer(vertexBuffer.slice(), dataBuffer);
 		RenderTarget fb = context.fb();
 		GpuTextureView colorAttachmentView = RenderUtils.colorAttachmentViewOrDef(fb);
-		GpuTextureView depthAttachmentView = fb.useDepth ? fb.getDepthTextureView() : null;
+		GpuTextureView depthAttachmentView = fb.hasDepth() ? fb.getDepthTextureView() : null;
 		Vector3f offset = new Vector3f((float) (basePoint.x - camPos.x), (float) (basePoint.y - camPos.y), (float) (basePoint.z - camPos.z));
 		Vector4f colorModulator = new Vector4f(1.0f, 1.0f, 1.0f, 1.0f);
 		Matrix4f identity = new Matrix4f();
@@ -214,7 +214,7 @@ class Runner implements QuietAutoCloseable, Registries.WorldPreMainRender, Level
 			.writeTransform(RenderSystem.getModelViewMatrixCopy(), colorModulator, offset, identity);
 		try (RenderPass renderPass = commandEncoder
 			.createRenderPass(renderPassLabel, colorAttachmentView, Optional.empty(), depthAttachmentView, OptionalDouble.empty())) {
-			renderPass.setPipeline(LPCRenderPipelines.spherePipeline);
+			renderPass.setPipeline(RenderSystem.getCompiledPipeline(LPCRenderPipelines.spherePipeline));
 			RenderSystem.bindDefaultUniforms(renderPass);
 			renderPass.setUniform("DynamicTransforms", dynamicTransforms);
 			renderPass.setIndexBuffer(indexBuffer, IndexType.SHORT);
@@ -240,7 +240,7 @@ class Runner implements QuietAutoCloseable, Registries.WorldPreMainRender, Level
 					.writeTransform(modelView, colorModulator, zeroOffset, identity);
 				try (RenderPass renderPass = commandEncoder
 					.createRenderPass(renderPassLabel, colorAttachmentView, Optional.empty(), depthAttachmentView, OptionalDouble.empty())) {
-					renderPass.setPipeline(pipeline);
+					renderPass.setPipeline(RenderSystem.getCompiledPipeline(pipeline));
 					RenderSystem.bindDefaultUniforms(renderPass);
 					renderPass.setUniform("DynamicTransforms", starDropLineTransforms);
 					renderPass.setIndexBuffer(dropCircleIndexBuffer, IndexType.INT);
@@ -263,7 +263,7 @@ class Runner implements QuietAutoCloseable, Registries.WorldPreMainRender, Level
 				.writeTransform(modelView, colorModulator, zeroOffset, identity);
 			try (RenderPass renderPass = commandEncoder
 				.createRenderPass(renderPassLabel, colorAttachmentView, Optional.empty(), depthAttachmentView, OptionalDouble.empty())) {
-				renderPass.setPipeline(pipeline);
+				renderPass.setPipeline(RenderSystem.getCompiledPipeline(pipeline));
 				RenderSystem.bindDefaultUniforms(renderPass);
 				renderPass.setUniform("DynamicTransforms", gridTransforms);
 				renderPass.setVertexBuffer(0, gridVertexBuffer.slice());

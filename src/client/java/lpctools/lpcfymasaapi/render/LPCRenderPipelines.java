@@ -1,12 +1,7 @@
 package lpctools.lpcfymasaapi.render;
 
-import com.mojang.blaze3d.PrimitiveTopology;
-import com.mojang.blaze3d.pipeline.BlendFunction;
-import com.mojang.blaze3d.pipeline.ColorTargetState;
-import com.mojang.blaze3d.pipeline.DepthStencilState;
-import com.mojang.blaze3d.pipeline.RenderPipeline;
-import com.mojang.blaze3d.platform.CompareOp;
 import com.mojang.blaze3d.vertex.DefaultVertexFormat;
+import com.mojang.renderpearl.api.pipeline.*;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import net.minecraft.client.renderer.BindGroupLayouts;
 import net.minecraft.client.renderer.RenderPipelines;
@@ -33,7 +28,8 @@ public class LPCRenderPipelines {
 		.withVertexShader(getId("core/sphere"))
 		.withFragmentShader(getId("core/sphere"))
 		.withPrimitiveTopology(PrimitiveTopology.TRIANGLES)
-		.withBindGroupLayout(BindGroupLayouts.MATRICES_PROJECTION)
+		.withBindGroupLayout(BindGroupLayouts.DYNAMIC_TRANSFORMS)
+		.withBindGroupLayout(BindGroupLayouts.PROJECTION)
 		.withColorTargetState(new ColorTargetState(BlendFunction.TRANSLUCENT))
 		.withDepthStencilState(DepthStencilState.DEFAULT)
 		.withLocation(getId("pipeline/sphere")).build();
@@ -107,7 +103,9 @@ public class LPCRenderPipelines {
 			}
 			OffsetMode offsetMode = OffsetMode.pipelineOffsetMode(pipeline);
 			if(offsetMode == null) return;
-			boolean translucentBlend = (pipeline.getColorTargetState() instanceof ColorTargetState state ? state.blendFunction().orElse(null) : null) == BlendFunction.TRANSLUCENT;
+			// TODO: figure out how stateS works
+			var colorStates = pipeline.getColorTargetStates();
+			boolean translucentBlend = (!colorStates.isEmpty() && colorStates.getFirst() instanceof ColorTargetState state ? state.blendFunction().orElse(null) : null) == BlendFunction.TRANSLUCENT;
 			DepthStencilState depth = Objects.requireNonNullElseGet(pipeline.getDepthStencilState(), ()->new DepthStencilState(CompareOp.ALWAYS_PASS, false));
 			boolean depthTest;
 			if(depth.depthTest() == CompareOp.ALWAYS_PASS) depthTest = false;

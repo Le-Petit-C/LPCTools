@@ -19,8 +19,8 @@ public class ClientPacketListenerMixin {
 	@Shadow private ClientLevel level;
 	@ModifyArg(method = "handleLevelChunkWithLight", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/multiplayer/ClientLevel;queueLightUpdate(Ljava/lang/Runnable;)V"))
 	Runnable inject(Runnable updater, @Local(argsOnly = true, ordinal = 0) ClientboundLevelChunkWithLightPacket packet){
-		int i = packet.getX();
-		int j = packet.getZ();
+		int i = packet.x();
+		int j = packet.z();
 		return ()->{
 			updater.run();
 			LevelChunk worldChunk = level.getChunkSource().getChunk(i, j, false);

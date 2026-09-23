@@ -6,6 +6,7 @@ import lpctools.tools.ToolUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.inventory.AbstractSignEditScreen;
+import net.minecraft.world.level.block.entity.SignTextSlot;
 
 import java.util.Objects;
 
@@ -19,7 +20,7 @@ public class SignFractionHelperRunner implements Registries.ScreenChangedCallbac
 	@Override public void onScreenChanged(Screen newScreen) {
 		if(!(newScreen instanceof AbstractSignEditScreen signScreen)) return;
 		AbstractSignEditScreenAccessor accessor = (AbstractSignEditScreenAccessor) signScreen;
-		if(accessor.lpctools$isFrontText()) {
+		if(accessor.lpctools$getSlot() == SignTextSlot.FRONT) {
 			String value = selected.getFraction().toString();
 			String oldValue = accessor.lpctools$messages()[0];
 			if(!Objects.equals(oldValue, value)) {

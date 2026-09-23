@@ -4,6 +4,7 @@ import lpctools.compact.derived.ShapeList;
 import lpctools.generic.OperationSpeedLimit;
 import lpctools.lpcfymasaapi.Registries;
 import lpctools.tools.ToolUtils;
+import lpctools.util.DataUtils;
 import lpctools.util.GuiUtils;
 import lpctools.util.HandRestock;
 import lpctools.util.inGame.InGameManager;
@@ -133,7 +134,7 @@ public class FillingAssistantRunner implements ClientTickEvents.EndTick, Registr
     }
     private void initializeMap(@NotNull ShapeList shapeList, @NotNull BlockPos eyeBlockPos, @Nullable BlockGetter world){
         currentPosition = eyeBlockPos.offset(-testDistance, -testDistance, -testDistance);
-        BlockPos pos1 = new BlockPos(currentPosition);
+        BlockPos pos1 = DataUtils.asBlockPos(currentPosition);
         for (boolean[][] mapX : map) {
             BlockPos pos2 = pos1;
             for (boolean[] mapXY : mapX) {

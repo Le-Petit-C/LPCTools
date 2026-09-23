@@ -1,15 +1,13 @@
 package lpctools.debugs;
 
-import com.mojang.blaze3d.IndexType;
-import com.mojang.blaze3d.PrimitiveTopology;
-import com.mojang.blaze3d.buffers.GpuBuffer;
-import com.mojang.blaze3d.buffers.GpuBufferSlice;
 import com.mojang.blaze3d.pipeline.*;
-import com.mojang.blaze3d.shaders.UniformType;
-import com.mojang.blaze3d.systems.RenderPass;
 import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.blaze3d.textures.GpuTextureView;
 import com.mojang.blaze3d.vertex.DefaultVertexFormat;
+import com.mojang.renderpearl.api.buffers.GpuBuffer;
+import com.mojang.renderpearl.api.buffers.GpuBufferSlice;
+import com.mojang.renderpearl.api.commands.RenderPass;
+import com.mojang.renderpearl.api.pipeline.*;
+import com.mojang.renderpearl.api.textures.GpuTextureView;
 import lpctools.lpcfymasaapi.Registries;
 import lpctools.lpcfymasaapi.configButtons.uniqueConfigs.BooleanThirdListConfig;
 import lpctools.lpcfymasaapi.configButtons.transferredConfigs.DoubleConfig;
@@ -46,7 +44,8 @@ public class MandelbrotSetRender extends BooleanThirdListConfig implements Level
             .withLocation(Identifier.fromNamespaceAndPath("lpctools", "pipeline/mandelbrot"))
             .withColorTargetState(new ColorTargetState(BlendFunction.TRANSLUCENT))
             .withDepthStencilState(DepthStencilState.DEFAULT)
-            .withBindGroupLayout(BindGroupLayouts.MATRICES_PROJECTION)
+            .withBindGroupLayout(BindGroupLayouts.DYNAMIC_TRANSFORMS)
+            .withBindGroupLayout(BindGroupLayouts.PROJECTION)
             .withBindGroupLayout(BindGroupLayout.builder()
                 .withUniform("Mandelbrot", UniformType.UNIFORM_BUFFER)
                 .build())
@@ -121,7 +120,7 @@ public class MandelbrotSetRender extends BooleanThirdListConfig implements Level
         GameRenderer renderer = context.gameRenderer();
         RenderTarget fb = renderer.mainRenderTarget();
         GpuTextureView colorAttachmentView = RenderUtils.colorAttachmentViewOrDef(fb);
-        GpuTextureView depthAttachmentView = fb.useDepth ? fb.getDepthTextureView() : null;
+        GpuTextureView depthAttachmentView = fb.hasDepth() ? fb.getDepthTextureView() : null;
         GpuBufferSlice dynamicTransforms = RenderSystem.getDynamicUniforms()
             .writeTransform(RenderSystem.getModelViewMatrixCopy().translate(renderer.mainCamera().position().toVector3f().mul(-1)),
                 new Vector4f(1.0F, 1.0F, 1.0F, 1.0F), new Vector3f(), new Matrix4f());
@@ -135,7 +134,7 @@ public class MandelbrotSetRender extends BooleanThirdListConfig implements Level
             .createCommandEncoder()
             .createRenderPass(() -> "LPCTools Mandelbrot Set",
                 colorAttachmentView, Optional.empty(), depthAttachmentView, OptionalDouble.empty())){
-            renderPass.setPipeline(RenderSources.mandelbrotSetPipeline);
+            renderPass.setPipeline(RenderSystem.getCompiledPipeline(RenderSources.mandelbrotSetPipeline));
             RenderSystem.bindDefaultUniforms(renderPass);
             renderPass.setUniform("DynamicTransforms", dynamicTransforms);
             renderPass.setUniform("Mandelbrot", mandelbrotUniformBuffer);

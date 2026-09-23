@@ -32,6 +32,7 @@ import net.minecraft.world.inventory.AnvilMenu;
 import net.minecraft.world.inventory.ContainerInput;
 import net.minecraft.world.inventory.MerchantMenu;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.component.SwingAnimation;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.block.Block;
@@ -79,7 +80,7 @@ public class InGameManager {
 	public Direction playerNearstViewDirection() { return player.getNearestViewDirection(); }
 	public double blockInteractionRange() { return player.blockInteractionRange(); }
 	public double entityInteractionRange() { return player.entityInteractionRange(); }
-	public void swing(InteractionHand hand) { player.swing(hand); }
+	public void swing(InteractionHand hand) { player.swing(hand, SwingAnimation.DEFAULT, false); }
 	public HitResult raycastHitResult() { return player.raycastHitResult(1, player); }
 	public float getYRotRaw() { return player.getYRot(); }
 	public float getXRotRaw() { return player.getXRot(); }
@@ -126,7 +127,7 @@ public class InGameManager {
 	public @NotNull Iterable<Entity> getAllEntities() { return ((LevelAccessor)level).invokeGetEntities().getAll(); }
 	public boolean mayMobSpawnAt(BlockPos pos) { if(spawnTest == null) spawnTest = GenericUtils.createSpawnTest(); return spawnTest.mayMobSpawnAt(level, level.getLightEngine(), pos); }
 	public float getDestroyProgress(BlockPos pos) { return getBlockState(pos).getDestroyProgress(player, level, pos); }
-	public void addBreakingBlockEffect(BlockPos pos, Direction direction) { level.addBreakingBlockEffect(pos, direction); }
+	public void addBreakingBlockEffect(BlockPos pos, Direction direction) { level.addBreakingBlockEffects(pos, direction, true); }
 	public VoxelShape getBlockShape(BlockPos pos) { return level.getBlockState(pos).getShape(level, pos); }
 	public VoxelShape getMovedBlockShape(BlockPos pos) { return getBlockShape(pos).move(pos); }
 	public VoxelShape getBlockInteractionShape(BlockPos pos) { return level.getBlockState(pos).getInteractionShape(level, pos); }

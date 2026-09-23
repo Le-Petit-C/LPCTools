@@ -1,7 +1,7 @@
 package lpctools.lpcfymasaapi.render.translucentShapes;
 
 import com.google.common.collect.ImmutableSet;
-import com.mojang.blaze3d.pipeline.RenderPipeline;
+import com.mojang.renderpearl.api.pipeline.RenderPipeline;
 import org.jetbrains.annotations.NotNull;
 
 public record RenderOption(RenderPipeline pipeline, RenderTiming timing, boolean modelOffsetOntoMatrix, @NotNull ImmutableSet<ExtraBindings> extraBindings) {

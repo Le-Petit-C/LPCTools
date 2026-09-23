@@ -12,7 +12,7 @@ import static lpctools.tweaks.HappyGhastRidingTweak.*;
 
 @Mixin(LocalPlayer.class)
 public class ClientPlayerEntityMixin {
-    @ModifyExpressionValue(method = "tick", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/player/Input;equals(Ljava/lang/Object;)Z"))
+    @ModifyExpressionValue(method = "sendChanges", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/player/Input;equals(Ljava/lang/Object;)Z"))
     boolean shouldUpdateTest(boolean lastValue){
         if(lastModified){
             lastModified = false;

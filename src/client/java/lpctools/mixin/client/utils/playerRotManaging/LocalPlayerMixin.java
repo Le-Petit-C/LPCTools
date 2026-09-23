@@ -12,7 +12,7 @@ import org.spongepowered.asm.mixin.injection.At;
 public class LocalPlayerMixin {
 	@Shadow private float yRotLast;
 	@Shadow private float xRotLast;
-	@WrapOperation(method = "tick", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/player/LocalPlayer;sendPosition()V"))
+	@WrapOperation(method = "sendChanges", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/player/LocalPlayer;sendPosition()V"))
 	void wrapSendPositionInTick(LocalPlayer instance, Operation<Void> original) {
 		PlayerRotManaging.wrapSendPositionInTick(instance, original, yRotLast, xRotLast);
 	}

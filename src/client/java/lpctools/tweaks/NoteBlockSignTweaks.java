@@ -27,6 +27,7 @@ import net.minecraft.client.resources.sounds.SoundInstance;
 import net.minecraft.client.sounds.SoundManager;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.network.chat.Component;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.ChunkPos;
@@ -34,6 +35,7 @@ import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.NoteBlock;
 import net.minecraft.world.level.block.WallSignBlock;
 import net.minecraft.world.level.block.entity.SignBlockEntity;
+import net.minecraft.world.level.block.entity.SignTextSlot;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.chunk.LevelChunk;
 import org.apache.commons.lang3.math.Fraction;
@@ -42,6 +44,7 @@ import org.jetbrains.annotations.Nullable;
 import org.jspecify.annotations.NonNull;
 
 import java.util.ArrayDeque;
+import java.util.List;
 import java.util.Optional;
 import java.util.PriorityQueue;
 import java.util.concurrent.CompletableFuture;
@@ -227,9 +230,10 @@ public class NoteBlockSignTweaks {
 							if(direction.isEmpty() || direction.get() != facing) continue;
 							if (!(level.getBlockEntity(nearbyPos) instanceof SignBlockEntity sign)) continue;
 							// 第一行 = 延迟刻数，第二行 = 音量倍率，第三行 = 音高指数；没写 / 写坏的行一律按「未指定」（null）处理
-							Double ticks = parseNumber(sign.getFrontText().getMessage(0, false).getString());
-							Double volume = parseNumber(sign.getFrontText().getMessage(1, false).getString());
-							Double exponent = parseNumber(sign.getFrontText().getMessage(2, false).getString());
+							List<Component> messages = sign.getText(SignTextSlot.FRONT).getMessages(false);
+							Double ticks = parseNumber(messages.get(0).getString());
+							Double volume = parseNumber(messages.get(1).getString());
+							Double exponent = parseNumber(messages.get(2).getString());
 							if (ticks != null && !(ticks > 0 && ticks < MAX_TICKS)) ticks = null;
 							// 音量必须是有限的非负数：它会被直接乘进最终增益，而那个增益已经没有任何钳位兜底了
 							// （负增益交给 OpenAL 是未定义行为，NaN 同理）

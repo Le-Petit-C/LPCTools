@@ -1,7 +1,7 @@
 package lpctools.util;
 
 import com.mojang.blaze3d.pipeline.RenderTarget;
-import com.mojang.blaze3d.textures.GpuTextureView;
+import com.mojang.renderpearl.api.textures.GpuTextureView;
 import lpctools.LPCTools;
 import net.minecraft.client.Minecraft;
 import org.lwjgl.opengl.GL11;
@@ -15,7 +15,7 @@ public class RenderUtils {
 	}
 
 	public static GpuTextureView depthAttachmentViewOrDef(RenderTarget target) {
-		return Objects.requireNonNullElse(target.useDepth ? target.getDepthTextureView() : null, Minecraft.getInstance().gameRenderer.mainRenderTarget().getDepthTextureView());
+		return Objects.requireNonNullElse(target.hasDepth() ? target.getDepthTextureView() : null, Minecraft.getInstance().gameRenderer.mainRenderTarget().getDepthTextureView());
 	}
 
 	/** 检查并输出所有待处理的 OpenGL 错误到 LPCTools logger */

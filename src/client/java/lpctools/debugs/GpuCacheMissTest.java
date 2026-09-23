@@ -1,12 +1,12 @@
 package lpctools.debugs;
 
-import com.mojang.blaze3d.IndexType;
-import com.mojang.blaze3d.buffers.GpuBuffer;
-import com.mojang.blaze3d.buffers.GpuBufferSlice;
-import com.mojang.blaze3d.pipeline.RenderPipeline;
-import com.mojang.blaze3d.systems.RenderPass;
 import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.blaze3d.textures.GpuTextureView;
+import com.mojang.renderpearl.api.buffers.GpuBuffer;
+import com.mojang.renderpearl.api.buffers.GpuBufferSlice;
+import com.mojang.renderpearl.api.commands.RenderPass;
+import com.mojang.renderpearl.api.pipeline.IndexType;
+import com.mojang.renderpearl.api.pipeline.RenderPipeline;
+import com.mojang.renderpearl.api.textures.GpuTextureView;
 import lpctools.lpcfymasaapi.Registries;
 import lpctools.lpcfymasaapi.configButtons.derivedConfigs.ArrayOptionListConfig;
 import lpctools.lpcfymasaapi.configButtons.uniqueConfigs.BooleanHotkeyThirdListConfig;
@@ -215,7 +215,7 @@ public class GpuCacheMissTest {
 		@Override public void onLast(Registries.MASAWorldRenderContext context) {
 			var fb = context.fb();
 			GpuTextureView colorAttachmentView = RenderUtils.colorAttachmentViewOrDef(fb);
-			GpuTextureView depthAttachmentView = fb.useDepth ? fb.getDepthTextureView() : null;
+			GpuTextureView depthAttachmentView = fb.hasDepth() ? fb.getDepthTextureView() : null;
 			GpuBufferSlice dynamicTransforms = RenderSystem.getDynamicUniforms()
 				.writeTransform(RenderSystem.getModelViewMatrixCopy().translate(context.camera().pos.toVector3f().mul(-1)),
 					new Vector4f(1.0F, 1.0F, 1.0F, 1.0F), new Vector3f(), new Matrix4f());
@@ -224,7 +224,7 @@ public class GpuCacheMissTest {
 				.createRenderPass(() -> "LPCTools Vertex Cache Miss Test",
 					colorAttachmentView, Optional.empty(), depthAttachmentView, OptionalDouble.empty())){
 				RenderSystem.bindDefaultUniforms(renderPass);
-				renderPass.setPipeline(renderPipeline);
+				renderPass.setPipeline(RenderSystem.getCompiledPipeline(renderPipeline));
 				renderPass.setUniform("DynamicTransforms", dynamicTransforms);
 				renderPass.setVertexBuffer(0, vertexBuffer.slice());
 				renderPass.setIndexBuffer(indexBuffer, indexType);
